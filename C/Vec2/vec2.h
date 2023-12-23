@@ -102,9 +102,4 @@ vec2 vec2_rotate(vec2 v, vec2 center, float angle)
     return rot;
 }
 
-void vec2_print(vec2 v, char *name)
-{
-    printf("%s: (%g, %g)\n", name, v.x, v.y);
-}
-
 #endif //VEC2_IMPLEMENTATION
