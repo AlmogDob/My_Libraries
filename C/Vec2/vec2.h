@@ -3,6 +3,8 @@
 
 #include <math.h>
 
+#define VEC2_PRINT(v) vec2_print(v, #v)
+
 typedef struct {
     float x;
     float y;
@@ -18,6 +20,7 @@ float vec2_dot(vec2 *a, vec2 *b);
 float vec2_cross(vec2 *a, vec2 *b);
 void vec2_normalize(vec2 *v);
 vec2 vec2_rotate(vec2 v, vec2 center, float angle);
+void vec2_print(vec2 v, char *name);
 
 #endif //VEC2_H_
 
@@ -67,7 +70,7 @@ vec2 vec2_div(vec2 *v, float factor)
 
 float vec2_length(vec2 *v)
 {
-    return sqrt(v->x * v->x + v->y * v->y);
+    return sqrt((v->x * v->x) + (v->y * v->y));
 }
 
 float vec2_dot(vec2 *a, vec2 *b)
@@ -97,6 +100,11 @@ vec2 vec2_rotate(vec2 v, vec2 center, float angle)
     rot.x += center.x;
     rot.y += center.y;
     return rot;
+}
+
+void vec2_print(vec2 v, char *name)
+{
+    printf("%s: (%g, %g)\n", name, v.x, v.y);
 }
 
 #endif //VEC2_IMPLEMENTATION
