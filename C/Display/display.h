@@ -2,7 +2,10 @@
 Gustavo Pezzi to the triangle-rasterizer-int 'display.c'. you can find the source code in: 
 https://github.com/gustavopezzi/triangle-rasterizer-int .
 featured in this video of his:
-https://youtu.be/k5wtuKWmV48 .*/
+https://youtu.be/k5wtuKWmV48 .
+
+*** to use this library, you need to install first SDL2 on your machine and add its librarys
+to the linking argu' *** */
 
 
 
