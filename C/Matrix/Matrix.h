@@ -5,9 +5,6 @@ featured in this video of his:
 https://youtu.be/L1TbWe8bVOc?list=PLpM-Dvs8t0VZPZKggcql-MmjaBdZKeDMw .*/
 
 
-
-
-
 #ifndef MATRIX_H_
 #define MATRIX_H_
 
