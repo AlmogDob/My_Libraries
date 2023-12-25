@@ -1,3 +1,15 @@
+/* This one-file library is heavily inspired by one of the additioal files of 
+Gustavo Pezzi to the triangle-rasterizer-int 'Vec2.c'. I add a few functions
+you can find the source code in:
+https://github.com/gustavopezzi/triangle-rasterizer-int .
+featured in this video of his:
+https://youtu.be/k5wtuKWmV48 .*/
+
+
+
+
+
+
 #ifndef VEC2_H_
 #define VEC2_H_
 

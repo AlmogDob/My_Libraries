@@ -1,7 +1,8 @@
-/* This one-file library is heavily inspired by Gustavo Pezzi's SDL game loop code: 
-https://github.com/gustavopezzi/sdl-gameloop .
+/* This one-file library is heavily inspired by one of the additioal files of 
+Gustavo Pezzi to the triangle-rasterizer-int 'display.c'. you can find the source code in: 
+https://github.com/gustavopezzi/triangle-rasterizer-int .
 featured in this video of his:
-https://www.youtube.com/watch?v=XfZ6WrV5Z7Y .*/
+https://youtu.be/k5wtuKWmV48 .*/
 
 
 
