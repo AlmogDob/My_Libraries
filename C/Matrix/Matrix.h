@@ -1,3 +1,13 @@
+/* This one-file library is heavily inspired by Tsoding's nn.h implementation of matrix
+creation and operation. you can find the source code in:
+https://github.com/tsoding/nn.h .
+featured in this video of his:
+https://www.youtube.com/watch?v=L1TbWe8bVOc&list=PLpM-Dvs8t0VZPZKggcql-MmjaBdZKeDMw&index=2&t=3639s .*/
+
+
+
+
+
 #ifndef MATRIX_H_
 #define MATRIX_H_
 
