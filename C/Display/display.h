@@ -1,3 +1,12 @@
+/* This one-file library is heavily inspired by Gustavo Pezzi's SDL game loop code: 
+https://github.com/gustavopezzi/sdl-gameloop .
+featured in this video of his:
+https://www.youtube.com/watch?v=XfZ6WrV5Z7Y .*/
+
+
+
+
+
 #ifndef DISPLAY_H_
 #define DISPLAY_H_
 
