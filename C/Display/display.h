@@ -8,9 +8,6 @@ https://youtu.be/k5wtuKWmV48 .
 to the linking argu' *** */
 
 
-
-
-
 #ifndef DISPLAY_H_
 #define DISPLAY_H_
 

@@ -6,10 +6,6 @@ featured in this video of his:
 https://youtu.be/k5wtuKWmV48 .*/
 
 
-
-
-
-
 #ifndef VEC2_H_
 #define VEC2_H_
 
