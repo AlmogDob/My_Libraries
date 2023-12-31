@@ -79,7 +79,7 @@ Vec2 Vec2_div(Vec2 *v, float factor)
 
 float Vec2_length(Vec2 *v)
 {
-    return sqrt((v->x * v->x) + (v->y * v->y));
+    return sqrtf((v->x * v->x) + (v->y * v->y));
 }
 
 float Vec2_dot(Vec2 *a, Vec2 *b)
