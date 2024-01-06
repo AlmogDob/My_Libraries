@@ -39,6 +39,7 @@ void mat_rand(Mat m, float low, float high);
 void mat_dot(Mat dst, Mat a, Mat b);
 void mat_sum(Mat dst, Mat a);
 void mat_print(Mat m, const char *name, size_t padding);
+void mat_identity_mat(Mat m);
 
 #endif // MATRIX_H_
 
@@ -116,6 +117,21 @@ void mat_print(Mat m, const char *name, size_t padding)
         printf("\n");
     }
     printf("%*s]\n", (int) padding, "");
+}
+
+void mat_identity_mat(Mat m)
+{
+    MATRIX_ASSERT(m.cols == m.rows);
+    for (size_t i = 0; i < m.rows; ++i) {
+        for (size_t j = 0; j < m.cols; ++j) {
+            if (i == j) {
+                MAT_AT(m, i, j) = 1;
+            }
+            else {
+                MAT_AT(m, i, j) = 0;
+            }
+        }
+    }
 }
 
 #endif // MATRIX_IMPLEMENTATION
