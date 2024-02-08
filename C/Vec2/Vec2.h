@@ -21,15 +21,15 @@ https://youtu.be/k5wtuKWmV48 .*/
 #include <stdio.h>
 #endif //STDIO
 
-#ifndef VEC2_MALLOC
-#include <stdlib.h>
-#define VEC2_MALLOC malloc
-#endif //VEC2_MALLOC
+// #ifndef VEC2_MALLOC
+// #include <stdlib.h>
+// #define VEC2_MALLOC malloc
+// #endif //VEC2_MALLOC
 
-#ifndef VEC2_ASSERT
-#include <assert.h>
-#define VEC2_ASSERT assert
-#endif //VEC2_ASSERT
+// #ifndef VEC2_ASSERT
+// #include <assert.h>
+// #define VEC2_ASSERT assert
+// #endif //VEC2_ASSERT
 
 #define VEC2_PRINT(v) vec2_print(v, #v)
 
