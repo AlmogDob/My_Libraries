@@ -5,21 +5,21 @@ featured in this video of his:
 https://youtu.be/PGSba51aRYU?list=PLpM-Dvs8t0VZPZKggcql-MmjaBdZKeDMw .*/
 
 
-#ifndef MATRIX_H_
-#define MATRIX_H_
+#ifndef NN_H_
+#define NN_H_
 
 #include <stddef.h>
 #include <stdio.h>
-
-#ifndef MATRIX_MALLOC
 #include <stdlib.h>
-#define MATRIX_MALLOC malloc
-#endif //MATRIX_MALLOC
 
-#ifndef MATRIX_ASSERT
+#ifndef NN_MALLOC
+#define NN_MALLOC malloc
+#endif //NN_MALLOC
+
+#ifndef NN_ASSERT
 #include <assert.h>
-#define MATRIX_ASSERT assert
-#endif //MATRIX_ASSERT
+#define NN_ASSERT assert
+#endif //NN_ASSERT
 
 typedef struct {
     size_t rows;
@@ -41,9 +41,9 @@ void mat_sum(Mat dst, Mat a);
 void mat_print(Mat m, const char *name, size_t padding);
 void mat_identity_mat(Mat m);
 
-#endif // MATRIX_H_
+#endif // NN_H_
 
-#ifdef MATRIX_IMPLEMENTATION
+#ifdef NN_IMPLEMENTATION
 
 float rand_float(void)
 {
@@ -55,8 +55,8 @@ Mat mat_alloc(size_t rows, size_t cols)
     Mat m;
     m.rows = rows;
     m.cols = cols;
-    m.elements = (float*)MATRIX_MALLOC(sizeof(*m.elements)*rows*cols);
-    MATRIX_ASSERT(m.elements != NULL);
+    m.elements = (float*)NN_MALLOC(sizeof(*m.elements)*rows*cols);
+    NN_ASSERT(m.elements != NULL);
     return m;    
 }
 
@@ -80,10 +80,10 @@ void mat_rand(Mat m, float low, float high)
 
 void mat_dot(Mat dst, Mat a, Mat b)
 {
-    MATRIX_ASSERT(a.cols == b.rows);
+    NN_ASSERT(a.cols == b.rows);
     size_t n = a.cols;
-    MATRIX_ASSERT(a.rows == dst.rows);
-    MATRIX_ASSERT(b.cols == dst.cols);
+    NN_ASSERT(a.rows == dst.rows);
+    NN_ASSERT(b.cols == dst.cols);
 
     for (size_t i = 0; i < dst.rows; i++) {
         for (size_t j = 0; j < dst.cols; j++) {
@@ -97,8 +97,8 @@ void mat_dot(Mat dst, Mat a, Mat b)
 
 void mat_sum(Mat dst, Mat a)
 {
-    MATRIX_ASSERT(dst.rows == a.rows);
-    MATRIX_ASSERT(dst.cols == a.cols);
+    NN_ASSERT(dst.rows == a.rows);
+    NN_ASSERT(dst.cols == a.cols);
     for (size_t i = 0; i < dst.rows; ++i) {
         for (size_t j = 0; j < dst.cols; ++j) {
             MAT_AT(dst, i, j) += MAT_AT(a, i, j);
@@ -121,7 +121,7 @@ void mat_print(Mat m, const char *name, size_t padding)
 
 void mat_identity_mat(Mat m)
 {
-    MATRIX_ASSERT(m.cols == m.rows);
+    NN_ASSERT(m.cols == m.rows);
     for (size_t i = 0; i < m.rows; ++i) {
         for (size_t j = 0; j < m.cols; ++j) {
             if (i == j) {
@@ -134,4 +134,4 @@ void mat_identity_mat(Mat m)
     }
 }
 
-#endif // MATRIX_IMPLEMENTATION
+#endif // NN_IMPLEMENTATION
