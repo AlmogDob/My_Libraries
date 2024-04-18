@@ -10,9 +10,9 @@ https://youtu.be/L1TbWe8bVOc?list=PLpM-Dvs8t0VZPZKggcql-MmjaBdZKeDMw .*/
 
 #include <stddef.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #ifndef MATRIX_MALLOC
-#include <stdlib.h>
 #define MATRIX_MALLOC malloc
 #endif //MATRIX_MALLOC
 
