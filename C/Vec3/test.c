@@ -3,15 +3,11 @@
 
 int main(void)
 {
-    Vec3 v = vec3_new(1, 0, 0);
-    Vec3 center = vec3_new(0,0,0);
-    Vec3 u;
-    vec3_rotate_around_y(&u, &v, &center, PI/2);
+    Vec3 v1 = vec3_new(1, 1, 0);
+    Vec3 v2 = vec3_new(2, 2, 0);
+    
+    float res = vec3_dot(&v1, &v2);
 
-    Vec3 res;
-
-    vec3_sub(&res, &v, &u);
-
-    VEC3_PRINT(&res);
+    printf("res: %g\n", res);
     return 0;
 }
