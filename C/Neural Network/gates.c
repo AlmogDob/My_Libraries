@@ -12,11 +12,11 @@ float sigmoidf(float x);
 float cost(float w1, float w2, float b);
 
 
-/* OR-gate */
+/* AND-gate */
 float train[][3] = {
     {0, 0, 0},
-    {1, 0, 1},
-    {0, 1, 1},
+    {1, 0, 0},
+    {0, 1, 0},
     {1, 1, 1},
 };
 
