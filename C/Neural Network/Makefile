@@ -1,17 +1,35 @@
-fast: build run clean
-	
-build: twice.c
+twice: build_twice run_twice clean_twice
+	@echo done twice
+
+build_twice: twice.c
 	gcc -Wall -Wextra ./twice.c -lm -o twice
 
-run:
+run_twice:
 	@echo
 	@echo @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 	./twice
 	@echo @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 	@echo
 
-clean:
+clean_twice:
 	rm twice
+
+############################################################
+gates: build_gates run_gates clean_gates
+	@echo done gates
+
+build_gates: gates.c
+	gcc -Wall -Wextra ./gates.c -lm -o gates
+
+run_gates:
+	@echo
+	@echo @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	./gates
+	@echo @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+	@echo
+
+clean_gates:
+	rm gates
 
 test:
 	gcc -Wall -Wextra ./test.c -lm -o test
