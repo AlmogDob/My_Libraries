@@ -22,14 +22,12 @@ build_gates: gates.c
 	gcc -Wall -Wextra ./gates.c -lm -o gates
 
 run_gates:
-	@echo
-	@echo @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 	./gates
-	@echo @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-	@echo
 
 clean_gates:
 	rm gates
+
+############################################################
 
 test:
 	gcc -Wall -Wextra ./test.c -lm -o test
@@ -44,11 +42,11 @@ times2:
 	echo; rm twice; sleep 1;\
 	done
 
-times3: 
+gates_times3: 
 	@for number in 1 2 3 ; do \
-    gcc -Wall -Wextra ./twice.c -lm -o twice;\
+    gcc -Wall -Wextra ./gates.c -lm -o gates;\
 	echo; echo run number $$number; echo @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@;\
-	./twice;	echo @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@;\
-	echo; rm twice; sleep 1;\
+	./gates;	echo @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@;\
+	echo; rm gates; sleep 1;\
 	done
 	
