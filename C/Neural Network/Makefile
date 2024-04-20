@@ -1,17 +1,17 @@
 fast: build run clean
 	
-build: main.c
-	gcc -Wall -Wextra ./main.c -lm -o main
+build: twice.c
+	gcc -Wall -Wextra ./twice.c -lm -o twice
 
 run:
 	@echo
 	@echo @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-	./main
+	./twice
 	@echo @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 	@echo
 
 clean:
-	rm main
+	rm twice
 
 test:
 	gcc -Wall -Wextra ./test.c -lm -o test
@@ -20,17 +20,17 @@ test:
 
 times2: 
 	@for number in 1 2 ; do \
-    gcc -Wall -Wextra ./main.c -lm -o main;\
+    gcc -Wall -Wextra ./twice.c -lm -o twice;\
 	echo; echo run number $$number; echo @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@;\
-	./main;	echo @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@;\
-	echo; rm main; sleep 1;\
+	./twice;	echo @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@;\
+	echo; rm twice; sleep 1;\
 	done
 
 times3: 
 	@for number in 1 2 3 ; do \
-    gcc -Wall -Wextra ./main.c -lm -o main;\
+    gcc -Wall -Wextra ./twice.c -lm -o twice;\
 	echo; echo run number $$number; echo @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@;\
-	./main;	echo @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@;\
-	echo; rm main; sleep 1;\
+	./twice;	echo @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@;\
+	echo; rm twice; sleep 1;\
 	done
 	
