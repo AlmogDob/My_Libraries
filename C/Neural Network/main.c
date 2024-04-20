@@ -39,13 +39,13 @@ int main()
 
     float dw, db, c;
     
-    for (int i = 0; i < 500; i++) {
+    for (int i = 0; i < 10e3; i++) {
         c = cost(w, b);
         dw = (cost(w+eps, b) - c)/eps;
         db = (cost(w, b+eps) - c)/eps;
         w -= rate*dw;
         b -= rate*db;
-        printf("cost = %f, w = %f, b = %f\n", cost(w, b), w, b);
+        // printf("cost = %f, w = %f, b = %f\n", cost(w, b), w, b);
 
     }
 
