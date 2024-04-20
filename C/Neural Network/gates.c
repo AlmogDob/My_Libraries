@@ -12,12 +12,12 @@ float sigmoidf(float x);
 float cost(float w1, float w2, float b);
 
 
-/* AND-gate */
+/* NAND-gate */
 float train[][3] = {
-    {0, 0, 0},
-    {1, 0, 0},
-    {0, 1, 0},
-    {1, 1, 1},
+    {0, 0, 1},
+    {1, 0, 1},
+    {0, 1, 1},
+    {1, 1, 0},
 };
 
 float cost(float w1, float w2, float b)
@@ -42,9 +42,9 @@ float sigmoidf(float x)
 int main()
 {
     srand(time(0));
-    float w1 = rand_float()*10;
-    float w2 = rand_float()*10;
-    float b  = rand_float()*10;
+    float w1 = rand_float();
+    float w2 = rand_float();
+    float b  = rand_float();
     
     float eps = 1e-1;
     float rate = 1e-1;
