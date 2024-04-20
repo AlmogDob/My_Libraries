@@ -119,6 +119,7 @@ void mat_print(Mat m, const char *name, size_t padding)
     printf("%*s]\n", (int) padding, "");
 }
 
+/* make matrix into the identity matrix*/
 void mat_identity_mat(Mat m)
 {
     NN_ASSERT(m.cols == m.rows);
