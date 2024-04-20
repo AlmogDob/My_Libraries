@@ -4,4 +4,5 @@
 *.pdb
 *.vscode
 *.exe
-
+*.json
+test.c
