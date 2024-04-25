@@ -81,6 +81,7 @@ size_t train_count = 4;
 
 int main()
 {
+    srand(time(0));
     Xor m = rand_xor();
     float eps = 1e-1, rate = 1e-1;
     Xor g = finite_diff(m, eps);
