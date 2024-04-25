@@ -27,21 +27,6 @@ run_gates:
 clean_gates:
 	rm gates
 
-############################################################
-
-test:
-	gcc -Wall -Wextra ./test.c -lm -o test
-	./test
-	rm test
-
-times2: 
-	@for number in 1 2 ; do \
-    gcc -Wall -Wextra ./twice.c -lm -o twice;\
-	echo; echo run number $$number; echo @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@;\
-	./twice;	echo @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@;\
-	echo; rm twice; sleep 1;\
-	done
-
 gates_times3: 
 	@for number in 1 2 3 ; do \
     gcc -Wall -Wextra ./gates.c -lm -o gates;\
@@ -49,4 +34,31 @@ gates_times3:
 	./gates;	echo @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@;\
 	echo; rm gates; sleep 1;\
 	done
+############################################################
+
+xor: build_xor run_xor clean_xor
+	@echo done xor
+
+build_xor: xor.c
+	gcc -Wall -Wextra ./xor.c -lm -o xor
+
+run_xor:
+	./xor
+
+clean_xor:
+	rm xor
+
+xor_times3: 
+	@for number in 1 2 3 ; do \
+    gcc -Wall -Wextra ./xor.c -lm -o xor;\
+	echo; echo run number $$number; echo @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@;\
+	./xor;	echo @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@;\
+	echo; rm xor; sleep 1;\
+	done
+############################################################
+
+test:
+	gcc -Wall -Wextra ./test.c -lm -o test
+	./test
+	rm test
 	

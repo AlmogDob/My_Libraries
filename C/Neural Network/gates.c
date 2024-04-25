@@ -4,21 +4,37 @@
 #include "NN.h"
 #include <math.h>
 
-
 #define dprintF(expr) printf(#expr " = %g\n", expr)
-#define train_count (sizeof(train)/sizeof(train[0]))
+
+typedef float sample[3];
 
 float sigmoidf(float x);
 float cost(float w1, float w2, float b);
 
-
-/* XOR-gate */
-float train[][3] = {
+/* OR-gate */
+sample or_train[] = {
     {0, 0, 0},
+    {1, 0, 1},
+    {0, 1, 1},
+    {1, 1, 1},
+};
+
+sample and_train[] = {
+    {0, 0, 0},
+    {1, 0, 0},
+    {0, 1, 0},
+    {1, 1, 1},
+};
+
+sample nand_train[] = {
+    {0, 0, 1},
     {1, 0, 1},
     {0, 1, 1},
     {1, 1, 0},
 };
+
+sample *train = nand_train;
+size_t train_count = 4;
 
 float cost(float w1, float w2, float b)
 {
