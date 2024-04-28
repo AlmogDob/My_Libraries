@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <time.h>
 #define NN_IMPLEMENTATION
-#include "NN.h"
+#include "nn.h"
 #include <math.h>
 
 #define dprintF(expr) printf(#expr " = %g\n", expr)

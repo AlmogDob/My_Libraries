@@ -10,9 +10,9 @@ https://youtu.be/PGSba51aRYU?list=PLpM-Dvs8t0VZPZKggcql-MmjaBdZKeDMw .*/
 
 #include <stddef.h>
 #include <stdio.h>
-#include <stdlib.h>
 
 #ifndef NN_MALLOC
+#include <stdlib.h>
 #define NN_MALLOC malloc
 #endif //NN_MALLOC
 
@@ -30,7 +30,7 @@ typedef struct {
 } Mat;
 
 #define MAT_AT(m, i, j) (m).elements[(i)*(m).cols + (j)]
-#define MAT_PRINT(m) mat_print(m, #m, 0)
+#define MAT_PRINT(m) mat_print((m), #m, 0)
 
 float rand_float(void);
 Mat mat_alloc(size_t rows, size_t cols);
@@ -38,6 +38,7 @@ void mat_fill(Mat m, float x);
 void mat_rand(Mat m, float low, float high);
 void mat_dot(Mat dst, Mat a, Mat b);
 void mat_sum(Mat dst, Mat a);
+void mat_mult(Mat a, size_t factor);
 void mat_print(Mat m, const char *name, size_t padding);
 void mat_identity_mat(Mat m);
 
@@ -102,6 +103,15 @@ void mat_sum(Mat dst, Mat a)
     for (size_t i = 0; i < dst.rows; ++i) {
         for (size_t j = 0; j < dst.cols; ++j) {
             MAT_AT(dst, i, j) += MAT_AT(a, i, j);
+        }
+    }
+}
+
+void mat_mult(Mat m, size_t factor)
+{
+    for (size_t i = 0; i < m.rows; ++i) {
+        for (size_t j = 0; j < m.cols; ++j) {
+            MAT_AT(m, i, j) = MAT_AT(m, i, j) * factor;
         }
     }
 }

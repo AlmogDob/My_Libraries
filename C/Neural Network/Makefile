@@ -36,6 +36,27 @@ gates_times3:
 	done
 ############################################################
 
+nn: build_nn run_nn clean_nn
+	@echo done nn
+
+build_nn: nn.c
+	gcc -Wall -Wextra ./nn.c -lm -o nn
+
+run_nn:
+	./nn
+
+clean_nn:
+	rm nn
+
+nn_times3: 
+	@for number in 1 2 3 ; do \
+    gcc -Wall -Wextra ./nn.c -lm -o nn;\
+	echo; echo run number $$number; echo @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@;\
+	./nn;	echo @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@;\
+	echo; rm nn; sleep 1;\
+	done
+############################################################
+
 xor: build_xor run_xor clean_xor
 	@echo done xor
 

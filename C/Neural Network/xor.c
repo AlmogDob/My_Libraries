@@ -1,6 +1,6 @@
 #include <stdio.h>
 #define NN_IMPLEMENTATION
-#include "NN.h"
+#include "nn.h"
 #include <math.h>
 #include <time.h>
 

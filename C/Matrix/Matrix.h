@@ -38,6 +38,7 @@ void mat_fill(Mat m, float x);
 void mat_rand(Mat m, float low, float high);
 void mat_dot(Mat dst, Mat a, Mat b);
 void mat_sum(Mat dst, Mat a);
+void mat_mult(Mat m, size_t factor);
 void mat_print(Mat m, const char *name, size_t padding);
 void mat_identity_mat(Mat m);
 
@@ -102,6 +103,15 @@ void mat_sum(Mat dst, Mat a)
     for (size_t i = 0; i < dst.rows; ++i) {
         for (size_t j = 0; j < dst.cols; ++j) {
             MAT_AT(dst, i, j) += MAT_AT(a, i, j);
+        }
+    }
+}
+
+void mat_mult(Mat m, size_t factor)
+{
+    for (size_t i = 0; i < m.rows; ++i) {
+        for (size_t j = 0; j < m.cols; ++j) {
+            MAT_AT(m, i, j) = MAT_AT(m, i, j) * factor;
         }
     }
 }
