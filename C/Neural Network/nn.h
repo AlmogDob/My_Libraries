@@ -92,6 +92,7 @@ void mat_dot(Mat dst, Mat a, Mat b)
     size_t n = a.cols;
     NN_ASSERT(a.rows == dst.rows);
     NN_ASSERT(b.cols == dst.cols);
+    mat_fill(dst, 0);
 
     for (size_t i = 0; i < dst.rows; i++) {
         for (size_t j = 0; j < dst.cols; j++) {

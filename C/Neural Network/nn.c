@@ -3,6 +3,7 @@
 #include "time.h"
 
 #define dprintF(expr) printf(#expr " = %f\n", expr)
+#define dprintT(expr) printf(#expr " = %zu\n", expr)
 
 typedef struct {
     Mat a0;
@@ -53,22 +54,38 @@ int main(void)
     mat_rand(m.w2, 0, 1);
     mat_rand(m.b2, 0, 1);
 
+    
     printf("cost = %f\n", cost(m, ti, to));
     for (size_t i = 0; i < 1e0; i++) {
         finite_diff(m, g, eps, ti, to);
         xor_learn(m, g, rate);
         printf("cost = %f\n", cost(m, ti, to));
     }
+
+
     // for (size_t i = 0; i < 2; ++i) {
     //     for (size_t j = 0; j < 2; ++j) {
     //         MAT_AT(m.a0, 0, 0) = i;
-    //         MAT_AT(m.a0, 0, 0) = j;
+    //         MAT_AT(m.a0, 0, 1) = j;
     //         forward_xor(m);
     //         float y = *m.a2.elements;
 
     //         printf("%zu ^ %zu = %f\n", i, j, y);
     //     }
     // }
+    // printf("-------------------------------\n");
+
+    // for (size_t i = 0; i < 2; ++i) {
+    //     for (size_t j = 0; j < 2; ++j) {
+    //         MAT_AT(m.a0, 0, 0) = i;
+    //         MAT_AT(m.a0, 0, 1) = j;
+    //         forward_xor(m);
+    //         float y = *m.a2.elements;
+
+    //         printf("%zu ^ %zu = %f\n", i, j, y);
+    //     }
+    // }
+    // printf("-------------------------------\n");
     return 0;
 }
 
@@ -109,7 +126,6 @@ float cost(Xor m, Mat ti, Mat to)
 void finite_diff(Xor m, Xor g, float eps, Mat ti, Mat to)
 {
     float saved, c = cost(m, ti, to);
-
     for ( size_t i = 0; i < m.w1.rows; ++i) {
         for (size_t j = 0; j < m.w1.cols; ++j) {
             saved = MAT_AT(m.w1, i, j);
@@ -164,25 +180,25 @@ void xor_learn(Xor m, Xor g, float rate)
 {
     for ( size_t i = 0; i < m.w1.rows; ++i) {
         for (size_t j = 0; j < m.w1.cols; ++j) {
-            MAT_AT(m.w1, i, j) -= rate * MAT_AT(g.w1, i, j);
+            MAT_AT(m.w1, i, j) -= rate*MAT_AT(g.w1, i, j);
         }
     }
 
     for ( size_t i = 0; i < m.b1.rows; ++i) {
         for (size_t j = 0; j < m.b1.cols; ++j) {
-            MAT_AT(m.b1, i, j) -= rate * MAT_AT(g.b1, i, j);
+            MAT_AT(m.b1, i, j) -= rate*MAT_AT(g.b1, i, j);
         }
     }
 
     for ( size_t i = 0; i < m.w2.rows; ++i) {
         for (size_t j = 0; j < m.w2.cols; ++j) {
-            MAT_AT(m.w2, i, j) -= rate * MAT_AT(g.w2, i, j);
+            MAT_AT(m.w2, i, j) -= rate*MAT_AT(g.w2, i, j);
         }
     }
 
     for ( size_t i = 0; i < m.b2.rows; ++i) {
         for (size_t j = 0; j < m.b2.cols; ++j) {
-            MAT_AT(m.b2, i, j) -= rate * MAT_AT(g.b2, i, j);
+            MAT_AT(m.b2, i, j) -= rate*MAT_AT(g.b2, i, j);
         }
     }
         
