@@ -56,6 +56,7 @@ Mat mat_alloc(size_t rows, size_t cols)
     Mat m;
     m.rows = rows;
     m.cols = cols;
+    m.stride = cols;
     m.elements = (float*)MATRIX_MALLOC(sizeof(*m.elements)*rows*cols);
     MATRIX_ASSERT(m.elements != NULL);
     return m;    
