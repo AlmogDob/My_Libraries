@@ -56,36 +56,23 @@ int main(void)
 
     
     printf("cost = %f\n", cost(m, ti, to));
-    for (size_t i = 0; i < 1e0; i++) {
+    for (size_t i = 0; i < 1e5; i++) {
         finite_diff(m, g, eps, ti, to);
         xor_learn(m, g, rate);
-        printf("cost = %f\n", cost(m, ti, to));
     }
+    printf("cost = %f\n", cost(m, ti, to));
 
+    printf("-------------------------------\n");
+    for (size_t i = 0; i < 2; i++) {
+        for (size_t j = 0; j < 2; j++) {
+            MAT_AT(m.a0, 0, 0) = i;
+            MAT_AT(m.a0, 0, 1) = j;
+            forward_xor(m);
+            float y = *m.a2.elements;
 
-    // for (size_t i = 0; i < 2; ++i) {
-    //     for (size_t j = 0; j < 2; ++j) {
-    //         MAT_AT(m.a0, 0, 0) = i;
-    //         MAT_AT(m.a0, 0, 1) = j;
-    //         forward_xor(m);
-    //         float y = *m.a2.elements;
-
-    //         printf("%zu ^ %zu = %f\n", i, j, y);
-    //     }
-    // }
-    // printf("-------------------------------\n");
-
-    // for (size_t i = 0; i < 2; ++i) {
-    //     for (size_t j = 0; j < 2; ++j) {
-    //         MAT_AT(m.a0, 0, 0) = i;
-    //         MAT_AT(m.a0, 0, 1) = j;
-    //         forward_xor(m);
-    //         float y = *m.a2.elements;
-
-    //         printf("%zu ^ %zu = %f\n", i, j, y);
-    //     }
-    // }
-    // printf("-------------------------------\n");
+            printf("%zu ^ %zu = %f\n", i, j, y);
+        }
+    }
     return 0;
 }
 
