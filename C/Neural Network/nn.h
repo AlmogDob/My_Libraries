@@ -22,6 +22,7 @@ https://youtu.be/PGSba51aRYU?list=PLpM-Dvs8t0VZPZKggcql-MmjaBdZKeDMw .*/
 #define NN_ASSERT assert
 #endif //NN_ASSERT
 
+/* MATRIXES */
 typedef struct {
     size_t rows;
     size_t cols;
@@ -47,6 +48,22 @@ Mat mat_row(Mat m, size_t row);
 float sigmoidf(float x);
 void mat_sig(Mat m);
 void mat_copy(Mat dst, Mat src);
+
+/* NN */
+
+#define ARRAY_LEN(xs) sizeof((xs))/sizeof((xs)[0])
+#define NN_PRINT(nn) nn_print((nn), #nn)
+
+typedef struct {
+    size_t count;
+    Mat *ws;
+    Mat *bs;
+    Mat *as; /* The amount of activations is count+0 */    
+} NN;
+
+NN nn_alloc(size_t *arch, size_t arch_count);
+void nn_print(NN nn, const char *name);
+void nn_rand(NN nn, float low, float high);
 
 #endif // NN_H_
 
@@ -191,5 +208,49 @@ void mat_copy(Mat dst, Mat src)
     
 }
 
+NN nn_alloc(size_t *arch, size_t arch_count)
+{
+    NN_ASSERT(arch_count > 0);
+
+    NN nn;
+    nn.count = arch_count - 1;
+
+    nn.ws = NN_MALLOC(sizeof(*nn.ws)*nn.count);
+    NN_ASSERT(nn.ws != NULL);
+    nn.bs = NN_MALLOC(sizeof(*nn.bs)*nn.count); 
+    NN_ASSERT(nn.bs != NULL);
+    nn.as = NN_MALLOC(sizeof(*nn.as)*(nn.count + 1)); 
+    NN_ASSERT(nn.as != NULL);
+
+    nn.as[0] = mat_alloc(1, arch[0]);
+    for (size_t i = 1; i < arch_count; ++i) {
+        nn.ws[i-1] = mat_alloc(nn.as[i-1].cols, arch[i]);
+        nn.bs[i-1] = mat_alloc(1, arch[i]);
+        nn.as[i]   = mat_alloc(1, arch[i]);
+    }
+    
+    return nn;
+}
+
+void nn_print(NN nn, const char *name)
+{
+    char buf[256];
+    printf("%s = [\n", name);
+    for (size_t i = 0; i < nn.count; ++i) {
+        snprintf(buf, sizeof(buf), "ws%zu", i);
+        mat_print(nn.ws[i], buf, 4);
+        snprintf(buf, sizeof(buf), "bs%zu", i);
+        mat_print(nn.bs[i], buf, 4);
+
+    }
+}
+
+void nn_rand(NN nn, float low, float high)
+{
+    for (size_t i = 0; i < nn.count; ++i) {
+        mat_rand(nn.ws[i], low, high);
+        mat_rand(nn.bs[i], low, high);
+    }
+}
 
 #endif // NN_IMPLEMENTATION
