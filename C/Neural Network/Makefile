@@ -36,24 +36,26 @@ gates_times3:
 	done
 ############################################################
 
-nn: build_nn run_nn clean_nn
-	@echo done nn
+xor_with_nn: build_xor_with_nn run_xor_with_nn clean_xor_with_nn
+	@echo done xor_with_nn
 
-build_nn: nn.c
-	gcc -Wall -Wextra ./nn.c -lm -o nn
+build_xor_with_nn: xor_with_nn.c
+	gcc -Wall -Wextra ./xor_with_nn.c -lm -o xor_with_nn
 
-run_nn:
-	./nn
+run_xor_with_nn:
+	@echo 
+	./xor_with_nn
+	@echo 
 
-clean_nn:
-	rm nn
+clean_xor_with_nn:
+	rm xor_with_nn
 
-nn_times3: 
+xor_with_nn_times3: 
 	@for number in 1 2 3 ; do \
-    gcc -Wall -Wextra ./nn.c -lm -o nn;\
+    gcc -Wall -Wextra ./xor_with_nn.c -lm -o xor_with_nn;\
 	echo; echo run number $$number; echo @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@;\
-	./nn;	echo @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@;\
-	echo; rm nn; sleep 1;\
+	./xor_with_nn;	echo @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@;\
+	echo; rm xor_with_nn; sleep 1;\
 	done
 ############################################################
 

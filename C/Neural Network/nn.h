@@ -53,17 +53,22 @@ void mat_copy(Mat dst, Mat src);
 
 #define ARRAY_LEN(xs) sizeof((xs))/sizeof((xs)[0])
 #define NN_PRINT(nn) nn_print((nn), #nn)
+#define NN_INPUT(nn) (nn).as[0]
+#define NN_OUTPUT(nn) (nn).as[(nn).count]
 
 typedef struct {
     size_t count;
     Mat *ws;
     Mat *bs;
-    Mat *as; /* The amount of activations is count+0 */    
+    Mat *as; /* The amount of activations is count+1 */    
 } NN;
 
 NN nn_alloc(size_t *arch, size_t arch_count);
 void nn_print(NN nn, const char *name);
 void nn_rand(NN nn, float low, float high);
+void nn_forward(NN nn);
+float nn_cost(NN nn, Mat ti, Mat to);
+void nn_finite_diff(NN nn, NN g, float eps, Mat ti, Mat to);
 
 #endif // NN_H_
 
@@ -251,6 +256,79 @@ void nn_rand(NN nn, float low, float high)
         mat_rand(nn.ws[i], low, high);
         mat_rand(nn.bs[i], low, high);
     }
+}
+
+void nn_forward(NN nn)
+{
+    for (size_t i = 0; i < nn.count; i++) {
+        mat_dot(nn.as[i+1], nn.as[i], nn.ws[i]);
+        mat_sum(nn.as[i+1], nn.bs[i]);
+        mat_sig(nn.as[i+1]);
+    }
+}
+
+float nn_cost(NN nn, Mat ti, Mat to)
+{
+    NN_ASSERT(ti.rows == to.rows);
+    NN_ASSERT(to.cols == NN_OUTPUT(nn).cols);
+    size_t n = ti.rows, q = to.cols;
+    float d, c = 0;
+
+    for (size_t i = 0; i < n; ++i) {
+        Mat input = mat_row(ti, i);
+        Mat output = mat_row(to, i);
+
+        mat_copy(NN_INPUT(nn), input);
+        nn_forward(nn);
+        
+        for (size_t j = 0; j < q; j++) {
+            d =  MAT_AT(NN_OUTPUT(nn), 0, j) - MAT_AT(output, 0, j);
+            c += d*d;
+        }
+    }
+    return c/n;
+}
+
+void nn_finite_diff(NN nn, NN g, float eps, Mat ti, Mat to)
+{
+    float saved, c = nn_cost(nn, ti, to);
+
+    for (size_t i = 0; i < nn.count; ++i) {
+        for (size_t j = 0; j < nn.ws[i].rows; ++j) {
+            for (size_t k = 0; k < nn.ws[i].cols; ++k) {
+                saved = MAT_AT(nn.ws[i], j, k);
+                MAT_AT(nn.ws[i], j, k) += eps;
+                MAT_AT(g.ws[i], j, k) = (nn_cost(nn, ti, to) - c)/eps;
+                MAT_AT(nn.ws[i], j, k) = saved;
+            }
+        }
+
+        for (size_t j = 0; j < nn.bs[i].rows; ++j) {
+            for (size_t k = 0; k < nn.bs[i].cols; ++k) {
+                saved = MAT_AT(nn.bs[i], j, k);
+                MAT_AT(nn.bs[i], j, k) += eps;
+                MAT_AT(g.bs[i], j, k) = (nn_cost(nn, ti, to) - c)/eps;
+                MAT_AT(nn.bs[i], j, k) = saved;
+            }
+        }
+    } 
+}
+
+void nn_learn(NN nn, NN g, float rate) 
+{
+    for (size_t i = 0; i < nn.count; ++i) {
+        for (size_t j = 0; j < nn.ws[i].rows; ++j) {
+            for (size_t k = 0; k < nn.ws[i].cols; ++k) {
+                MAT_AT(nn.ws[i], j, k) -= rate * MAT_AT(g.ws[i], j, k);
+            }
+        }
+
+        for (size_t j = 0; j < nn.bs[i].rows; ++j) {
+            for (size_t k = 0; k < nn.bs[i].cols; ++k) {
+                MAT_AT(nn.bs[i], j, k) -= rate * MAT_AT(g.bs[i], j, k);
+            }
+        }
+    } 
 }
 
 #endif // NN_IMPLEMENTATION
