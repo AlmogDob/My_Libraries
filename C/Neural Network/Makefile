@@ -126,6 +126,27 @@ xor_times3:
 	done
 ############################################################
 
+adder: build_adder run_adder clean_adder
+	@echo done adder
+
+build_adder: adder.c
+	gcc -Wall -Wextra ./adder.c -lm -o adder
+
+run_adder:
+	./adder
+
+clean_adder:
+	rm adder
+
+adder_times3: 
+	@for number in 1 2 3 ; do \
+    gcc -Wall -Wextra ./adder.c -lm -o adder;\
+	echo; echo run number $$number; echo @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@;\
+	./adder;	echo @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@;\
+	echo; rm adder; sleep 1;\
+	done
+############################################################
+
 test:
 	gcc -Wall -Wextra ./test.c -lm -o test
 	./test
