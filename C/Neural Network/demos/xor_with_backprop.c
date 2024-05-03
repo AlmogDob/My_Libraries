@@ -47,7 +47,7 @@ int main(void)
     nn_rand(nn, 0, 1);
 
     printf("cost = %f\n", nn_cost(nn, ti, to));
-    for (size_t i = 0; i < 5e4; i++) {
+    for (size_t i = 0; i < 5e5; i++) {
 #if 0
         nn_finite_diff(nn, g, eps, ti, to);
 #else

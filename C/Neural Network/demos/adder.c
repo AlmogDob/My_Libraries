@@ -9,6 +9,7 @@
 int main(void)
 {
     srand(time(0));
+    // srand(0);
     size_t n = (1<<BITS);
     size_t rows = n*n;
     Mat ti = mat_alloc(rows, 2*BITS), to = mat_alloc(rows, BITS + 1);
@@ -45,7 +46,7 @@ int main(void)
     nn_rand(nn, 0, 1);
 /*-------------------------------------------------- */
     printf("c = %f\n", nn_cost(nn, ti, to));
-    for (size_t i = 0; i < 5e4; i++) {
+    for (size_t i = 0; i < 2e4; i++) {
         nn_backprop(nn, g, ti, to);
         nn_learn(nn, g, rate);
     }
