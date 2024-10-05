@@ -5,5 +5,4 @@
 *.vscode
 *.exe
 *.json
-test.c
 test
