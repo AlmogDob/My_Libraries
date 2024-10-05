@@ -14,8 +14,8 @@
     int* elements;
 } ada_int_array; */
 
-size_t ada_array_init(size_t _size, size_t _capacity, void *_elements, size_t *length_to_header, size_t *capacity_to_header);
-#define ada_array(type, header) ada_array_init(sizeof(type), INIT_CAPACITY, (void *)(header.elements), &(header.length), &(header.capacity))
+void *ada_array_init(size_t _size, size_t _capacity, size_t *length_to_header, size_t *capacity_to_header);
+#define ada_array(type, header) (type *)ada_array_init(sizeof(type), INIT_CAPACITY, &(header.length), &(header.capacity))
 
 #endif /*ALMOG_DYNAMIC_ARRAY_H_*/
 
@@ -23,19 +23,16 @@ size_t ada_array_init(size_t _size, size_t _capacity, void *_elements, size_t *l
 
 #ifdef ADA_IMPLEMENTATION
 
-/* returns 0 if fail */
-size_t ada_array_init(size_t _size, size_t _capacity, void *_elements, size_t *length_to_header, size_t *capacity_to_header)
+void *ada_array_init(size_t _size, size_t _capacity, size_t *length_to_header, size_t *capacity_to_header)
 {
-    _elements = malloc(_size * _capacity);
-    *length_to_header = 0;
-    *capacity_to_header = _capacity;
+    void *ptr = 0;
+    ptr = ADA_MALLOC(_size * _capacity);
 
-    if(_elements) {
-        return 1;
-    } else {
-        return 0;
+    if (ptr) {
+        *length_to_header = 0;
+        *capacity_to_header = _capacity;
     }
-
+    return ptr;
 }
 
 #endif /*ADA_IMPLEMENTATION*/

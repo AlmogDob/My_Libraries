@@ -10,13 +10,12 @@ typedef struct {
 
 int main()
 {
-    printf("Hello, World!\n");
-
     ada_int_array a;
 
-    ada_array(int, a);
+    a.elements = ada_array(int, a);
 
-    printf()
+    printf("capacity: %zu\n", a.capacity);
+    printf("length: %zu\n", a.length);
 
     return 0;
 }
