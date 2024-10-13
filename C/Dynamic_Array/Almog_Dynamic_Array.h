@@ -32,9 +32,13 @@
     //     ADA_ASSERT(header.elements != NULL);
     // } while (0)
 
-#define ada_resize(type, header, new_capacity) do { header.elements = (type *)ADA_REALLOC((void *)(header.elements), new_capacity*sizeof(type)); ADA_ASSERT(header.elements != NULL); header.capacity = new_capacity; } while (0)
+#define ada_resize(type, header, new_capacity) do { type *temp = (type *)ADA_REALLOC((void *)(header.elements), new_capacity*sizeof(type)); if (temp == NULL) { exit(1); } header.elements = temp; ADA_ASSERT(header.elements != NULL); header.capacity = new_capacity; } while (0)
     // do {
-    //     header.elements = (type *)ADA_REALLOC((void *)(header.elements), new_capacity*sizeof(type));
+    //     type *temp = (type *)ADA_REALLOC((void *)(header.elements), new_capacity*sizeof(type));
+    //     if (temp == NULL) {
+    //         exit(1);
+    //     }
+    //     header.elements = temp;
     //     ADA_ASSERT(header.elements != NULL);
     //     header.capacity = new_capacity;
     // } while (0)
