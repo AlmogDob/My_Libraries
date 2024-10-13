@@ -16,13 +16,15 @@
 #define dprintSIZE_T(expr) printf(#expr " = %zu\n", expr)
 
 
-int get_line(FILE *fp, char *dst);
-int length(char *str);
-int get_next_word_from_line(char *dst, char *src);
-void copy_arry_by_indesies(char *target, int start, int end, char *src);
-int get_word_and_cut(char *dst, char *src);
+int aaoc_get_line(FILE *fp, char *dst);
+int aaoc_length(char *str);
+int aaoc_get_next_word_from_line(char *dst, char *src);
+void aaoc_copy_arry_by_indesies(char *target, int start, int end, char *src);
+int aaoc_get_word_and_cut(char *dst, char *src);
 
-int get_line(FILE *fp, char *dst)
+#ifdef ALMOG_AOC_IMPLEMENTATION
+
+int aaoc_get_line(FILE *fp, char *dst)
 {
     int i = 0;
     char c;
@@ -42,7 +44,7 @@ int get_line(FILE *fp, char *dst)
     return i;
 }
 
-int length(char *str)
+int aaoc_length(char *str)
 {
     char c;
     int i = 0;
@@ -53,7 +55,7 @@ int length(char *str)
     return i++;
 }
 
-int get_next_word_from_line(char *dst, char *src)
+int aaoc_get_next_word_from_line(char *dst, char *src)
 {
     int i = 0, j = 0;
     char c;
@@ -92,7 +94,7 @@ int get_next_word_from_line(char *dst, char *src)
 
 }
 
-void copy_arry_by_indesies(char *target, int start, int end, char *src)
+void aaoc_copy_arry_by_indesies(char *target, int start, int end, char *src)
 {
     int j = 0;
     for (int i = start; i < end; i++) {
@@ -102,20 +104,22 @@ void copy_arry_by_indesies(char *target, int start, int end, char *src)
     target[j] = '\0';
 }
 
-int get_word_and_cut(char *dst, char *src)
+int aaoc_get_word_and_cut(char *dst, char *src)
 {
     int last_pos;
 
     if (src[0] == '\0') {
         return 0;
     }
-    last_pos = get_next_word_from_line(dst, src);
+    last_pos = aaoc_get_next_word_from_line(dst, src);
     if (last_pos == -1) {
         return 0;
     }
-    copy_arry_by_indesies(src, last_pos, length(src), src);
+    aaoc_copy_arry_by_indesies(src, last_pos, aaoc_length(src), src);
     return 1;
 }
+
+#endif /*ALMOG_AOC_IMPLEMENTATION*/
 
 #ifndef ALMOG_DYNAMIC_ARRAY_H_
 #define ALMOG_DYNAMIC_ARRAY_H_
@@ -148,9 +152,13 @@ int get_word_and_cut(char *dst, char *src)
     //     ADA_ASSERT(header.elements != NULL);
     // } while (0)
 
-#define ada_resize(type, header, new_capacity) do { header.elements = (type *)ADA_REALLOC((void *)(header.elements), new_capacity*sizeof(type)); ADA_ASSERT(header.elements != NULL); header.capacity = new_capacity; } while (0)
+#define ada_resize(type, header, new_capacity) do { type *temp = (type *)ADA_REALLOC((void *)(header.elements), new_capacity*sizeof(type)); if (temp == NULL) { exit(1); } header.elements = temp; ADA_ASSERT(header.elements != NULL); header.capacity = new_capacity; } while (0)
     // do {
-    //     header.elements = (type *)ADA_REALLOC((void *)(header.elements), new_capacity*sizeof(type));
+    //     type *temp = (type *)ADA_REALLOC((void *)(header.elements), new_capacity*sizeof(type));
+    //     if (temp == NULL) {
+    //         exit(1);
+    //     }
+    //     header.elements = temp;
     //     ADA_ASSERT(header.elements != NULL);
     //     header.capacity = new_capacity;
     // } while (0)
