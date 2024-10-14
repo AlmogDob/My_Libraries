@@ -43,13 +43,14 @@
     //     header.capacity = new_capacity;
     // } while (0)
 
-#define ada_appand(type, header, value) do { if (header.length >= header.capacity) { ada_resize(type, header, (int)(header.capacity*1.5)); } header.elements[header.length++] = value; } while (0)
+#define ada_appand(type, header, value) do { if (header.length >= header.capacity) { ada_resize(type, header, (int)(header.capacity*1.5)); } header.elements[header.length] = value; header.length++; } while (0)
     // do {
     //     if (header.length >= header.capacity) {
     //         ada_resize(type, header, (int)(header.capacity*1.5));
     //     }
 
-    //     header.elements[header.length++] = value;
+    //     header.elements[header.length] = value;
+    //     header.length++;
 
     // } while (0)
 
