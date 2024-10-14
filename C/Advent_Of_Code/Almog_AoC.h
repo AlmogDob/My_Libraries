@@ -174,13 +174,13 @@ int aaoc_get_word_and_cut(char *dst, char *src)
 
     // } while (0)
 
-#define ada_insert(type, header, value, index) do { ADA_ASSERT(index >= 0); ADA_ASSERT(index - (int)index == 0); ada_appand(type, header, header.elements[header.length-1]); for (size_t i = header.length-2; i > index; i--) { header.elements[i] = header.elements[i-1]; } header.elements[index] = value; } while (0)
+#define ada_insert(type, header, value, index) do { ADA_ASSERT(index >= 0); ADA_ASSERT(index - (int)index == 0); ada_appand(type, header, header.elements[header.length-1]); for (size_t ada_for_loop_index = header.length-2; ada_for_loop_index > index; ada_for_loop_index--) { header.elements[ada_for_loop_index] = header.elements [ada_for_loop_index-1]; } header.elements[index] = value; } while (0)
 // do {
 //     ADA_ASSERT(index >= 0);
 //     ADA_ASSERT(index - (int)index == 0);
 //     ada_appand(type, header, header.elements[header.length-1]);
-//     for (size_t i = header.length-2; i > index; i--) {
-//         header.elements[i] = header.elements[i-1];
+//     for (size_t ada_for_loop_index = header.length-2; ada_for_loop_index > index; ada_for_loop_index--) {
+//         header.elements[ada_for_loop_index] = header.elements [ada_for_loop_index-1];
 //     }
 //     header.elements[index] = value;
 // } while (0)
