@@ -51,21 +51,26 @@ int main()
 
     ada_array(int, a);
 
-    for (int i = 0; i < 30; i++) {
+    for (int i = 0; i < 14; i++) {
         ada_appand(int, a, i);
     }
     
     ADA_INT_PRINT(a);
 
-    ada_float_array b;
+    ada_insert(int, a, 100, 1);
+    ADA_INT_PRINT(a);
+    
 
-    ada_array(float, b);
+    // ada_float_array b;
 
-    for (int i = 0; i < 69; i++) {
-        ada_appand(float, b, i/2.0);
-    }
+    // ada_array(float, b);
 
-    ADA_FLOAT_PRINT(b);
+    // for (int i = 0; i < 69; i++) {
+    //     ada_appand(float, b, i/2.0);
+    // }
+
+    // ADA_FLOAT_PRINT(b);
+
 
     return 0;
 }
