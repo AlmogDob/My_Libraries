@@ -14,7 +14,7 @@ https://youtu.be/k5wtuKWmV48 .*/
 #endif //MATH
 
 #ifndef PI
-#define PI 3.141592653589793
+#define PI M_PI
 #endif //PI
 
 #ifndef STDIO
