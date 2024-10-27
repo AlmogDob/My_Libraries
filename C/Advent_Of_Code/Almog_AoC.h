@@ -152,13 +152,13 @@ int aaoc_get_word_and_cut(char *dst, char *src)
     //     ADA_ASSERT(header.elements != NULL);
     // } while (0)
 
-#define ada_resize(type, header, new_capacity) do { type *temp = (type *)ADA_REALLOC((void *)(header.elements), new_capacity*sizeof(type)); if (temp == NULL) { exit(1); } header.elements = temp; ADA_ASSERT(header.elements != NULL); header.capacity = new_capacity; } while (0)
+#define ada_resize(type, header, new_capacity) do { type *aaoc_temp_pointer = (type *)ADA_REALLOC((void *)(header.elements), new_capacity*sizeof(type)); if (aaoc_temp_pointer == NULL) { exit(1); } header.elements = aaoc_temp_pointer; ADA_ASSERT(header.elements != NULL); header.capacity = new_capacity; } while (0)
     // do {
-    //     type *temp = (type *)ADA_REALLOC((void *)(header.elements), new_capacity*sizeof(type));
-    //     if (temp == NULL) {
+    //     type *aaoc_temp_pointer = (type *)ADA_REALLOC((void *)(header.elements), new_capacity*sizeof(type));
+    //     if (aaoc_temp_pointer == NULL) {
     //         exit(1);
     //     }
-    //     header.elements = temp;
+    //     header.elements = aaoc_temp_pointer;
     //     ADA_ASSERT(header.elements != NULL);
     //     header.capacity = new_capacity;
     // } while (0)
