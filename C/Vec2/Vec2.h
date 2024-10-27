@@ -31,7 +31,7 @@ https://youtu.be/k5wtuKWmV48 .*/
 // #define VEC2_ASSERT assert
 // #endif //VEC2_ASSERT
 
-#define VEC2_PRINT(v) vec2_print(v, #v)
+#define VEC2_PRINT(v) vec2_print(&v, #v)
 
 typedef struct {
     float x;
