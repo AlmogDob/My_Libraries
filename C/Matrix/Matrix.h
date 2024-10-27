@@ -41,6 +41,7 @@ void mat_sum(Mat dst, Mat a);
 void mat_mult(Mat m, size_t factor);
 void mat_print(Mat m, const char *name, size_t padding);
 void mat_identity_mat(Mat m);
+void mat_copy(Mat res, Mat src);
 
 #endif // MATRIX_H_
 
@@ -143,6 +144,19 @@ void mat_identity_mat(Mat m)
             }
         }
     }
+}
+
+void mat_copy(Mat res, Mat src)
+{
+    MATRIX_ASSERT(res.cols == src.cols);
+    MATRIX_ASSERT(res.rows == src.rows);
+
+    for (size_t i = 0; i < res.rows; ++i) {
+        for (size_t j = 0; j < res.cols; ++j) {
+            MAT_AT(res, i, j) = MAT_AT(src, i, j);
+        }
+    }
+    
 }
 
 #endif // MATRIX_IMPLEMENTATION
