@@ -50,7 +50,7 @@ void vec3_print(Vec3 *v, char *name);
 /* ------------------------------------------------ */
 
 #ifdef VEC3_IMPLEMENTATION
-#undef
+#undef VEC3_IMPLEMENTATION
 
 Vec3 vec3_new(float x, float y, float z)
 {
