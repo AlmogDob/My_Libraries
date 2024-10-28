@@ -23,6 +23,7 @@ void aaoc_copy_arry_by_indesies(char *target, int start, int end, char *src);
 int aaoc_get_word_and_cut(char *dst, char *src);
 
 #ifdef ALMOG_AOC_IMPLEMENTATION
+#undef ALMOG_AOC_IMPLEMENTATION
 
 int aaoc_get_line(FILE *fp, char *dst)
 {
