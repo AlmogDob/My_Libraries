@@ -39,7 +39,7 @@ int aaoc_get_line(FILE *fp, char *dst)
         }
     }
     dst[i] = '\0';
-    if (c == EOF) {
+    if (c == EOF && i == 0) {
         return -1;
     }
     return i;
