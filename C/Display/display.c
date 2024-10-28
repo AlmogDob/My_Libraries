@@ -14,8 +14,7 @@
 #endif
 
 #define FRAME_TARGET_TIME (1000 / FPS)
-#define dprintINT(expr) printf(#expr " = %d\n", expr)
-#define dprintF(expr) printf(#expr " = %g\n", expr)
+#define Hex2ARGB(x) (x>>(8*2)&0xFF), (x>>(8*1)&0xFF), (x>>(8*0)&0xFF), (x>>(8*3)&0xFF)
 
 #define PI 3.14159265359
 
