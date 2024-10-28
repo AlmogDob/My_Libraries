@@ -9,6 +9,7 @@ void draw_circle(SDL_Renderer *renderer, Vec2 center, float r);
 void fill_circle(SDL_Renderer *renderer, Vec2 center, float r);
 
 #ifdef RENDER_SHAPES_SDL_IMPLEMENTATION
+#undef RENDER_SHAPES_SDL_IMPLEMENTATION
 
 void draw_circle(SDL_Renderer *renderer, Vec2 center, float r)
 {
