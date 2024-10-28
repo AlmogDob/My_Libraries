@@ -8,8 +8,7 @@
 
 #define MAXDIR 100
 #define MAX_LEN_LINE (int)1e3
-#define NUM_OF_RACES (int)1e1
-#define NUM_OF_DISTANCES (int)5e2
+
 #define dprintSTRING(expr) printf(#expr " = %s\n", expr)
 #define dprintCHAR(expr) printf(#expr " = %c\n", expr)
 #define dprintINT(expr) printf(#expr " = %d\n", expr)
