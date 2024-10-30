@@ -140,7 +140,7 @@ int aaoc_get_word_and_cut(char *dst, char *src, char seperator)
     int* elements;
 } ada_int_array; */
 
-#define ada_array(type, header) do { header.capacity = INIT_CAPACITY; header.length = 0; header.elements = (type *)ADA_MALLOC(sizeof(type) * header.capacity); ADA_ASSERT(header.elements != NULL); } while (0)
+#define ada_create_array(type, header) do { header.capacity = INIT_CAPACITY; header.length = 0; header.elements = (type *)ADA_MALLOC(sizeof(type) * header.capacity); ADA_ASSERT(header.elements != NULL); } while (0)
     // do {
     //     header.capacity = INIT_CAPACITY;
     //     header.length = 0;
