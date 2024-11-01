@@ -53,6 +53,7 @@ void vec2_print(Vec2 *v, char *name);
 #endif //VEC2_H_
 
 #ifdef VEC2_IMPLEMENTATION
+#undef VEC2_IMPLEMENTATION
 
 Vec2 vec2_new(float x, float y)
 {

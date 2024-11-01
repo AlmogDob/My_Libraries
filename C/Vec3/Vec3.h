@@ -23,7 +23,7 @@
 // #define VEC3_ASSERT assert
 // #endif //VEC3_ASSERT
 
-#define VEC3_PRINT(v) vec3_print(v, #v)
+#define VEC3_PRINT(v) vec3_print(&v, #v)
 
 typedef struct {
     float x;
@@ -50,6 +50,7 @@ void vec3_print(Vec3 *v, char *name);
 /* ------------------------------------------------ */
 
 #ifdef VEC3_IMPLEMENTATION
+#undef VEC3_IMPLEMENTATION
 
 Vec3 vec3_new(float x, float y, float z)
 {
