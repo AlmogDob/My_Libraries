@@ -119,7 +119,7 @@ void mat2D_mult(Mat2D m, size_t factor)
 {
     for (size_t i = 0; i < m.rows; ++i) {
         for (size_t j = 0; j < m.cols; ++j) {
-            MAT2D_AT(m, i, j) = MAT2D_AT(m, i, j) * factor;
+            MAT2D_AT(m, i, j) *= factor;
         }
     }
 }

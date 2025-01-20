@@ -10,6 +10,8 @@ int main(void)
 
     MAT2D_PRINT(m);
 
+    mat2D_print(m, "m", 10);
+
     mat2D_free(m);
     return 0;
 }
