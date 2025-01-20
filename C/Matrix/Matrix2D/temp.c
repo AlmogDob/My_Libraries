@@ -1,13 +1,13 @@
-#define MATRIX_IMPLEMENTATION
-#include "Matrix.h"
+#define MATRIX2D_IMPLEMENTATION
+#include "Matrix2D.h"
 #include "time.h"
 
 int main(void)
 {
-    Mat m = mat_alloc(2, 2);
+    Mat2D m = mat2D_alloc(10, 10);
     srand(time(0));
-    mat_rand(m, 0, 1);
+    mat2D_rand(m, 0, 1);
 
-    MAT_PRINT(m);
+    MAT2D_PRINT(m);
     return 0;
 }
