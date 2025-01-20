@@ -34,6 +34,7 @@ typedef struct {
 
 float rand_float(void);
 Mat2D mat2D_alloc(size_t rows, size_t cols);
+void mat2D_free(Mat2D m);
 void mat2D_fill(Mat2D m, float x);
 void mat2D_rand(Mat2D m, float low, float high);
 void mat2D_dot(Mat2D dst, Mat2D a, Mat2D b);
@@ -61,6 +62,11 @@ Mat2D mat2D_alloc(size_t rows, size_t cols)
     m.elements = (float*)MATRIX2D_MALLOC(sizeof(*m.elements)*rows*cols);
     MATRIX2D_ASSERT(m.elements != NULL);
     return m;    
+}
+
+void mat2D_free(Mat2D m)
+{
+    free(m.elements);
 }
 
 void mat2D_fill(Mat2D m, float x)

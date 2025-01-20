@@ -9,5 +9,7 @@ int main(void)
     mat2D_rand(m, 0, 1);
 
     MAT2D_PRINT(m);
+
+    mat2D_free(m);
     return 0;
 }
