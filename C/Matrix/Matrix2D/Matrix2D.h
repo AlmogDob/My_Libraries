@@ -39,7 +39,7 @@ void mat2D_fill(Mat2D m, float x);
 void mat2D_rand(Mat2D m, float low, float high);
 void mat2D_dot(Mat2D dst, Mat2D a, Mat2D b);
 void mat2D_sum(Mat2D dst, Mat2D a);
-void mat2D_mult(Mat2D m, size_t factor);
+void mat2D_mult(Mat2D m, double factor);
 void mat2D_print(Mat2D m, const char *name, size_t padding);
 void mat2D_identity_mat(Mat2D m);
 void mat2D_copy(Mat2D res, Mat2D src);
@@ -115,7 +115,7 @@ void mat2D_sum(Mat2D dst, Mat2D a)
     }
 }
 
-void mat2D_mult(Mat2D m, size_t factor)
+void mat2D_mult(Mat2D m, double factor)
 {
     for (size_t i = 0; i < m.rows; ++i) {
         for (size_t j = 0; j < m.cols; ++j) {
