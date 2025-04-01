@@ -49,6 +49,9 @@ void mat2D_copy(Mat2D res, Mat2D src);
 void mat2D_get_col(Mat2D des, size_t des_col, Mat2D src, size_t src_col);
 void mat2D_add_col_to_col(Mat2D des, size_t des_col, Mat2D src, size_t src_col);
 void mat2D_sub_col_to_col(Mat2D des, size_t des_col, Mat2D src, size_t src_col);
+void mat2D_get_row(Mat2D des, size_t des_row, Mat2D src, size_t src_row);
+void mat2D_add_row_to_row(Mat2D des, size_t des_row, Mat2D src, size_t src_row);
+void mat2D_sub_row_to_row(Mat2D des, size_t des_row, Mat2D src, size_t src_row);
 double mat2D_calc_norma(Mat2D m);
 
 #endif // MATRIX2D_H_
@@ -218,6 +221,39 @@ void mat2D_sub_col_to_col(Mat2D des, size_t des_col, Mat2D src, size_t src_col)
 
     for (size_t i = 0; i < des.rows; i++) {
         MAT2D_AT(des, i, des_col) -= MAT2D_AT(src, i, src_col);
+    }
+}
+
+void mat2D_get_row(Mat2D des, size_t des_row, Mat2D src, size_t src_row)
+{
+    MATRIX2D_ASSERT(src_row < src.rows);
+    MATRIX2D_ASSERT(des.cols == src.cols);
+    MATRIX2D_ASSERT(des_row < des.rows);
+
+    for (size_t j = 0; j < des.cols; j++) {
+        MAT2D_AT(des, des_row, j) = MAT2D_AT(src, src_row, j);
+    }
+}
+
+void mat2D_add_row_to_row(Mat2D des, size_t des_row, Mat2D src, size_t src_row)
+{
+    MATRIX2D_ASSERT(src_row < src.rows);
+    MATRIX2D_ASSERT(des.cols == src.cols);
+    MATRIX2D_ASSERT(des_row < des.rows);
+
+    for (size_t j = 0; j < des.cols; j++) {
+        MAT2D_AT(des, des_row, j) += MAT2D_AT(src, src_row, j);
+    }
+}
+
+void mat2D_sub_row_to_row(Mat2D des, size_t des_row, Mat2D src, size_t src_row)
+{
+    MATRIX2D_ASSERT(src_row < src.rows);
+    MATRIX2D_ASSERT(des.cols == src.cols);
+    MATRIX2D_ASSERT(des_row < des.rows);
+
+    for (size_t j = 0; j < des.cols; j++) {
+        MAT2D_AT(des, des_row, j) -= MAT2D_AT(src, src_row, j);
     }
 }
 
