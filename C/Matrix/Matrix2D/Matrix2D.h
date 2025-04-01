@@ -11,6 +11,7 @@ https://youtu.be/L1TbWe8bVOc?list=PLpM-Dvs8t0VZPZKggcql-MmjaBdZKeDMw .*/
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 
 #ifndef MATRIX2D_MALLOC
 #define MATRIX2D_MALLOC malloc
@@ -25,43 +26,47 @@ typedef struct {
     size_t rows;
     size_t cols;
     size_t stride;
-    float *elements;
+    double *elements;
     
 } Mat2D;
 
-#define MAT2D_AT(m, i, j) (m).elements[(i)*(m).cols + (j)]
+#define MAT2D_AT(m, i, j) (m).elements[mat2D_offset2d((m), (i), (j))]
 #define MAT2D_PRINT(m) mat2D_print(m, #m, 0)
 
-float rand_float(void);
-Mat2D mat2D_alloc(size_t rows, size_t cols);
+double rand_double(void);
+void mat2D_alloc(Mat2D *m, size_t rows, size_t cols);
 void mat2D_free(Mat2D m);
-void mat2D_fill(Mat2D m, float x);
-void mat2D_rand(Mat2D m, float low, float high);
+size_t mat2D_offset2d(Mat2D m, size_t i, size_t j);
+void mat2D_fill(Mat2D m, double x);
+void mat2D_rand(Mat2D m, double low, double high);
 void mat2D_dot(Mat2D dst, Mat2D a, Mat2D b);
-void mat2D_sum(Mat2D dst, Mat2D a);
-void mat2D_mult(Mat2D m, size_t factor);
+void mat2D_add(Mat2D dst, Mat2D a);
+void mat2D_sub(Mat2D dst, Mat2D a);
+void mat2D_mult(Mat2D m, double factor);
 void mat2D_print(Mat2D m, const char *name, size_t padding);
 void mat2D_identity_mat(Mat2D m);
 void mat2D_copy(Mat2D res, Mat2D src);
+void mat2D_get_col(Mat2D des, size_t des_col, Mat2D src, size_t src_col);
+void mat2D_add_col_to_col(Mat2D des, size_t des_col, Mat2D src, size_t src_col);
+void mat2D_sub_col_to_col(Mat2D des, size_t des_col, Mat2D src, size_t src_col);
+double mat2D_calc_norma(Mat2D m);
 
 #endif // MATRIX2D_H_
 
 #ifdef MATRIX2D_IMPLEMENTATION
 
-float rand_float(void)
+double rand_double(void)
 {
-    return (float) rand() / (float) RAND_MAX;
+    return (double) rand() / (double) RAND_MAX;
 }
 
-Mat2D mat2D_alloc(size_t rows, size_t cols)
+void mat2D_alloc(Mat2D *m, size_t rows, size_t cols)
 {
-    Mat2D m;
-    m.rows = rows;
-    m.cols = cols;
-    m.stride = cols;
-    m.elements = (float*)MATRIX2D_MALLOC(sizeof(*m.elements)*rows*cols);
-    MATRIX2D_ASSERT(m.elements != NULL);
-    return m;    
+    m->rows = rows;
+    m->cols = cols;
+    m->stride = cols;
+    m->elements = (double*)MATRIX2D_MALLOC(sizeof(double)*rows*cols);
+    MATRIX2D_ASSERT(m->elements != NULL);
 }
 
 void mat2D_free(Mat2D m)
@@ -69,7 +74,13 @@ void mat2D_free(Mat2D m)
     free(m.elements);
 }
 
-void mat2D_fill(Mat2D m, float x)
+size_t mat2D_offset2d(Mat2D m, size_t i, size_t j)
+{
+    assert(i < m.rows && j < m.cols);
+    return i * m.stride + j;
+}
+
+void mat2D_fill(Mat2D m, double x)
 {
     for (size_t i = 0; i < m.rows; ++i) {
         for (size_t j = 0; j < m.cols; ++j) {
@@ -78,11 +89,11 @@ void mat2D_fill(Mat2D m, float x)
     }
 }
 
-void mat2D_rand(Mat2D m, float low, float high)
+void mat2D_rand(Mat2D m, double low, double high)
 {
     for (size_t i = 0; i < m.rows; ++i) {
         for (size_t j = 0; j < m.cols; ++j) {
-            MAT2D_AT(m, i, j) = rand_float()*(high - low) + low;
+            MAT2D_AT(m, i, j) = rand_double()*(high - low) + low;
         }
     }
 }
@@ -104,7 +115,7 @@ void mat2D_dot(Mat2D dst, Mat2D a, Mat2D b)
 
 }
 
-void mat2D_sum(Mat2D dst, Mat2D a)
+void mat2D_add(Mat2D dst, Mat2D a)
 {
     MATRIX2D_ASSERT(dst.rows == a.rows);
     MATRIX2D_ASSERT(dst.cols == a.cols);
@@ -115,7 +126,18 @@ void mat2D_sum(Mat2D dst, Mat2D a)
     }
 }
 
-void mat2D_mult(Mat2D m, size_t factor)
+void mat2D_sub(Mat2D dst, Mat2D a)
+{
+    MATRIX2D_ASSERT(dst.rows == a.rows);
+    MATRIX2D_ASSERT(dst.cols == a.cols);
+    for (size_t i = 0; i < dst.rows; ++i) {
+        for (size_t j = 0; j < dst.cols; ++j) {
+            MAT2D_AT(dst, i, j) -= MAT2D_AT(a, i, j);
+        }
+    }
+}
+
+void mat2D_mult(Mat2D m, double factor)
 {
     for (size_t i = 0; i < m.rows; ++i) {
         for (size_t j = 0; j < m.cols; ++j) {
@@ -142,27 +164,73 @@ void mat2D_identity_mat(Mat2D m)
     MATRIX2D_ASSERT(m.cols == m.rows);
     for (size_t i = 0; i < m.rows; ++i) {
         for (size_t j = 0; j < m.cols; ++j) {
-            if (i == j) {
-                MAT2D_AT(m, i, j) = 1;
-            }
-            else {
-                MAT2D_AT(m, i, j) = 0;
-            }
+            MAT2D_AT(m, i, j) = i == j ? 1 : 0;
+            // if (i == j) {
+            //     MAT2D_AT(m, i, j) = 1;
+            // }
+            // else {
+            //     MAT2D_AT(m, i, j) = 0;
+            // }
         }
     }
 }
 
-void mat2D_copy(Mat2D res, Mat2D src)
+void mat2D_copy(Mat2D des, Mat2D src)
 {
-    MATRIX2D_ASSERT(res.cols == src.cols);
-    MATRIX2D_ASSERT(res.rows == src.rows);
+    MATRIX2D_ASSERT(des.cols == src.cols);
+    MATRIX2D_ASSERT(des.rows == src.rows);
 
-    for (size_t i = 0; i < res.rows; ++i) {
-        for (size_t j = 0; j < res.cols; ++j) {
-            MAT2D_AT(res, i, j) = MAT2D_AT(src, i, j);
+    for (size_t i = 0; i < des.rows; ++i) {
+        for (size_t j = 0; j < des.cols; ++j) {
+            MAT2D_AT(des, i, j) = MAT2D_AT(src, i, j);
         }
     }
     
+}
+
+void mat2D_get_col(Mat2D des, size_t des_col, Mat2D src, size_t src_col)
+{
+    MATRIX2D_ASSERT(src_col < src.cols);
+    MATRIX2D_ASSERT(des.rows == src.rows);
+    MATRIX2D_ASSERT(des_col < des.cols);
+
+    for (size_t i = 0; i < des.rows; i++) {
+        MAT2D_AT(des, i, des_col) = MAT2D_AT(src, i, src_col);
+    }
+}
+
+void mat2D_add_col_to_col(Mat2D des, size_t des_col, Mat2D src, size_t src_col)
+{
+    MATRIX2D_ASSERT(src_col < src.cols);
+    MATRIX2D_ASSERT(des.rows == src.rows);
+    MATRIX2D_ASSERT(des_col < des.cols);
+
+    for (size_t i = 0; i < des.rows; i++) {
+        MAT2D_AT(des, i, des_col) += MAT2D_AT(src, i, src_col);
+    }
+}
+
+void mat2D_sub_col_to_col(Mat2D des, size_t des_col, Mat2D src, size_t src_col)
+{
+    MATRIX2D_ASSERT(src_col < src.cols);
+    MATRIX2D_ASSERT(des.rows == src.rows);
+    MATRIX2D_ASSERT(des_col < des.cols);
+
+    for (size_t i = 0; i < des.rows; i++) {
+        MAT2D_AT(des, i, des_col) -= MAT2D_AT(src, i, src_col);
+    }
+}
+
+double mat2D_calc_norma(Mat2D m)
+{
+    double sum = 0;
+
+    for (size_t i = 0; i < m.rows; ++i) {
+        for (size_t j = 0; j < m.cols; ++j) {
+            sum += MAT2D_AT(m, i, j) * MAT2D_AT(m, i, j);
+        }
+    }
+    return sqrt(sum);
 }
 
 #endif // MATRIX2D_IMPLEMENTATION

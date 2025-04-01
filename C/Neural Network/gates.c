@@ -8,7 +8,6 @@
 
 typedef float sample[3];
 
-float sigmoidf(float x);
 float cost(float w1, float w2, float b);
 
 /* OR-gate */
@@ -33,7 +32,7 @@ sample nand_train[] = {
     {1, 1, 0},
 };
 
-sample *train = nand_train;
+sample *train = and_train;
 size_t train_count = 4;
 
 float cost(float w1, float w2, float b)
@@ -48,11 +47,6 @@ float cost(float w1, float w2, float b)
     }
     result /= train_count;
     return result;
-}
-
-float sigmoidf(float x)
-{
-    return 1.f / (1.f + expf(-x));
 }
 
 int main()
@@ -70,7 +64,7 @@ int main()
     c = cost(w1, w2, b);
     printf("w1 = %f, w2 = %f, b = %f, c = %f\n", w1, w2, b, c);
 
-    for (size_t i = 0; i < 1e5; i++) {
+    for (size_t i = 0; i < 1e6; i++) {
         c = cost(w1, w2, b);
         // printf("w1 = %f, w2 = %f, b = %f, c = %f\n", w1, w2, b, c);
         dw1 = (cost(w1 + eps, w2, b) - c) / eps;

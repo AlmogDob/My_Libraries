@@ -2,7 +2,7 @@
 #include "nn.h"
 #include <time.h>
 
-#define BITS 3
+#define BITS 5
 #define dprintF(expr) printf(#expr " = %f\n", expr)
 #define dprintT(expr) printf(#expr " = %zu\n", expr)
 
@@ -38,7 +38,7 @@ int main(void)
     // MAT_PRINT(ti);
     // MAT_PRINT(to);
 
-    size_t arch[] = {2*BITS, 2*BITS + 1, BITS + 1};
+    size_t arch[] = {2*BITS, (int)(2*BITS+1), BITS + 1};
     NN nn = nn_alloc(arch, ARRAY_LEN(arch));    
     NN g = nn_alloc(arch, ARRAY_LEN(arch));    
     float rate = 1e0, overflow;
@@ -46,11 +46,19 @@ int main(void)
     nn_rand(nn, 0, 1);
 /*-------------------------------------------------- */
     printf("c = %f\n", nn_cost(nn, ti, to));
-    for (size_t i = 0; i < 2e4; i++) {
+    for (size_t i = 0; i < 5e4; i++) {
         nn_backprop(nn, g, ti, to);
         nn_learn(nn, g, rate);
+        float cost = nn_cost(nn, ti, to);
+        if (!(i % 500)) {
+            printf("%zu: c = %f\n", i, cost);
+        }
+        if (cost < 1e-3) {
+            break;
+        }
     }
-    printf("c = %f\n", nn_cost(nn, ti, to));
+
+    // NN_PRINT(nn);
 /*-------------------------------------------------- */
 
     for (size_t x = 0; x < n; x++) {
