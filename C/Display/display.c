@@ -182,6 +182,9 @@ void update_window(void)
 
     char fps_count[100];
     sprintf(fps_count, "FPS = %8.4g", fps);
+    if (!to_limit_fps) {
+        sprintf(fps_count, "dt = %8.4g [ms]", delta_time*1000);
+    }
     text_surface = TTF_RenderText_Solid(font, fps_count,fps_color);
 
     text_texture = SDL_CreateTextureFromSurface(renderer,text_surface);
