@@ -25,13 +25,23 @@ https://youtu.be/L1TbWe8bVOc?list=PLpM-Dvs8t0VZPZKggcql-MmjaBdZKeDMw .*/
 typedef struct {
     size_t rows;
     size_t cols;
-    size_t stride;
+    size_t stride_r; /* how many element you need to traves to get to the element underneath */
     double *elements;
-    
 } Mat2D;
+
+typedef struct {
+    size_t rows;
+    size_t cols;
+    size_t stride_r; /* how many element you need to traves to get to the element underneath */
+    size_t *rows_list;
+    size_t *cols_list;
+    Mat2D ref_mat;
+} Mat2D_Minor;
 
 #define MAT2D_AT(m, i, j) (m).elements[mat2D_offset2d((m), (i), (j))]
 #define MAT2D_PRINT(m) mat2D_print(m, #m, 0)
+#define MAT2D_PRINT_AS_COL(m) mat2D_print_as_col(m, #m, 0)
+#define MAT2D_MINOR_PRINT(mm) mat2D_minor_print(mm, #mm, 0)
 
 double rand_double(void);
 Mat2D mat2D_alloc(size_t rows, size_t cols);
@@ -44,6 +54,7 @@ void mat2D_add(Mat2D dst, Mat2D a);
 void mat2D_sub(Mat2D dst, Mat2D a);
 void mat2D_mult(Mat2D m, double factor);
 void mat2D_print(Mat2D m, const char *name, size_t padding);
+void mat2D_print_as_col(Mat2D m, const char *name, size_t padding);
 void mat2D_identity_mat(Mat2D m);
 void mat2D_copy(Mat2D res, Mat2D src);
 void mat2D_get_col(Mat2D des, size_t des_col, Mat2D src, size_t src_col);
@@ -54,6 +65,9 @@ void mat2D_add_row_to_row(Mat2D des, size_t des_row, Mat2D src, size_t src_row);
 void mat2D_sub_row_to_row(Mat2D des, size_t des_row, Mat2D src, size_t src_row);
 double mat2D_calc_norma(Mat2D m);
 double mat2D_det_2x2(Mat2D m);
+
+Mat2D_Minor mat2D_minor_alloc_and_fill(Mat2D ref_mat, size_t i, size_t j);
+void mat2D_minor_print(Mat2D_Minor mm, const char *name, size_t padding);
 
 #endif // MATRIX2D_H_
 
@@ -69,7 +83,7 @@ Mat2D mat2D_alloc(size_t rows, size_t cols)
     Mat2D m;
     m.rows = rows;
     m.cols = cols;
-    m.stride = cols;
+    m.stride_r = cols;
     m.elements = (double*)MATRIX2D_MALLOC(sizeof(double)*rows*cols);
     MATRIX2D_ASSERT(m.elements != NULL);
     
@@ -84,7 +98,7 @@ void mat2D_free(Mat2D m)
 size_t mat2D_offset2d(Mat2D m, size_t i, size_t j)
 {
     MATRIX2D_ASSERT(i < m.rows && j < m.cols);
-    return i * m.stride + j;
+    return i * m.stride_r + j;
 }
 
 void mat2D_fill(Mat2D m, double x)
@@ -162,6 +176,16 @@ void mat2D_print(Mat2D m, const char *name, size_t padding)
             printf("%f ", MAT2D_AT(m, i, j));
         }
         printf("\n");
+    }
+    printf("%*s]\n", (int) padding, "");
+}
+
+void mat2D_print_as_col(Mat2D m, const char *name, size_t padding)
+{
+    printf("%*s%s = [\n", (int) padding, "", name);
+    for (size_t i = 0; i < m.rows*m.cols; ++i) {
+            printf("%*s    ", (int) padding, "");
+            printf("%f\n", m.elements[i]);
     }
     printf("%*s]\n", (int) padding, "");
 }
@@ -277,6 +301,49 @@ double mat2D_det_2x2(Mat2D m)
 {
     MATRIX2D_ASSERT(2 == m.cols && 2 == m.rows && "Not a 2x2 matrix");
     return MAT2D_AT(m, 0, 0) * MAT2D_AT(m, 1, 1) - MAT2D_AT(m, 0, 1) * MAT2D_AT(m, 1, 0);
+}
+
+Mat2D_Minor mat2D_minor_alloc_and_fill(Mat2D ref_mat, size_t i, size_t j)
+{
+    MATRIX2D_ASSERT(ref_mat.cols == ref_mat.rows && "minor is defined only for square matrix");
+
+    Mat2D_Minor mm;
+    mm.cols = ref_mat.cols-1;
+    mm.rows = ref_mat.rows-1;
+    mm.stride_r = ref_mat.cols-1;
+    mm.cols_list = (size_t*)MATRIX2D_MALLOC(sizeof(double)*(ref_mat.cols-1));
+    mm.rows_list = (size_t*)MATRIX2D_MALLOC(sizeof(double)*(ref_mat.rows-1));
+    mm.ref_mat = ref_mat;
+
+    MATRIX2D_ASSERT(mm.cols_list != NULL && mm.rows_list != NULL);
+
+    for (size_t index = 0, temp_index = 0; index < ref_mat.rows; index++) {
+        if (index != i) {
+            mm.rows_list[temp_index] = index;
+            temp_index++;
+        }
+    }
+    for (size_t jndex = 0, temp_jndex = 0; jndex < ref_mat.rows; jndex++) {
+        if (jndex != j) {
+            mm.cols_list[temp_jndex] = jndex;
+            temp_jndex++;
+        }
+    }
+
+    return mm;
+}
+
+void mat2D_minor_print(Mat2D_Minor mm, const char *name, size_t padding)
+{
+    printf("%*s%s = [\n", (int) padding, "", name);
+    for (size_t i = 0; i < mm.rows; ++i) {
+        printf("%*s    ", (int) padding, "");
+        for (size_t j = 0; j < mm.cols; ++j) {
+            printf("%f ", MAT2D_AT(mm.ref_mat, mm.rows_list[i], mm.cols_list[j]));
+        }
+        printf("\n");
+    }
+    printf("%*s]\n", (int) padding, "");
 }
 
 #endif // MATRIX2D_IMPLEMENTATION
