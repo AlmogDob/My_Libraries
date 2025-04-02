@@ -39,6 +39,7 @@ typedef struct {
 } Mat2D_Minor;
 
 #define MAT2D_AT(m, i, j) (m).elements[mat2D_offset2d((m), (i), (j))]
+#define MAT2D_MINOR_AT(mm, i, j) MAT2D_AT(mm.ref_mat, mm.rows_list[i], mm.cols_list[j])
 #define MAT2D_PRINT(m) mat2D_print(m, #m, 0)
 #define MAT2D_PRINT_AS_COL(m) mat2D_print_as_col(m, #m, 0)
 #define MAT2D_MINOR_PRINT(mm) mat2D_minor_print(mm, #mm, 0)
@@ -65,10 +66,13 @@ void mat2D_get_row(Mat2D des, size_t des_row, Mat2D src, size_t src_row);
 void mat2D_add_row_to_row(Mat2D des, size_t des_row, Mat2D src, size_t src_row);
 void mat2D_sub_row_to_row(Mat2D des, size_t des_row, Mat2D src, size_t src_row);
 double mat2D_calc_norma(Mat2D m);
-double mat2D_det_2x2(Mat2D m);
+double mat2D_det_2x2_mat(Mat2D m);
 
-Mat2D_Minor mat2D_minor_alloc_and_fill(Mat2D ref_mat, size_t i, size_t j);
+Mat2D_Minor mat2D_minor_alloc_fill_from_mat(Mat2D ref_mat, size_t i, size_t j);
+Mat2D_Minor mat2D_minor_alloc_fill_from_mat_minor(Mat2D_Minor ref_mm, size_t i, size_t j);
 void mat2D_minor_print(Mat2D_Minor mm, const char *name, size_t padding);
+double mat2D_det_2x2_mat_minor(Mat2D_Minor mm);
+double mat2D_minor_det(Mat2D_Minor mm);
 
 #endif // MATRIX2D_H_
 
@@ -306,13 +310,13 @@ double mat2D_calc_norma(Mat2D m)
     return sqrt(sum);
 }
 
-double mat2D_det_2x2(Mat2D m)
+double mat2D_det_2x2_mat(Mat2D m)
 {
     MATRIX2D_ASSERT(2 == m.cols && 2 == m.rows && "Not a 2x2 matrix");
     return MAT2D_AT(m, 0, 0) * MAT2D_AT(m, 1, 1) - MAT2D_AT(m, 0, 1) * MAT2D_AT(m, 1, 0);
 }
 
-Mat2D_Minor mat2D_minor_alloc_and_fill(Mat2D ref_mat, size_t i, size_t j)
+Mat2D_Minor mat2D_minor_alloc_fill_from_mat(Mat2D ref_mat, size_t i, size_t j)
 {
     MATRIX2D_ASSERT(ref_mat.cols == ref_mat.rows && "minor is defined only for square matrix");
 
@@ -342,17 +346,78 @@ Mat2D_Minor mat2D_minor_alloc_and_fill(Mat2D ref_mat, size_t i, size_t j)
     return mm;
 }
 
+Mat2D_Minor mat2D_minor_alloc_fill_from_mat_minor(Mat2D_Minor ref_mm, size_t i, size_t j)
+{
+    MATRIX2D_ASSERT(ref_mm.cols == ref_mm.rows && "minor is defined only for square matrix");
+
+    Mat2D_Minor mm;
+    mm.cols = ref_mm.cols-1;
+    mm.rows = ref_mm.rows-1;
+    mm.stride_r = ref_mm.cols-1;
+    mm.cols_list = (size_t*)MATRIX2D_MALLOC(sizeof(double)*(ref_mm.cols-1));
+    mm.rows_list = (size_t*)MATRIX2D_MALLOC(sizeof(double)*(ref_mm.rows-1));
+    mm.ref_mat = ref_mm.ref_mat;
+
+    MATRIX2D_ASSERT(mm.cols_list != NULL && mm.rows_list != NULL);
+
+    for (size_t index = 0, temp_index = 0; index < ref_mm.rows; index++) {
+        if (index != i) {
+            mm.rows_list[temp_index] = ref_mm.rows_list[index];
+            temp_index++;
+        }
+    }
+    for (size_t jndex = 0, temp_jndex = 0; jndex < ref_mm.rows; jndex++) {
+        if (jndex != j) {
+            mm.cols_list[temp_jndex] = ref_mm.cols_list[jndex];
+            temp_jndex++;
+        }
+    }
+
+    return mm;
+}
+
+void mat2D_minor_free(Mat2D_Minor mm)
+{
+    free(mm.cols_list);
+    free(mm.rows_list);
+}
+
 void mat2D_minor_print(Mat2D_Minor mm, const char *name, size_t padding)
 {
     printf("%*s%s = [\n", (int) padding, "", name);
     for (size_t i = 0; i < mm.rows; ++i) {
         printf("%*s    ", (int) padding, "");
         for (size_t j = 0; j < mm.cols; ++j) {
-            printf("%f ", MAT2D_AT(mm.ref_mat, mm.rows_list[i], mm.cols_list[j]));
+            printf("%f ", MAT2D_MINOR_AT(mm, i, j));
         }
         printf("\n");
     }
     printf("%*s]\n", (int) padding, "");
 }
+
+double mat2D_det_2x2_mat_minor(Mat2D_Minor mm)
+{
+    MATRIX2D_ASSERT(2 == mm.cols && 2 == mm.rows && "Not a 2x2 matrix");
+    return MAT2D_MINOR_AT(mm, 0, 0) * MAT2D_MINOR_AT(mm, 1, 1) - MAT2D_MINOR_AT(mm, 0, 1) * MAT2D_MINOR_AT(mm, 1, 0);
+}
+
+double mat2D_minor_det(Mat2D_Minor mm)
+{
+    double det = 0;
+    /* TODO: finding beast row or col? */
+    for (size_t i = 0, j = 0; i < mm.rows; i++) { /* first column */
+        Mat2D_Minor sub_mm = mat2D_minor_alloc_fill_from_mat_minor(mm, i, j);
+        int factor = (i+j)%2 ? -1 : 1;
+        if (sub_mm.cols != 2) {
+            MATRIX2D_ASSERT(sub_mm.cols == sub_mm.rows && "should be a square matrix");
+            det += MAT2D_MINOR_AT(mm, i, j) * (factor) * mat2D_minor_det(sub_mm);
+        } else if (sub_mm.cols == 2 && sub_mm.rows == 2) {
+            det += MAT2D_MINOR_AT(mm, i, j) * (factor) * mat2D_det_2x2_mat_minor(sub_mm);;
+        }
+        mat2D_minor_free(sub_mm);
+    }
+    return det;
+}
+
 
 #endif // MATRIX2D_IMPLEMENTATION
