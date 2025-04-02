@@ -5,7 +5,7 @@ temp: build_temp run_temp clean_temp
 	@echo temp done
 
 build_temp: temp.c
-	@gcc ./temp.c $(CFLAGS) $(CCHECKS) -o temp
+	@gcc ./temp.c $(CFLAGS) -o temp
 
 run_temp:
 	@echo
