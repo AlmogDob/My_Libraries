@@ -48,6 +48,7 @@ Mat2D mat2D_alloc(size_t rows, size_t cols);
 void mat2D_free(Mat2D m);
 size_t mat2D_offset2d(Mat2D m, size_t i, size_t j);
 void mat2D_fill(Mat2D m, double x);
+void mat2D_fill_sequence(Mat2D m, double start, double step);
 void mat2D_rand(Mat2D m, double low, double high);
 void mat2D_dot(Mat2D dst, Mat2D a, Mat2D b);
 void mat2D_add(Mat2D dst, Mat2D a);
@@ -106,6 +107,14 @@ void mat2D_fill(Mat2D m, double x)
     for (size_t i = 0; i < m.rows; ++i) {
         for (size_t j = 0; j < m.cols; ++j) {
             MAT2D_AT(m, i, j) = x;
+        }
+    }
+}
+
+void mat2D_fill_sequence(Mat2D m, double start, double step) {
+    for (size_t i = 0; i < m.rows; i++) {
+        for (size_t j = 0; j < m.cols; j++) {
+            MAT2D_AT(m, i, j) = start + step * mat2D_offset2d(m, i, j);
         }
     }
 }
