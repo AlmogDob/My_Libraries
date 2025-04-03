@@ -91,17 +91,10 @@ Mat2D mat2D_alloc(size_t rows, size_t cols)
     Mat2D m;
     m.rows = rows;
     m.cols = cols;
-<<<<<<< HEAD
-    m.stride = cols;
-    m.elements = (double*)MATRIX2D_MALLOC(sizeof(double)*rows*cols);
-    MATRIX2D_ASSERT(m.elements != NULL);
-
-=======
     m.stride_r = cols;
     m.elements = (double*)MATRIX2D_MALLOC(sizeof(double)*rows*cols);
     MATRIX2D_ASSERT(m.elements != NULL);
     
->>>>>>> adding_inverse
     return m;
 }
 
