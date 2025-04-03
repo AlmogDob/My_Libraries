@@ -67,9 +67,11 @@ void mat2D_add_row_to_row(Mat2D des, size_t des_row, Mat2D src, size_t src_row);
 void mat2D_sub_row_to_row(Mat2D des, size_t des_row, Mat2D src, size_t src_row);
 double mat2D_calc_norma(Mat2D m);
 double mat2D_det_2x2_mat(Mat2D m);
+double mat2D_det(Mat2D m);
 
 Mat2D_Minor mat2D_minor_alloc_fill_from_mat(Mat2D ref_mat, size_t i, size_t j);
 Mat2D_Minor mat2D_minor_alloc_fill_from_mat_minor(Mat2D_Minor ref_mm, size_t i, size_t j);
+void mat2D_minor_free(Mat2D_Minor mm);
 void mat2D_minor_print(Mat2D_Minor mm, const char *name, size_t padding);
 double mat2D_det_2x2_mat_minor(Mat2D_Minor mm);
 double mat2D_minor_det(Mat2D_Minor mm);
@@ -316,6 +318,25 @@ double mat2D_det_2x2_mat(Mat2D m)
     return MAT2D_AT(m, 0, 0) * MAT2D_AT(m, 1, 1) - MAT2D_AT(m, 0, 1) * MAT2D_AT(m, 1, 0);
 }
 
+double mat2D_det(Mat2D m)
+{
+    double det = 0;
+    /* TODO: finding beast row or col? */
+    for (size_t i = 0, j = 0; i < m.rows; i++) { /* first column */
+        if (MAT2D_AT(m, i, j) < 1e-10) continue;
+        Mat2D_Minor sub_mm = mat2D_minor_alloc_fill_from_mat(m, i, j);
+        int factor = (i+j)%2 ? -1 : 1;
+        if (sub_mm.cols != 2) {
+            MATRIX2D_ASSERT(sub_mm.cols == sub_mm.rows && "should be a square matrix");
+            det += MAT2D_AT(m, i, j) * (factor) * mat2D_minor_det(sub_mm);
+        } else if (sub_mm.cols == 2 && sub_mm.rows == 2) {
+            det += MAT2D_AT(m, i, j) * (factor) * mat2D_det_2x2_mat_minor(sub_mm);;
+        }
+        mat2D_minor_free(sub_mm);
+    }
+    return det;
+}
+
 Mat2D_Minor mat2D_minor_alloc_fill_from_mat(Mat2D ref_mat, size_t i, size_t j)
 {
     MATRIX2D_ASSERT(ref_mat.cols == ref_mat.rows && "minor is defined only for square matrix");
@@ -406,6 +427,7 @@ double mat2D_minor_det(Mat2D_Minor mm)
     double det = 0;
     /* TODO: finding beast row or col? */
     for (size_t i = 0, j = 0; i < mm.rows; i++) { /* first column */
+        if (MAT2D_MINOR_AT(mm, i, j) < 1e-10) continue;
         Mat2D_Minor sub_mm = mat2D_minor_alloc_fill_from_mat_minor(mm, i, j);
         int factor = (i+j)%2 ? -1 : 1;
         if (sub_mm.cols != 2) {
