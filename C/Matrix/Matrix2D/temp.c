@@ -5,13 +5,14 @@
 
 int main(void)
 {
-    Mat2D m = mat2D_alloc(12,12);
-    srand(time(0));
-    mat2D_rand(m, 0, 1);
+    Mat2D m = mat2D_alloc(5, 5);
+
+    Mat2D a = mat2D_alloc(3, 4);
+    mat2D_fill(a, 1);
+
+    mat2D_copy_mat_to_mat_at_ij(m, a, 1, 0);
 
     MAT2D_PRINT(m);
-
-    printf("%.10f\n", mat2D_det(m));
 
     mat2D_free(m);
 

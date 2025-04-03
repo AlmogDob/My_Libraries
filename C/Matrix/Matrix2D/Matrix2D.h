@@ -58,7 +58,8 @@ void mat2D_mult(Mat2D m, double factor);
 void mat2D_print(Mat2D m, const char *name, size_t padding);
 void mat2D_print_as_col(Mat2D m, const char *name, size_t padding);
 void mat2D_identity_mat(Mat2D m);
-void mat2D_copy(Mat2D res, Mat2D src);
+void mat2D_copy(Mat2D des, Mat2D src);
+void mat2D_copy_mat_to_mat_at_ij(Mat2D des, Mat2D src, size_t i, size_t j);
 void mat2D_get_col(Mat2D des, size_t des_col, Mat2D src, size_t src_col);
 void mat2D_add_col_to_col(Mat2D des, size_t des_col, Mat2D src, size_t src_col);
 void mat2D_sub_col_to_col(Mat2D des, size_t des_col, Mat2D src, size_t src_col);
@@ -231,7 +232,18 @@ void mat2D_copy(Mat2D des, Mat2D src)
             MAT2D_AT(des, i, j) = MAT2D_AT(src, i, j);
         }
     }
-    
+}
+
+void mat2D_copy_mat_to_mat_at_ij(Mat2D des, Mat2D src, size_t i, size_t j)
+{
+    MATRIX2D_ASSERT(des.cols >= src.cols + j);
+    MATRIX2D_ASSERT(des.rows >= src.rows + i);
+
+    for (size_t index = 0; index < src.rows; ++index) {
+        for (size_t jndex = 0; jndex < src.cols; ++jndex) {
+            MAT2D_AT(des, i+index, j+jndex) = MAT2D_AT(src, index, jndex);
+        }
+    }
 }
 
 void mat2D_get_col(Mat2D des, size_t des_col, Mat2D src, size_t src_col)
