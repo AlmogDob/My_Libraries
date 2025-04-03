@@ -34,7 +34,7 @@ typedef struct {
 #define MAT2D_PRINT(m) mat2D_print(m, #m, 0)
 
 double rand_double(void);
-void mat2D_alloc(Mat2D *m, size_t rows, size_t cols);
+Mat2D mat2D_alloc(size_t rows, size_t cols);
 void mat2D_free(Mat2D m);
 size_t mat2D_offset2d(Mat2D m, size_t i, size_t j);
 void mat2D_fill(Mat2D m, double x);
@@ -60,13 +60,16 @@ double rand_double(void)
     return (double) rand() / (double) RAND_MAX;
 }
 
-void mat2D_alloc(Mat2D *m, size_t rows, size_t cols)
+Mat2D mat2D_alloc(size_t rows, size_t cols)
 {
-    m->rows = rows;
-    m->cols = cols;
-    m->stride = cols;
-    m->elements = (double*)MATRIX2D_MALLOC(sizeof(double)*rows*cols);
-    MATRIX2D_ASSERT(m->elements != NULL);
+    Mat2D m;
+    m.rows = rows;
+    m.cols = cols;
+    m.stride = cols;
+    m.elements = (double*)MATRIX2D_MALLOC(sizeof(double)*rows*cols);
+    MATRIX2D_ASSERT(m.elements != NULL);
+
+    return m;
 }
 
 void mat2D_free(Mat2D m)

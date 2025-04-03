@@ -4,7 +4,7 @@
 
 int main(void)
 {
-    Mat2D m = mat2D_alloc(10, 10);
+    Mat2D m = mat2D_alloc(9, 10);
     srand(time(0));
     mat2D_rand(m, 0, 1);
 
