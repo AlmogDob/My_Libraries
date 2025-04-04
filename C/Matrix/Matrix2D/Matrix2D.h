@@ -267,11 +267,8 @@ double mat2D_make_identity(Mat2D m)
             }
         }
         if (i != biggest_r) {
-            mat2D_sub_row_time_factor_to_row(m, i, biggest_r, 1);
-            mat2D_mult_row(m, i, -1);
+            mat2D_swap_rows(m, i, biggest_r);
             factor_to_return *= -1;
-            mat2D_sub_row_time_factor_to_row(m, biggest_r, i, 1);
-            mat2D_sub_row_time_factor_to_row(m, i, biggest_r, -1);
         }
         for (size_t j = i+1; j < m.cols; j++) {
             double factor = 1 / MAT2D_AT(m, i, i);
@@ -490,17 +487,8 @@ void mat2D_invert(Mat2D des, Mat2D src)
             }
         }
         if (i != biggest_r) {
-            mat2D_sub_row_time_factor_to_row(m, i, biggest_r, 1);
-            mat2D_sub_row_time_factor_to_row(des, i, biggest_r, 1);
-
-            mat2D_mult_row(des, i, -1);
-            mat2D_mult_row(des, i, -1);
-
-            mat2D_sub_row_time_factor_to_row(des, biggest_r, i, 1);
-            mat2D_sub_row_time_factor_to_row(des, biggest_r, i, 1);
-
-            mat2D_sub_row_time_factor_to_row(des, i, biggest_r, -1);
-            mat2D_sub_row_time_factor_to_row(des, i, biggest_r, -1);
+            mat2D_swap_rows(m, i, biggest_r);
+            mat2D_swap_rows(des, i, biggest_r);
         }
         for (size_t j = i+1; j < m.cols; j++) {
             double factor = 1 / MAT2D_AT(m, i, i);
