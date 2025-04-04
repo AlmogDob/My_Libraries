@@ -217,7 +217,7 @@ void mat2D_print(Mat2D m, const char *name, size_t padding)
     for (size_t i = 0; i < m.rows; ++i) {
         printf("%*s    ", (int) padding, "");
         for (size_t j = 0; j < m.cols; ++j) {
-            printf("%f ", MAT2D_AT(m, i, j));
+            printf("%9.6f ", MAT2D_AT(m, i, j));
         }
         printf("\n");
     }
@@ -259,16 +259,16 @@ double mat2D_make_identity(Mat2D m)
     double factor_to_return = 1;
 
     for (size_t i = 0; i < (size_t)fmin(m.rows-1, m.cols); i++) {
-        if (0 == MAT2D_AT(m, i, i)) {
-            /* find row with non zero element at index i */
-            for (size_t j = i+1; j < m.cols; j++) {
-                if (0 != MAT2D_AT(m, j, i)) {
-                    mat2D_swap_rows(m, j, i);
-                    mat2D_swap_rows(m, j, m.rows-1);
-                    break;
-                }
-                i++;
+        /* check if it is the biggest first number (absolute value) */
+        size_t biggest_r = i;
+        for (size_t index = i; index < m.rows; index++) {
+            if (fabs(MAT2D_AT(m, index, index)) > fabs(MAT2D_AT(m, biggest_r, 0))) {
+                biggest_r = index;
             }
+        }
+        if (i != biggest_r) {
+            mat2D_swap_rows(m, i, biggest_r);
+            factor_to_return *= -1;
         }
         for (size_t j = i+1; j < m.cols; j++) {
             double factor = 1 / MAT2D_AT(m, i, i);
@@ -479,19 +479,16 @@ void mat2D_invert(Mat2D des, Mat2D src)
     mat2D_set_identity(des);
 
     for (size_t i = 0; i < (size_t)fmin(m.rows-1, m.cols); i++) {
-        if (0 == MAT2D_AT(m, i, i)) {
-            /* find row with non zero element at index i */
-            for (size_t j = i+1; j < m.cols; j++) {
-                if (0 != MAT2D_AT(m, j, i)) {
-                    mat2D_swap_rows(m, j, i);
-                    mat2D_swap_rows(m, j, m.rows-1);
-
-                    mat2D_swap_rows(des, j, i);
-                    mat2D_swap_rows(des, j, des.rows-1);
-                    break;
-                }
-                i++;
+        /* check if it is the biggest first number (absolute value) */
+        size_t biggest_r = i;
+        for (size_t index = i; index < m.rows; index++) {
+            if (fabs(MAT2D_AT(m, index, index)) > fabs(MAT2D_AT(m, biggest_r, 0))) {
+                biggest_r = index;
             }
+        }
+        if (i != biggest_r) {
+            mat2D_swap_rows(m, i, biggest_r);
+            mat2D_swap_rows(des, i, biggest_r);
         }
         for (size_t j = i+1; j < m.cols; j++) {
             double factor = 1 / MAT2D_AT(m, i, i);
