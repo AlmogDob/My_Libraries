@@ -12,9 +12,9 @@ int main(void)
     mat2D_copy(inv_m, m);
     
     printf("%f\n", mat2D_det(m));
-    // printf("%f\n", 1/mat2D_make_identity(inv_m));
+    printf("%f\n", 1/mat2D_make_identity(inv_m));
 
-    mat2D_invert(inv_m, m);
+    // mat2D_invert(inv_m, m);
 
     MAT2D_PRINT(m);
     MAT2D_PRINT(inv_m);
