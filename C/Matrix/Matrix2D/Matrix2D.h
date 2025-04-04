@@ -53,13 +53,18 @@ void mat2D_fill_sequence(Mat2D m, double start, double step);
 void mat2D_rand(Mat2D m, double low, double high);
 void mat2D_dot(Mat2D dst, Mat2D a, Mat2D b);
 void mat2D_add(Mat2D dst, Mat2D a);
+void mat2D_add_row_time_factor_to_row(Mat2D m, size_t des_r, size_t src_r, double factor);
 void mat2D_sub(Mat2D dst, Mat2D a);
+void mat2D_sub_row_time_factor_to_row(Mat2D m, size_t des_r, size_t src_r, double factor);
 void mat2D_mult(Mat2D m, double factor);
+void mat2D_mult_row(Mat2D m, size_t r, double factor);
 void mat2D_print(Mat2D m, const char *name, size_t padding);
 void mat2D_print_as_col(Mat2D m, const char *name, size_t padding);
-void mat2D_identity_mat(Mat2D m);
+void mat2D_set_identity(Mat2D m);
+double mat2D_make_identity(Mat2D m);
 void mat2D_copy(Mat2D des, Mat2D src);
 void mat2D_copy_mat_to_mat_at_ij(Mat2D des, Mat2D src, size_t i, size_t j);
+void mat2D_swap_rows(Mat2D m, size_t r1, size_t r2);
 void mat2D_get_col(Mat2D des, size_t des_col, Mat2D src, size_t src_col);
 void mat2D_add_col_to_col(Mat2D des, size_t des_col, Mat2D src, size_t src_col);
 void mat2D_sub_col_to_col(Mat2D des, size_t des_col, Mat2D src, size_t src_col);
@@ -68,7 +73,9 @@ void mat2D_add_row_to_row(Mat2D des, size_t des_row, Mat2D src, size_t src_row);
 void mat2D_sub_row_to_row(Mat2D des, size_t des_row, Mat2D src, size_t src_row);
 double mat2D_calc_norma(Mat2D m);
 double mat2D_det_2x2_mat(Mat2D m);
+double mat2D_triangulate(Mat2D m);
 double mat2D_det(Mat2D m);
+void mat2D_invert(Mat2D des, Mat2D src);
 
 Mat2D_Minor mat2D_minor_alloc_fill_from_mat(Mat2D ref_mat, size_t i, size_t j);
 Mat2D_Minor mat2D_minor_alloc_fill_from_mat_minor(Mat2D_Minor ref_mm, size_t i, size_t j);
@@ -163,6 +170,13 @@ void mat2D_add(Mat2D dst, Mat2D a)
     }
 }
 
+void mat2D_add_row_time_factor_to_row(Mat2D m, size_t des_r, size_t src_r, double factor)
+{
+    for (size_t j = 0; j < m.cols; ++j) {
+        MAT2D_AT(m, des_r, j) += factor * MAT2D_AT(m, src_r, j);
+    }
+}
+
 void mat2D_sub(Mat2D dst, Mat2D a)
 {
     MATRIX2D_ASSERT(dst.rows == a.rows);
@@ -174,12 +188,26 @@ void mat2D_sub(Mat2D dst, Mat2D a)
     }
 }
 
+void mat2D_sub_row_time_factor_to_row(Mat2D m, size_t des_r, size_t src_r, double factor)
+{
+    for (size_t j = 0; j < m.cols; ++j) {
+        MAT2D_AT(m, des_r, j) -= factor * MAT2D_AT(m, src_r, j);
+    }
+}
+
 void mat2D_mult(Mat2D m, double factor)
 {
     for (size_t i = 0; i < m.rows; ++i) {
         for (size_t j = 0; j < m.cols; ++j) {
             MAT2D_AT(m, i, j) *= factor;
         }
+    }
+}
+
+void mat2D_mult_row(Mat2D m, size_t r, double factor)
+{
+    for (size_t j = 0; j < m.cols; ++j) {
+        MAT2D_AT(m, r, j) *= factor;
     }
 }
 
@@ -206,7 +234,7 @@ void mat2D_print_as_col(Mat2D m, const char *name, size_t padding)
     printf("%*s]\n", (int) padding, "");
 }
 
-void mat2D_identity_mat(Mat2D m)
+void mat2D_set_identity(Mat2D m)
 {
     MATRIX2D_ASSERT(m.cols == m.rows);
     for (size_t i = 0; i < m.rows; ++i) {
@@ -220,6 +248,47 @@ void mat2D_identity_mat(Mat2D m)
             // }
         }
     }
+}
+
+double mat2D_make_identity(Mat2D m)
+{
+    /* make identity matrix using Gauss elimination */
+    /* preforming Gauss elimination: https://en.wikipedia.org/wiki/Gaussian_elimination */
+    /* returns the factor multiplying the determinant */
+
+    double factor_to_return = 1;
+
+    for (size_t i = 0; i < (size_t)fmin(m.rows-1, m.cols); i++) {
+        if (0 == MAT2D_AT(m, i, i)) {
+            /* find row with non zero element at index i */
+            for (size_t j = i+1; j < m.cols; j++) {
+                if (0 != MAT2D_AT(m, j, i)) {
+                    mat2D_swap_rows(m, j, i);
+                    mat2D_swap_rows(m, j, m.rows-1);
+                    break;
+                }
+                i++;
+            }
+        }
+        for (size_t j = i+1; j < m.cols; j++) {
+            double factor = 1 / MAT2D_AT(m, i, i);
+            mat2D_sub_row_time_factor_to_row(m, j, i, MAT2D_AT(m, j, i) * factor);
+            mat2D_mult_row(m, i, factor);
+            factor_to_return *= factor;
+        }
+    }
+    double factor = 1 / MAT2D_AT(m, m.rows-1, m.cols-1);
+    mat2D_mult_row(m, m.rows-1, factor);
+    factor_to_return *= factor;
+    for (size_t c = m.cols-1; c > 0; c--) {
+        for (int r = c-1; r >= 0; r--) {
+            double factor = 1 / MAT2D_AT(m, c, c);
+            mat2D_sub_row_time_factor_to_row(m, r, c, MAT2D_AT(m, r, c) * factor);
+        }
+    }
+
+
+    return factor_to_return;
 }
 
 void mat2D_copy(Mat2D des, Mat2D src)
@@ -243,6 +312,15 @@ void mat2D_copy_mat_to_mat_at_ij(Mat2D des, Mat2D src, size_t i, size_t j)
         for (size_t jndex = 0; jndex < src.cols; ++jndex) {
             MAT2D_AT(des, i+index, j+jndex) = MAT2D_AT(src, index, jndex);
         }
+    }
+}
+
+void mat2D_swap_rows(Mat2D m, size_t r1, size_t r2)
+{
+    for (size_t j = 0; j < m.cols; j++) {
+        double temp = MAT2D_AT(m, r1, j);
+        MAT2D_AT(m, r1, j) = MAT2D_AT(m, r2, j);
+        MAT2D_AT(m, r2, j) = temp;
     }
 }
 
@@ -330,23 +408,64 @@ double mat2D_det_2x2_mat(Mat2D m)
     return MAT2D_AT(m, 0, 0) * MAT2D_AT(m, 1, 1) - MAT2D_AT(m, 0, 1) * MAT2D_AT(m, 1, 0);
 }
 
+double mat2D_triangulate(Mat2D m)
+{
+    /* preforming Gauss elimination: https://en.wikipedia.org/wiki/Gaussian_elimination */
+    /* returns the factor multiplying the determinant */
+
+    double factor_to_return = 1;
+
+    for (size_t i = 0; i < (size_t)fmin(m.rows-1, m.cols); i++) {
+        if (0 == MAT2D_AT(m, i, i)) {
+            /* find row with non zero element at index i */
+            for (size_t j = i+1; j < m.cols; j++) {
+                if (0 != MAT2D_AT(m, j, i)) {
+                    mat2D_swap_rows(m, j, i);
+                    mat2D_swap_rows(m, j, m.rows-1);
+                    break;
+                }
+                i++;
+            }
+        }
+        for (size_t j = i+1; j < m.cols; j++) {
+            double factor = MAT2D_AT(m, j, i) / MAT2D_AT(m, i, i);
+            mat2D_sub_row_time_factor_to_row(m, j, i, factor);
+        }
+    }
+    return factor_to_return;
+}
+
 double mat2D_det(Mat2D m)
 {
-    double det = 0;
-    /* TODO: finding beast row or col? */
-    for (size_t i = 0, j = 0; i < m.rows; i++) { /* first column */
-        if (MAT2D_AT(m, i, j) < 1e-10) continue;
-        Mat2D_Minor sub_mm = mat2D_minor_alloc_fill_from_mat(m, i, j);
-        int factor = (i+j)%2 ? -1 : 1;
-        if (sub_mm.cols != 2) {
-            MATRIX2D_ASSERT(sub_mm.cols == sub_mm.rows && "should be a square matrix");
-            det += MAT2D_AT(m, i, j) * (factor) * mat2D_minor_det(sub_mm);
-        } else if (sub_mm.cols == 2 && sub_mm.rows == 2) {
-            det += MAT2D_AT(m, i, j) * (factor) * mat2D_det_2x2_mat_minor(sub_mm);;
-        }
-        mat2D_minor_free(sub_mm);
+    MATRIX2D_ASSERT(m.cols == m.rows && "should be a square matrix");
+
+    /* This is an implementation of naive determinant calculation using minors. This is too slow */
+
+    // double det = 0;
+    // /* TODO: finding beast row or col? */
+    // for (size_t i = 0, j = 0; i < m.rows; i++) { /* first column */
+    //     if (MAT2D_AT(m, i, j) < 1e-10) continue;
+    //     Mat2D_Minor sub_mm = mat2D_minor_alloc_fill_from_mat(m, i, j);
+    //     int factor = (i+j)%2 ? -1 : 1;
+    //     if (sub_mm.cols != 2) {
+    //         MATRIX2D_ASSERT(sub_mm.cols == sub_mm.rows && "should be a square matrix");
+    //         det += MAT2D_AT(m, i, j) * (factor) * mat2D_minor_det(sub_mm);
+    //     } else if (sub_mm.cols == 2 && sub_mm.rows == 2) {
+    //         det += MAT2D_AT(m, i, j) * (factor) * mat2D_det_2x2_mat_minor(sub_mm);;
+    //     }
+    //     mat2D_minor_free(sub_mm);
+    // }
+
+    Mat2D temp_m = mat2D_alloc(m.rows, m.cols);
+    mat2D_copy(temp_m, m);
+    double factor = mat2D_triangulate(temp_m);
+    double diag_mul = 1; 
+    for (size_t i = 0; i < temp_m.rows; i++) {
+        diag_mul *= MAT2D_AT(temp_m, i, i);
     }
-    return det;
+    mat2D_free(temp_m);
+
+    return diag_mul / factor;
 }
 
 Mat2D_Minor mat2D_minor_alloc_fill_from_mat(Mat2D ref_mat, size_t i, size_t j)
@@ -436,6 +555,8 @@ double mat2D_det_2x2_mat_minor(Mat2D_Minor mm)
 
 double mat2D_minor_det(Mat2D_Minor mm)
 {
+    MATRIX2D_ASSERT(mm.cols == mm.rows && "should be a square matrix");
+
     double det = 0;
     /* TODO: finding beast row or col? */
     for (size_t i = 0, j = 0; i < mm.rows; i++) { /* first column */
