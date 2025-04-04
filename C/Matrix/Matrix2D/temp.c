@@ -4,20 +4,24 @@
 
 int main(void)
 {
-    Mat2D m = mat2D_alloc(5, 5);
+    Mat2D m = mat2D_alloc(500, 500);
     Mat2D inv_m = mat2D_alloc(m.rows, m.cols);
+    Mat2D result = mat2D_alloc(m.rows, m.cols);
     srand(2);
-    mat2D_rand(m, -10, 10);
+    mat2D_rand(m, 0, 1);
     // mat2D_fill_sequence(m, 0, 1);
     mat2D_copy(inv_m, m);
     
     printf("%f\n", mat2D_det(m));
-    printf("%f\n", 1/mat2D_make_identity(inv_m));
+    // printf("%f\n", 1/mat2D_make_identity(inv_m));
 
-    // mat2D_invert(inv_m, m);
+    mat2D_invert(inv_m, m);
+
+    mat2D_dot(result, m, inv_m);
 
     MAT2D_PRINT(m);
     MAT2D_PRINT(inv_m);
+    MAT2D_PRINT(result);
 
     mat2D_free(m);
     mat2D_free(inv_m);

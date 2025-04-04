@@ -416,16 +416,16 @@ double mat2D_triangulate(Mat2D m)
     double factor_to_return = 1;
 
     for (size_t i = 0; i < (size_t)fmin(m.rows-1, m.cols); i++) {
-        if (0 == MAT2D_AT(m, i, i)) {
-            /* find row with non zero element at index i */
-            for (size_t j = i+1; j < m.cols; j++) {
-                if (0 != MAT2D_AT(m, j, i)) {
-                    mat2D_swap_rows(m, j, i);
-                    mat2D_swap_rows(m, j, m.rows-1);
-                    break;
-                }
-                i++;
+        /* check if it is the biggest first number (absolute value) */
+        size_t biggest_r = i;
+        for (size_t index = i; index < m.rows; index++) {
+            if (fabs(MAT2D_AT(m, index, index)) > fabs(MAT2D_AT(m, biggest_r, 0))) {
+                biggest_r = index;
             }
+        }
+        if (i != biggest_r) {
+            mat2D_swap_rows(m, i, biggest_r);
+            factor_to_return *= -1;
         }
         for (size_t j = i+1; j < m.cols; j++) {
             double factor = MAT2D_AT(m, j, i) / MAT2D_AT(m, i, i);
