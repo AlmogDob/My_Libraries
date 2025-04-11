@@ -217,7 +217,7 @@ void mat2D_print(Mat2D m, const char *name, size_t padding)
     for (size_t i = 0; i < m.rows; ++i) {
         printf("%*s    ", (int) padding, "");
         for (size_t j = 0; j < m.cols; ++j) {
-            printf("%9.6f ", MAT2D_AT(m, i, j));
+            printf("%13.10f ", MAT2D_AT(m, i, j));
         }
         printf("\n");
     }
@@ -482,7 +482,7 @@ void mat2D_invert(Mat2D des, Mat2D src)
         /* check if it is the biggest first number (absolute value) */
         size_t biggest_r = i;
         for (size_t index = i; index < m.rows; index++) {
-            if (fabs(MAT2D_AT(m, index, index)) > fabs(MAT2D_AT(m, biggest_r, 0))) {
+            if (fabs(MAT2D_AT(m, index, i)) > fabs(MAT2D_AT(m, biggest_r, i))) {
                 biggest_r = index;
             }
         }
@@ -491,6 +491,7 @@ void mat2D_invert(Mat2D des, Mat2D src)
             mat2D_swap_rows(des, i, biggest_r);
         }
         for (size_t j = i+1; j < m.cols; j++) {
+            MAT2D_PRINT(m);
             double factor = 1 / MAT2D_AT(m, i, i);
             double mat_value = MAT2D_AT(m, j, i);
             mat2D_sub_row_time_factor_to_row(m, j, i, mat_value * factor);
