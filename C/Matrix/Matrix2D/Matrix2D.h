@@ -4,6 +4,9 @@ https://github.com/tsoding/nn.h .
 featured in this video of his:
 https://youtu.be/L1TbWe8bVOc?list=PLpM-Dvs8t0VZPZKggcql-MmjaBdZKeDMw .*/
 
+/* NOTES:
+ * There is a hole set of function for deling with the minors of a matrix because I tried to calculate the determinant of a matrix with them but it terns out to be TO SLOW. Insted I use Gauss elimination.
+ * There are some stability problems in the inversion function. When the values of the matrix becomes too small, the inversion fails. Currently the only fix I can think of is to use pre-conditioners. However, it means to creat a function to solve the hole problem 'Ax=B', which wasn't my intention in the first place. I might do it but I am not sure. */
 
 #ifndef MATRIX2D_H_
 #define MATRIX2D_H_
@@ -63,7 +66,7 @@ void mat2D_print_as_col(Mat2D m, const char *name, size_t padding);
 void mat2D_set_identity(Mat2D m);
 double mat2D_make_identity(Mat2D m);
 void mat2D_copy(Mat2D des, Mat2D src);
-void mat2D_copy_mat_to_mat_at_ij(Mat2D des, Mat2D src, size_t i, size_t j);
+void mat2D_copy_mat_to_mat_at_window(Mat2D des, Mat2D src, size_t is, size_t js, size_t ie, size_t je);
 void mat2D_swap_rows(Mat2D m, size_t r1, size_t r2);
 void mat2D_get_col(Mat2D des, size_t des_col, Mat2D src, size_t src_col);
 void mat2D_add_col_to_col(Mat2D des, size_t des_col, Mat2D src, size_t src_col);
@@ -217,7 +220,7 @@ void mat2D_print(Mat2D m, const char *name, size_t padding)
     for (size_t i = 0; i < m.rows; ++i) {
         printf("%*s    ", (int) padding, "");
         for (size_t j = 0; j < m.cols; ++j) {
-            printf("%13.10f ", MAT2D_AT(m, i, j));
+            printf("%9.6f ", MAT2D_AT(m, i, j));
         }
         printf("\n");
     }
@@ -303,14 +306,15 @@ void mat2D_copy(Mat2D des, Mat2D src)
     }
 }
 
-void mat2D_copy_mat_to_mat_at_ij(Mat2D des, Mat2D src, size_t i, size_t j)
+void mat2D_copy_mat_to_mat_at_window(Mat2D des, Mat2D src, size_t is, size_t js, size_t ie, size_t je)
 {
-    MATRIX2D_ASSERT(des.cols >= src.cols + j);
-    MATRIX2D_ASSERT(des.rows >= src.rows + i);
+    MATRIX2D_ASSERT(je > js && ie > is);
+    MATRIX2D_ASSERT(je-js+1 == des.cols);
+    MATRIX2D_ASSERT(ie-is+1 == des.rows);
 
-    for (size_t index = 0; index < src.rows; ++index) {
-        for (size_t jndex = 0; jndex < src.cols; ++jndex) {
-            MAT2D_AT(des, i+index, j+jndex) = MAT2D_AT(src, index, jndex);
+    for (size_t index = 0; index < des.rows; ++index) {
+        for (size_t jndex = 0; jndex < des.cols; ++jndex) {
+            MAT2D_AT(des, index, jndex) = MAT2D_AT(src, is+index, js+jndex);
         }
     }
 }
@@ -491,7 +495,6 @@ void mat2D_invert(Mat2D des, Mat2D src)
             mat2D_swap_rows(des, i, biggest_r);
         }
         for (size_t j = i+1; j < m.cols; j++) {
-            MAT2D_PRINT(m);
             double factor = 1 / MAT2D_AT(m, i, i);
             double mat_value = MAT2D_AT(m, j, i);
             mat2D_sub_row_time_factor_to_row(m, j, i, mat_value * factor);
@@ -499,12 +502,6 @@ void mat2D_invert(Mat2D des, Mat2D src)
 
             mat2D_sub_row_time_factor_to_row(des, j, i, mat_value * factor);
             mat2D_mult_row(des, i, factor);
-        }
-
-        if (0 == i) {
-            // MAT2D_PRINT(m);
-            // MAT2D_PRINT(m);
-            // return;
         }
     }
     double factor = 1 / MAT2D_AT(m, m.rows-1, m.cols-1);
