@@ -98,7 +98,7 @@ bool mat2D_col_is_all_digit(Mat2D m, double digit, size_t c);
 double mat2D_det_2x2_mat(Mat2D m);
 double mat2D_triangulate(Mat2D m);
 double mat2D_det(Mat2D m);
-void mat2D_LU_decomposition_with_swap(Mat2D src, Mat2D l, Mat2D p, Mat2D u);
+void mat2D_LUP_decomposition_with_swap(Mat2D src, Mat2D l, Mat2D p, Mat2D u);
 void mat2D_invert(Mat2D des, Mat2D src);
 
 Mat2D_Minor mat2D_minor_alloc_fill_from_mat(Mat2D ref_mat, size_t i, size_t j);
@@ -544,7 +544,7 @@ double mat2D_det(Mat2D m)
     return diag_mul / factor;
 }
 
-void mat2D_LU_decomposition_with_swap(Mat2D src, Mat2D l, Mat2D p, Mat2D u)
+void mat2D_LUP_decomposition_with_swap(Mat2D src, Mat2D l, Mat2D p, Mat2D u)
 {
     /* performing LU decomposition Following the Wikipedia page: https://en.wikipedia.org/wiki/LU_decomposition */
 
