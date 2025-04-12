@@ -98,6 +98,7 @@ bool mat2D_col_is_all_digit(Mat2D m, double digit, size_t c);
 double mat2D_det_2x2_mat(Mat2D m);
 double mat2D_triangulate(Mat2D m);
 double mat2D_det(Mat2D m);
+void mat2D_LU_decomposition_with_swap(Mat2D src, Mat2D l, Mat2D p, Mat2D u);
 void mat2D_invert(Mat2D des, Mat2D src);
 
 Mat2D_Minor mat2D_minor_alloc_fill_from_mat(Mat2D ref_mat, size_t i, size_t j);
@@ -541,6 +542,43 @@ double mat2D_det(Mat2D m)
     mat2D_free(temp_m);
 
     return diag_mul / factor;
+}
+
+void mat2D_LU_decomposition_with_swap(Mat2D src, Mat2D l, Mat2D p, Mat2D u)
+{
+    /* performing LU decomposition Following the Wikipedia page: https://en.wikipedia.org/wiki/LU_decomposition */
+
+    mat2D_copy(u, src);
+    mat2D_set_identity(p);
+    mat2D_fill(l, 0);
+
+    for (size_t i = 0; i < (size_t)fmin(u.rows-1, u.cols); i++) {
+        if (!MAT2D_AT(u, i, i)) {   /* swapping only if it is zero */
+            /* finding biggest first number (absolute value) */
+            size_t biggest_r = i;
+            for (size_t index = i; index < u.rows; index++) {
+                if (fabs(MAT2D_AT(u, index, i)) > fabs(MAT2D_AT(u, biggest_r, i))) {
+                    biggest_r = index;
+                }
+            }
+            if (i != biggest_r) {
+                mat2D_swap_rows(u, i, biggest_r);
+                mat2D_swap_rows(p, i, biggest_r);
+                mat2D_swap_rows(l, i, biggest_r);
+            }
+        }
+        for (size_t j = i+1; j < u.cols; j++) {
+            double factor = 1 / MAT2D_AT(u, i, i);
+            if (!isfinite(factor)) {
+                printf("%s:%d: [Error] unable to transfrom into uper triangular matrix. Probably some of the rows are not independent.\n", __FILE__, __LINE__);
+            }
+            double mat_value = MAT2D_AT(u, j, i);
+            mat2D_sub_row_time_factor_to_row(u, j, i, mat_value * factor);
+            MAT2D_AT(l, j, i) = mat_value * factor;
+        }
+        MAT2D_AT(l, i, i) = 1;
+    }
+    MAT2D_AT(l, l.rows-1, l.cols-1) = 1;
 }
 
 void mat2D_invert(Mat2D des, Mat2D src)
