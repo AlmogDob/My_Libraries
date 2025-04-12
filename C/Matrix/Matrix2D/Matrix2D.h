@@ -57,7 +57,6 @@ size_t mat2D_offset2d(Mat2D m, size_t i, size_t j);
 
 void mat2D_fill(Mat2D m, double x);
 void mat2D_fill_sequence(Mat2D m, double start, double step);
-
 void mat2D_rand(Mat2D m, double low, double high);
 
 void mat2D_dot(Mat2D dst, Mat2D a, Mat2D b);
@@ -100,6 +99,7 @@ double mat2D_triangulate(Mat2D m);
 double mat2D_det(Mat2D m);
 void mat2D_LUP_decomposition_with_swap(Mat2D src, Mat2D l, Mat2D p, Mat2D u);
 void mat2D_invert(Mat2D des, Mat2D src);
+void mat2D_solve_linear_sys_LUP_decomposition(Mat2D A, Mat2D x, Mat2D B);
 
 Mat2D_Minor mat2D_minor_alloc_fill_from_mat(Mat2D ref_mat, size_t i, size_t j);
 Mat2D_Minor mat2D_minor_alloc_fill_from_mat_minor(Mat2D_Minor ref_mm, size_t i, size_t j);
@@ -637,6 +637,41 @@ void mat2D_invert(Mat2D des, Mat2D src)
     }
 
     mat2D_free(m);
+}
+
+void mat2D_solve_linear_sys_LUP_decomposition(Mat2D A, Mat2D x, Mat2D B)
+{
+    MATRIX2D_ASSERT(A.cols == x.rows);
+    MATRIX2D_ASSERT(1 == x.cols);
+    MATRIX2D_ASSERT(A.rows == B.rows);
+    MATRIX2D_ASSERT(1 == B.cols);
+
+    Mat2D y        = mat2D_alloc(x.rows, x.cols);
+    Mat2D l        = mat2D_alloc(A.rows, A.cols);
+    Mat2D p        = mat2D_alloc(A.rows, A.cols);
+    Mat2D u        = mat2D_alloc(A.rows, A.cols);
+    Mat2D inv_l    = mat2D_alloc(l.rows, l.cols);
+    Mat2D inv_u    = mat2D_alloc(u.rows, u.cols);
+
+    mat2D_LUP_decomposition_with_swap(A, l, p, u);
+
+    mat2D_invert(inv_l, l);
+    mat2D_invert(inv_u, u);
+
+    mat2D_fill(x, 0);   /* x here is only a temp mat*/
+    mat2D_fill(y, 0);
+    mat2D_dot(x, p, B);
+    mat2D_dot(y, inv_l, x);
+
+    mat2D_fill(x, 0);
+    mat2D_dot(x, inv_u, y);
+
+    mat2D_free(y);
+    mat2D_free(l);
+    mat2D_free(p);
+    mat2D_free(u);
+    mat2D_free(inv_l);
+    mat2D_free(inv_u);
 }
 
 Mat2D_Minor mat2D_minor_alloc_fill_from_mat(Mat2D ref_mat, size_t i, size_t j)
