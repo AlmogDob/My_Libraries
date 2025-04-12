@@ -487,7 +487,7 @@ double mat2D_triangulate(Mat2D m)
         for (size_t j = i+1; j < m.cols; j++) {
             double factor = 1 / MAT2D_AT(m, i, i);
             if (!isfinite(factor)) {
-                printf("%s:%d: [Error] unable to transfrom into uperr triangular matrix. probably one of the rows/cols is all zeros)\n", __FILE__, __LINE__);
+                printf("%s:%d: [Error] unable to transfrom into uperr triangular matrix. Probably some of the rows are not independent.\n", __FILE__, __LINE__);
             }
             double mat_value = MAT2D_AT(m, j, i);
             mat2D_sub_row_time_factor_to_row(m, j, i, mat_value * factor);
