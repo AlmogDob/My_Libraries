@@ -15,6 +15,7 @@ https://youtu.be/L1TbWe8bVOc?list=PLpM-Dvs8t0VZPZKggcql-MmjaBdZKeDMw .*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <stdbool.h>
 
 #ifndef MATRIX2D_MALLOC
 #define MATRIX2D_MALLOC malloc
@@ -48,33 +49,52 @@ typedef struct {
 #define MAT2D_MINOR_PRINT(mm) mat2D_minor_print(mm, #mm, 0)
 
 double rand_double(void);
+
 Mat2D mat2D_alloc(size_t rows, size_t cols);
 void mat2D_free(Mat2D m);
+
 size_t mat2D_offset2d(Mat2D m, size_t i, size_t j);
+
 void mat2D_fill(Mat2D m, double x);
 void mat2D_fill_sequence(Mat2D m, double start, double step);
+
 void mat2D_rand(Mat2D m, double low, double high);
+
 void mat2D_dot(Mat2D dst, Mat2D a, Mat2D b);
+
 void mat2D_add(Mat2D dst, Mat2D a);
 void mat2D_add_row_time_factor_to_row(Mat2D m, size_t des_r, size_t src_r, double factor);
+
 void mat2D_sub(Mat2D dst, Mat2D a);
 void mat2D_sub_row_time_factor_to_row(Mat2D m, size_t des_r, size_t src_r, double factor);
+
 void mat2D_mult(Mat2D m, double factor);
 void mat2D_mult_row(Mat2D m, size_t r, double factor);
+
 void mat2D_print(Mat2D m, const char *name, size_t padding);
 void mat2D_print_as_col(Mat2D m, const char *name, size_t padding);
+
 void mat2D_set_identity(Mat2D m);
 double mat2D_make_identity(Mat2D m);
+
 void mat2D_copy(Mat2D des, Mat2D src);
 void mat2D_copy_mat_to_mat_at_window(Mat2D des, Mat2D src, size_t is, size_t js, size_t ie, size_t je);
-void mat2D_swap_rows(Mat2D m, size_t r1, size_t r2);
+
 void mat2D_get_col(Mat2D des, size_t des_col, Mat2D src, size_t src_col);
 void mat2D_add_col_to_col(Mat2D des, size_t des_col, Mat2D src, size_t src_col);
 void mat2D_sub_col_to_col(Mat2D des, size_t des_col, Mat2D src, size_t src_col);
+
+void mat2D_swap_rows(Mat2D m, size_t r1, size_t r2);
 void mat2D_get_row(Mat2D des, size_t des_row, Mat2D src, size_t src_row);
 void mat2D_add_row_to_row(Mat2D des, size_t des_row, Mat2D src, size_t src_row);
 void mat2D_sub_row_to_row(Mat2D des, size_t des_row, Mat2D src, size_t src_row);
+
 double mat2D_calc_norma(Mat2D m);
+
+bool mat2D_mat_is_all_digit(Mat2D m, double digit);
+bool mat2D_row_is_all_digit(Mat2D m, double digit, size_t r);
+bool mat2D_col_is_all_digit(Mat2D m, double digit, size_t c);
+
 double mat2D_det_2x2_mat(Mat2D m);
 double mat2D_triangulate(Mat2D m);
 double mat2D_det(Mat2D m);
@@ -319,15 +339,6 @@ void mat2D_copy_mat_to_mat_at_window(Mat2D des, Mat2D src, size_t is, size_t js,
     }
 }
 
-void mat2D_swap_rows(Mat2D m, size_t r1, size_t r2)
-{
-    for (size_t j = 0; j < m.cols; j++) {
-        double temp = MAT2D_AT(m, r1, j);
-        MAT2D_AT(m, r1, j) = MAT2D_AT(m, r2, j);
-        MAT2D_AT(m, r2, j) = temp;
-    }
-}
-
 void mat2D_get_col(Mat2D des, size_t des_col, Mat2D src, size_t src_col)
 {
     MATRIX2D_ASSERT(src_col < src.cols);
@@ -358,6 +369,15 @@ void mat2D_sub_col_to_col(Mat2D des, size_t des_col, Mat2D src, size_t src_col)
 
     for (size_t i = 0; i < des.rows; i++) {
         MAT2D_AT(des, i, des_col) -= MAT2D_AT(src, i, src_col);
+    }
+}
+
+void mat2D_swap_rows(Mat2D m, size_t r1, size_t r2)
+{
+    for (size_t j = 0; j < m.cols; j++) {
+        double temp = MAT2D_AT(m, r1, j);
+        MAT2D_AT(m, r1, j) = MAT2D_AT(m, r2, j);
+        MAT2D_AT(m, r2, j) = temp;
     }
 }
 
@@ -406,6 +426,38 @@ double mat2D_calc_norma(Mat2D m)
     return sqrt(sum);
 }
 
+bool mat2D_mat_is_all_digit(Mat2D m, double digit)
+{
+    for (size_t i = 0; i < m.rows; ++i) {
+        for (size_t j = 0; j < m.cols; ++j) {
+            if (MAT2D_AT(m, i, j) != digit) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+bool mat2D_row_is_all_digit(Mat2D m, double digit, size_t r)
+{
+    for (size_t j = 0; j < m.cols; ++j) {
+        if (MAT2D_AT(m, r, j) != digit) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool mat2D_col_is_all_digit(Mat2D m, double digit, size_t c)
+{
+    for (size_t i = 0; i < m.cols; ++i) {
+        if (MAT2D_AT(m, i, c) != digit) {
+            return false;
+        }
+    }
+    return true;
+}
+
 double mat2D_det_2x2_mat(Mat2D m)
 {
     MATRIX2D_ASSERT(2 == m.cols && 2 == m.rows && "Not a 2x2 matrix");
@@ -420,20 +472,25 @@ double mat2D_triangulate(Mat2D m)
     double factor_to_return = 1;
 
     for (size_t i = 0; i < (size_t)fmin(m.rows-1, m.cols); i++) {
-        /* check if it is the biggest first number (absolute value) */
-        size_t biggest_r = i;
-        for (size_t index = i; index < m.rows; index++) {
-            if (fabs(MAT2D_AT(m, index, index)) > fabs(MAT2D_AT(m, biggest_r, 0))) {
-                biggest_r = index;
+        if (!MAT2D_AT(m, i, i)) {   /* swapping only if it is zero */
+            /* finding biggest first number (absolute value) */
+            size_t biggest_r = i;
+            for (size_t index = i; index < m.rows; index++) {
+                if (fabs(MAT2D_AT(m, index, i)) > fabs(MAT2D_AT(m, biggest_r, i))) {
+                    biggest_r = index;
+                }
+            }
+            if (i != biggest_r) {
+                mat2D_swap_rows(m, i, biggest_r);
             }
         }
-        if (i != biggest_r) {
-            mat2D_swap_rows(m, i, biggest_r);
-            factor_to_return *= -1;
-        }
         for (size_t j = i+1; j < m.cols; j++) {
-            double factor = MAT2D_AT(m, j, i) / MAT2D_AT(m, i, i);
-            mat2D_sub_row_time_factor_to_row(m, j, i, factor);
+            double factor = 1 / MAT2D_AT(m, i, i);
+            if (!isfinite(factor)) {
+                printf("%s:%d: [Error] unable to transfrom into uperr triangular matrix. probably one of the rows/cols is all zeros)\n", __FILE__, __LINE__);
+            }
+            double mat_value = MAT2D_AT(m, j, i);
+            mat2D_sub_row_time_factor_to_row(m, j, i, mat_value * factor);
         }
     }
     return factor_to_return;
@@ -442,6 +499,20 @@ double mat2D_triangulate(Mat2D m)
 double mat2D_det(Mat2D m)
 {
     MATRIX2D_ASSERT(m.cols == m.rows && "should be a square matrix");
+
+    /* checking if there is a row or column with all zeros */
+    /* checking rows */
+    for (size_t i = 0; i < m.rows; i++) {
+        if (mat2D_row_is_all_digit(m, 0, i)) {
+            return 0;
+        }
+    }
+    /* checking cols */
+    for (size_t j = 0; j < m.rows; j++) {
+        if (mat2D_col_is_all_digit(m, 0, j)) {
+            return 0;
+        }
+    }
 
     /* This is an implementation of naive determinant calculation using minors. This is too slow */
 
@@ -481,18 +552,29 @@ void mat2D_invert(Mat2D des, Mat2D src)
     mat2D_copy(m, src);
 
     mat2D_set_identity(des);
+    
+    if (!mat2D_det(m)) {
+        mat2D_fill(des, 0);
+        printf("%s:%d: [Error] Can't invert the matrix. Determinant is zero! Set the inverse matrix to all zeros\n", __FILE__, __LINE__);
+        return;
+    }
 
     for (size_t i = 0; i < (size_t)fmin(m.rows-1, m.cols); i++) {
-        /* check if it is the biggest first number (absolute value) */
-        size_t biggest_r = i;
-        for (size_t index = i; index < m.rows; index++) {
-            if (fabs(MAT2D_AT(m, index, i)) > fabs(MAT2D_AT(m, biggest_r, i))) {
-                biggest_r = index;
+        if (!MAT2D_AT(m, i, i)) {   /* swapping only if it is zero */
+            /* finding biggest first number (absolute value) */
+            size_t biggest_r = i;
+            for (size_t index = i; index < m.rows; index++) {
+                if (fabs(MAT2D_AT(m, index, i)) > fabs(MAT2D_AT(m, biggest_r, i))) {
+                    biggest_r = index;
+                }
             }
-        }
-        if (i != biggest_r) {
-            mat2D_swap_rows(m, i, biggest_r);
-            mat2D_swap_rows(des, i, biggest_r);
+            if (i != biggest_r) {
+                mat2D_swap_rows(m, i, biggest_r);
+                mat2D_swap_rows(des, i, biggest_r);
+                printf("%s:%d: [INFO] swapping row %zu with row %zu.\n", __FILE__, __LINE__, i, biggest_r);
+            } else {
+                MATRIX2D_ASSERT(0 && "can't inverse");
+            }
         }
         for (size_t j = i+1; j < m.cols; j++) {
             double factor = 1 / MAT2D_AT(m, i, i);
