@@ -4,27 +4,28 @@
 
 int main(void)
 {
-    Mat2D a     = mat2D_alloc(3, 3);
-    Mat2D b     = mat2D_alloc(3, 1);
-    Mat2D x     = mat2D_alloc(3, 1);
+    Mat2D a     = mat2D_alloc(20, 20);
+    Mat2D b     = mat2D_alloc(20, 1);
+    Mat2D x     = mat2D_alloc(20, 1);
 
-    // srand(time(0));
-    // mat2D_rand(a, 0, 1);
-    MAT2D_AT(a, 0, 0) =  1;
-    MAT2D_AT(a, 0, 1) =  3;
-    MAT2D_AT(a, 0, 2) = -2;
+    srand(time(0));
+    mat2D_rand(a, 0, 1);
+    mat2D_rand(b, 0, 1);
+    // MAT2D_AT(a, 0, 0) =  1;
+    // MAT2D_AT(a, 0, 1) =  3;
+    // MAT2D_AT(a, 0, 2) = -2;
 
-    MAT2D_AT(a, 1, 0) =  3;
-    MAT2D_AT(a, 1, 1) =  5;
-    MAT2D_AT(a, 1, 2) =  6;
+    // MAT2D_AT(a, 1, 0) =  3;
+    // MAT2D_AT(a, 1, 1) =  5;
+    // MAT2D_AT(a, 1, 2) =  6;
 
-    MAT2D_AT(a, 2, 0) =  2;
-    MAT2D_AT(a, 2, 1) =  4;
-    MAT2D_AT(a, 2, 2) =  3;
+    // MAT2D_AT(a, 2, 0) =  2;
+    // MAT2D_AT(a, 2, 1) =  4;
+    // MAT2D_AT(a, 2, 2) =  3;
 
-    MAT2D_AT(b, 0, 0) =  5;
-    MAT2D_AT(b, 1, 0) =  7;
-    MAT2D_AT(b, 2, 0) =  8;
+    // MAT2D_AT(b, 0, 0) =  5;
+    // MAT2D_AT(b, 1, 0) =  7;
+    // MAT2D_AT(b, 2, 0) =  8;
 
     MAT2D_PRINT(a);
     MAT2D_PRINT(b);

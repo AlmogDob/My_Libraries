@@ -1,7 +1,6 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 #include <math.h>
-#define MATRIX2D_IMPLEMENTATION
 #include "Matrix2D.h"
 #include <pthread.h>
 #include <stdlib.h>
@@ -9,15 +8,19 @@
 #include <errno.h>
 
 #ifndef WINDOW_WIDTH
-#define WINDOW_WIDTH 1600/1
+#define WINDOW_WIDTH (16 * 50)
 #endif
 
 #ifndef WINDOW_HEIGHT
-#define WINDOW_HEIGHT 900/1
+#define WINDOW_HEIGHT (9 * 50)
 #endif
 
 #ifndef FPS
 #define FPS 100
+#endif
+
+#ifndef FRAME_TARGET_TIME
+#define FRAME_TARGET_TIME (1000 / FPS)
 #endif
 
 #ifndef TH_COUNT
@@ -30,7 +33,6 @@
 #define dprintD(expr) printf(#expr " = %g\n", expr)
 #define dprintSIZE_T(expr) printf(#expr " = %zu\n", expr)
 
-#define FRAME_TARGET_TIME (1000 / FPS)
 #define HexARGB_RGBA(x) (x>>(8*2)&0xFF), (x>>(8*1)&0xFF), (x>>(8*0)&0xFF), (x>>(8*3)&0xFF)
 #define ARGB_hexARGB(a, r, g, b) 0x01000000*(a) + 0x00010000*(r) + 0x00000100*(g) + 0x00000001*(b)
 #define RGB_hexRGB(r, g, b) (int)(0x010000*(r) + 0x000100*(g) + 0x000001*(b))
@@ -41,7 +43,9 @@ typedef struct {
     int game_is_running;
     float delta_time;
     float elapsed_time;
+    float const_fps;
     float fps;
+    float frame_target_time;
     int space_bar_was_pressed;
     int to_render;
     int to_update;
@@ -97,7 +101,9 @@ int main()
     game_state.game_is_running = 0;
     game_state.delta_time = 0;
     game_state.elapsed_time = 0;
+    game_state.const_fps = FPS;
     game_state.fps = 0;
+    game_state.frame_target_time = FRAME_TARGET_TIME;
     game_state.space_bar_was_pressed = 0;
     game_state.to_render = 1;
     game_state.to_update = 1;
@@ -245,11 +251,16 @@ void update_window(game_state_t *game_state)
     fix_framerate(game_state);
     game_state->elapsed_time += game_state->delta_time;
     game_state->fps = 1.0f / game_state->delta_time;
+    game_state->frame_target_time = 1000/game_state->const_fps;
 
     char fps_count[100];
-    sprintf(fps_count, "FPS = %5.2f", game_state->fps);
-    if (!game_state->to_limit_fps && (game_state->elapsed_time*10-(int)(game_state->elapsed_time*10) < 0.1)) {
+    if (!game_state->to_limit_fps) {
         sprintf(fps_count, "dt = %5.02f [ms]", game_state->delta_time*1000);
+    } else {
+        sprintf(fps_count, "FPS = %5.2f", game_state->fps);
+    }
+
+    if (game_state->elapsed_time*10-(int)(game_state->elapsed_time*10) < 0.1) {
         SDL_SetWindowTitle(game_state->window, fps_count);
     }
 
@@ -297,8 +308,8 @@ void destroy_window(game_state_t *game_state)
 void fix_framerate(game_state_t *game_state)
 {
     int time_ellapsed = SDL_GetTicks() - game_state->previous_frame_time;
-    int time_to_wait = FRAME_TARGET_TIME - time_ellapsed;
-    if (time_to_wait > 0 && time_to_wait < FRAME_TARGET_TIME) {
+    int time_to_wait = game_state->frame_target_time - time_ellapsed;
+    if (time_to_wait > 0 && time_to_wait < game_state->frame_target_time) {
         if (game_state->to_limit_fps) {
             SDL_Delay(time_to_wait);
         }

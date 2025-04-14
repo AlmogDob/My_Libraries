@@ -646,12 +646,12 @@ void mat2D_solve_linear_sys_LUP_decomposition(Mat2D A, Mat2D x, Mat2D B)
     MATRIX2D_ASSERT(A.rows == B.rows);
     MATRIX2D_ASSERT(1 == B.cols);
 
-    Mat2D y        = mat2D_alloc(x.rows, x.cols);
-    Mat2D l        = mat2D_alloc(A.rows, A.cols);
-    Mat2D p        = mat2D_alloc(A.rows, A.cols);
-    Mat2D u        = mat2D_alloc(A.rows, A.cols);
-    Mat2D inv_l    = mat2D_alloc(l.rows, l.cols);
-    Mat2D inv_u    = mat2D_alloc(u.rows, u.cols);
+    Mat2D y     = mat2D_alloc(x.rows, x.cols);
+    Mat2D l     = mat2D_alloc(A.rows, A.cols);
+    Mat2D p     = mat2D_alloc(A.rows, A.cols);
+    Mat2D u     = mat2D_alloc(A.rows, A.cols);
+    Mat2D inv_l = mat2D_alloc(l.rows, l.cols);
+    Mat2D inv_u = mat2D_alloc(u.rows, u.cols);
 
     mat2D_LUP_decomposition_with_swap(A, l, p, u);
 
