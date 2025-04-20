@@ -2,10 +2,10 @@
 #include <SDL2/SDL_ttf.h>
 #include <math.h>
 #include "Matrix2D.h"
-#include <pthread.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <errno.h>
+#include <string.h>
 
 #ifndef WINDOW_WIDTH
 #define WINDOW_WIDTH (16 * 50)
@@ -23,10 +23,6 @@
 #define FRAME_TARGET_TIME (1000 / FPS)
 #endif
 
-#ifndef TH_COUNT
-#define TH_COUNT 4
-#endif
-
 #define dprintSTRING(expr) printf(#expr " = %s\n", expr)
 #define dprintCHAR(expr) printf(#expr " = %c\n", expr)
 #define dprintINT(expr) printf(#expr " = %d\n", expr)
@@ -34,6 +30,7 @@
 #define dprintSIZE_T(expr) printf(#expr " = %zu\n", expr)
 
 #define HexARGB_RGBA(x) (x>>(8*2)&0xFF), (x>>(8*1)&0xFF), (x>>(8*0)&0xFF), (x>>(8*3)&0xFF)
+#define HexARGB_RGBA_VAR(x) uint8_t r = (x>>(8*2)&0xFF); uint8_t g = (x>>(8*1)&0xFF); uint8_t b = (x>>(8*0)&0xFF); uint8_t a = (x>>(8*3)&0xFF)
 #define ARGB_hexARGB(a, r, g, b) 0x01000000*(a) + 0x00010000*(r) + 0x00000100*(g) + 0x00000001*(b)
 #define RGB_hexRGB(r, g, b) (int)(0x010000*(r) + 0x000100*(g) + 0x000001*(b))
 
@@ -46,7 +43,6 @@ typedef struct {
     float const_fps;
     float fps;
     float frame_target_time;
-    int space_bar_was_pressed;
     int to_render;
     int to_update;
     size_t previous_frame_time;
@@ -54,30 +50,25 @@ typedef struct {
     int to_limit_fps;
     int to_clear_renderer;
 
+    int space_bar_was_pressed;
+    int w_was_pressed;
+    int s_was_pressed;
+    int a_was_pressed;
+    int d_was_pressed;
+    int e_was_pressed;
+    int q_was_pressed;
+
     SDL_Window *window;
     int window_w;
     int window_h;
     SDL_Renderer *renderer;
     TTF_Font *font;
-    SDL_Surface *text_surface;
-    SDL_Texture *text_texture;
 
     SDL_Surface *window_surface;
     SDL_Texture *window_texture;
 
-    SDL_Rect fps_place;
-    SDL_Color white_color;
-    SDL_Color fps_color;
-
-    Mat2D window_pixels_mat;
+    Mat2D_uint32 window_pixels_mat;
 } game_state_t;
-
-typedef struct {
-    int id;
-    int th_count;
-    Mat2D mat;
-    uint32_t *pixels;
-} thread_arg_t;
 
 int initialize_window(game_state_t *game_state);
 void setup_window(game_state_t *game_state);
@@ -91,8 +82,8 @@ void update(game_state_t *game_state);
 void render(game_state_t *game_state);
 
 void check_window_mat_size(game_state_t *game_state);
-void *routine(void *arg);
 void copy_mat_to_surface_RGB(game_state_t *game_state);
+void init_scene(game_state_t *game_state);
 
 int main()
 {
@@ -104,7 +95,15 @@ int main()
     game_state.const_fps = FPS;
     game_state.fps = 0;
     game_state.frame_target_time = FRAME_TARGET_TIME;
+
     game_state.space_bar_was_pressed = 0;
+    game_state.w_was_pressed = 0;
+    game_state.s_was_pressed = 0;
+    game_state.a_was_pressed = 0;
+    game_state.d_was_pressed = 0;
+    game_state.e_was_pressed = 0;
+    game_state.q_was_pressed = 0;
+
     game_state.to_render = 1;
     game_state.to_update = 1;
     game_state.previous_frame_time = 0;
@@ -116,8 +115,6 @@ int main()
     game_state.window_h = WINDOW_HEIGHT;
     game_state.renderer = NULL;
     game_state.font = NULL;
-    game_state.text_surface = NULL;
-    game_state.text_texture = NULL;
 
     game_state.game_is_running = !initialize_window(&game_state);
 
@@ -181,17 +178,12 @@ int initialize_window(game_state_t *game_state)
 
 void setup_window(game_state_t *game_state)
 {
-    game_state->white_color.a = 255;
-    game_state->white_color.b = 255;
-    game_state->white_color.g = 255;
-    game_state->white_color.r = 255;
 
-    game_state->fps_color = game_state->white_color;
+    game_state->window_surface = SDL_GetWindowSurface(game_state->window);
 
-    game_state->fps_place.x = 10;
-    game_state->fps_place.y = 10;
-    game_state->fps_place.w = 135;
-    game_state->fps_place.h = 25;
+    game_state->window_pixels_mat = mat2D_alloc_uint32(game_state->window_h, game_state->window_w);
+
+    init_scene(game_state);
 
     /*-----------------------------------*/
 
@@ -211,9 +203,6 @@ void process_input_window(game_state_t *game_state)
                 if (event.key.keysym.sym == SDLK_ESCAPE) {
                     game_state->game_is_running = 0;
                 }
-                if (event.key.keysym.sym == SDLK_q) {
-                    game_state->game_is_running = 0;
-                }
                 if (event.key.keysym.sym == SDLK_SPACE) {
                     if (!game_state->space_bar_was_pressed) {
                         game_state->to_render = 0;
@@ -228,6 +217,24 @@ void process_input_window(game_state_t *game_state)
                         game_state->space_bar_was_pressed = 0;
                         break;
                     }
+                }
+                if (event.key.keysym.sym == SDLK_w) {
+                    MAT2D_AT(game_state->scene.camera.position, 2, 0) += 0.1;
+                }
+                if (event.key.keysym.sym == SDLK_s) {
+                    MAT2D_AT(game_state->scene.camera.position, 2, 0) -= 0.1;
+                }
+                if (event.key.keysym.sym == SDLK_d) {
+                    MAT2D_AT(game_state->scene.camera.position, 0, 0) += 0.1;
+                }
+                if (event.key.keysym.sym == SDLK_a) {
+                    MAT2D_AT(game_state->scene.camera.position, 0, 0) -= 0.1;
+                }
+                if (event.key.keysym.sym == SDLK_e) {
+                    MAT2D_AT(game_state->scene.camera.position, 1, 0) += 0.1;
+                }
+                if (event.key.keysym.sym == SDLK_q) {
+                    MAT2D_AT(game_state->scene.camera.position, 1, 0) -= 0.1;
                 }
                 break;
             case SDL_MOUSEBUTTONDOWN:
@@ -275,28 +282,27 @@ void render_window(game_state_t *game_state)
     if (game_state->to_clear_renderer) {
         SDL_SetRenderDrawColor(game_state->renderer, HexARGB_RGBA(0xFF181818));
         SDL_RenderClear(game_state->renderer);
+        // mat2D_fill(game_state->window_pixels_mat, 0x181818);
+        memset(game_state->window_pixels_mat.elements, 0x18, sizeof(uint32_t) * game_state->window_pixels_mat.rows * game_state->window_pixels_mat.cols);
     }
     /*------------------------------------------------------------------------*/
 
     render(game_state);
 
     /*------------------------------------------------------------------------*/
-    // if (game_state->to_clear_renderer) {
-    //     SDL_RenderCopy(renderer, text_texture, NULL, &(game_state->fps_place));
-    //     SDL_RenderPresent(renderer);
-    // }
+
+    copy_mat_to_surface_RGB(game_state);
+    SDL_UpdateWindowSurface(game_state->window);
+
 }
 
 void destroy_window(game_state_t *game_state)
 {
-    mat2D_free(game_state->window_pixels_mat);
+    mat2D_free_uint32(game_state->window_pixels_mat);
 
     if (!game_state->window_surface) SDL_FreeSurface(game_state->window_surface);
     if (!game_state->window_texture) SDL_DestroyTexture(game_state->window_texture);
 
-    if (!game_state->text_texture) SDL_DestroyTexture(game_state->text_texture);
-    if (!game_state->text_surface) SDL_FreeSurface(game_state->text_surface);
-    
     SDL_DestroyRenderer(game_state->renderer);
     SDL_DestroyWindow(game_state->window);
 
@@ -336,65 +342,43 @@ void render(game_state_t *game_state) { (void)game_state; }
 void check_window_mat_size(game_state_t *game_state)
 {
     if (game_state->window_h != (int)game_state->window_pixels_mat.rows || game_state->window_w != (int)game_state->window_pixels_mat.cols) {
-        mat2D_free(game_state->window_pixels_mat);
+        mat2D_free_uint32(game_state->window_pixels_mat);
         SDL_FreeSurface(game_state->window_surface);
-        game_state->window_pixels_mat = mat2D_alloc(game_state->window_h, game_state->window_w);
+        game_state->window_pixels_mat = mat2D_alloc_uint32(game_state->window_h, game_state->window_w);
         // printf("hello\nmat rows: %5zu, mat cols: %5zu\n", game_state->window_pixels_mat.rows, game_state->window_pixels_mat.cols);
         game_state->window_surface = SDL_GetWindowSurface(game_state->window);
     }
 }
 
-void *routine(void *arg)
-{
-    thread_arg_t th_arg = *(thread_arg_t *)arg;
-
-    for (size_t r = 0; r < th_arg.mat.rows; r++) {
-        for (size_t c = th_arg.id*th_arg.mat.cols/th_arg.th_count; c < th_arg.mat.cols/th_arg.th_count * (th_arg.id+1); c++) {
-            th_arg.pixels[r*th_arg.mat.cols + c] = MAT2D_AT(th_arg.mat, r, c);
-        }
-    }
-    // printf("from: %d, to: %d\n", th_arg.id*(int)th_arg.mat.cols/TH_COUNT, (int)th_arg.mat.cols/TH_COUNT * (th_arg.id+1));
-
-    return 0; 
-}
-
 void copy_mat_to_surface_RGB(game_state_t *game_state)
 {
-    pthread_t th[TH_COUNT];
-    thread_arg_t th_arg_array[TH_COUNT];
-    int pitch;
-    uint32_t *pixels;
-    int th_count = TH_COUNT;
-    if (!((game_state->window_pixels_mat.cols % TH_COUNT == 0) && (game_state->window_pixels_mat.rows % TH_COUNT == 0))) {
-        th_count = 1;
-    }
-
-    SDL_LockSurface(game_state->window_surface);
     check_window_mat_size(game_state);
 
-    pitch = game_state->window_surface->pitch;
-    pixels = game_state->window_surface->pixels;
+    SDL_LockSurface(game_state->window_surface);
 
-    pitch = pitch/4;
-    assert((int)game_state->window_pixels_mat.cols <= pitch);
+    memcpy(game_state->window_surface->pixels, game_state->window_pixels_mat.elements, sizeof(uint32_t) * game_state->window_pixels_mat.rows * game_state->window_pixels_mat.cols);
 
-    for (int i = 0; i < th_count; i++) {
-        th_arg_array[i].id = i;
-        th_arg_array[i].th_count = th_count;
-        th_arg_array[i].mat = game_state->window_pixels_mat;
-        th_arg_array[i].pixels = pixels;
-
-        if (pthread_create(th+i, NULL, &routine, (void *)&th_arg_array[i]) != 0) {
-            fprintf(stderr, "%s:%d: [Error] failed to create thread: %s", __FILE__, __LINE__, strerror(errno));
-            exit(1);
-        }
-    }
-    for (int i = 0; i < th_count; i++) {
-        if (pthread_join(th[i], NULL) != 0) {
-            fprintf(stderr, "%s:%d: [Error] failed to join thread: %s", __FILE__, __LINE__, strerror(errno));
-            exit(2);
-        }
-    }
     SDL_UnlockSurface(game_state->window_surface);
+}
+
+void init_scene(game_state_t *game_state)
+{
+    game_state->scene.camera.z_near       = 0.1;
+    game_state->scene.camera.z_far        = 1000;
+    game_state->scene.camera.fov_deg      = 90;
+    game_state->scene.camera.aspect_ratio = (float)game_state->window_h / (float)game_state->window_w;
+
+    game_state->scene.camera.position = mat2D_alloc(3, 1);
+    mat2D_fill(game_state->scene.camera.position, 0);
+    game_state->scene.camera.direction = mat2D_alloc(3, 1);
+    mat2D_fill(game_state->scene.camera.direction, 0);
+    MAT2D_AT(game_state->scene.camera.direction, 2, 0) = 1;
+
+    game_state->scene.light_direction = mat2D_alloc(3, 1);
+    mat2D_fill(game_state->scene.light_direction, 0);
+    MAT2D_AT(game_state->scene.light_direction, 2, 0) = -1;
+
+    game_state->scene.proj_mat = mat2D_alloc(4, 4);
+    ae_set_projection_mat(game_state->scene.proj_mat, game_state->scene.camera.aspect_ratio, game_state->scene.camera.fov_deg, game_state->scene.camera.z_near, game_state->scene.camera.z_far);
 }
 
