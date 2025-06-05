@@ -64,6 +64,7 @@ typedef struct {
 
 #define MAT2D_MINOR_AT(mm, i, j) MAT2D_AT(mm.ref_mat, mm.rows_list[i], mm.cols_list[j])
 #define MAT2D_PRINT(m) mat2D_print(m, #m, 0)
+#define MAT2D_UINT32_PRINT(m) mat2D_uint32_print(m, #m, 0)
 #define MAT2D_PRINT_AS_COL(m) mat2D_print_as_col(m, #m, 0)
 #define MAT2D_MINOR_PRINT(mm) mat2D_minor_print(mm, #mm, 0)
 
@@ -93,6 +94,7 @@ void mat2D_mult(Mat2D m, double factor);
 void mat2D_mult_row(Mat2D m, size_t r, double factor);
 
 void mat2D_print(Mat2D m, const char *name, size_t padding);
+void mat2D_uint32_print(Mat2D_uint32 m, const char *name, size_t padding);
 void mat2D_print_as_col(Mat2D m, const char *name, size_t padding);
 
 void mat2D_set_identity(Mat2D m);
@@ -303,6 +305,19 @@ void mat2D_print(Mat2D m, const char *name, size_t padding)
         printf("%*s    ", (int) padding, "");
         for (size_t j = 0; j < m.cols; ++j) {
             printf("%9.6f ", MAT2D_AT(m, i, j));
+        }
+        printf("\n");
+    }
+    printf("%*s]\n", (int) padding, "");
+}
+
+void mat2D_uint32_print(Mat2D_uint32 m, const char *name, size_t padding)
+{
+    printf("%*s%s = [\n", (int) padding, "", name);
+    for (size_t i = 0; i < m.rows; ++i) {
+        printf("%*s    ", (int) padding, "");
+        for (size_t j = 0; j < m.cols; ++j) {
+            printf("%d ", MAT2D_AT(m, i, j));
         }
         printf("\n");
     }

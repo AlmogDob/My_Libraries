@@ -35,6 +35,19 @@ typedef struct {
 } Mesh; /* Tri ada array */
 #endif
 
+#ifndef HexARGB_RGBA
+#define HexARGB_RGBA(x) (x>>(8*2)&0xFF), (x>>(8*1)&0xFF), (x>>(8*0)&0xFF), (x>>(8*3)&0xFF)
+#endif
+#ifndef HexARGB_RGBA_VAR
+#define HexARGB_RGBA_VAR(x) uint8_t r = (x>>(8*2)&0xFF); uint8_t g = (x>>(8*1)&0xFF); uint8_t b = (x>>(8*0)&0xFF); uint8_t a = (x>>(8*3)&0xFF)
+#endif
+#ifndef ARGB_hexARGB
+#define ARGB_hexARGB(a, r, g, b) 0x01000000*(a) + 0x00010000*(r) + 0x00000100*(g) + 0x00000001*(b)
+#endif
+#ifndef RGB_hexRGB
+#define RGB_hexRGB(r, g, b) (int)(0x010000*(r) + 0x000100*(g) + 0x000001*(b))
+#endif
+
 #define edge_cross_point(a1, b, a2, p) (b.x-a1.x)*(p.y-a2.y)-(b.y-a1.y)*(p.x-a2.x)
 #define is_top_edge(x, y) (y == 0 && x > 0)
 #define is_left_edge(x, y) (y < 0)
