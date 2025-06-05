@@ -14,6 +14,7 @@ https://youtu.be/L1TbWe8bVOc?list=PLpM-Dvs8t0VZPZKggcql-MmjaBdZKeDMw .*/
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <math.h>
 #include <stdbool.h>
 
@@ -37,12 +38,30 @@ typedef struct {
     size_t rows;
     size_t cols;
     size_t stride_r; /* how many element you need to traves to get to the element underneath */
+    uint32_t *elements;
+} Mat2D_uint32;
+
+typedef struct {
+    size_t rows;
+    size_t cols;
+    size_t stride_r; /* how many element you need to traves to get to the element underneath */
     size_t *rows_list;
     size_t *cols_list;
     Mat2D ref_mat;
 } Mat2D_Minor;
 
+#if 0
 #define MAT2D_AT(m, i, j) (m).elements[mat2D_offset2d((m), (i), (j))]
+#define MAT2D_AT_UINT32(m, i, j) (m).elements[mat2D_offset2d_uint32((m), (i), (j))]
+#else /* use this macro for batter performance but no assertion */
+#define MAT2D_AT(m, i, j) (m).elements[i * m.stride_r + j]
+#define MAT2D_AT_UINT32(m, i, j) (m).elements[i * m.stride_r + j]
+#endif
+
+#ifndef PI
+#define PI M_PI
+#endif
+
 #define MAT2D_MINOR_AT(mm, i, j) MAT2D_AT(mm.ref_mat, mm.rows_list[i], mm.cols_list[j])
 #define MAT2D_PRINT(m) mat2D_print(m, #m, 0)
 #define MAT2D_PRINT_AS_COL(m) mat2D_print_as_col(m, #m, 0)
@@ -51,15 +70,18 @@ typedef struct {
 double rand_double(void);
 
 Mat2D mat2D_alloc(size_t rows, size_t cols);
+Mat2D_uint32 mat2D_alloc_uint32(size_t rows, size_t cols);
 void mat2D_free(Mat2D m);
-
+void mat2D_free_uint32(Mat2D_uint32 m);
 size_t mat2D_offset2d(Mat2D m, size_t i, size_t j);
+size_t mat2D_offset2d_uint32(Mat2D_uint32 m, size_t i, size_t j);
 
 void mat2D_fill(Mat2D m, double x);
 void mat2D_fill_sequence(Mat2D m, double start, double step);
 void mat2D_rand(Mat2D m, double low, double high);
 
 void mat2D_dot(Mat2D dst, Mat2D a, Mat2D b);
+void mat2D_cross(Mat2D dst, Mat2D a, Mat2D b);
 
 void mat2D_add(Mat2D dst, Mat2D a);
 void mat2D_add_row_time_factor_to_row(Mat2D m, size_t des_r, size_t src_r, double factor);
@@ -75,6 +97,9 @@ void mat2D_print_as_col(Mat2D m, const char *name, size_t padding);
 
 void mat2D_set_identity(Mat2D m);
 double mat2D_make_identity(Mat2D m);
+void mat2D_set_rot_mat_x(Mat2D m, float angle_deg);
+void mat2D_set_rot_mat_y(Mat2D m, float angle_deg);
+void mat2D_set_rot_mat_z(Mat2D m, float angle_deg);
 
 void mat2D_copy(Mat2D des, Mat2D src);
 void mat2D_copy_mat_to_mat_at_window(Mat2D des, Mat2D src, size_t is, size_t js, size_t ie, size_t je);
@@ -98,6 +123,7 @@ double mat2D_det_2x2_mat(Mat2D m);
 double mat2D_triangulate(Mat2D m);
 double mat2D_det(Mat2D m);
 void mat2D_LUP_decomposition_with_swap(Mat2D src, Mat2D l, Mat2D p, Mat2D u);
+void mat2D_transpose(Mat2D des, Mat2D src);
 void mat2D_invert(Mat2D des, Mat2D src);
 void mat2D_solve_linear_sys_LUP_decomposition(Mat2D A, Mat2D x, Mat2D B);
 
@@ -111,6 +137,7 @@ double mat2D_minor_det(Mat2D_Minor mm);
 #endif // MATRIX2D_H_
 
 #ifdef MATRIX2D_IMPLEMENTATION
+#undef MATRIX2D_IMPLEMENTATION
 
 double rand_double(void)
 {
@@ -129,12 +156,35 @@ Mat2D mat2D_alloc(size_t rows, size_t cols)
     return m;
 }
 
+Mat2D_uint32 mat2D_alloc_uint32(size_t rows, size_t cols)
+{
+    Mat2D_uint32 m;
+    m.rows = rows;
+    m.cols = cols;
+    m.stride_r = cols;
+    m.elements = (uint32_t*)MATRIX2D_MALLOC(sizeof(uint32_t)*rows*cols);
+    MATRIX2D_ASSERT(m.elements != NULL);
+    
+    return m;
+}
+
 void mat2D_free(Mat2D m)
 {
     free(m.elements);
 }
 
+void mat2D_free_uint32(Mat2D_uint32 m)
+{
+    free(m.elements);
+}
+
 size_t mat2D_offset2d(Mat2D m, size_t i, size_t j)
+{
+    MATRIX2D_ASSERT(i < m.rows && j < m.cols);
+    return i * m.stride_r + j;
+}
+
+size_t mat2D_offset2d_uint32(Mat2D_uint32 m, size_t i, size_t j)
 {
     MATRIX2D_ASSERT(i < m.rows && j < m.cols);
     return i * m.stride_r + j;
@@ -169,18 +219,29 @@ void mat2D_rand(Mat2D m, double low, double high)
 void mat2D_dot(Mat2D dst, Mat2D a, Mat2D b)
 {
     MATRIX2D_ASSERT(a.cols == b.rows);
-    size_t n = a.cols;
     MATRIX2D_ASSERT(a.rows == dst.rows);
     MATRIX2D_ASSERT(b.cols == dst.cols);
 
     for (size_t i = 0; i < dst.rows; i++) {
         for (size_t j = 0; j < dst.cols; j++) {
-            for (size_t k = 0; k < n; k++) {
+            MAT2D_AT(dst, i, j) = 0;
+            for (size_t k = 0; k < a.cols; k++) {
                 MAT2D_AT(dst, i, j) += MAT2D_AT(a, i, k)*MAT2D_AT(b, k, j);
             }
         }
     }
 
+}
+
+void mat2D_cross(Mat2D dst, Mat2D a, Mat2D b)
+{
+    MATRIX2D_ASSERT(3 == dst.rows && 1 == dst.cols);
+    MATRIX2D_ASSERT(3 == a.rows && 1 == a.cols);
+    MATRIX2D_ASSERT(3 == b.rows && 1 == b.cols);
+
+    MAT2D_AT(dst, 0, 0) = MAT2D_AT(a, 1, 0) * MAT2D_AT(b, 2, 0) - MAT2D_AT(a, 2, 0) * MAT2D_AT(b, 1, 0);
+    MAT2D_AT(dst, 1, 0) = MAT2D_AT(a, 2, 0) * MAT2D_AT(b, 0, 0) - MAT2D_AT(a, 0, 0) * MAT2D_AT(b, 2, 0);
+    MAT2D_AT(dst, 2, 0) = MAT2D_AT(a, 0, 0) * MAT2D_AT(b, 1, 0) - MAT2D_AT(a, 1, 0) * MAT2D_AT(b, 0, 0);
 }
 
 void mat2D_add(Mat2D dst, Mat2D a)
@@ -313,6 +374,42 @@ double mat2D_make_identity(Mat2D m)
 
 
     return factor_to_return;
+}
+
+void mat2D_set_rot_mat_x(Mat2D m, float angle_deg)
+{
+    MATRIX2D_ASSERT(3 == m.cols && 3 == m.rows);
+
+    float angle_rad = angle_deg * PI / 180;
+    mat2D_set_identity(m);
+    MAT2D_AT(m, 1, 1) =  cos(angle_rad);
+    MAT2D_AT(m, 1, 2) =  sin(angle_rad);
+    MAT2D_AT(m, 2, 1) = -sin(angle_rad);
+    MAT2D_AT(m, 2, 2) =  cos(angle_rad);
+}
+
+void mat2D_set_rot_mat_y(Mat2D m, float angle_deg)
+{
+    MATRIX2D_ASSERT(3 == m.cols && 3 == m.rows);
+
+    float angle_rad = angle_deg * PI / 180;
+    mat2D_set_identity(m);
+    MAT2D_AT(m, 0, 0) =  cos(angle_rad);
+    MAT2D_AT(m, 0, 2) = -sin(angle_rad);
+    MAT2D_AT(m, 2, 0) =  sin(angle_rad);
+    MAT2D_AT(m, 2, 2) =  cos(angle_rad);
+}
+
+void mat2D_set_rot_mat_z(Mat2D m, float angle_deg)
+{
+    MATRIX2D_ASSERT(3 == m.cols && 3 == m.rows);
+
+    float angle_rad = angle_deg * PI / 180;
+    mat2D_set_identity(m);
+    MAT2D_AT(m, 0, 0) =  cos(angle_rad);
+    MAT2D_AT(m, 0, 1) =  sin(angle_rad);
+    MAT2D_AT(m, 1, 0) = -sin(angle_rad);
+    MAT2D_AT(m, 1, 1) =  cos(angle_rad);
 }
 
 void mat2D_copy(Mat2D des, Mat2D src)
@@ -579,6 +676,18 @@ void mat2D_LUP_decomposition_with_swap(Mat2D src, Mat2D l, Mat2D p, Mat2D u)
         MAT2D_AT(l, i, i) = 1;
     }
     MAT2D_AT(l, l.rows-1, l.cols-1) = 1;
+}
+
+void mat2D_transpose(Mat2D des, Mat2D src)
+{
+    MATRIX2D_ASSERT(des.cols == src.rows);
+    MATRIX2D_ASSERT(des.rows == src.cols);
+
+    for (size_t index = 0; index < des.rows; ++index) {
+        for (size_t jndex = 0; jndex < des.cols; ++jndex) {
+            MAT2D_AT(des, index, jndex) = MAT2D_AT(src, jndex, index);
+        }
+    }
 }
 
 void mat2D_invert(Mat2D des, Mat2D src)
