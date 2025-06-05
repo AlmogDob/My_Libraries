@@ -317,7 +317,11 @@ void mat2D_uint32_print(Mat2D_uint32 m, const char *name, size_t padding)
     for (size_t i = 0; i < m.rows; ++i) {
         printf("%*s    ", (int) padding, "");
         for (size_t j = 0; j < m.cols; ++j) {
-            printf("%d ", MAT2D_AT(m, i, j));
+            if (MAT2D_AT_UINT32(m, i, j)) {
+                printf("%u ", MAT2D_AT_UINT32(m, i, j));
+            } else {
+                printf("  ");
+            }
         }
         printf("\n");
     }

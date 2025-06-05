@@ -5,8 +5,11 @@
 
 int main()
 {
-    Mat2D_uint32 screen = mat2D_alloc_uint32(10, 10);
-    ars_draw_circle(screen, 5,5,2,0xFFFFFF);
+    Point points[] = {{.x = 20, .y = 20, .z = 0}, {.x = 20, .y = 80, .z = 0}, {.x = 70, .y = 20, .z = 0}};
+    int len = 3;
+    Mat2D_uint32 screen = mat2D_alloc_uint32(100, 100);
+
+    ars_draw_lines_loop(screen, points, len, 0xFFFFFFFF);
 
     MAT2D_UINT32_PRINT(screen);
 

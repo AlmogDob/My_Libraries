@@ -55,7 +55,10 @@ typedef struct {
 
 void ars_draw_point(Mat2D_uint32 screen_mat, int x, int y, uint32_t color);
 void ars_draw_line(Mat2D_uint32 screen_mat, int x1, int y1, int x2, int y2, uint32_t color);
+void ars_draw_lines(const Mat2D_uint32 screen_mat, const Point *points, const size_t len, const uint32_t color);
+void ars_draw_lines_loop(const Mat2D_uint32 screen_mat, const Point *points, const size_t len, const uint32_t color);
 void ars_draw_arrow(Mat2D_uint32 screen_mat, int xs, int ys, int xe, int ye, float head_size, float angle_deg, uint32_t color);
+
 
 void ars_draw_circle(Mat2D_uint32 screen_mat, float center_x, float center_y, float r, uint32_t color);
 void ars_fill_circle(Mat2D_uint32 screen_mat, float center_x, float center_y, float r, uint32_t color);
@@ -144,6 +147,21 @@ void ars_draw_line(Mat2D_uint32 screen_mat, int x1, int y1, int x2, int y2, uint
 
 }
 
+void ars_draw_lines(const Mat2D_uint32 screen_mat, const Point *points, const size_t len, const uint32_t color) 
+{
+    for (size_t i = 0; i < len-1; i++) {
+        ars_draw_line(screen_mat, points[i].x, points[i].y, points[i+1].x, points[i+1].y, color);
+    }
+}
+
+void ars_draw_lines_loop(const Mat2D_uint32 screen_mat, const Point *points, const size_t len, const uint32_t color)
+{
+    for (size_t i = 0; i < len-1; i++) {
+        ars_draw_line(screen_mat, points[i].x, points[i].y, points[i+1].x, points[i+1].y, color);
+    }
+    ars_draw_line(screen_mat, points[len-1].x, points[len-1].y, points[0].x, points[0].y, color);
+}
+
 /* This function is a bit complicated and expansive but this is what I could come up with */
 void ars_draw_arrow(Mat2D_uint32 screen_mat, int xs, int ys, int xe, int ye, float head_size, float angle_deg, uint32_t color)
 {
@@ -195,6 +213,23 @@ void ars_draw_arrow(Mat2D_uint32 screen_mat, int xs, int ys, int xe, int ye, flo
     mat2D_free(temp_v);
     mat2D_free(DCM_p);
     mat2D_free(DCM_m);
+}
+
+void ars_point_to_mat2D(Point p, Mat2D m)
+{
+    MATRIX2D_ASSERT((3 == m.rows && 1 == m.cols) || (1 == m.rows && 3 == m.cols));
+    
+    if (3 == m.rows) {
+        MAT2D_AT(m, 0, 0) = p.x;
+        MAT2D_AT(m, 1, 0) = p.y;
+        MAT2D_AT(m, 2, 0) = p.z;
+    }
+    if (3 == m.cols) {
+        MAT2D_AT(m, 0, 0) = p.x;
+        MAT2D_AT(m, 0, 1) = p.y;
+        MAT2D_AT(m, 0, 2) = p.z;
+    }
+
 }
 
 void ars_draw_circle(Mat2D_uint32 screen_mat, float center_x, float center_y, float r, uint32_t color)
@@ -422,9 +457,9 @@ void ars_fill_tri_Pinedas_rasterizer_with_mat2D(Mat2D_uint32 screen_mat, Tri tri
     Mat2D cross12p = mat2D_alloc(3, 1);
     Mat2D cross20p = mat2D_alloc(3, 1);
 
-    ae_point_to_mat2D(tri.points[0], p0);
-    ae_point_to_mat2D(tri.points[1], p1);
-    ae_point_to_mat2D(tri.points[2], p2);
+    ars_point_to_mat2D(tri.points[0], p0);
+    ars_point_to_mat2D(tri.points[1], p1);
+    ars_point_to_mat2D(tri.points[2], p2);
 
     mat2D_copy(v01, p1);
     mat2D_sub(v01, p0);
