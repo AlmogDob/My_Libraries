@@ -1,4 +1,3 @@
-
 CFLAGS = -Wall -Wextra -lm 
 CCHECKS = -fsanitize=address
 

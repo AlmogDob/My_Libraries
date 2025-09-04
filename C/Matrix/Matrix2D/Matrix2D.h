@@ -5,9 +5,8 @@ featured in this video of his:
 https://youtu.be/L1TbWe8bVOc?list=PLpM-Dvs8t0VZPZKggcql-MmjaBdZKeDMw .*/
 
 /* NOTES:
- * There is a hole set of function for deling with the minors of a matrix because I tried to calculate the determinant of a matrix with them but it terns out to be TO SLOW. Insted I use Gauss elimination.
- * There are some stability problems in the inversion function. When the values of the matrix becomes too small, the inversion fails. Currently the only fix I can think of is to use pre-conditioners. However, it means to creat a function to solve the hole problem 'Ax=B', which wasn't my intention in the first place. I might do it but I am not sure. */
-
+ * There is a hole set of function for deling with the minors of a matrix because I tried to calculate the determinant of a matrix with them but it terns out to be TOO SLOW. Insted I use Gauss elimination.
+ * There are some stability problems in the inversion function. When the values of the matrix becomes too small, the inversion fails. Currently the only fix I can think of is to use pre-conditioners. Which means using a function to solve the hole problem 'Ax=B' */
 #ifndef MATRIX2D_H_
 #define MATRIX2D_H_
 

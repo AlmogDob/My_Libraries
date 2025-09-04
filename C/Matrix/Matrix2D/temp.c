@@ -4,38 +4,51 @@
 
 int main(void)
 {
-    Mat2D a     = mat2D_alloc(20, 20);
-    Mat2D b     = mat2D_alloc(20, 1);
-    Mat2D x     = mat2D_alloc(20, 1);
+    int n = 3;
+    Mat2D a     = mat2D_alloc(n, n);
+    Mat2D l     = mat2D_alloc(n, n);
+    Mat2D p     = mat2D_alloc(n, n);
+    Mat2D u     = mat2D_alloc(n, n);
+    Mat2D current_A  = mat2D_alloc(n, n);
+    Mat2D previous_A = mat2D_alloc(n, n);
+    Mat2D diff       = mat2D_alloc(n, n);
+    Mat2D x          = mat2D_alloc(n, 1);
+    Mat2D B          = mat2D_alloc(n, 1);
 
-    srand(time(0));
-    mat2D_rand(a, 0, 1);
-    mat2D_rand(b, 0, 1);
-    // MAT2D_AT(a, 0, 0) =  1;
-    // MAT2D_AT(a, 0, 1) =  3;
-    // MAT2D_AT(a, 0, 2) = -2;
+    // srand(time(0));
+    // mat2D_rand(a, 0, 1);
+    mat2D_fill_sequence(a, 1, 1);
+    MAT2D_PRINT(a);
 
-    // MAT2D_AT(a, 1, 0) =  3;
-    // MAT2D_AT(a, 1, 1) =  5;
-    // MAT2D_AT(a, 1, 2) =  6;
+    mat2D_LUP_decomposition_with_swap(a, l, p, u);
 
-    // MAT2D_AT(a, 2, 0) =  2;
-    // MAT2D_AT(a, 2, 1) =  4;
-    // MAT2D_AT(a, 2, 2) =  3;
+    MAT2D_PRINT(l);
+    MAT2D_PRINT(p);
+    MAT2D_PRINT(u);
 
-    // MAT2D_AT(b, 0, 0) =  5;
-    // MAT2D_AT(b, 1, 0) =  7;
-    // MAT2D_AT(b, 2, 0) =  8;
+    mat2D_dot(current_A, l, u);
+    MAT2D_PRINT(current_A);
+
+    for (int i = 0; i < 25; i++) {
+        mat2D_dot(current_A, l, u);
+        mat2D_dot(previous_A, u, l);
+        mat2D_LUP_decomposition_with_swap(previous_A, l, p, u);
+        mat2D_copy(diff, current_A);
+        mat2D_sub(diff, previous_A);
+    }
+    MAT2D_PRINT(diff);
+    mat2D_copy(current_A, previous_A);
+
+    mat2D_set_identity(previous_A);
+    mat2D_mult(previous_A, MAT2D_AT(current_A, 1, 1));
+    mat2D_sub(a, previous_A);
+
+    mat2D_fill(B, 0);
+    mat2D_solve_linear_sys_LUP_decomposition(a, x, B);
 
     MAT2D_PRINT(a);
-    MAT2D_PRINT(b);
-
-    mat2D_solve_linear_sys_LUP_decomposition(a, x, b);
     MAT2D_PRINT(x);
-
-    mat2D_free(a);
-    mat2D_free(b);
-    mat2D_free(x);
+    printf("\n%g\n", mat2D_calc_norma(diff));
 
     return 0;
 }
