@@ -7,6 +7,8 @@
 #include <assert.h>
 #include "Matrix2D.h"
 
+#include "./Almog_Dynamic_Array.h"
+
 #ifndef ADL_ASSERT
 #include <assert.h>
 #define ADL_ASSERT assert
@@ -19,8 +21,14 @@ typedef struct {
     float y;
     float z;
     float w;
-} Point ;
+} Point;
 #endif
+
+typedef struct {
+    size_t length;
+    size_t capacity;
+    Point *elements;
+} Points_ada;
 
 #ifndef TRI
 #define TRI
@@ -46,6 +54,21 @@ typedef struct {
 } Mesh; /* Tri ada array */
 #endif
 
+typedef struct {
+    int min_x_pixel;
+    int max_x_pixel;
+    int min_y_pixel;
+    int max_y_pixel;
+    float min_x;
+    float max_x;
+    float min_y;
+    float max_y;
+    Point *points;
+    Point top_left_position;
+    Mat2D_uint32 pixels_mat;
+} Figure;
+
+
 #ifndef HexARGB_RGB
 #define HexARGB_RGBA(x) ((x)>>(8*2)&0xFF), ((x)>>(8*1)&0xFF), ((x)>>(8*0)&0xFF), ((x)>>(8*3)&0xFF)
 #endif
@@ -67,11 +90,19 @@ typedef struct {
         adl_assert_point_is_valid(tri.points[1]);                              \
         adl_assert_point_is_valid(tri.points[2])
 
+#define ADL_FIGURE_OFFSET_PRECENTAGE 10
+#define ADL_MAX_FIGURE_OFFSET 30
+#define ADL_MAX_HEAD_SIZE 15
+#define ADL_FIGURE_HEAD_ANGLE_DEG 30
+#define ADL_FIGURE_AXIS_COLOR 0x0
+
 void adl_draw_point(Mat2D_uint32 screen_mat, int x, int y, uint32_t color);
 void adl_draw_line(Mat2D_uint32 screen_mat, int x1, int y1, int x2, int y2, uint32_t color);
 void adl_draw_lines(const Mat2D_uint32 screen_mat, const Point *points, const size_t len, const uint32_t color) ;
 void adl_draw_lines_loop(const Mat2D_uint32 screen_mat, const Point *points, const size_t len, const uint32_t color);
 void adl_draw_arrow(Mat2D_uint32 screen_mat, int xs, int ys, int xe, int ye, float head_size, float angle_deg, uint32_t color);
+
+void adl_draw_rectangle_min_max(Mat2D_uint32 screen_mat, int min_x, int max_x, int min_y, int max_y, uint32_t color);
 
 void adl_draw_circle(Mat2D_uint32 screen_mat, float center_x, float center_y, float r, uint32_t color);
 void adl_fill_circle(Mat2D_uint32 screen_mat, float center_x, float center_y, float r, uint32_t color);
@@ -84,6 +115,13 @@ void adl_fill_tri_Pinedas_rasterizer_interpolate_color(Mat2D_uint32 screen_mat, 
 void adl_draw_mesh(Mat2D_uint32 screen_mat, Mesh mesh, uint32_t color);
 void adl_fill_mesh_scanline_rasterizer(Mat2D_uint32 screen_mat, Mesh mesh);
 void adl_fill_mesh_Pinedas_rasterizer(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer_mat, Mesh mesh);
+
+float adl_linear_map(float s, float min_in, float max_in, float min_out, float max_out);
+
+Figure adl_alloc_figure(size_t rows, size_t cols, Point top_left_position);
+void adl_copy_figure_to_screen(Mat2D_uint32 screen_mat, Figure figure);
+void adl_draw_axis_on_figure(Figure figure);
+void adl_plot_points(Figure *figure, Point *src_points, size_t src_len, uint32_t color);
 
 #endif /*ALMOG_RENDER_SHAPES_H_*/
 
@@ -231,6 +269,14 @@ void adl_draw_arrow(Mat2D_uint32 screen_mat, int xs, int ys, int xe, int ye, flo
     mat2D_free(temp_v);
     mat2D_free(DCM_p);
     mat2D_free(DCM_m);
+}
+
+void adl_draw_rectangle_min_max(Mat2D_uint32 screen_mat, int min_x, int max_x, int min_y, int max_y, uint32_t color)
+{
+    adl_draw_line(screen_mat, min_x, min_y, max_x, min_y, color);
+    adl_draw_line(screen_mat, min_x, max_y, max_x, max_y, color);
+    adl_draw_line(screen_mat, min_x, min_y, min_x, max_y, color);
+    adl_draw_line(screen_mat, max_x, min_y, max_x, max_y, color);
 }
 
 void adl_draw_circle(Mat2D_uint32 screen_mat, float center_x, float center_y, float r, uint32_t color)
@@ -509,5 +555,100 @@ void adl_fill_mesh_Pinedas_rasterizer(Mat2D_uint32 screen_mat, Mat2D inv_z_buffe
         adl_fill_tri_Pinedas_rasterizer(screen_mat, inv_z_buffer_mat, tri, tri.light_intensity);
     }
 }
+
+float adl_linear_map(float s, float min_in, float max_in, float min_out, float max_out)
+{
+    return (min_out + ((s-min_in)*(max_out-min_out))/(max_in-min_in));
+}
+
+Figure adl_alloc_figure(size_t rows, size_t cols, Point top_left_position)
+{
+    ADL_ASSERT(rows && cols);
+    adl_assert_point_is_valid(top_left_position);
+
+    Figure figure = {0};
+    figure.pixels_mat = mat2D_alloc_uint32(rows, cols);
+    figure.top_left_position = top_left_position;
+
+    int max_i    = (int)(figure.pixels_mat.rows);
+    int max_j    = (int)(figure.pixels_mat.cols);
+    int offset_i = (int)fminf(figure.pixels_mat.rows * ADL_FIGURE_OFFSET_PRECENTAGE / 100.0f, ADL_MAX_FIGURE_OFFSET);
+    int offset_j = (int)fminf(figure.pixels_mat.cols * ADL_FIGURE_OFFSET_PRECENTAGE / 100.0f, ADL_MAX_FIGURE_OFFSET);
+
+    figure.min_x_pixel = offset_j;
+    figure.max_x_pixel = max_j - offset_j;
+    figure.min_y_pixel = offset_i;
+    figure.max_y_pixel = max_i - offset_i;
+
+    figure.min_x = + FLT_MAX;
+    figure.max_x = - FLT_MAX;
+    figure.min_y = + FLT_MAX;
+    figure.max_y = - FLT_MAX;
+
+    return figure;
+}
+
+void adl_copy_figure_to_screen(Mat2D_uint32 screen_mat, Figure figure)
+{
+    for (size_t i = 0; i < figure.pixels_mat.rows; i++) {
+        for (size_t j = 0; j < figure.pixels_mat.cols; j++) {
+            int offset_i = figure.top_left_position.y;
+            int offset_j = figure.top_left_position.x;
+            
+            adl_draw_point(screen_mat, offset_j+j, offset_i+i, MAT2D_AT_UINT32(figure.pixels_mat, i, j));
+        }
+    }
+}
+
+void adl_draw_axis_on_figure(Figure figure)
+{
+    int max_i    = (int)(figure.pixels_mat.rows);
+    int max_j    = (int)(figure.pixels_mat.cols);
+    int offset_i = (int)fminf(figure.pixels_mat.rows * ADL_FIGURE_OFFSET_PRECENTAGE / 100.0f, ADL_MAX_FIGURE_OFFSET);
+    int offset_j = (int)fminf(figure.pixels_mat.cols * ADL_FIGURE_OFFSET_PRECENTAGE / 100.0f, ADL_MAX_FIGURE_OFFSET);
+
+    int arrow_head_size_x = (int)fminf(ADL_MAX_HEAD_SIZE, ADL_FIGURE_OFFSET_PRECENTAGE / 100.0f * (max_j - 2 * offset_j));
+    int arrow_head_size_y = (int)fminf(ADL_MAX_HEAD_SIZE, ADL_FIGURE_OFFSET_PRECENTAGE / 100.0f * (max_i - 2 * offset_i));
+
+    adl_draw_arrow(figure.pixels_mat, figure.min_x_pixel, figure.max_y_pixel, figure.max_x_pixel, figure.max_y_pixel, (float)arrow_head_size_x / (max_j-2*offset_j), ADL_FIGURE_HEAD_ANGLE_DEG, 0);
+    adl_draw_arrow(figure.pixels_mat, figure.min_x_pixel, figure.max_y_pixel, figure.min_x_pixel, figure.min_y_pixel, (float)arrow_head_size_y / (max_i-2*offset_i), ADL_FIGURE_HEAD_ANGLE_DEG, 0);
+
+    // adl_draw_rectangle_min_max(figure.pixels_mat, figure.min_x_pixel, figure.max_x_pixel, figure.min_y_pixel, figure.max_y_pixel, 0);
+}
+
+void adl_plot_points(Figure *figure, Point *src_points, size_t src_len, uint32_t color)
+{
+    Points_ada des_points;
+    ada_init_array(Point, des_points);
+
+    for (size_t i = 0; i < src_len; i++) {
+        Point current_point = src_points[i];
+        if (current_point.x > figure->max_x) {
+            figure->max_x = current_point.x;
+        }
+        if (current_point.y > figure->max_y) {
+            figure->max_y = current_point.y;
+        }
+        if (current_point.x < figure->min_x) {
+            figure->min_x = current_point.x;
+        }
+        if (current_point.y < figure->min_y) {
+            figure->min_y = current_point.y;
+        }
+    }
+    
+    for (size_t i = 0; i < src_len; i++) {
+        Point src_point = src_points[i];
+        Point des_point = {0};
+
+        des_point.x = adl_linear_map(src_point.x, figure->min_x, figure->max_x, figure->min_x_pixel, figure->max_x_pixel);
+        des_point.y = ((figure->max_y_pixel + figure->min_y_pixel) - adl_linear_map(src_point.y, figure->min_y, figure->max_y, figure->min_y_pixel, figure->max_y_pixel));
+
+        ada_appand(Point, des_points, des_point);
+    }
+    adl_draw_lines(figure->pixels_mat, des_points.elements, des_points.length, color);
+}
+
+
 
 #endif /*ALMOG_DRAW_LIBRARY_IMPLEMENTATION*/

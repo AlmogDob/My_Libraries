@@ -50,7 +50,7 @@ typedef struct {
     Mat2D ref_mat;
 } Mat2D_Minor;
 
-#if 0
+#if 1
 #define MAT2D_AT(m, i, j) (m).elements[mat2D_offset2d((m), (i), (j))]
 #define MAT2D_AT_UINT32(m, i, j) (m).elements[mat2D_offset2d_uint32((m), (i), (j))]
 #else /* use this macro for batter performance but no assertion */
@@ -78,6 +78,7 @@ size_t mat2D_offset2d(Mat2D m, size_t i, size_t j);
 size_t mat2D_offset2d_uint32(Mat2D_uint32 m, size_t i, size_t j);
 
 void mat2D_fill(Mat2D m, double x);
+void mat2D_fill_uint32(Mat2D_uint32 m, uint32_t x);
 void mat2D_fill_sequence(Mat2D m, double start, double step);
 void mat2D_rand(Mat2D m, double low, double high);
 
@@ -201,6 +202,14 @@ void mat2D_fill(Mat2D m, double x)
     }
 }
 
+void mat2D_fill_uint32(Mat2D_uint32 m, uint32_t x)
+{
+    for (size_t i = 0; i < m.rows; ++i) {
+        for (size_t j = 0; j < m.cols; ++j) {
+            MAT2D_AT_UINT32(m, i, j) = x;
+        }
+    }
+}
 void mat2D_fill_sequence(Mat2D m, double start, double step) {
     for (size_t i = 0; i < m.rows; i++) {
         for (size_t j = 0; j < m.cols; j++) {
