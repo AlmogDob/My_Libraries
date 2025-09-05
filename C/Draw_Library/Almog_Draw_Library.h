@@ -25,10 +25,17 @@ typedef struct {
 #endif
 
 typedef struct {
+    uint32_t color;
     size_t length;
     size_t capacity;
     Point *elements;
-} Points_ada;
+} Curve;
+
+typedef struct {
+    size_t length;
+    size_t capacity;
+    Curve *elements;
+} Curve_ada;
 
 #ifndef TRI
 #define TRI
@@ -63,7 +70,7 @@ typedef struct {
     float max_x;
     float min_y;
     float max_y;
-    Point *points;
+    Curve_ada src_curve_array;
     Point top_left_position;
     Mat2D_uint32 pixels_mat;
 } Figure;
@@ -121,7 +128,8 @@ float adl_linear_map(float s, float min_in, float max_in, float min_out, float m
 Figure adl_alloc_figure(size_t rows, size_t cols, Point top_left_position);
 void adl_copy_figure_to_screen(Mat2D_uint32 screen_mat, Figure figure);
 void adl_draw_axis_on_figure(Figure figure);
-void adl_plot_points(Figure *figure, Point *src_points, size_t src_len, uint32_t color);
+void adl_add_curve_to_figure(Figure *figure, Point *src_points, size_t src_len, uint32_t color);
+void adl_plot_curves_on_figure(Figure figure);
 
 #endif /*ALMOG_RENDER_SHAPES_H_*/
 
@@ -568,6 +576,8 @@ Figure adl_alloc_figure(size_t rows, size_t cols, Point top_left_position)
 
     Figure figure = {0};
     figure.pixels_mat = mat2D_alloc_uint32(rows, cols);
+    ada_init_array(Curve, figure.src_curve_array);
+
     figure.top_left_position = top_left_position;
 
     int max_i    = (int)(figure.pixels_mat.rows);
@@ -616,10 +626,11 @@ void adl_draw_axis_on_figure(Figure figure)
     // adl_draw_rectangle_min_max(figure.pixels_mat, figure.min_x_pixel, figure.max_x_pixel, figure.min_y_pixel, figure.max_y_pixel, 0);
 }
 
-void adl_plot_points(Figure *figure, Point *src_points, size_t src_len, uint32_t color)
+void adl_add_curve_to_figure(Figure *figure, Point *src_points, size_t src_len, uint32_t color)
 {
-    Points_ada des_points;
-    ada_init_array(Point, des_points);
+    Curve src_points_ada;
+    ada_init_array(Point, src_points_ada);
+    src_points_ada.color = color;
 
     for (size_t i = 0; i < src_len; i++) {
         Point current_point = src_points[i];
@@ -635,20 +646,33 @@ void adl_plot_points(Figure *figure, Point *src_points, size_t src_len, uint32_t
         if (current_point.y < figure->min_y) {
             figure->min_y = current_point.y;
         }
+        ada_appand(Point, src_points_ada, current_point);
     }
     
-    for (size_t i = 0; i < src_len; i++) {
-        Point src_point = src_points[i];
-        Point des_point = {0};
-
-        des_point.x = adl_linear_map(src_point.x, figure->min_x, figure->max_x, figure->min_x_pixel, figure->max_x_pixel);
-        des_point.y = ((figure->max_y_pixel + figure->min_y_pixel) - adl_linear_map(src_point.y, figure->min_y, figure->max_y, figure->min_y_pixel, figure->max_y_pixel));
-
-        ada_appand(Point, des_points, des_point);
-    }
-    adl_draw_lines(figure->pixels_mat, des_points.elements, des_points.length, color);
+    ada_appand(Curve, figure->src_curve_array, src_points_ada);
 }
 
+void adl_plot_curves_on_figure(Figure figure)
+{
+    for (size_t curve_index = 0; curve_index < figure.src_curve_array.length; curve_index++) {
+        size_t src_len = figure.src_curve_array.elements[curve_index].length;
+        Point *src_points = figure.src_curve_array.elements[curve_index].elements;
+        for (size_t i = 0; i < src_len-1; i++) {
+            Point src_start = src_points[i];
+            Point src_end   = src_points[i+1];
+            Point des_start = {0};
+            Point des_end = {0};
+
+            des_start.x = adl_linear_map(src_start.x, figure.min_x, figure.max_x, figure.min_x_pixel, figure.max_x_pixel);
+            des_start.y = ((figure.max_y_pixel + figure.min_y_pixel) - adl_linear_map(src_start.y, figure.min_y, figure.max_y, figure.min_y_pixel, figure.max_y_pixel));
+
+            des_end.x = adl_linear_map(src_end.x, figure.min_x, figure.max_x, figure.min_x_pixel, figure.max_x_pixel);
+            des_end.y = ((figure.max_y_pixel + figure.min_y_pixel) - adl_linear_map(src_end.y, figure.min_y, figure.max_y, figure.min_y_pixel, figure.max_y_pixel));
+
+            adl_draw_line(figure.pixels_mat, des_start.x, des_start.y, des_end.x, des_end.y, figure.src_curve_array.elements[curve_index].color);
+        }
+    }
+}
 
 
 #endif /*ALMOG_DRAW_LIBRARY_IMPLEMENTATION*/
