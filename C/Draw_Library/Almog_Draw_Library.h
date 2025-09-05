@@ -110,6 +110,7 @@ void adl_draw_lines_loop(const Mat2D_uint32 screen_mat, const Point *points, con
 void adl_draw_arrow(Mat2D_uint32 screen_mat, int xs, int ys, int xe, int ye, float head_size, float angle_deg, uint32_t color);
 
 void adl_draw_rectangle_min_max(Mat2D_uint32 screen_mat, int min_x, int max_x, int min_y, int max_y, uint32_t color);
+void adl_fill_rectangle_min_max(Mat2D_uint32 screen_mat, int min_x, int max_x, int min_y, int max_y, uint32_t color);
 
 void adl_draw_circle(Mat2D_uint32 screen_mat, float center_x, float center_y, float r, uint32_t color);
 void adl_fill_circle(Mat2D_uint32 screen_mat, float center_x, float center_y, float r, uint32_t color);
@@ -286,6 +287,14 @@ void adl_draw_rectangle_min_max(Mat2D_uint32 screen_mat, int min_x, int max_x, i
     adl_draw_line(screen_mat, min_x, min_y, min_x, max_y, color);
     adl_draw_line(screen_mat, max_x, min_y, max_x, max_y, color);
 }
+
+void adl_fill_rectangle_min_max(Mat2D_uint32 screen_mat, int min_x, int max_x, int min_y, int max_y, uint32_t color)
+{
+    for (int y = min_y; y <= max_y; y++) {
+        adl_draw_line(screen_mat, min_x, y, max_x, y, color);
+    }
+}
+
 
 void adl_draw_circle(Mat2D_uint32 screen_mat, float center_x, float center_y, float r, uint32_t color)
 {
