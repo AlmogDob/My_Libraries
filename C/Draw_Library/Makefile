@@ -26,3 +26,19 @@ debug_build_temp: ./temp.c
 
 # valgrind -s --leak-check=full ./temp
 # cloc --exclude-lang=JSON,make .
+
+############################################################
+example1: build_example1 run_example1 clean_example1  
+	@echo [INFO] done
+
+build_example1: example1.c
+	@echo [INFO] building
+	@gcc ./example1.c $(CFLAGS) -o example1
+
+run_example1:
+	@echo
+	./example1
+
+clean_example1:
+	@echo
+	rm example1
