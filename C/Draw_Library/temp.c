@@ -23,8 +23,8 @@ void setup(game_state_t *game_state)
     quad1.light_intensity = 1;
     quad1.colors[0] = 0x0000FF;
     quad1.colors[1] = 0xFFFFFF;
-    quad1.colors[2] = 0xFF0000;
-    quad1.colors[3] = 0x00FF00;
+    quad1.colors[2] = 0x0000FF
+    quad1.colors[3] = 0xFFFFFF;
 
     quad2.points[0] = (Point){650 + 100, 100, 1, 1};
     quad2.points[1] = (Point){650 + 600, 50 , 1, 1};
@@ -34,8 +34,8 @@ void setup(game_state_t *game_state)
     quad2.light_intensity = 1;
     quad2.colors[0] = 0x0000FF;
     quad2.colors[1] = 0xFFFFFF;
-    quad2.colors[2] = 0xFF0000;
-    quad2.colors[3] = 0x00FF00;
+    quad2.colors[2] = 0xFFFFFF;
+    quad2.colors[3] = 0xFFFFFF;
 
 }
 
@@ -46,8 +46,11 @@ void update(game_state_t *game_state)
 
 void render(game_state_t *game_state)
 {
-    adl_fill_quad_interpolate_color_tri(game_state->window_pixels_mat, game_state->inv_z_buffer_mat, quad1, "02", ADL_DEFAULT_OFFSET_ZOOM);
-    adl_fill_quad_interpolate_color_tri(game_state->window_pixels_mat, game_state->inv_z_buffer_mat, quad2, "13", ADL_DEFAULT_OFFSET_ZOOM);
+    // adl_fill_quad_interpolate_color_tri(game_state->window_pixels_mat, game_state->inv_z_buffer_mat, quad1, "02", ADL_DEFAULT_OFFSET_ZOOM);
+    // adl_fill_quad_interpolate_color_tri(game_state->window_pixels_mat, game_state->inv_z_buffer_mat, quad2, "02", ADL_DEFAULT_OFFSET_ZOOM);
+
+    // adl_fill_quad(game_state->window_pixels_mat, game_state->inv_z_buffer_mat, quad1, 0xFFFFFF, ADL_DEFAULT_OFFSET_ZOOM);
+    adl_fill_quad_interpolate_color(game_state->window_pixels_mat, game_state->inv_z_buffer_mat, quad1, ADL_DEFAULT_OFFSET_ZOOM);
 
 }
 
