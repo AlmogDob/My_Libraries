@@ -47,11 +47,13 @@ void setup(game_state_t *game_state)
     temp_point = (Point){1,20,0,0};
     ada_appand(Point, points1, temp_point);
 
-    mat2D_fill_uint32(figure1.pixels_mat, 0xFFFFFF);
-    mat2D_fill_uint32(figure2.pixels_mat, 0xFFFFFF);
+    figure1.background_color = 0xBBFFFF;
+    figure1.to_draw_axis = true;
+    figure1.to_draw_max_min_values = true;
 
-    adl_draw_axis_on_figure(&figure1);
-    adl_draw_axis_on_figure(&figure2);
+    figure2.background_color = 0xFFAAAA;
+    figure2.to_draw_axis = true;
+    figure2.to_draw_max_min_values = true;
 
     adl_add_curve_to_figure(&figure1, points.elements, points.length, 0xFF0000);
     adl_add_curve_to_figure(&figure2, points.elements, points.length, 0xFF0000);
@@ -75,6 +77,6 @@ void render(game_state_t *game_state)
     adl_copy_figure_to_screen(game_state->window_pixels_mat, figure1);
     adl_copy_figure_to_screen(game_state->window_pixels_mat, figure2);
 
-    adl_draw_sentence(game_state->window_pixels_mat, "Hello", 5, 700, 300, 25, 0xFFFFFF);
+    adl_draw_sentence(game_state->window_pixels_mat, "Hello", 5, 700, 300, 25, 0xFFFFFF, ADL_DEFAULT_OFFSET_ZOOM);
 }
 
