@@ -52,13 +52,24 @@ typedef struct {
     Point points[3];
     Point tex_points[3];
     Point center;
-    Point normal;
+    Point normal[3];
     float z_min;
     float z_max;
     bool to_draw;
     float light_intensity;
-    uint32_t color;
+    uint32_t colors[3];
 } Tri;
+#endif
+
+#ifndef QUAD
+#define QUAD
+typedef struct {
+    Point points[4];
+    Point normal[4];
+    uint32_t colors[4];
+    bool to_draw;
+    float light_intensity;
+} Quad;
 #endif
 
 #ifndef MESH
@@ -94,8 +105,8 @@ typedef struct {
 #ifndef HexARGB_RGB
 #define HexARGB_RGBA(x) ((x)>>(8*2)&0xFF), ((x)>>(8*1)&0xFF), ((x)>>(8*0)&0xFF), ((x)>>(8*3)&0xFF)
 #endif
-#ifndef HexARGB_RGBA_VAR
-#define HexARGB_RGBA_VAR(x) uint8_t r = ((x)>>(8*2)&0xFF); uint8_t g = ((x)>>(8*1)&0xFF); uint8_t b = ((x)>>(8*0)&0xFF); uint8_t a = ((x)>>(8*3)&0xFF)
+#ifndef HexARGB_RGB_VAR
+#define HexARGB_RGB_VAR(x, r, g, b) r = ((x)>>(8*2)&0xFF); g = ((x)>>(8*1)&0xFF); b = ((x)>>(8*0)&0xFF);
 #endif
 #ifndef RGB_hexRGB
 #define RGB_hexRGB(r, g, b) (int)(0x010000*(int)(r) + 0x000100*(int)(g) + 0x000001*(int)(b))
@@ -138,19 +149,24 @@ void adl_draw_sentence(Mat2D_uint32 screen_mat, const char sentence[], size_t le
 void adl_draw_rectangle_min_max(Mat2D_uint32 screen_mat, int min_x, int max_x, int min_y, int max_y, uint32_t color, Offset_zoom_param offset_zoom_param);
 void adl_fill_rectangle_min_max(Mat2D_uint32 screen_mat, int min_x, int max_x, int min_y, int max_y, uint32_t color, Offset_zoom_param offset_zoom_param);
 
+void adl_draw_quad(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer, Quad quad, uint32_t color, Offset_zoom_param offset_zoom_param);
+void adl_fill_quad_tri(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer, Quad quad, char split_line[], uint32_t color, Offset_zoom_param offset_zoom_param);
+void adl_fill_quad_interpolate_color_tri(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer, Quad quad, char split_line[], Offset_zoom_param offset_zoom_param);
+
 void adl_draw_circle(Mat2D_uint32 screen_mat, float center_x, float center_y, float r, uint32_t color, Offset_zoom_param offset_zoom_param);
 void adl_fill_circle(Mat2D_uint32 screen_mat, float center_x, float center_y, float r, uint32_t color, Offset_zoom_param offset_zoom_param);
 
 void adl_draw_tri(Mat2D_uint32 screen_mat, Tri tri, uint32_t color, Offset_zoom_param offset_zoom_param);
 void adl_fill_tri_scanline_rasterizer(Mat2D_uint32 screen_mat, Tri tri, Offset_zoom_param offset_zoom_param);
 void adl_fill_tri_Pinedas_rasterizer(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer, Tri tri, float light_intensity, Offset_zoom_param offset_zoom_param);
-void adl_fill_tri_Pinedas_rasterizer_interpolate_color(Mat2D_uint32 screen_mat, Tri tri, float light_intensity, Offset_zoom_param offset_zoom_param);
+void adl_fill_tri_Pinedas_rasterizer_interpolate_color(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer, Tri tri, float light_intensity, Offset_zoom_param offset_zoom_param);
 
 void adl_draw_mesh(Mat2D_uint32 screen_mat, Mesh mesh, uint32_t color, Offset_zoom_param offset_zoom_param);
 void adl_fill_mesh_scanline_rasterizer(Mat2D_uint32 screen_mat, Mesh mesh, Offset_zoom_param offset_zoom_param);
 void adl_fill_mesh_Pinedas_rasterizer(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer_mat, Mesh mesh, Offset_zoom_param offset_zoom_param);
 
 float adl_linear_map(float s, float min_in, float max_in, float min_out, float max_out);
+void adl_quad2tris(Quad quad, Tri *tri1, Tri *tri2, char split_line[]);
 
 Figure adl_alloc_figure(size_t rows, size_t cols, Point top_left_position);
 void adl_copy_figure_to_screen(Mat2D_uint32 screen_mat, Figure figure);
@@ -694,6 +710,36 @@ void adl_fill_rectangle_min_max(Mat2D_uint32 screen_mat, int min_x, int max_x, i
     }
 }
 
+void adl_draw_quad(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer, Quad quad, uint32_t color, Offset_zoom_param offset_zoom_param)
+{
+    (void)inv_z_buffer;
+    adl_draw_lines_loop(screen_mat, quad.points, 4, color, offset_zoom_param);
+}
+
+void adl_fill_quad_tri(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer, Quad quad, char split_line[], uint32_t color, Offset_zoom_param offset_zoom_param)
+{
+    Tri tri1 = {0}, tri2 = {0};
+    adl_quad2tris(quad, &tri1, &tri2, split_line);
+    for (int i = 0; i < 3; i++) {
+        tri1.colors[i] = color;
+        tri2.colors[i] = color;
+    }
+
+    adl_fill_tri_Pinedas_rasterizer(screen_mat, inv_z_buffer, tri1, tri1.light_intensity, offset_zoom_param);
+    adl_fill_tri_Pinedas_rasterizer(screen_mat, inv_z_buffer, tri2, tri2.light_intensity, offset_zoom_param);
+}
+
+/* since the function filles by triangles, there are some artifacts */
+void adl_fill_quad_interpolate_color_tri(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer, Quad quad, char split_line[], Offset_zoom_param offset_zoom_param)
+{
+    Tri tri1 = {0}, tri2 = {0};
+    // adl_quad2tris(quad, &tri1, &tri2, "02");
+    adl_quad2tris(quad, &tri1, &tri2, split_line);
+
+    adl_fill_tri_Pinedas_rasterizer_interpolate_color(screen_mat, inv_z_buffer, tri1, tri1.light_intensity, offset_zoom_param);
+    adl_fill_tri_Pinedas_rasterizer_interpolate_color(screen_mat, inv_z_buffer, tri2, tri2.light_intensity, offset_zoom_param);
+}
+
 void adl_draw_circle(Mat2D_uint32 screen_mat, float center_x, float center_y, float r, uint32_t color, Offset_zoom_param offset_zoom_param)
 {
     for (int dy = -r; dy <= r; dy++) {
@@ -763,7 +809,7 @@ void adl_fill_tri_scanline_rasterizer(Mat2D_uint32 screen_mat, Tri tri, Offset_z
     int x_min = fmin(p0.x, fmin(p1.x, p2.x));
 
     if (p0.x == p1.x && p1.x == p2.x) {
-        adl_draw_tri(screen_mat, tri, tri.color, offset_zoom_param);
+        adl_draw_tri(screen_mat, tri, tri.colors[0], offset_zoom_param);
         return;
     }
 
@@ -787,7 +833,7 @@ void adl_fill_tri_scanline_rasterizer(Mat2D_uint32 screen_mat, Tri tri, Offset_z
         if (x12 <= x_min-gap || x12 >= x_max+gap) continue;
         if (fabs(p0.x - p2.x) - fabs(p0.x - x02) < 0) continue;
         if (fabs(p1.x - p2.x) - fabs(p1.x - x12) < 0) continue;
-        adl_draw_line(screen_mat, x02, y, x12, y, tri.color, offset_zoom_param);
+        adl_draw_line(screen_mat, x02, y, x12, y, tri.colors[0], offset_zoom_param);
         // printf("x02: %d, x12: %d, y: %d\n", (int)x02, (int)x12, (int)y);
     }
     for (int y = (int)p1.y; y <= (int)p0.y; y++) {
@@ -797,7 +843,7 @@ void adl_fill_tri_scanline_rasterizer(Mat2D_uint32 screen_mat, Tri tri, Offset_z
         if (x02 <= x_min-gap || x02 >= x_max+gap) continue;
         if (fabs(p1.x - p0.x) - fabs(p1.x - x01) < 0) continue;
         if (fabs(p0.x - p2.x) - fabs(p0.x - x02) < 0) continue;
-        adl_draw_line(screen_mat, x02, y, x01, y, tri.color, offset_zoom_param);
+        adl_draw_line(screen_mat, x02, y, x01, y, tri.colors[0], offset_zoom_param);
     }
 }
 
@@ -827,10 +873,14 @@ void adl_fill_tri_Pinedas_rasterizer(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer
     /* draw only outline of the tri if there is no area */
     float w = edge_cross_point(p0, p1, p1, p2);
     if (fabsf(w) < 1e-6) {
-        adl_draw_tri(screen_mat, tri, tri.color, offset_zoom_param);
+        adl_draw_tri(screen_mat, tri, tri.colors[0], offset_zoom_param);
+        return;
+    }
+    if (w < 0) { /* don't draw negative triangles */
         return;
     }
     MATRIX2D_ASSERT(fabsf(w) > 1e-6 && "triangle has area");
+    MATRIX2D_ASSERT(w > 0 && "triangle is inverted");
 
     /* fill conventions */
     int bias0 = is_top_left(p0, p1) ? 0 : -1;
@@ -845,22 +895,22 @@ void adl_fill_tri_Pinedas_rasterizer(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer
             float w1 = edge_cross_point(p1, p2, p1, p) + bias1;
             float w2 = edge_cross_point(p2, p0, p2, p) + bias2;
 
-            float alpha = fabs(w0 / w);
-            float beta  = fabs(w1 / w);
-            float gamma = fabs(w2 / w);
+            float alpha = fabs(w1 / w);
+            float beta  = fabs(w2 / w);
+            float gamma = fabs(w0 / w);
 
             if (w0 * w >= 0 && w1 * w >= 0 &&  w2 * w >= 0) {
-                HexARGB_RGBA_VAR(tri.color);
+                int r, b, g;
+                HexARGB_RGB_VAR(tri.colors[0], r, g, b);
                 float rf = r * light_intensity;
                 float gf = g * light_intensity;
                 float bf = b * light_intensity;
                 uint8_t r8 = (uint8_t)fmaxf(0, fminf(255, rf));
                 uint8_t g8 = (uint8_t)fmaxf(0, fminf(255, gf));
                 uint8_t b8 = (uint8_t)fmaxf(0, fminf(255, bf));
-                (void)a;
 
-                double inv_w = beta * (1.0 / p0.w) + gamma  * (1.0 / p1.w) + alpha * (1.0 / p2.w);
-                double z_over_w = beta * (p0.z / p0.w) + gamma  * (p1.z / p1.w) + alpha * (p2.z / p2.w);
+                double inv_w = alpha * (1.0 / p0.w) + beta  * (1.0 / p1.w) + gamma * (1.0 / p2.w);
+                double z_over_w = alpha * (p0.z / p0.w) + beta  * (p1.z / p1.w) + gamma * (p2.z / p2.w);
                 double inv_z = inv_w / z_over_w;
 
                 if (inv_z >= MAT2D_AT(inv_z_buffer, y, x)) {
@@ -872,7 +922,7 @@ void adl_fill_tri_Pinedas_rasterizer(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer
     }
 }
 
-void adl_fill_tri_Pinedas_rasterizer_interpolate_color(Mat2D_uint32 screen_mat, Tri tri, float light_intensity, Offset_zoom_param offset_zoom_param)
+void adl_fill_tri_Pinedas_rasterizer_interpolate_color(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer, Tri tri, float light_intensity, Offset_zoom_param offset_zoom_param)
 {
     /* This function follows the rasterizer of 'Pikuma' shown in his YouTube video. You can fine the video in this link: https://youtu.be/k5wtuKWmV48. */
 
@@ -911,18 +961,22 @@ void adl_fill_tri_Pinedas_rasterizer_interpolate_color(Mat2D_uint32 screen_mat, 
             float w1 = edge_cross_point(p1, p2, p1, p) + bias1;
             float w2 = edge_cross_point(p2, p0, p2, p) + bias2;
 
-            float alpha = fabs(w0 / w);
-            float beta  = fabs(w1 / w);
-            float gamma = fabs(w2 / w);
+            float alpha = fabs(w1 / w);
+            float beta  = fabs(w2 / w);
+            float gamma = fabs(w0 / w);
             // printf("alpha: %5f, beta: %5f, gamma: %5f\n", alpha, beta, gamma);
 
             if (w0 * w >= 0 && w1 * w >= 0 &&  w2 * w >= 0) {
-            // if (w0 < 0 && w1 < 0 &&  w2 < 0) {
-                HexARGB_RGBA_VAR(tri.color);
+                int r0, b0, g0;
+                int r1, b1, g1;
+                int r2, b2, g2;
+                HexARGB_RGB_VAR(tri.colors[0], r0, g0, b0);
+                HexARGB_RGB_VAR(tri.colors[1], r1, g1, b1);
+                HexARGB_RGB_VAR(tri.colors[2], r2, g2, b2);
                 
-                uint8_t current_r = r*alpha + 0xaa*beta + 0x22*gamma;
-                uint8_t current_g = g*alpha + 0xaa*beta + 0x22*gamma;
-                uint8_t current_b = b*alpha + 0xaa*beta + 0x22*gamma;
+                uint8_t current_r = r0*alpha + r1*beta + r2*gamma;
+                uint8_t current_g = g0*alpha + g1*beta + g2*gamma;
+                uint8_t current_b = b0*alpha + b1*beta + b2*gamma;
 
                 float rf = current_r * light_intensity;
                 float gf = current_g * light_intensity;
@@ -930,9 +984,15 @@ void adl_fill_tri_Pinedas_rasterizer_interpolate_color(Mat2D_uint32 screen_mat, 
                 uint8_t r8 = (uint8_t)fmaxf(0, fminf(255, rf));
                 uint8_t g8 = (uint8_t)fmaxf(0, fminf(255, gf));
                 uint8_t b8 = (uint8_t)fmaxf(0, fminf(255, bf));
-                (void)a;
 
-                adl_draw_point(screen_mat, x, y, RGB_hexRGB(r8, g8, b8), offset_zoom_param);
+                double inv_w = alpha * (1.0 / p0.w) + beta  * (1.0 / p1.w) + gamma * (1.0 / p2.w);
+                double z_over_w = alpha * (p0.z / p0.w) + beta  * (p1.z / p1.w) + gamma * (p2.z / p2.w);
+                double inv_z = inv_w / z_over_w;
+
+                if (inv_z >= MAT2D_AT(inv_z_buffer, y, x)) {
+                    adl_draw_point(screen_mat, x, y, RGB_hexRGB(r8, g8, b8), offset_zoom_param);
+                    MAT2D_AT(inv_z_buffer, y, x) = inv_z;
+                }
             }
         }
     }
@@ -974,6 +1034,47 @@ void adl_fill_mesh_Pinedas_rasterizer(Mat2D_uint32 screen_mat, Mat2D inv_z_buffe
 float adl_linear_map(float s, float min_in, float max_in, float min_out, float max_out)
 {
     return (min_out + ((s-min_in)*(max_out-min_out))/(max_in-min_in));
+}
+
+void adl_quad2tris(Quad quad, Tri *tri1, Tri *tri2, char split_line[])
+{
+    if (!strncmp(split_line, "02", 2)) {
+        tri1->points[0] = quad.points[0];
+        tri1->points[1] = quad.points[1];
+        tri1->points[2] = quad.points[2];
+        tri1->to_draw = quad.to_draw;
+        tri1->light_intensity = quad.light_intensity;
+        tri1->colors[0] = quad.colors[0];
+        tri1->colors[1] = quad.colors[1];
+        tri1->colors[2] = quad.colors[2];
+
+        tri2->points[0] = quad.points[2];
+        tri2->points[1] = quad.points[3];
+        tri2->points[2] = quad.points[0];
+        tri2->to_draw = quad.to_draw;
+        tri2->light_intensity = quad.light_intensity;
+        tri2->colors[0] = quad.colors[2];
+        tri2->colors[1] = quad.colors[3];
+        tri2->colors[2] = quad.colors[0];
+    } else if (!strncmp(split_line, "13", 2)) {
+        tri1->points[0] = quad.points[1];
+        tri1->points[1] = quad.points[2];
+        tri1->points[2] = quad.points[3];
+        tri1->to_draw = quad.to_draw;
+        tri1->light_intensity = quad.light_intensity;
+        tri1->colors[0] = quad.colors[1];
+        tri1->colors[1] = quad.colors[2];
+        tri1->colors[2] = quad.colors[3];
+
+        tri2->points[0] = quad.points[3];
+        tri2->points[1] = quad.points[0];
+        tri2->points[2] = quad.points[1];
+        tri2->to_draw = quad.to_draw;
+        tri2->light_intensity = quad.light_intensity;
+        tri2->colors[0] = quad.colors[3];
+        tri2->colors[1] = quad.colors[0];
+        tri2->colors[2] = quad.colors[1];
+    }
 }
 
 Figure adl_alloc_figure(size_t rows, size_t cols, Point top_left_position)
@@ -1128,7 +1229,7 @@ void adl_plot_curves_on_figure(Figure figure)
         y_min_char_width_pixel /= strlen(y_min_sentence);
         int y_min_sentence_hight_pixel = y_min_char_width_pixel * 2;
 
-        y_min_sentence_hight_pixel = (int)fminf(y_min_sentence_hight_pixel, y_max_sentence_hight_pixel);
+        y_min_sentence_hight_pixel = (int)fmaxf(fminf(y_min_sentence_hight_pixel, y_max_sentence_hight_pixel), 1);
         y_max_sentence_hight_pixel = y_min_sentence_hight_pixel;
 
         adl_draw_sentence(figure.pixels_mat, y_max_sentence, strlen(y_max_sentence), ADL_MAX_CHARACTER_OFFSET/2, figure.min_y_pixel, y_max_sentence_hight_pixel, 0, figure.offset_zoom_param);

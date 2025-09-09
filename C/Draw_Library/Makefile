@@ -42,3 +42,10 @@ run_example1:
 clean_example1:
 	@echo
 	rm example1
+
+debug_example1: debug_build_example1
+	gdb ./example1
+
+debug_build_example1: ./example1.c
+	@echo [INFO] building example1
+	gcc ./example1.c $(CFLAGS) -ggdb -o ./example1
