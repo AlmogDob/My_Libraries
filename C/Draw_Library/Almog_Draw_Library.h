@@ -153,7 +153,7 @@ void adl_draw_quad(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer, Quad quad, uint3
 void adl_fill_quad_tri(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer, Quad quad, char split_line[], uint32_t color, Offset_zoom_param offset_zoom_param);
 void adl_fill_quad(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer, Quad quad, uint32_t color, Offset_zoom_param offset_zoom_param);
 void adl_fill_quad_interpolate_color_tri(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer, Quad quad, char split_line[], Offset_zoom_param offset_zoom_param);
-void adl_fill_quad_interpolate_color(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer, Quad quad, Offset_zoom_param offset_zoom_param);
+void adl_fill_quad_interpolate_color_mean_value(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer, Quad quad, Offset_zoom_param offset_zoom_param);
 
 void adl_draw_circle(Mat2D_uint32 screen_mat, float center_x, float center_y, float r, uint32_t color, Offset_zoom_param offset_zoom_param);
 void adl_fill_circle(Mat2D_uint32 screen_mat, float center_x, float center_y, float r, uint32_t color, Offset_zoom_param offset_zoom_param);
@@ -768,10 +768,10 @@ void adl_fill_quad(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer, Quad quad, uint3
         for (int x = x_min; x <= x_max; x++) {
             Point p = {.x = x, .y = y, .z = 0};
 
-            float w0 = edge_cross_point(p0, p1, p0, p3) / edge_cross_point(p0, p1, p0, p) / edge_cross_point(p0, p, p0, p3) + bias0;
-            float w1 = edge_cross_point(p1, p2, p1, p0) / edge_cross_point(p1, p2, p1, p) / edge_cross_point(p1, p, p1, p0) + bias0;
-            float w2 = edge_cross_point(p2, p3, p2, p1) / edge_cross_point(p2, p3, p2, p) / edge_cross_point(p2, p, p2, p1) + bias0;
-            float w3 = edge_cross_point(p3, p0, p3, p2) / edge_cross_point(p3, p0, p3, p) / edge_cross_point(p3, p, p3, p2) + bias0;
+            float w0 = edge_cross_point(p0, p1, p0, p) + bias0;
+            float w1 = edge_cross_point(p1, p2, p1, p) + bias1;
+            float w2 = edge_cross_point(p2, p3, p2, p) + bias2;
+            float w3 = edge_cross_point(p3, p0, p3, p) + bias3;
 
             float alpha = fabs(w1 / (w0 + w1 + w2 + w3));
             float beta  = fabs(w2 / (w0 + w1 + w2 + w3));
@@ -801,7 +801,7 @@ void adl_fill_quad(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer, Quad quad, uint3
     }
 }
 
-/* since the function filles by triangles, there are some artifacts */
+/* Since the function filles by triangles, there are some artifacts */
 void adl_fill_quad_interpolate_color_tri(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer, Quad quad, char split_line[], Offset_zoom_param offset_zoom_param)
 {
     Tri tri1 = {0}, tri2 = {0};
@@ -812,7 +812,8 @@ void adl_fill_quad_interpolate_color_tri(Mat2D_uint32 screen_mat, Mat2D inv_z_bu
     adl_fill_tri_Pinedas_rasterizer_interpolate_color(screen_mat, inv_z_buffer, tri2, tri2.light_intensity, offset_zoom_param);
 }
 
-void adl_fill_quad_interpolate_color(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer, Quad quad, Offset_zoom_param offset_zoom_param)
+/* This function works correctly but there is a lot of calculation for every pixel. */
+void adl_fill_quad_interpolate_color_mean_value(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer, Quad quad, Offset_zoom_param offset_zoom_param)
 {
     Point p0 = quad.points[0];
     Point p1 = quad.points[1];
@@ -836,8 +837,6 @@ void adl_fill_quad_interpolate_color(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer
         return;
     }
 
-    // adl_draw_quad(screen_mat, inv_z_buffer, quad, quad.colors[0], offset_zoom_param);
-
     /* fill conventions */
     int bias0 = is_top_left(p0, p1) ? 0 : -1;
     int bias1 = is_top_left(p1, p2) ? 0 : -1;
@@ -848,25 +847,33 @@ void adl_fill_quad_interpolate_color(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer
         for (int x = x_min; x <= x_max; x++) {
             Point p = {.x = x, .y = y, .z = 0};
 
-            float w0 = edge_cross_point(p0, p1, p0, p) + bias0;
-            float w1 = edge_cross_point(p1, p2, p1, p) + bias1;
-            float w2 = edge_cross_point(p2, p3, p2, p) + bias2;
-            float w3 = edge_cross_point(p3, p0, p3, p) + bias3;
+            bool in_01 = edge_cross_point(p0, p1, p0, p) + bias0 >= 0;
+            bool in_12 = edge_cross_point(p1, p2, p1, p) + bias1 >= 0;
+            bool in_23 = edge_cross_point(p2, p3, p2, p) + bias2 >= 0;
+            bool in_30 = edge_cross_point(p3, p0, p3, p) + bias3 >= 0;
 
-            float alpha = fabs(w1 / w);
-            float beta  = fabs(w2 / w);
-            float gamma = fabs(w3 / w);
-            float delta = fabs(w0 / w);
+            /* https://www.mn.uio.no/math/english/people/aca/michaelf/papers/mv3d.pdf. */
+            float size_p_to_p0 = sqrt((p0.x - p.x)*(p0.x - p.x) + (p0.y - p.y)*(p0.y - p.y));
+            float size_p_to_p1 = sqrt((p1.x - p.x)*(p1.x - p.x) + (p1.y - p.y)*(p1.y - p.y));
+            float size_p_to_p2 = sqrt((p2.x - p.x)*(p2.x - p.x) + (p2.y - p.y)*(p2.y - p.y));
+            float size_p_to_p3 = sqrt((p3.x - p.x)*(p3.x - p.x) + (p3.y - p.y)*(p3.y - p.y));
 
-            // printf("(%g, %g, %g, %g) -> %g\n", w0, w1, w2, w3, w0+w1+w2+w3);
-            // dprintD(w);
-            // printf("(%g, %g, %g, %g) -> %g\n", alpha, beta, gamma, delta, alpha+beta+gamma+delta);
+            float theta_3 = acosf(((p3.x - p.x) * (p0.x - p.x) + (p3.y - p.y) * (p0.y - p.y)) / (size_p_to_p3 * size_p_to_p0));
+            float theta_0 = acosf(((p0.x - p.x) * (p1.x - p.x) + (p0.y - p.y) * (p1.y - p.y)) / (size_p_to_p0 * size_p_to_p1));
+            float theta_1 = acosf(((p1.x - p.x) * (p2.x - p.x) + (p1.y - p.y) * (p2.y - p.y)) / (size_p_to_p1 * size_p_to_p2));
+            float theta_2 = acosf(((p2.x - p.x) * (p3.x - p.x) + (p2.y - p.y) * (p3.y - p.y)) / (size_p_to_p2 * size_p_to_p3));
 
-            if (w0 * w >= 0 && w1 * w >= 0 &&  w2 * w >= 0 && w3 * w >= 0) {
-                // printf("(%g, %g, %g, %g) -> %g\n", w0, w1, w2, w3, (w0+w1+w2+w3)/2);
-                // dprintD(w);
-                // printf("(%g, %g, %g, %g) -> %g\n", alpha, beta, gamma, delta, alpha+beta+gamma+delta);
+            float w0 = (tanf(theta_3 / 2) + tanf(theta_0 / 2)) / size_p_to_p0;
+            float w1 = (tanf(theta_0 / 2) + tanf(theta_1 / 2)) / size_p_to_p1;
+            float w2 = (tanf(theta_1 / 2) + tanf(theta_2 / 2)) / size_p_to_p2;
+            float w3 = (tanf(theta_2 / 2) + tanf(theta_3 / 2)) / size_p_to_p3;
 
+            float alpha = w0 / (w0 + w1 + w2 + w3);
+            float beta  = w1 / (w0 + w1 + w2 + w3);
+            float gamma = w2 / (w0 + w1 + w2 + w3);
+            float delta = w3 / (w0 + w1 + w2 + w3);
+
+            if (in_01 && in_12 &&  in_23 && in_30) {
                 int r0, b0, g0;
                 int r1, b1, g1;
                 int r2, b2, g2;
