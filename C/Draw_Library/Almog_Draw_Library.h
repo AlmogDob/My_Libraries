@@ -4,10 +4,10 @@
 #include <math.h>
 #include <stdint.h>
 #include <limits.h>
-#include "Matrix2D.h"
 #include <string.h>
 #include <float.h>
 
+#include "./Matrix2D.h"
 #include "./Almog_Dynamic_Array.h"
 
 #ifndef ADL_ASSERT
@@ -30,7 +30,7 @@ typedef struct {
     float y;
     float z;
     float w;
-} Point;
+} Point ;
 #endif
 
 typedef struct {
@@ -52,12 +52,12 @@ typedef struct {
     Point points[3];
     Point tex_points[3];
     Point center;
-    Point normal[3];
+    Point normals[3];
+    uint32_t colors[3];
     float z_min;
     float z_max;
     bool to_draw;
     float light_intensity;
-    uint32_t colors[3];
 } Tri;
 #endif
 
@@ -78,7 +78,7 @@ typedef struct {
     size_t length;
     size_t capacity;
     Tri *elements;
-} Mesh; /* Tri ada array */
+} Tri_mesh; /* Tri ada array */
 #endif
 
 typedef struct {
@@ -113,8 +113,61 @@ typedef struct {
 #define RGB_hexRGB(r, g, b) (int)(0x010000*(int)(r) + 0x000100*(int)(g) + 0x000001*(int)(b))
 #endif
 #ifndef RGBA_hexARGB
-#define RGBA_hexARGB(r, g, b, a) (int)(0x01000000*(int)(a) + 0x010000*(int)(r) + 0x000100*(int)(g) + 0x000001*(int)(b))
+#define RGBA_hexARGB(r, g, b, a) (int)(0x01000000l*(int)(fminf(a, 255)) + 0x010000*(int)(r) + 0x000100*(int)(g) + 0x000001*(int)(b))
 #endif
+
+
+
+void adl_draw_point(Mat2D_uint32 screen_mat, int x, int y, uint32_t color, Offset_zoom_param offset_zoom_param);
+void adl_draw_line(Mat2D_uint32 screen_mat, const float x1_input, const float y1_input, const float x2_input, const float y2_input, uint32_t color, Offset_zoom_param offset_zoom_param);
+void adl_draw_lines(const Mat2D_uint32 screen_mat, const Point *points, const size_t len, const uint32_t color, Offset_zoom_param offset_zoom_param);
+void adl_draw_lines_loop(const Mat2D_uint32 screen_mat, const Point *points, const size_t len, const uint32_t color, Offset_zoom_param offset_zoom_param);
+void adl_draw_arrow(Mat2D_uint32 screen_mat, int xs, int ys, int xe, int ye, float head_size, float angle_deg, uint32_t color, Offset_zoom_param offset_zoom_param);
+
+void adl_draw_character(Mat2D_uint32 screen_mat, char c, int width_pixel, int hight_pixel, int x_top_left, int y_top_left, uint32_t color, Offset_zoom_param offset_zoom_param);
+void adl_draw_sentence(Mat2D_uint32 screen_mat, const char sentence[], size_t len, const int x_top_left, const int y_top_left, const int hight_pixel, const uint32_t color, Offset_zoom_param offset_zoom_param);
+
+void adl_draw_rectangle_min_max(Mat2D_uint32 screen_mat, int min_x, int max_x, int min_y, int max_y, uint32_t color, Offset_zoom_param offset_zoom_param);
+void adl_fill_rectangle_min_max(Mat2D_uint32 screen_mat, int min_x, int max_x, int min_y, int max_y, uint32_t color, Offset_zoom_param offset_zoom_param);
+
+void adl_draw_quad(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer, Quad quad, uint32_t color, Offset_zoom_param offset_zoom_param);
+void adl_fill_quad_tri(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer, Quad quad, char split_line[], uint32_t color, Offset_zoom_param offset_zoom_param);
+void adl_fill_quad(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer, Quad quad, uint32_t color, Offset_zoom_param offset_zoom_param);
+void adl_fill_quad_interpolate_color_tri(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer, Quad quad, char split_line[], Offset_zoom_param offset_zoom_param);
+void adl_fill_quad_interpolate_color_mean_value(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer, Quad quad, Offset_zoom_param offset_zoom_param);
+
+void adl_draw_circle(Mat2D_uint32 screen_mat, float center_x, float center_y, float r, uint32_t color, Offset_zoom_param offset_zoom_param);
+void adl_fill_circle(Mat2D_uint32 screen_mat, float center_x, float center_y, float r, uint32_t color, Offset_zoom_param offset_zoom_param);
+
+void adl_draw_tri(Mat2D_uint32 screen_mat, Tri tri, uint32_t color, Offset_zoom_param offset_zoom_param);
+void adl_fill_tri_scanline_rasterizer(Mat2D_uint32 screen_mat, Tri tri, Offset_zoom_param offset_zoom_param);
+void adl_fill_tri_Pinedas_rasterizer(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer, Tri tri, float light_intensity, Offset_zoom_param offset_zoom_param);
+void adl_fill_tri_Pinedas_rasterizer_interpolate_color(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer, Tri tri, float light_intensity, Offset_zoom_param offset_zoom_param);
+
+void adl_draw_mesh(Mat2D_uint32 screen_mat, Tri_mesh mesh, uint32_t color, Offset_zoom_param offset_zoom_param);
+void adl_fill_mesh_scanline_rasterizer(Mat2D_uint32 screen_mat, Tri_mesh mesh, Offset_zoom_param offset_zoom_param);
+void adl_fill_mesh_Pinedas_rasterizer(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer_mat, Tri_mesh mesh, Offset_zoom_param offset_zoom_param);
+
+float adl_linear_map(float s, float min_in, float max_in, float min_out, float max_out);
+void adl_quad2tris(Quad quad, Tri *tri1, Tri *tri2, char split_line[]);
+void adl_linear_sRGB_to_okLab(uint32_t hex_ARGB, float *L, float *a, float *b);
+void adl_okLab_to_linear_sRGB(float L, float a, float b, uint32_t *hex_ARGB);
+void adl_linear_sRGB_to_okLch(uint32_t hex_ARGB, float *L, float *c, float *h_deg);
+void adl_okLch_to_linear_sRGB(float L, float c, float h_deg, uint32_t *hex_ARGB);
+void adl_interpolate_ARGBcolor_on_okLch(uint32_t color1, uint32_t color2, float t, float num_of_rotations, uint32_t *color_out);
+
+Figure adl_alloc_figure(size_t rows, size_t cols, Point top_left_position);
+void adl_copy_figure_to_screen(Mat2D_uint32 screen_mat, Figure figure);
+void adl_draw_axis_on_figure(Figure *figure);
+void adl_draw_max_min_values_on_figure(Figure figure);
+void adl_add_curve_to_figure(Figure *figure, Point *src_points, size_t src_len, uint32_t color);
+void adl_plot_curves_on_figure(Figure figure);
+void adl_interp_scalar_2D_on_figure(Figure figure, double *x_2Dmat, double *y_2Dmat, double *scalar_2Dmat, int ni, int nj, char color_scale[], float num_of_rotations);
+
+#endif /*ALMOG_RENDER_SHAPES_H_*/
+
+#ifdef ALMOG_DRAW_LIBRARY_IMPLEMENTATION
+#undef ALMOG_DRAW_LIBRARY_IMPLEMENTATION
 
 #define RED_hexARGB    0xFFFF0000
 #define GREEN_hexARGB  0xFF00FF00
@@ -150,58 +203,6 @@ typedef struct {
 #define adl_offset_zoom_point(p, window_w, window_h, offset_zoom_param)                                             \
     (p).x = ((p).x - (window_w)/2 + offset_zoom_param.offset_x) * offset_zoom_param.zoom_multiplier + (window_w)/2; \
     (p).y = ((p).y - (window_h)/2 + offset_zoom_param.offset_y) * offset_zoom_param.zoom_multiplier + (window_h)/2
-
-
-void adl_draw_point(Mat2D_uint32 screen_mat, int x, int y, uint32_t color, Offset_zoom_param offset_zoom_param);
-void adl_draw_line(Mat2D_uint32 screen_mat, const float x1_input, const float y1_input, const float x2_input, const float y2_input, uint32_t color, Offset_zoom_param offset_zoom_param);
-void adl_draw_lines(const Mat2D_uint32 screen_mat, const Point *points, const size_t len, const uint32_t color, Offset_zoom_param offset_zoom_param);
-void adl_draw_lines_loop(const Mat2D_uint32 screen_mat, const Point *points, const size_t len, const uint32_t color, Offset_zoom_param offset_zoom_param);
-void adl_draw_arrow(Mat2D_uint32 screen_mat, int xs, int ys, int xe, int ye, float head_size, float angle_deg, uint32_t color, Offset_zoom_param offset_zoom_param);
-
-void adl_draw_character(Mat2D_uint32 screen_mat, char c, int width_pixel, int hight_pixel, int x_top_left, int y_top_left, uint32_t color, Offset_zoom_param offset_zoom_param);
-void adl_draw_sentence(Mat2D_uint32 screen_mat, const char sentence[], size_t len, const int x_top_left, const int y_top_left, const int hight_pixel, const uint32_t color, Offset_zoom_param offset_zoom_param);
-
-void adl_draw_rectangle_min_max(Mat2D_uint32 screen_mat, int min_x, int max_x, int min_y, int max_y, uint32_t color, Offset_zoom_param offset_zoom_param);
-void adl_fill_rectangle_min_max(Mat2D_uint32 screen_mat, int min_x, int max_x, int min_y, int max_y, uint32_t color, Offset_zoom_param offset_zoom_param);
-
-void adl_draw_quad(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer, Quad quad, uint32_t color, Offset_zoom_param offset_zoom_param);
-void adl_fill_quad_tri(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer, Quad quad, char split_line[], uint32_t color, Offset_zoom_param offset_zoom_param);
-void adl_fill_quad(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer, Quad quad, uint32_t color, Offset_zoom_param offset_zoom_param);
-void adl_fill_quad_interpolate_color_tri(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer, Quad quad, char split_line[], Offset_zoom_param offset_zoom_param);
-void adl_fill_quad_interpolate_color_mean_value(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer, Quad quad, Offset_zoom_param offset_zoom_param);
-
-void adl_draw_circle(Mat2D_uint32 screen_mat, float center_x, float center_y, float r, uint32_t color, Offset_zoom_param offset_zoom_param);
-void adl_fill_circle(Mat2D_uint32 screen_mat, float center_x, float center_y, float r, uint32_t color, Offset_zoom_param offset_zoom_param);
-
-void adl_draw_tri(Mat2D_uint32 screen_mat, Tri tri, uint32_t color, Offset_zoom_param offset_zoom_param);
-void adl_fill_tri_scanline_rasterizer(Mat2D_uint32 screen_mat, Tri tri, Offset_zoom_param offset_zoom_param);
-void adl_fill_tri_Pinedas_rasterizer(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer, Tri tri, float light_intensity, Offset_zoom_param offset_zoom_param);
-void adl_fill_tri_Pinedas_rasterizer_interpolate_color(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer, Tri tri, float light_intensity, Offset_zoom_param offset_zoom_param);
-
-void adl_draw_mesh(Mat2D_uint32 screen_mat, Mesh mesh, uint32_t color, Offset_zoom_param offset_zoom_param);
-void adl_fill_mesh_scanline_rasterizer(Mat2D_uint32 screen_mat, Mesh mesh, Offset_zoom_param offset_zoom_param);
-void adl_fill_mesh_Pinedas_rasterizer(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer_mat, Mesh mesh, Offset_zoom_param offset_zoom_param);
-
-float adl_linear_map(float s, float min_in, float max_in, float min_out, float max_out);
-void adl_quad2tris(Quad quad, Tri *tri1, Tri *tri2, char split_line[]);
-void adl_linear_sRGB_to_okLab(uint32_t hex_ARGB, float *L, float *a, float *b);
-void adl_okLab_to_linear_sRGB(float L, float a, float b, uint32_t *hex_ARGB);
-void adl_linear_sRGB_to_okLch(uint32_t hex_ARGB, float *L, float *c, float *h_deg);
-void adl_okLch_to_linear_sRGB(float L, float c, float h_deg, uint32_t *hex_ARGB);
-void adl_interpolate_ARGBcolor_on_okLch(uint32_t color1, uint32_t color2, float t, float num_of_rotations, uint32_t *color_out);
-
-Figure adl_alloc_figure(size_t rows, size_t cols, Point top_left_position);
-void adl_copy_figure_to_screen(Mat2D_uint32 screen_mat, Figure figure);
-void adl_draw_axis_on_figure(Figure *figure);
-void adl_draw_max_min_values_on_figure(Figure figure);
-void adl_add_curve_to_figure(Figure *figure, Point *src_points, size_t src_len, uint32_t color);
-void adl_plot_curves_on_figure(Figure figure);
-void adl_interp_scalar_2D_on_figure(Figure figure, double *x_2Dmat, double *y_2Dmat, double *scalar_2Dmat, int ni, int nj, char color_scale[], float num_of_rotations);
-
-#endif /*ALMOG_RENDER_SHAPES_H_*/
-
-#ifdef ALMOG_DRAW_LIBRARY_IMPLEMENTATION
-#undef ALMOG_DRAW_LIBRARY_IMPLEMENTATION
 
 /* default values should be: 
 zoom_multiplier = 1;
@@ -1067,11 +1068,11 @@ void adl_fill_tri_Pinedas_rasterizer(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer
         adl_draw_tri(screen_mat, tri, tri.colors[0], offset_zoom_param);
         return;
     }
-    if (w < 0) { /* don't draw negative triangles */
-        return;
-    }
+    // if (w < 0) { /* don't draw negative triangles */
+    //     return;
+    // }
     MATRIX2D_ASSERT(fabsf(w) > 1e-6 && "triangle has area");
-    MATRIX2D_ASSERT(w > 0 && "triangle is inverted");
+    // MATRIX2D_ASSERT(w > 0 && "triangle is inverted");
 
     /* fill conventions */
     int bias0 = is_top_left(p0, p1) ? 0 : -1;
@@ -1189,7 +1190,7 @@ void adl_fill_tri_Pinedas_rasterizer_interpolate_color(Mat2D_uint32 screen_mat, 
     }
 }
 
-void adl_draw_mesh(Mat2D_uint32 screen_mat, Mesh mesh, uint32_t color, Offset_zoom_param offset_zoom_param)
+void adl_draw_mesh(Mat2D_uint32 screen_mat, Tri_mesh mesh, uint32_t color, Offset_zoom_param offset_zoom_param)
 {
     for (size_t i = 0; i < mesh.length; i++) {
         Tri tri = mesh.elements[i];
@@ -1199,7 +1200,7 @@ void adl_draw_mesh(Mat2D_uint32 screen_mat, Mesh mesh, uint32_t color, Offset_zo
     }
 }
 
-void adl_fill_mesh_scanline_rasterizer(Mat2D_uint32 screen_mat, Mesh mesh, Offset_zoom_param offset_zoom_param)
+void adl_fill_mesh_scanline_rasterizer(Mat2D_uint32 screen_mat, Tri_mesh mesh, Offset_zoom_param offset_zoom_param)
 {
     for (size_t i = 0; i < mesh.length; i++) {
         Tri tri = mesh.elements[i];
@@ -1209,7 +1210,7 @@ void adl_fill_mesh_scanline_rasterizer(Mat2D_uint32 screen_mat, Mesh mesh, Offse
     }
 }
 
-void adl_fill_mesh_Pinedas_rasterizer(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer_mat, Mesh mesh, Offset_zoom_param offset_zoom_param)
+void adl_fill_mesh_Pinedas_rasterizer(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer_mat, Tri_mesh mesh, Offset_zoom_param offset_zoom_param)
 {
     for (size_t i = 0; i < mesh.length; i++) {
         Tri tri = mesh.elements[i];
