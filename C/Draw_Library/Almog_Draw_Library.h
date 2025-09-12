@@ -96,13 +96,14 @@ typedef struct {
     Curve_ada src_curve_array;
     Point top_left_position;
     Mat2D_uint32 pixels_mat;
+    Mat2D inv_z_buffer_mat;
     uint32_t background_color;
     bool to_draw_axis;
     bool to_draw_max_min_values;
 } Figure;
 
 
-#ifndef HexARGB_RGB
+#ifndef HexARGB_RGBA
 #define HexARGB_RGBA(x) ((x)>>(8*2)&0xFF), ((x)>>(8*1)&0xFF), ((x)>>(8*0)&0xFF), ((x)>>(8*3)&0xFF)
 #endif
 #ifndef HexARGB_RGB_VAR
@@ -111,6 +112,16 @@ typedef struct {
 #ifndef RGB_hexRGB
 #define RGB_hexRGB(r, g, b) (int)(0x010000*(int)(r) + 0x000100*(int)(g) + 0x000001*(int)(b))
 #endif
+#ifndef RGBA_hexARGB
+#define RGBA_hexARGB(r, g, b, a) (int)(0x01000000*(int)(a) + 0x010000*(int)(r) + 0x000100*(int)(g) + 0x000001*(int)(b))
+#endif
+
+#define RED_hexARGB    0xFFFF0000
+#define GREEN_hexARGB  0xFF00FF00
+#define BLUE_hexARGB   0xFF0000FF
+#define PURPLE_hexARGB 0xFFFF00FF
+#define CYAN_hexARGB   0xFF00FFFF
+#define YELLOW_hexARGB 0xFFFFFF00
 
 #define edge_cross_point(a1, b, a2, p) (b.x-a1.x)*(p.y-a2.y)-(b.y-a1.y)*(p.x-a2.x)
 #define is_top_edge(x, y) (y == 0 && x > 0)
@@ -124,7 +135,7 @@ typedef struct {
         adl_assert_point_is_valid(tri.points[2])
 
 #define ADL_FIGURE_PADDING_PRECENTAGE 20
-#define ADL_MAX_FIGURE_PADDING 50
+#define ADL_MAX_FIGURE_PADDING 70
 #define ADL_MIN_FIGURE_PADDING 20
 #define ADL_MAX_HEAD_SIZE 15
 #define ADL_FIGURE_HEAD_ANGLE_DEG 30
@@ -136,6 +147,10 @@ typedef struct {
 #define ADL_MAX_ZOOM 1e3
 
 #define ADL_DEFAULT_OFFSET_ZOOM (Offset_zoom_param){1,0,0,0,0}
+#define adl_offset_zoom_point(p, window_w, window_h, offset_zoom_param)                                             \
+    (p).x = ((p).x - (window_w)/2 + offset_zoom_param.offset_x) * offset_zoom_param.zoom_multiplier + (window_w)/2; \
+    (p).y = ((p).y - (window_h)/2 + offset_zoom_param.offset_y) * offset_zoom_param.zoom_multiplier + (window_h)/2
+
 
 void adl_draw_point(Mat2D_uint32 screen_mat, int x, int y, uint32_t color, Offset_zoom_param offset_zoom_param);
 void adl_draw_line(Mat2D_uint32 screen_mat, const float x1_input, const float y1_input, const float x2_input, const float y2_input, uint32_t color, Offset_zoom_param offset_zoom_param);
@@ -169,12 +184,19 @@ void adl_fill_mesh_Pinedas_rasterizer(Mat2D_uint32 screen_mat, Mat2D inv_z_buffe
 
 float adl_linear_map(float s, float min_in, float max_in, float min_out, float max_out);
 void adl_quad2tris(Quad quad, Tri *tri1, Tri *tri2, char split_line[]);
+void adl_linear_sRGB_to_okLab(uint32_t hex_ARGB, float *L, float *a, float *b);
+void adl_okLab_to_linear_sRGB(float L, float a, float b, uint32_t *hex_ARGB);
+void adl_linear_sRGB_to_okLch(uint32_t hex_ARGB, float *L, float *c, float *h_deg);
+void adl_okLch_to_linear_sRGB(float L, float c, float h_deg, uint32_t *hex_ARGB);
+void adl_interpolate_ARGBcolor_on_okLch(uint32_t color1, uint32_t color2, float t, float num_of_rotations, uint32_t *color_out);
 
 Figure adl_alloc_figure(size_t rows, size_t cols, Point top_left_position);
 void adl_copy_figure_to_screen(Mat2D_uint32 screen_mat, Figure figure);
 void adl_draw_axis_on_figure(Figure *figure);
+void adl_draw_max_min_values_on_figure(Figure figure);
 void adl_add_curve_to_figure(Figure *figure, Point *src_points, size_t src_len, uint32_t color);
 void adl_plot_curves_on_figure(Figure figure);
+void adl_interp_scalar_2D_on_figure(Figure figure, double *x_2Dmat, double *y_2Dmat, double *scalar_2Dmat, int ni, int nj, char color_scale[], float num_of_rotations);
 
 #endif /*ALMOG_RENDER_SHAPES_H_*/
 
@@ -563,6 +585,10 @@ void adl_draw_character(Mat2D_uint32 screen_mat, char c, int width_pixel, int hi
     case '.':
         adl_fill_rectangle_min_max(screen_mat, x_top_left+width_pixel/6, x_top_left+width_pixel/3, y_top_left+5*hight_pixel/6, y_top_left+hight_pixel, color, offset_zoom_param);
         break;
+    case ':':
+        adl_fill_rectangle_min_max(screen_mat, x_top_left+width_pixel/6, x_top_left+width_pixel/3, y_top_left+5*hight_pixel/6, y_top_left+hight_pixel, color, offset_zoom_param);
+        adl_fill_rectangle_min_max(screen_mat, x_top_left+width_pixel/6, x_top_left+width_pixel/3, y_top_left, y_top_left+hight_pixel/6, color, offset_zoom_param);
+        break;
     case '0':
         adl_draw_line(screen_mat, x_top_left+2*width_pixel/3, y_top_left, x_top_left+width_pixel/3, y_top_left, color, offset_zoom_param);
         adl_draw_line(screen_mat, x_top_left+width_pixel/3, y_top_left, x_top_left, y_top_left+hight_pixel/6, color, offset_zoom_param);
@@ -675,6 +701,8 @@ void adl_draw_character(Mat2D_uint32 screen_mat, char c, int width_pixel, int hi
     case '+':
         adl_draw_line(screen_mat, x_top_left, y_top_left+hight_pixel/2, x_top_left+width_pixel, y_top_left+hight_pixel/2, color, offset_zoom_param);
         adl_draw_line(screen_mat, x_top_left+width_pixel/2, y_top_left, x_top_left+width_pixel/2, y_top_left+hight_pixel, color, offset_zoom_param);
+        break;
+    case ' ':
         break;
     default:
         adl_draw_rectangle_min_max(screen_mat, x_top_left, x_top_left+width_pixel, y_top_left, y_top_left+hight_pixel, color, offset_zoom_param);
@@ -831,26 +859,22 @@ void adl_fill_quad_interpolate_color_mean_value(Mat2D_uint32 screen_mat, Mat2D i
     if (y_max >= (int)screen_mat.rows) y_max = (int)screen_mat.rows - 1;
 
     float w = edge_cross_point(p0, p1, p1, p2) + edge_cross_point(p2, p3, p3, p0);
-    if (w < 0) return;
+    if (w < 0) {
+        return;
+    }
     if (w < 1e-6) {
         adl_draw_quad(screen_mat, inv_z_buffer, quad, quad.colors[0], offset_zoom_param);
         return;
     }
 
-    /* fill conventions */
-    int bias0 = is_top_left(p0, p1) ? 0 : -1;
-    int bias1 = is_top_left(p1, p2) ? 0 : -1;
-    int bias2 = is_top_left(p2, p3) ? 0 : -1;
-    int bias3 = is_top_left(p3, p0) ? 0 : -1;
-
     for (int y = y_min; y <= y_max; y++) {
         for (int x = x_min; x <= x_max; x++) {
             Point p = {.x = x, .y = y, .z = 0};
 
-            bool in_01 = edge_cross_point(p0, p1, p0, p) + bias0 >= 0;
-            bool in_12 = edge_cross_point(p1, p2, p1, p) + bias1 >= 0;
-            bool in_23 = edge_cross_point(p2, p3, p2, p) + bias2 >= 0;
-            bool in_30 = edge_cross_point(p3, p0, p3, p) + bias3 >= 0;
+            bool in_01 = edge_cross_point(p0, p1, p0, p) >= 0;
+            bool in_12 = edge_cross_point(p1, p2, p1, p) >= 0;
+            bool in_23 = edge_cross_point(p2, p3, p2, p) >= 0;
+            bool in_30 = edge_cross_point(p3, p0, p3, p) >= 0;
 
             /* https://www.mn.uio.no/math/english/people/aca/michaelf/papers/mv3d.pdf. */
             float size_p_to_p0 = sqrt((p0.x - p.x)*(p0.x - p.x) + (p0.y - p.y)*(p0.y - p.y));
@@ -1244,6 +1268,93 @@ void adl_quad2tris(Quad quad, Tri *tri1, Tri *tri2, char split_line[])
     }
 }
 
+/* L:   0  -> 1
+   a: -0.5 -> 0.5
+   b: -0.5 -> 0.5 */
+void adl_linear_sRGB_to_okLab(uint32_t hex_ARGB, float *L, float *a, float *b)
+{
+    /* https://bottosson.github.io/posts/oklab/
+       https://en.wikipedia.org/wiki/Oklab_color_space */
+    int R_255, G_255, B_255;
+    HexARGB_RGB_VAR(hex_ARGB, R_255, G_255, B_255);
+
+    float R = R_255;
+    float G = G_255;
+    float B = B_255;
+
+    float l = 0.4122214705f * R + 0.5363325363f * G + 0.0514459929f * B;
+    float m = 0.2119034982f * R + 0.6806995451f * G + 0.1073969566f * B;
+    float s = 0.0883024619f * R + 0.2817188376f * G + 0.6299787005f * B;
+
+    float l_ = cbrtf(l);
+    float m_ = cbrtf(m);
+    float s_ = cbrtf(s);
+
+    *L = 0.2104542553f * l_ + 0.7936177850f * m_ - 0.0040720468f * s_;
+    *a = 1.9779984951f * l_ - 2.4285922050f * m_ + 0.4505937099f * s_;
+    *b = 0.0259040371f * l_ + 0.7827717662f * m_ - 0.8086757660f * s_;
+
+}
+
+/* L:   0  -> 1
+   a: -0.5 -> 0.5
+   b: -0.5 -> 0.5 */
+void adl_okLab_to_linear_sRGB(float L, float a, float b, uint32_t *hex_ARGB)
+{
+    /* https://bottosson.github.io/posts/oklab/
+       https://en.wikipedia.org/wiki/Oklab_color_space */
+
+    float l_ = L + 0.3963377774f * a + 0.2158037573f * b;
+    float m_ = L - 0.1055613458f * a - 0.0638541728f * b;
+    float s_ = L - 0.0894841775f * a - 1.2914855480f * b;
+
+    float l = l_ * l_ * l_;
+    float m = m_ * m_ * m_;
+    float s = s_ * s_ * s_;
+
+    float R = + 4.0767416621f * l - 3.3077115913f * m + 0.2309699292f * s;
+    float G = - 1.2684380046f * l + 2.6097574011f * m - 0.3413193965f * s;
+    float B = - 0.0041960863f * l - 0.7034186147f * m + 1.7076147010f * s;
+
+    R = fmaxf(fminf(R, 255), 0);
+    G = fmaxf(fminf(G, 255), 0);
+    B = fmaxf(fminf(B, 255), 0);
+
+    *hex_ARGB = RGBA_hexARGB(R, G, B, 0xFF);
+}
+
+void adl_linear_sRGB_to_okLch(uint32_t hex_ARGB, float *L, float *c, float *h_deg)
+{
+    float a, b;
+    adl_linear_sRGB_to_okLab(hex_ARGB, L, &a, &b);
+
+    *c = sqrtf(a * a + b * b);
+    *h_deg = atan2f(b, a) * 180 / PI;
+}
+
+void adl_okLch_to_linear_sRGB(float L, float c, float h_deg, uint32_t *hex_ARGB)
+{
+    h_deg = fmodf((h_deg + 360), 360);
+    float a = c * cosf(h_deg * PI / 180);
+    float b = c * sinf(h_deg * PI / 180);
+    adl_okLab_to_linear_sRGB(L, a, b, hex_ARGB);
+}
+
+void adl_interpolate_ARGBcolor_on_okLch(uint32_t color1, uint32_t color2, float t, float num_of_rotations, uint32_t *color_out)
+{
+    float L_1, c_1, h_1;
+    float L_2, c_2, h_2;
+    adl_linear_sRGB_to_okLch(color1, &L_1, &c_1, &h_1);
+    adl_linear_sRGB_to_okLch(color2, &L_2, &c_2, &h_2);
+    h_2 = h_2 + 360 * num_of_rotations;
+
+    float L, c, h;
+    L = L_1 * (1 - t) + L_2 * (t);
+    c = c_1 * (1 - t) + c_2 * (t);
+    h = h_1 * (1 - t) + h_2 * (t);
+    adl_okLch_to_linear_sRGB(L, c, h, color_out);
+}
+
 Figure adl_alloc_figure(size_t rows, size_t cols, Point top_left_position)
 {
     ADL_ASSERT(rows && cols);
@@ -1251,6 +1362,8 @@ Figure adl_alloc_figure(size_t rows, size_t cols, Point top_left_position)
 
     Figure figure = {0};
     figure.pixels_mat = mat2D_alloc_uint32(rows, cols);
+    figure.inv_z_buffer_mat = mat2D_alloc(rows, cols);
+    memset(figure.inv_z_buffer_mat.elements, 0x0, sizeof(double) * figure.inv_z_buffer_mat.rows * figure.inv_z_buffer_mat.cols);
     ada_init_array(Curve, figure.src_curve_array);
 
     figure.top_left_position = top_left_position;
@@ -1305,6 +1418,56 @@ void adl_draw_axis_on_figure(Figure *figure)
     figure->y_axis_head_size = arrow_head_size_y;
 }
 
+void adl_draw_max_min_values_on_figure(Figure figure)
+{
+    char x_min_sentence[256];
+    char x_max_sentence[256];
+    snprintf(x_min_sentence, 256, "%g", figure.min_x);
+    snprintf(x_max_sentence, 256, "%g", figure.max_x);
+
+    int x_sentence_hight_pixel = (figure.pixels_mat.rows - figure.max_y_pixel - ADL_MIN_CHARACTER_OFFSET * 3);
+    int x_min_char_width_pixel = x_sentence_hight_pixel / 2;
+    int x_max_char_width_pixel = x_sentence_hight_pixel / 2;
+
+    int x_min_sentence_width_pixel = (int)fminf((figure.max_x_pixel - figure.min_x_pixel)/2, (x_min_char_width_pixel + ADL_MAX_CHARACTER_OFFSET)*strlen(x_min_sentence));
+    x_min_char_width_pixel = x_min_sentence_width_pixel / strlen(x_min_sentence) - ADL_MIN_CHARACTER_OFFSET;
+
+    int x_max_sentence_width_pixel = (int)fminf((figure.max_x_pixel - figure.min_x_pixel)/2, (x_max_char_width_pixel + ADL_MAX_CHARACTER_OFFSET)*strlen(x_max_sentence)) - figure.x_axis_head_size;
+    x_max_char_width_pixel = (x_max_sentence_width_pixel + figure.x_axis_head_size) / strlen(x_max_sentence) - ADL_MIN_CHARACTER_OFFSET;
+
+    int x_min_sentence_hight_pixel = (int)fminf(x_min_char_width_pixel * 2, x_sentence_hight_pixel);
+    int x_max_sentence_hight_pixel = (int)fminf(x_max_char_width_pixel * 2, x_sentence_hight_pixel);
+
+    x_min_sentence_hight_pixel = (int)fminf(x_min_sentence_hight_pixel, x_max_sentence_hight_pixel);
+    x_max_sentence_hight_pixel = x_min_sentence_hight_pixel;
+
+    int x_max_x_top_left = figure.max_x_pixel - strlen(x_max_sentence) * (x_max_sentence_hight_pixel / 2 + ADL_MIN_CHARACTER_OFFSET) - figure.x_axis_head_size;
+
+    adl_draw_sentence(figure.pixels_mat, x_min_sentence, strlen(x_min_sentence), figure.min_x_pixel, figure.max_y_pixel+ADL_MIN_CHARACTER_OFFSET*2, x_min_sentence_hight_pixel, 0, figure.offset_zoom_param);
+    adl_draw_sentence(figure.pixels_mat, x_max_sentence, strlen(x_max_sentence), x_max_x_top_left, figure.max_y_pixel+ADL_MIN_CHARACTER_OFFSET*2, x_max_sentence_hight_pixel, 0, figure.offset_zoom_param);
+    
+    char y_min_sentence[256];
+    char y_max_sentence[256];
+    snprintf(y_min_sentence, 256, "%g", figure.min_y);
+    snprintf(y_max_sentence, 256, "%g", figure.max_y);
+
+    int y_sentence_width_pixel = figure.min_x_pixel - ADL_MAX_CHARACTER_OFFSET - figure.y_axis_head_size;
+    int y_max_char_width_pixel = y_sentence_width_pixel;
+    y_max_char_width_pixel /= strlen(y_max_sentence);
+    int y_max_sentence_hight_pixel = y_max_char_width_pixel * 2;
+
+    int y_min_char_width_pixel = y_sentence_width_pixel;
+    y_min_char_width_pixel /= strlen(y_min_sentence);
+    int y_min_sentence_hight_pixel = y_min_char_width_pixel * 2;
+
+    y_min_sentence_hight_pixel = (int)fmaxf(fminf(y_min_sentence_hight_pixel, y_max_sentence_hight_pixel), 1);
+    y_max_sentence_hight_pixel = y_min_sentence_hight_pixel;
+
+    adl_draw_sentence(figure.pixels_mat, y_max_sentence, strlen(y_max_sentence), ADL_MAX_CHARACTER_OFFSET/2, figure.min_y_pixel, y_max_sentence_hight_pixel, 0, figure.offset_zoom_param);
+    adl_draw_sentence(figure.pixels_mat, y_min_sentence, strlen(y_min_sentence), ADL_MAX_CHARACTER_OFFSET/2, figure.max_y_pixel-y_min_sentence_hight_pixel, y_min_sentence_hight_pixel, 0, figure.offset_zoom_param);
+}
+
+
 void adl_add_curve_to_figure(Figure *figure, Point *src_points, size_t src_len, uint32_t color)
 {
     Curve src_points_ada;
@@ -1334,6 +1497,7 @@ void adl_add_curve_to_figure(Figure *figure, Point *src_points, size_t src_len, 
 void adl_plot_curves_on_figure(Figure figure)
 {
     mat2D_fill_uint32(figure.pixels_mat, figure.background_color);
+    memset(figure.inv_z_buffer_mat.elements, 0x0, sizeof(double) * figure.inv_z_buffer_mat.rows * figure.inv_z_buffer_mat.cols);
     if (figure.to_draw_axis) adl_draw_axis_on_figure(&figure);
 
     for (size_t curve_index = 0; curve_index < figure.src_curve_array.length; curve_index++) {
@@ -1402,6 +1566,188 @@ void adl_plot_curves_on_figure(Figure figure)
         adl_draw_sentence(figure.pixels_mat, y_max_sentence, strlen(y_max_sentence), ADL_MAX_CHARACTER_OFFSET/2, figure.min_y_pixel, y_max_sentence_hight_pixel, 0, figure.offset_zoom_param);
         adl_draw_sentence(figure.pixels_mat, y_min_sentence, strlen(y_min_sentence), ADL_MAX_CHARACTER_OFFSET/2, figure.max_y_pixel-y_min_sentence_hight_pixel, y_min_sentence_hight_pixel, 0, figure.offset_zoom_param);
     }
+}
+
+/* check offset2D. might convert it to a Mat2D */
+#define adl_offset2d(i, j, ni) (j) * (ni) + (i)
+void adl_interp_scalar_2D_on_figure(Figure figure, double *x_2Dmat, double *y_2Dmat, double *scalar_2Dmat, int ni, int nj, char color_scale[], float num_of_rotations)
+{
+    mat2D_fill_uint32(figure.pixels_mat, figure.background_color);
+    memset(figure.inv_z_buffer_mat.elements, 0x0, sizeof(double) * figure.inv_z_buffer_mat.rows * figure.inv_z_buffer_mat.cols);
+    if (figure.to_draw_axis) adl_draw_axis_on_figure(&figure);
+
+    float min_scalar = FLT_MAX; 
+    float max_scalar = FLT_MIN; 
+    for (int i = 0; i < ni; i++) {
+        for (int j = 0; j < nj; j++) {
+            float val = scalar_2Dmat[adl_offset2d(i, j, ni)];
+            if (val > max_scalar) max_scalar = val;
+            if (val < min_scalar) min_scalar = val;
+            float current_x = x_2Dmat[adl_offset2d(i, j, ni)];
+            float current_y = y_2Dmat[adl_offset2d(i, j, ni)];
+            if (current_x > figure.max_x) {
+                figure.max_x = current_x;
+            }
+            if (current_y > figure.max_y) {
+                figure.max_y = current_y;
+            }
+            if (current_x < figure.min_x) {
+                figure.min_x = current_x;
+            }
+            if (current_y < figure.min_y) {
+                figure.min_y = current_y;
+            }
+        }
+    }
+
+    float window_w = (float)figure.pixels_mat.cols;
+    float window_h = (float)figure.pixels_mat.rows;
+
+    for (int i = 0; i < ni-1; i++) {
+        for (int j = 0; j < nj-1; j++) {
+            Quad quad = {0};
+            quad.light_intensity = 1;
+            quad.to_draw = 1;
+
+            quad.points[3].x = x_2Dmat[adl_offset2d(i  , j  , ni)];
+            quad.points[3].y = y_2Dmat[adl_offset2d(i  , j  , ni)];
+            quad.points[2].x = x_2Dmat[adl_offset2d(i+1, j  , ni)];
+            quad.points[2].y = y_2Dmat[adl_offset2d(i+1, j  , ni)];
+            quad.points[1].x = x_2Dmat[adl_offset2d(i+1, j+1, ni)];
+            quad.points[1].y = y_2Dmat[adl_offset2d(i+1, j+1, ni)];
+            quad.points[0].x = x_2Dmat[adl_offset2d(i  , j+1, ni)];
+            quad.points[0].y = y_2Dmat[adl_offset2d(i  , j+1, ni)];
+
+            for (int p_index = 0; p_index < 4; p_index++) {
+                quad.points[p_index].z = 1;
+                quad.points[p_index].w = 1;
+                quad.points[p_index].x = adl_linear_map(quad.points[p_index].x, figure.min_x, figure.max_x, figure.min_x_pixel, figure.max_x_pixel);
+                quad.points[p_index].y = ((figure.max_y_pixel + figure.min_y_pixel) - adl_linear_map(quad.points[p_index].y, figure.min_y, figure.max_y, figure.min_y_pixel, figure.max_y_pixel));
+
+                adl_offset_zoom_point(quad.points[p_index], window_w, window_h, figure.offset_zoom_param);
+            }
+
+            float t3 = adl_linear_map(scalar_2Dmat[adl_offset2d(i  , j  , ni)], min_scalar, max_scalar, 0, 1);
+            float t2 = adl_linear_map(scalar_2Dmat[adl_offset2d(i+1, j  , ni)], min_scalar, max_scalar, 0, 1);
+            float t1 = adl_linear_map(scalar_2Dmat[adl_offset2d(i+1, j+1, ni)], min_scalar, max_scalar, 0, 1);
+            float t0 = adl_linear_map(scalar_2Dmat[adl_offset2d(  i, j+1, ni)], min_scalar, max_scalar, 0, 1);
+
+            /* https://en.wikipedia.org/wiki/Oklab_color_space */
+            if (!strcmp(color_scale, "b-c")) {
+                uint32_t color = 0, color1 = BLUE_hexARGB, color2 = CYAN_hexARGB;
+                adl_interpolate_ARGBcolor_on_okLch(color1, color2, t0, num_of_rotations, &color);
+                quad.colors[0] = color;
+
+                adl_interpolate_ARGBcolor_on_okLch(color1, color2, t1, num_of_rotations, &color);
+                quad.colors[1] = color;
+
+                adl_interpolate_ARGBcolor_on_okLch(color1, color2, t2, num_of_rotations, &color);
+                quad.colors[2] = color;
+
+                adl_interpolate_ARGBcolor_on_okLch(color1, color2, t3, num_of_rotations, &color);
+                quad.colors[3] = color;
+            } else if (!strcmp(color_scale, "b-g")) {
+                uint32_t color = 0, color1 = BLUE_hexARGB, color2 = GREEN_hexARGB;
+                adl_interpolate_ARGBcolor_on_okLch(color1, color2, t0, num_of_rotations, &color);
+                quad.colors[0] = color;
+
+                adl_interpolate_ARGBcolor_on_okLch(color1, color2, t1, num_of_rotations, &color);
+                quad.colors[1] = color;
+
+                adl_interpolate_ARGBcolor_on_okLch(color1, color2, t2, num_of_rotations, &color);
+                quad.colors[2] = color;
+
+                adl_interpolate_ARGBcolor_on_okLch(color1, color2, t3, num_of_rotations, &color);
+                quad.colors[3] = color;
+            } else if (!strcmp(color_scale, "b-r")) {
+                uint32_t color = 0, color1 = BLUE_hexARGB, color2 = RED_hexARGB;
+                adl_interpolate_ARGBcolor_on_okLch(color1, color2, t0, num_of_rotations, &color);
+                quad.colors[0] = color;
+
+                adl_interpolate_ARGBcolor_on_okLch(color1, color2, t1, num_of_rotations, &color);
+                quad.colors[1] = color;
+
+                adl_interpolate_ARGBcolor_on_okLch(color1, color2, t2, num_of_rotations, &color);
+                quad.colors[2] = color;
+
+                adl_interpolate_ARGBcolor_on_okLch(color1, color2, t3, num_of_rotations, &color);
+                quad.colors[3] = color;
+            } else if (!strcmp(color_scale, "b-y")) {
+                uint32_t color = 0, color1 = BLUE_hexARGB, color2 = YELLOW_hexARGB;
+                adl_interpolate_ARGBcolor_on_okLch(color1, color2, t0, num_of_rotations, &color);
+                quad.colors[0] = color;
+
+                adl_interpolate_ARGBcolor_on_okLch(color1, color2, t1, num_of_rotations, &color);
+                quad.colors[1] = color;
+
+                adl_interpolate_ARGBcolor_on_okLch(color1, color2, t2, num_of_rotations, &color);
+                quad.colors[2] = color;
+
+                adl_interpolate_ARGBcolor_on_okLch(color1, color2, t3, num_of_rotations, &color);
+                quad.colors[3] = color;
+            } else if (!strcmp(color_scale, "g-y")) {
+                uint32_t color = 0, color1 = GREEN_hexARGB, color2 = YELLOW_hexARGB;
+                adl_interpolate_ARGBcolor_on_okLch(color1, color2, t0, num_of_rotations, &color);
+                quad.colors[0] = color;
+
+                adl_interpolate_ARGBcolor_on_okLch(color1, color2, t1, num_of_rotations, &color);
+                quad.colors[1] = color;
+
+                adl_interpolate_ARGBcolor_on_okLch(color1, color2, t2, num_of_rotations, &color);
+                quad.colors[2] = color;
+
+                adl_interpolate_ARGBcolor_on_okLch(color1, color2, t3, num_of_rotations, &color);
+                quad.colors[3] = color;
+            } else if (!strcmp(color_scale, "g-p")) {
+                uint32_t color = 0, color1 = GREEN_hexARGB, color2 = PURPLE_hexARGB;
+                adl_interpolate_ARGBcolor_on_okLch(color1, color2, t0, num_of_rotations, &color);
+                quad.colors[0] = color;
+
+                adl_interpolate_ARGBcolor_on_okLch(color1, color2, t1, num_of_rotations, &color);
+                quad.colors[1] = color;
+
+                adl_interpolate_ARGBcolor_on_okLch(color1, color2, t2, num_of_rotations, &color);
+                quad.colors[2] = color;
+
+                adl_interpolate_ARGBcolor_on_okLch(color1, color2, t3, num_of_rotations, &color);
+                quad.colors[3] = color;
+            } else if (!strcmp(color_scale, "g-r")) {
+                uint32_t color = 0, color1 = GREEN_hexARGB, color2 = RED_hexARGB;
+                adl_interpolate_ARGBcolor_on_okLch(color1, color2, t0, num_of_rotations, &color);
+                quad.colors[0] = color;
+
+                adl_interpolate_ARGBcolor_on_okLch(color1, color2, t1, num_of_rotations, &color);
+                quad.colors[1] = color;
+
+                adl_interpolate_ARGBcolor_on_okLch(color1, color2, t2, num_of_rotations, &color);
+                quad.colors[2] = color;
+
+                adl_interpolate_ARGBcolor_on_okLch(color1, color2, t3, num_of_rotations, &color);
+                quad.colors[3] = color;
+            } else if (!strcmp(color_scale, "r-y")) {
+                uint32_t color = 0, color1 = RED_hexARGB, color2 = YELLOW_hexARGB;
+                adl_interpolate_ARGBcolor_on_okLch(color1, color2, t0, num_of_rotations, &color);
+                quad.colors[0] = color;
+
+                adl_interpolate_ARGBcolor_on_okLch(color1, color2, t1, num_of_rotations, &color);
+                quad.colors[1] = color;
+
+                adl_interpolate_ARGBcolor_on_okLch(color1, color2, t2, num_of_rotations, &color);
+                quad.colors[2] = color;
+
+                adl_interpolate_ARGBcolor_on_okLch(color1, color2, t3, num_of_rotations, &color);
+                quad.colors[3] = color;
+            }
+
+
+            adl_fill_quad_interpolate_color_mean_value(figure.pixels_mat, figure.inv_z_buffer_mat, quad, ADL_DEFAULT_OFFSET_ZOOM); 
+        }
+    }
+
+    if (figure.to_draw_max_min_values) {
+        adl_draw_max_min_values_on_figure(figure);
+    }
+
 }
 
 #endif /*ALMOG_DRAW_LIBRARY_IMPLEMENTATION*/
