@@ -7,6 +7,7 @@ https://youtu.be/L1TbWe8bVOc?list=PLpM-Dvs8t0VZPZKggcql-MmjaBdZKeDMw .*/
 /* NOTES:
  * There is a hole set of function for deling with the minors of a matrix because I tried to calculate the determinant of a matrix with them but it terns out to be TOO SLOW. Insted I use Gauss elimination.
  * There are some stability problems in the inversion function. When the values of the matrix becomes too small, the inversion fails. Currently the only fix I can think of is to use pre-conditioners. Which means using a function to solve the hole problem 'Ax=B' */
+
 #ifndef MATRIX2D_H_
 #define MATRIX2D_H_
 
@@ -14,7 +15,6 @@ https://youtu.be/L1TbWe8bVOc?list=PLpM-Dvs8t0VZPZKggcql-MmjaBdZKeDMw .*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
-#include <math.h>
 #include <stdbool.h>
 
 #ifndef MATRIX2D_MALLOC
@@ -58,14 +58,18 @@ typedef struct {
 #endif
 
 #ifndef PI
-#define PI M_PI
+    #ifndef __USE_MISC
+    #define __USE_MISC
+    #endif
+    #include <math.h>
+    #define PI M_PI
 #endif
 
 #define MAT2D_MINOR_AT(mm, i, j) MAT2D_AT(mm.ref_mat, mm.rows_list[i], mm.cols_list[j])
 #define MAT2D_PRINT(m) mat2D_print(m, #m, 0)
-#define MAT2D_UINT32_PRINT(m) mat2D_uint32_print(m, #m, 0)
 #define MAT2D_PRINT_AS_COL(m) mat2D_print_as_col(m, #m, 0)
 #define MAT2D_MINOR_PRINT(mm) mat2D_minor_print(mm, #mm, 0)
+#define mat2D_normalize(m) mat2D_mult((m), 1.0 / mat2D_calc_norma((m)))
 
 double rand_double(void);
 
@@ -78,9 +82,11 @@ size_t mat2D_offset2d_uint32(Mat2D_uint32 m, size_t i, size_t j);
 
 void mat2D_fill(Mat2D m, double x);
 void mat2D_fill_sequence(Mat2D m, double start, double step);
+void mat2D_fill_uint32(Mat2D_uint32 m, uint32_t x);
 void mat2D_rand(Mat2D m, double low, double high);
 
 void mat2D_dot(Mat2D dst, Mat2D a, Mat2D b);
+double mat2D_dot_product(Mat2D a, Mat2D b);
 void mat2D_cross(Mat2D dst, Mat2D a, Mat2D b);
 
 void mat2D_add(Mat2D dst, Mat2D a);
@@ -93,7 +99,6 @@ void mat2D_mult(Mat2D m, double factor);
 void mat2D_mult_row(Mat2D m, size_t r, double factor);
 
 void mat2D_print(Mat2D m, const char *name, size_t padding);
-void mat2D_uint32_print(Mat2D_uint32 m, const char *name, size_t padding);
 void mat2D_print_as_col(Mat2D m, const char *name, size_t padding);
 
 void mat2D_set_identity(Mat2D m);
@@ -101,6 +106,7 @@ double mat2D_make_identity(Mat2D m);
 void mat2D_set_rot_mat_x(Mat2D m, float angle_deg);
 void mat2D_set_rot_mat_y(Mat2D m, float angle_deg);
 void mat2D_set_rot_mat_z(Mat2D m, float angle_deg);
+void mat2D_set_DCM_zyx(Mat2D DCM, float yaw_deg, float pitch_deg, float roll_deg);
 
 void mat2D_copy(Mat2D des, Mat2D src);
 void mat2D_copy_mat_to_mat_at_window(Mat2D des, Mat2D src, size_t is, size_t js, size_t ie, size_t je);
@@ -208,6 +214,15 @@ void mat2D_fill_sequence(Mat2D m, double start, double step) {
     }
 }
 
+void mat2D_fill_uint32(Mat2D_uint32 m, uint32_t x)
+{
+    for (size_t i = 0; i < m.rows; ++i) {
+        for (size_t j = 0; j < m.cols; ++j) {
+            MAT2D_AT_UINT32(m, i, j) = x;
+        }
+    }
+}
+
 void mat2D_rand(Mat2D m, double low, double high)
 {
     for (size_t i = 0; i < m.rows; ++i) {
@@ -223,15 +238,40 @@ void mat2D_dot(Mat2D dst, Mat2D a, Mat2D b)
     MATRIX2D_ASSERT(a.rows == dst.rows);
     MATRIX2D_ASSERT(b.cols == dst.cols);
 
-    for (size_t i = 0; i < dst.rows; i++) {
-        for (size_t j = 0; j < dst.cols; j++) {
+    size_t i, j, k;
+
+    for (i = 0; i < dst.rows; i++) {
+        for (j = 0; j < dst.cols; j++) {
             MAT2D_AT(dst, i, j) = 0;
-            for (size_t k = 0; k < a.cols; k++) {
+            for (k = 0; k < a.cols; k++) {
                 MAT2D_AT(dst, i, j) += MAT2D_AT(a, i, k)*MAT2D_AT(b, k, j);
             }
         }
     }
 
+}
+
+/* calculating the dot product of two vectors. a: nx1, b: nx1 */
+double mat2D_dot_product(Mat2D a, Mat2D b)
+{
+    MATRIX2D_ASSERT(a.rows == b.rows);
+    MATRIX2D_ASSERT(a.cols == b.cols);
+    MATRIX2D_ASSERT((1 == a.cols && 1 == b.cols) || (1 == a.rows && 1 == b.rows));
+
+    double dot_product = 0;
+
+    if (1 == a.cols) {
+        for (size_t i = 0; i < a.rows; i++) {
+            dot_product += MAT2D_AT(a, i, 0) * MAT2D_AT(b, i, 0);
+        }
+    } else {
+        for (size_t j = 0; j < a.cols; j++) {
+            dot_product += MAT2D_AT(a, 0, j) * MAT2D_AT(b, 0, j);
+        }
+    }
+    
+    return dot_product;
+    
 }
 
 void mat2D_cross(Mat2D dst, Mat2D a, Mat2D b)
@@ -304,23 +344,6 @@ void mat2D_print(Mat2D m, const char *name, size_t padding)
         printf("%*s    ", (int) padding, "");
         for (size_t j = 0; j < m.cols; ++j) {
             printf("%9.6f ", MAT2D_AT(m, i, j));
-        }
-        printf("\n");
-    }
-    printf("%*s]\n", (int) padding, "");
-}
-
-void mat2D_uint32_print(Mat2D_uint32 m, const char *name, size_t padding)
-{
-    printf("%*s%s = [\n", (int) padding, "", name);
-    for (size_t i = 0; i < m.rows; ++i) {
-        printf("%*s    ", (int) padding, "");
-        for (size_t j = 0; j < m.cols; ++j) {
-            if (MAT2D_AT_UINT32(m, i, j)) {
-                printf("%u ", MAT2D_AT_UINT32(m, i, j));
-            } else {
-                printf("  ");
-            }
         }
         printf("\n");
     }
@@ -428,6 +451,26 @@ void mat2D_set_rot_mat_z(Mat2D m, float angle_deg)
     MAT2D_AT(m, 0, 1) =  sin(angle_rad);
     MAT2D_AT(m, 1, 0) = -sin(angle_rad);
     MAT2D_AT(m, 1, 1) =  cos(angle_rad);
+}
+
+void mat2D_set_DCM_zyx(Mat2D DCM, float yaw_deg, float pitch_deg, float roll_deg)
+{
+    Mat2D RotZ = mat2D_alloc(3,3);
+    mat2D_set_rot_mat_z(RotZ, yaw_deg);
+    Mat2D RotY = mat2D_alloc(3,3);
+    mat2D_set_rot_mat_y(RotY, pitch_deg);
+    Mat2D RotX = mat2D_alloc(3,3);
+    mat2D_set_rot_mat_x(RotX, roll_deg);
+    Mat2D temp = mat2D_alloc(3,3);
+
+    mat2D_dot(temp, RotY, RotZ);
+    mat2D_dot(DCM, RotX, temp); /* I have a DCM */
+
+
+    mat2D_free(RotZ);
+    mat2D_free(RotY);
+    mat2D_free(RotX);
+    mat2D_free(temp);
 }
 
 void mat2D_copy(Mat2D des, Mat2D src)
