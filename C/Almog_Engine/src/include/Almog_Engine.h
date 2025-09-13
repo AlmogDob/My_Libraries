@@ -98,9 +98,9 @@ typedef struct {
 } Camera;
 
 typedef struct {
-    Tri_mesh_array in_world_meshes;
-    Tri_mesh_array projected_meshes;
-    Tri_mesh_array original_meshes;
+    Tri_mesh_array in_world_tri_meshes;
+    Tri_mesh_array projected_tri_meshes;
+    Tri_mesh_array original_tri_meshes;
     Camera camera;
     Mat2D up_direction;
     Mat2D light_direction;
