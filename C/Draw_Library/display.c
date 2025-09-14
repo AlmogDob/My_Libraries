@@ -3,6 +3,7 @@
 #include "Matrix2D.h"
 #include <stdlib.h>
 #include <stdint.h>
+#include "Almog_Draw_Library.h"
 
 #ifndef WINDOW_WIDTH
 #define WINDOW_WIDTH (16 * 80)
@@ -67,6 +68,8 @@ typedef struct {
 
     Mat2D_uint32 window_pixels_mat;
     Mat2D inv_z_buffer_mat;
+
+    Offset_zoom_param offset_zoom_param;
 } game_state_t;
 
 int initialize_window(game_state_t *game_state);
@@ -113,6 +116,8 @@ int main()
     game_state.window_h = WINDOW_HEIGHT;
     game_state.renderer = NULL;
     game_state.font = NULL;
+
+    game_state.offset_zoom_param.zoom_multiplier = 1;
 
     game_state.game_is_running = !initialize_window(&game_state);
 
@@ -214,6 +219,31 @@ void process_input_window(game_state_t *game_state)
                         game_state->space_bar_was_pressed = 0;
                         break;
                     }
+                }
+                if (event.key.keysym.sym == SDLK_w) {
+                    game_state->offset_zoom_param.offset_y += 5/game_state->offset_zoom_param.zoom_multiplier;
+                }
+                if (event.key.keysym.sym == SDLK_s) {
+                    game_state->offset_zoom_param.offset_y -= 5/game_state->offset_zoom_param.zoom_multiplier;
+                }
+                if (event.key.keysym.sym == SDLK_a) {
+                    game_state->offset_zoom_param.offset_x += 5/game_state->offset_zoom_param.zoom_multiplier;
+                }
+                if (event.key.keysym.sym == SDLK_d) {
+                    game_state->offset_zoom_param.offset_x -= 5/game_state->offset_zoom_param.zoom_multiplier;
+                }
+                if (event.key.keysym.sym == SDLK_e) {
+                    game_state->offset_zoom_param.zoom_multiplier += 0.1*game_state->offset_zoom_param.zoom_multiplier;
+                    game_state->offset_zoom_param.zoom_multiplier = fminf(game_state->offset_zoom_param.zoom_multiplier, ADL_MAX_ZOOM);
+                }
+                if (event.key.keysym.sym == SDLK_q) {
+                    game_state->offset_zoom_param.zoom_multiplier -= 0.1*game_state->offset_zoom_param.zoom_multiplier;
+                    game_state->offset_zoom_param.zoom_multiplier = fminf(game_state->offset_zoom_param.zoom_multiplier, ADL_MAX_ZOOM);
+                }
+                if (event.key.keysym.sym == SDLK_r) {
+                    game_state->offset_zoom_param.zoom_multiplier = 1;
+                    game_state->offset_zoom_param.offset_x = 0;
+                    game_state->offset_zoom_param.offset_y = 0;
                 }
                 break;
             case SDL_MOUSEBUTTONDOWN:

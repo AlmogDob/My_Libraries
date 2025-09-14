@@ -1759,10 +1759,12 @@ Grid adl_create_cartesian_grid(float min_e1, float max_e1, float min_e2, float m
             point_min.x = min_e1 + e1_index * del_e1;
             point_min.y = min_e2;
             point_min.z = third_direction_position;
+            point_min.w = 1;
 
             point_max.x = min_e1 + e1_index * del_e1;
             point_max.y = max_e2;
             point_max.z = third_direction_position;
+            point_max.w = 1;
 
             ada_appand(Point, curve, point_min);
             ada_appand(Point, curve, point_max);
@@ -1777,10 +1779,12 @@ Grid adl_create_cartesian_grid(float min_e1, float max_e1, float min_e2, float m
             point_min.x = min_e1;
             point_min.y = min_e2 + e2_index * del_e2;
             point_min.z = third_direction_position;
+            point_min.w = 1;
 
             point_max.x = max_e1;
             point_max.y = min_e2 + e2_index * del_e2;
             point_max.z = third_direction_position;
+            point_max.w = 1;
 
             ada_appand(Point, curve, point_min);
             ada_appand(Point, curve, point_max);
@@ -1796,10 +1800,12 @@ Grid adl_create_cartesian_grid(float min_e1, float max_e1, float min_e2, float m
             point_min.x = min_e1 + e1_index * del_e1;
             point_min.y = third_direction_position;
             point_min.z = min_e2;
+            point_min.w = 1;
 
             point_max.x = min_e1 + e1_index * del_e1;
             point_max.y = third_direction_position;
             point_max.z = max_e2;
+            point_max.w = 1;
 
             ada_appand(Point, curve, point_min);
             ada_appand(Point, curve, point_max);
@@ -1814,10 +1820,12 @@ Grid adl_create_cartesian_grid(float min_e1, float max_e1, float min_e2, float m
             point_min.x = min_e1;
             point_min.y = third_direction_position;
             point_min.z = min_e2 + e2_index * del_e2;
+            point_min.w = 1;
 
             point_max.x = max_e1;
             point_max.y = third_direction_position;
             point_max.z = min_e2 + e2_index * del_e2;
+            point_max.w = 1;
 
             ada_appand(Point, curve, point_min);
             ada_appand(Point, curve, point_max);
@@ -1833,10 +1841,12 @@ Grid adl_create_cartesian_grid(float min_e1, float max_e1, float min_e2, float m
             point_min.x = min_e2;
             point_min.y = min_e1 + e1_index * del_e1;
             point_min.z = third_direction_position;
+            point_min.w = 1;
 
             point_max.x = max_e2;
             point_max.y = min_e1 + e1_index * del_e1;
             point_max.z = third_direction_position;
+            point_max.w = 1;
 
             ada_appand(Point, curve, point_min);
             ada_appand(Point, curve, point_max);
@@ -1851,10 +1861,12 @@ Grid adl_create_cartesian_grid(float min_e1, float max_e1, float min_e2, float m
             point_min.x = min_e2 + e2_index * del_e2;
             point_min.y = min_e1;
             point_min.z = third_direction_position;
+            point_min.w = 1;
 
             point_max.x = min_e2 + e2_index * del_e2;
             point_max.y = max_e1;
             point_max.z = third_direction_position;
+            point_max.w = 1;
 
             ada_appand(Point, curve, point_min);
             ada_appand(Point, curve, point_max);
@@ -1870,10 +1882,12 @@ Grid adl_create_cartesian_grid(float min_e1, float max_e1, float min_e2, float m
             point_min.x = third_direction_position;
             point_min.y = min_e1 + e1_index * del_e1;
             point_min.z = min_e2;
+            point_min.w = 1;
 
             point_max.x = third_direction_position;
             point_max.y = min_e1 + e1_index * del_e1;
             point_max.z = max_e2;
+            point_max.w = 1;
 
             ada_appand(Point, curve, point_min);
             ada_appand(Point, curve, point_max);
@@ -1888,10 +1902,12 @@ Grid adl_create_cartesian_grid(float min_e1, float max_e1, float min_e2, float m
             point_min.x = third_direction_position;
             point_min.y = min_e1;
             point_min.z = min_e2 + e2_index * del_e2;
+            point_min.w = 1;
 
             point_max.x = third_direction_position;
             point_max.y = max_e1;
             point_max.z = min_e2 + e2_index * del_e2;
+            point_max.w = 1;
 
             ada_appand(Point, curve, point_min);
             ada_appand(Point, curve, point_max);
@@ -1907,10 +1923,12 @@ Grid adl_create_cartesian_grid(float min_e1, float max_e1, float min_e2, float m
             point_min.x = min_e2;
             point_min.y = third_direction_position;
             point_min.z = min_e1 + e1_index * del_e1;
+            point_min.w = 1;
 
             point_max.x = max_e2;
             point_max.y = third_direction_position;
             point_max.z = min_e1 + e1_index * del_e1;
+            point_max.w = 1;
 
             ada_appand(Point, curve, point_min);
             ada_appand(Point, curve, point_max);
@@ -1925,10 +1943,12 @@ Grid adl_create_cartesian_grid(float min_e1, float max_e1, float min_e2, float m
             point_min.x = min_e2 + e2_index * del_e2;
             point_min.y = third_direction_position;
             point_min.z = min_e1;
+            point_min.w = 1;
 
             point_max.x = min_e2 + e2_index * del_e2;
             point_max.y = third_direction_position;
             point_max.z = max_e1;
+            point_max.w = 1;
 
             ada_appand(Point, curve, point_min);
             ada_appand(Point, curve, point_max);
@@ -1944,10 +1964,12 @@ Grid adl_create_cartesian_grid(float min_e1, float max_e1, float min_e2, float m
             point_min.x = third_direction_position;
             point_min.y = min_e2;
             point_min.z = min_e1 + e1_index * del_e1;
+            point_min.w = 1;
 
             point_max.x = third_direction_position;
             point_max.y = max_e2;
             point_max.z = min_e1 + e1_index * del_e1;
+            point_max.w = 1;
 
             ada_appand(Point, curve, point_min);
             ada_appand(Point, curve, point_max);
@@ -1962,10 +1984,12 @@ Grid adl_create_cartesian_grid(float min_e1, float max_e1, float min_e2, float m
             point_min.x = third_direction_position;
             point_min.y = min_e2 + e2_index * del_e2;
             point_min.z = min_e1;
+            point_min.w = 1;
 
             point_max.x = third_direction_position;
             point_max.y = min_e2 + e2_index * del_e2;
             point_max.z = max_e1;
+            point_max.w = 1;
 
             ada_appand(Point, curve, point_min);
             ada_appand(Point, curve, point_max);

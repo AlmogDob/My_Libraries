@@ -1,11 +1,11 @@
 #define SETUP
 #define UPDATE
 #define RENDER
+#define ALMOG_DRAW_LIBRARY_IMPLEMENTATION
+#include "./Almog_Draw_Library.h"
 #include "./display.c"
 #define MATRIX2D_IMPLEMENTATION
 #include "./Matrix2D.h"
-#define ALMOG_DRAW_LIBRARY_IMPLEMENTATION
-#include "./Almog_Draw_Library.h"
 
 
 Quad quad1;
@@ -44,9 +44,9 @@ void update(game_state_t *game_state)
 
 void render(game_state_t *game_state)
 {
-    adl_fill_quad_interpolate_color_mean_value(game_state->window_pixels_mat, game_state->inv_z_buffer_mat, quad1, ADL_DEFAULT_OFFSET_ZOOM);
+    adl_fill_quad_interpolate_color_mean_value(game_state->window_pixels_mat, game_state->inv_z_buffer_mat, quad1, game_state->offset_zoom_param);
 
-    adl_fill_tri_Pinedas_rasterizer_interpolate_color(game_state->window_pixels_mat, game_state->inv_z_buffer_mat, tri, ADL_DEFAULT_OFFSET_ZOOM);
+    adl_fill_tri_Pinedas_rasterizer_interpolate_color(game_state->window_pixels_mat, game_state->inv_z_buffer_mat, tri, game_state->offset_zoom_param);
 
     #if 0
     Mat2D inv_z_buffer = game_state->inv_z_buffer_mat;
