@@ -163,15 +163,14 @@ void adl_draw_circle(Mat2D_uint32 screen_mat, float center_x, float center_y, fl
 void adl_fill_circle(Mat2D_uint32 screen_mat, float center_x, float center_y, float r, uint32_t color, Offset_zoom_param offset_zoom_param);
 
 void adl_draw_tri(Mat2D_uint32 screen_mat, Tri tri, uint32_t color, Offset_zoom_param offset_zoom_param);
-void adl_fill_tri_scanline_rasterizer(Mat2D_uint32 screen_mat, Tri tri, Offset_zoom_param offset_zoom_param);
-void adl_fill_tri_Pinedas_rasterizer(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer, Tri tri, float light_intensity, Offset_zoom_param offset_zoom_param);
-void adl_fill_tri_Pinedas_rasterizer_interpolate_color(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer, Tri tri, float light_intensity, Offset_zoom_param offset_zoom_param);
+void adl_fill_tri_Pinedas_rasterizer(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer, Tri tri, uint32_t color, Offset_zoom_param offset_zoom_param);
+void adl_fill_tri_Pinedas_rasterizer_interpolate_color(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer, Tri tri, Offset_zoom_param offset_zoom_param);
 
 void adl_draw_tri_mesh(Mat2D_uint32 screen_mat, Tri_mesh mesh, uint32_t color, Offset_zoom_param offset_zoom_param);
-void adl_fill_tri_mesh_scanline_rasterizer(Mat2D_uint32 screen_mat, Tri_mesh mesh, Offset_zoom_param offset_zoom_param);
-void adl_fill_tri_mesh_Pinedas_rasterizer(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer_mat, Tri_mesh mesh, Offset_zoom_param offset_zoom_param);
+void adl_fill_tri_mesh_Pinedas_rasterizer(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer_mat, Tri_mesh mesh, uint32_t color, Offset_zoom_param offset_zoom_param);
 void adl_fill_tri_mesh_Pinedas_rasterizer_interpolate_color(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer_mat, Tri_mesh mesh, Offset_zoom_param offset_zoom_param);
 
+float adl_tan_half_angle(Point vi, Point vj, Point p, float li, float lj);
 float adl_linear_map(float s, float min_in, float max_in, float min_out, float max_out);
 void adl_quad2tris(Quad quad, Tri *tri1, Tri *tri2, char split_line[]);
 void adl_linear_sRGB_to_okLab(uint32_t hex_ARGB, float *L, float *a, float *b);
@@ -882,11 +881,6 @@ void adl_fill_quad_interpolate_color_mean_value(Mat2D_uint32 screen_mat, Mat2D i
         return;
     }
 
-    float size_p3_to_p0 = sqrt((p0.x - p3.x)*(p0.x - p3.x) + (p0.y - p3.y)*(p0.y - p3.y));
-    float size_p0_to_p1 = sqrt((p1.x - p0.x)*(p1.x - p0.x) + (p1.y - p0.y)*(p1.y - p0.y));
-    float size_p1_to_p2 = sqrt((p2.x - p1.x)*(p2.x - p1.x) + (p2.y - p1.y)*(p2.y - p1.y));
-    float size_p2_to_p3 = sqrt((p3.x - p2.x)*(p3.x - p2.x) + (p3.y - p2.y)*(p3.y - p2.y));
-
     for (int y = y_min; y <= y_max; y++) {
         for (int x = x_min; x <= x_max; x++) {
             Point p = {.x = x, .y = y, .z = 0};
@@ -905,15 +899,15 @@ void adl_fill_quad_interpolate_color_mean_value(Mat2D_uint32 screen_mat, Mat2D i
             float size_p_to_p3 = sqrt((p3.x - p.x)*(p3.x - p.x) + (p3.y - p.y)*(p3.y - p.y));
 
             /* calculating the tangent of half the angle directly using vector math */
-            float tan_theta_3_over_2 = size_p3_to_p0 / (size_p_to_p3 + size_p_to_p0);
-            float tan_theta_0_over_2 = size_p0_to_p1 / (size_p_to_p0 + size_p_to_p1);
-            float tan_theta_1_over_2 = size_p1_to_p2 / (size_p_to_p1 + size_p_to_p2);
-            float tan_theta_2_over_2 = size_p2_to_p3 / (size_p_to_p2 + size_p_to_p3);
+            float t0 = adl_tan_half_angle(p0, p1, p, size_p_to_p0, size_p_to_p1);
+            float t1 = adl_tan_half_angle(p1, p2, p, size_p_to_p1, size_p_to_p2);
+            float t2 = adl_tan_half_angle(p2, p3, p, size_p_to_p2, size_p_to_p3);
+            float t3 = adl_tan_half_angle(p3, p0, p, size_p_to_p3, size_p_to_p0);
 
-            float w0 = (tan_theta_3_over_2 + tan_theta_0_over_2) / size_p_to_p0;
-            float w1 = (tan_theta_0_over_2 + tan_theta_1_over_2) / size_p_to_p1;
-            float w2 = (tan_theta_1_over_2 + tan_theta_2_over_2) / size_p_to_p2;
-            float w3 = (tan_theta_2_over_2 + tan_theta_3_over_2) / size_p_to_p3;
+            float w0 = (t3 + t0) / size_p_to_p0;
+            float w1 = (t0 + t1) / size_p_to_p1;
+            float w2 = (t1 + t2) / size_p_to_p2;
+            float w3 = (t2 + t3) / size_p_to_p3;
 
             float inv_w_tot = 1.0f / (w0 + w1 + w2 + w3);
             float alpha = w0 * inv_w_tot;
@@ -1016,81 +1010,8 @@ void adl_draw_tri(Mat2D_uint32 screen_mat, Tri tri, uint32_t color, Offset_zoom_
     // adl_draw_arrow(screen_mat, tri.points[2].x, tri.points[2].y, tri.points[0].x, tri.points[0].y, 0.3, 22, color);
 }
 
-/* This works but there are some artifacts */
-void adl_fill_tri_scanline_rasterizer(Mat2D_uint32 screen_mat, Tri tri, Offset_zoom_param offset_zoom_param)
-{
-    /* This function follows the rasterizer of 'Pikuma' shown in his YouTube video. You can fine the video in this link: https://youtu.be/k5wtuKWmV48. */
-    /* arranging the points according to y value */
-    Point p0 = tri.points[0];
-    Point p1 = tri.points[1];
-    Point p2 = tri.points[2];
-    if (p1.y > p0.y) {
-        Point temp = p1;
-        p1 = p0;
-        p0 = temp;
-    }
-    if (p2.y > p1.y) {
-        Point temp = p2;
-        p2 = p1;
-        p1 = temp;
-        if (p1.y > p0.y) {
-            Point temp = p1;
-            p1 = p0;
-            p0 = temp;
-        }
-    }
-    if (p2.y > p0.y) {
-        Point temp = p2;
-        p2 = p0;
-        p0 = temp;
-    }
-
-    /* finding max and min x */
-    int x_max = fmax(p0.x, fmax(p1.x, p2.x));
-    int x_min = fmin(p0.x, fmin(p1.x, p2.x));
-
-    if (p0.x == p1.x && p1.x == p2.x) {
-        adl_draw_tri(screen_mat, tri, tri.colors[0], offset_zoom_param);
-        return;
-    }
-
-    /* The rasterization */
-    float m01 = (p0.y - p1.y) / (p0.x - p1.x);
-    float b01 = p0.y - m01 * p0.x;
-    float m02 = (p0.y - p2.y) / (p0.x - p2.x);
-    float b02 = p0.y - m02 * p0.x;
-    float m12 = (p1.y - p2.y) / (p1.x - p2.x);
-    float b12 = p1.y - m12 * p1.x;
-
-    float epsilon = 1e-3;
-    int gap = 15;
-    // printf("m01: %f, m02: %f, m12: %f\n", m01, m02, m12);
-    if (fabs(m02) < epsilon || fabs(m12) < epsilon || fabs(m01) < epsilon) return;
-    for (int y = (int)p2.y; y < (int)p1.y; y++)
-    {
-        float x02 = (y - b02) / m02;
-        float x12 = (y - b12) / m12;
-        if (x02 <= x_min-gap || x02 >= x_max+gap) continue;
-        if (x12 <= x_min-gap || x12 >= x_max+gap) continue;
-        if (fabs(p0.x - p2.x) - fabs(p0.x - x02) < 0) continue;
-        if (fabs(p1.x - p2.x) - fabs(p1.x - x12) < 0) continue;
-        adl_draw_line(screen_mat, x02, y, x12, y, tri.colors[0], offset_zoom_param);
-        // printf("x02: %d, x12: %d, y: %d\n", (int)x02, (int)x12, (int)y);
-    }
-    for (int y = (int)p1.y; y <= (int)p0.y; y++) {
-        float x01 = (y - b01) / m01;
-        float x02 = (y - b02) / m02;
-        if (x01 <= x_min-gap || x01 >= x_max+gap) continue;
-        if (x02 <= x_min-gap || x02 >= x_max+gap) continue;
-        if (fabs(p1.x - p0.x) - fabs(p1.x - x01) < 0) continue;
-        if (fabs(p0.x - p2.x) - fabs(p0.x - x02) < 0) continue;
-        adl_draw_line(screen_mat, x02, y, x01, y, tri.colors[0], offset_zoom_param);
-    }
-}
-
-
 /* This function is the function for rasterization */
-void adl_fill_tri_Pinedas_rasterizer(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer, Tri tri, float light_intensity, Offset_zoom_param offset_zoom_param)
+void adl_fill_tri_Pinedas_rasterizer(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer, Tri tri, uint32_t color, Offset_zoom_param offset_zoom_param)
 {
     /* This function follows the rasterizer of 'Pikuma' shown in his YouTube video. You can fine the video in this link: https://youtu.be/k5wtuKWmV48. */
 
@@ -1117,11 +1038,7 @@ void adl_fill_tri_Pinedas_rasterizer(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer
         adl_draw_tri(screen_mat, tri, tri.colors[0], offset_zoom_param);
         return;
     }
-    // if (w < 0) { /* don't draw negative triangles */
-    //     return;
-    // }
-    MATRIX2D_ASSERT(fabsf(w) > 1e-6 && "triangle has area");
-    // MATRIX2D_ASSERT(w > 0 && "triangle is inverted");
+    MATRIX2D_ASSERT(fabsf(w) > 1e-6 && "triangle must have area");
 
     /* fill conventions */
     int bias0 = is_top_left(p0, p1) ? 0 : -1;
@@ -1142,10 +1059,10 @@ void adl_fill_tri_Pinedas_rasterizer(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer
 
             if (w0 * w >= 0 && w1 * w >= 0 &&  w2 * w >= 0) {
                 int r, b, g;
-                HexARGB_RGB_VAR(tri.colors[0], r, g, b);
-                float rf = r * light_intensity;
-                float gf = g * light_intensity;
-                float bf = b * light_intensity;
+                HexARGB_RGB_VAR(color, r, g, b);
+                float rf = r * tri.light_intensity;
+                float gf = g * tri.light_intensity;
+                float bf = b * tri.light_intensity;
                 uint8_t r8 = (uint8_t)fmaxf(0, fminf(255, rf));
                 uint8_t g8 = (uint8_t)fmaxf(0, fminf(255, gf));
                 uint8_t b8 = (uint8_t)fmaxf(0, fminf(255, bf));
@@ -1163,12 +1080,9 @@ void adl_fill_tri_Pinedas_rasterizer(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer
     }
 }
 
-void adl_fill_tri_Pinedas_rasterizer_interpolate_color(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer, Tri tri, float light_intensity, Offset_zoom_param offset_zoom_param)
+void adl_fill_tri_Pinedas_rasterizer_interpolate_color(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer, Tri tri, Offset_zoom_param offset_zoom_param)
 {
     /* This function follows the rasterizer of 'Pikuma' shown in his YouTube video. You can fine the video in this link: https://youtu.be/k5wtuKWmV48. */
-
-    dprintD(tri.light_intensity);
-
     Point p0, p1, p2;
     p0 = tri.points[0];
     p1 = tri.points[1];
@@ -1201,7 +1115,6 @@ void adl_fill_tri_Pinedas_rasterizer_interpolate_color(Mat2D_uint32 screen_mat, 
 
     for (int y = y_min; y <= y_max; y++) {
         for (int x = x_min; x <= x_max; x++) {
-            // adl_draw_point(screen_mat, x, y, color);
             Point p = {.x = x, .y = y, .z = 0};
 
             float w0 = edge_cross_point(p0, p1, p0, p) + bias0;
@@ -1211,7 +1124,6 @@ void adl_fill_tri_Pinedas_rasterizer_interpolate_color(Mat2D_uint32 screen_mat, 
             float alpha = fabs(w1 / w);
             float beta  = fabs(w2 / w);
             float gamma = fabs(w0 / w);
-            // printf("alpha: %5f, beta: %5f, gamma: %5f\n", alpha, beta, gamma);
 
             if (w0 * w >= 0 && w1 * w >= 0 &&  w2 * w >= 0) {
                 int r0, b0, g0;
@@ -1225,9 +1137,9 @@ void adl_fill_tri_Pinedas_rasterizer_interpolate_color(Mat2D_uint32 screen_mat, 
                 uint8_t current_g = g0*alpha + g1*beta + g2*gamma;
                 uint8_t current_b = b0*alpha + b1*beta + b2*gamma;
 
-                float rf = current_r * light_intensity;
-                float gf = current_g * light_intensity;
-                float bf = current_b * light_intensity;
+                float rf = current_r * tri.light_intensity;
+                float gf = current_g * tri.light_intensity;
+                float bf = current_b * tri.light_intensity;
                 uint8_t r8 = (uint8_t)fmaxf(0, fminf(255, rf));
                 uint8_t g8 = (uint8_t)fmaxf(0, fminf(255, gf));
                 uint8_t b8 = (uint8_t)fmaxf(0, fminf(255, bf));
@@ -1255,17 +1167,7 @@ void adl_draw_tri_mesh(Mat2D_uint32 screen_mat, Tri_mesh mesh, uint32_t color, O
     }
 }
 
-void adl_fill_tri_mesh_scanline_rasterizer(Mat2D_uint32 screen_mat, Tri_mesh mesh, Offset_zoom_param offset_zoom_param)
-{
-    for (size_t i = 0; i < mesh.length; i++) {
-        Tri tri = mesh.elements[i];
-        if (tri.to_draw) {
-            adl_fill_tri_scanline_rasterizer(screen_mat, tri, offset_zoom_param);
-        }
-    }
-}
-
-void adl_fill_tri_mesh_Pinedas_rasterizer(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer_mat, Tri_mesh mesh, Offset_zoom_param offset_zoom_param)
+void adl_fill_tri_mesh_Pinedas_rasterizer(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer_mat, Tri_mesh mesh, uint32_t color, Offset_zoom_param offset_zoom_param)
 {
     for (size_t i = 0; i < mesh.length; i++) {
         Tri tri = mesh.elements[i];
@@ -1274,7 +1176,7 @@ void adl_fill_tri_mesh_Pinedas_rasterizer(Mat2D_uint32 screen_mat, Mat2D inv_z_b
 
         if (!tri.to_draw) continue;
 
-        adl_fill_tri_Pinedas_rasterizer(screen_mat, inv_z_buffer_mat, tri, tri.light_intensity, offset_zoom_param);
+        adl_fill_tri_Pinedas_rasterizer(screen_mat, inv_z_buffer_mat, tri, color, offset_zoom_param);
     }
 }
 
@@ -1287,8 +1189,18 @@ void adl_fill_tri_mesh_Pinedas_rasterizer_interpolate_color(Mat2D_uint32 screen_
 
         if (!tri.to_draw) continue;
 
-        adl_fill_tri_Pinedas_rasterizer_interpolate_color(screen_mat, inv_z_buffer_mat, tri, tri.light_intensity, offset_zoom_param);
+        adl_fill_tri_Pinedas_rasterizer_interpolate_color(screen_mat, inv_z_buffer_mat, tri, offset_zoom_param);
     }
+}
+
+float adl_tan_half_angle(Point vi, Point vj, Point p, float li, float lj)
+{
+    float ax = vi.x - p.x, ay = vi.y - p.y;
+    float bx = vj.x - p.x, by = vj.y - p.y;
+    float dot = ax * bx + ay * by;
+    float cross = ax * by - ay * bx;              // signed 2D cross (scalar)
+    float denom = dot + li * lj;                   // = |a||b|(1 + cos α)
+    return fabsf(cross) / fmaxf(1e-20f, denom);    // tan(α/2)
 }
 
 float adl_linear_map(float s, float min_in, float max_in, float min_out, float max_out)

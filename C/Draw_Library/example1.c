@@ -97,6 +97,7 @@ void render(game_state_t *game_state)
     adl_draw_character(game_state->window_pixels_mat, 'Y', 50, 100, 920 , 410, 0xFFFFFF, ADL_DEFAULT_OFFSET_ZOOM);
     adl_draw_character(game_state->window_pixels_mat, 'Z', 50, 100, 975 , 410, 0xFFFFFF, ADL_DEFAULT_OFFSET_ZOOM);
     adl_draw_character(game_state->window_pixels_mat, '.', 50, 100, 1030, 410, 0xFFFFFF, ADL_DEFAULT_OFFSET_ZOOM);
+    adl_draw_character(game_state->window_pixels_mat, ':', 50, 100, 1085, 410, 0xFFFFFF, ADL_DEFAULT_OFFSET_ZOOM);
     adl_draw_character(game_state->window_pixels_mat, '0', 50, 100, 700 , 515, 0xFFFFFF, ADL_DEFAULT_OFFSET_ZOOM);
     adl_draw_character(game_state->window_pixels_mat, '1', 50, 100, 755 , 515, 0xFFFFFF, ADL_DEFAULT_OFFSET_ZOOM);
     adl_draw_character(game_state->window_pixels_mat, '2', 50, 100, 810 , 515, 0xFFFFFF, ADL_DEFAULT_OFFSET_ZOOM);
