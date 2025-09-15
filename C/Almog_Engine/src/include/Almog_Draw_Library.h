@@ -156,6 +156,7 @@ void adl_draw_quad(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer, Quad quad, uint3
 void adl_fill_quad(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer, Quad quad, uint32_t color, Offset_zoom_param offset_zoom_param);
 void adl_fill_quad_interpolate_color_mean_value(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer, Quad quad, Offset_zoom_param offset_zoom_param);
 
+void adl_draw_quad_mesh(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer, Quad_mesh mesh, uint32_t color, Offset_zoom_param offset_zoom_param);
 void adl_fill_quad_mesh(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer_mat, Quad_mesh mesh, uint32_t color, Offset_zoom_param offset_zoom_param);
 void adl_fill_quad_mesh_interpolate_color(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer_mat, Quad_mesh mesh, Offset_zoom_param offset_zoom_param);
 
@@ -949,6 +950,20 @@ void adl_fill_quad_interpolate_color_mean_value(Mat2D_uint32 screen_mat, Mat2D i
     }
 }
 
+void adl_draw_quad_mesh(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer, Quad_mesh mesh, uint32_t color, Offset_zoom_param offset_zoom_param)
+{
+    for (size_t i = 0; i < mesh.length; i++) {
+        Quad quad = mesh.elements[i];
+        /* Reject invalid quad */
+        adl_assert_quad_is_valid(quad);
+
+        if (!quad.to_draw) continue;
+        if (quad.light_intensity <= 0.2) continue;
+
+        adl_draw_quad(screen_mat, inv_z_buffer, quad, color, offset_zoom_param);
+    }
+}
+
 void adl_fill_quad_mesh(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer_mat, Quad_mesh mesh, uint32_t color, Offset_zoom_param offset_zoom_param)
 {
     for (size_t i = 0; i < mesh.length; i++) {
@@ -1161,9 +1176,11 @@ void adl_draw_tri_mesh(Mat2D_uint32 screen_mat, Tri_mesh mesh, uint32_t color, O
 {
     for (size_t i = 0; i < mesh.length; i++) {
         Tri tri = mesh.elements[i];
-        if (tri.to_draw) {
-            adl_draw_tri(screen_mat, tri, color, offset_zoom_param);
-        }
+
+        if (!tri.to_draw) continue;
+        if (tri.light_intensity <= 0.2) continue;
+
+        adl_draw_tri(screen_mat, tri, color, offset_zoom_param);
     }
 }
 

@@ -44,3 +44,42 @@ profile_build_temp: ./src/temp.c
 # cloc --exclude-lang=JSON,make .
 
 #############################################################
+grid_example: build_grid_example run_grid_example clean_grid_example  
+	@echo ./build/grid_example done
+
+build_grid_example: ./src/grid_example.c 
+	@echo [INFO] building grid_example
+	@gcc ./src/grid_example.c $(CFLAGS) -o ./build/grid_example
+
+run_grid_example:
+	@echo
+	./build/grid_example
+	@echo
+
+clean_grid_example:
+	@echo [INFO] removing all build files
+	@rm ./build/grid_example
+
+debug_grid_example: debug_build_grid_example
+	gdb ./build/grid_example
+
+debug_build_grid_example: ./src/grid_example.c
+	@echo [INFO] building grid_example
+	@gcc ./src/grid_example.c $(CFLAGS) -ggdb -o ./build/grid_example
+
+profile_grid_example: profile_build_grid_example
+	./build/grid_example
+	@echo
+	gprof ./build/grid_example gmon.out | /home/almog/.local/bin/gprof2dot | dot -Tpng -Gdpi=200 -o output.png
+	imview ./output.png
+	# xdg-open ./output.png
+	@echo
+	rm ./gmon.out ./output.png 
+	make clean_grid_example
+
+profile_build_grid_example: ./src/grid_example.c
+	@echo [INFO] building grid_example
+	@gcc ./src/grid_example.c $(CFLAGS) -p -ggdb -o ./build/grid_example
+
+# valgrind -s --leak-check=full ./grid_example
+# cloc --exclude-lang=JSON,make .

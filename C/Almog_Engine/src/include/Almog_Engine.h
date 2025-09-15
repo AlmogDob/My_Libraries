@@ -1228,11 +1228,90 @@ int ae_tri_clip_with_plane(Tri tri_in, Mat2D plane_p, Mat2D plane_n, Tri *tri_ou
     } else if (inside_points_count == 3) {
         *tri_out1 = tri_in;
         return 1;
-    } else if (inside_points_count == 1 && outside_points_count == 2) {
+    } else if (inside_points_count == 1 && outside_points_count == 2 && d2 >= epsilon) {
         Mat2D line_start = mat2D_alloc(3, 1);
         Mat2D line_end   = mat2D_alloc(3, 1);
 
         *tri_out1 = tri_in;
+        // tri_out1->colors[0] = 0xFF0000;
+        // tri_out1->colors[1] = 0xFF0000;
+        // tri_out1->colors[2] = 0xFF0000;
+        
+        (*tri_out1).points[0] = inside_points[0];
+        (*tri_out1).tex_points[0] = tex_inside_points[0];
+
+        ae_point_to_mat2D(inside_points[0], line_start);
+        ae_point_to_mat2D(outside_points[0], line_end);
+        (*tri_out1).points[1] = ae_line_itersect_plane(plane_p, plane_n, line_start, line_end, &t);
+        (*tri_out1).points[1].w = t * (outside_points[0].w - inside_points[0].w) + inside_points[0].w;
+        (*tri_out1).tex_points[1].x = t * (tex_outside_points[0].x - tex_inside_points[0].x) + tex_inside_points[0].x;
+        (*tri_out1).tex_points[1].y = t * (tex_outside_points[0].y - tex_inside_points[0].y) + tex_inside_points[0].y;
+
+        ae_point_to_mat2D(inside_points[0], line_start);
+        ae_point_to_mat2D(outside_points[1], line_end);
+        (*tri_out1).points[2] = ae_line_itersect_plane(plane_p, plane_n, line_start, line_end, &t);
+        (*tri_out1).points[2].w = t * (outside_points[1].w - inside_points[0].w) + inside_points[0].w;
+        (*tri_out1).tex_points[2].x = t * (tex_outside_points[1].x - tex_inside_points[0].x) + tex_inside_points[0].x;
+        (*tri_out1).tex_points[2].y = t * (tex_outside_points[1].y - tex_inside_points[0].y) + tex_inside_points[0].y;
+
+        mat2D_free(line_start);
+        mat2D_free(line_end);
+
+        /* fixing color ordering */
+        uint32_t temp_color = tri_out1->colors[2]; 
+        tri_out1->colors[2] = tri_out1->colors[1];
+        tri_out1->colors[1] = tri_out1->colors[0];
+        tri_out1->colors[0] = temp_color;
+
+        ae_assert_tri_is_valid(*tri_out1);
+
+        return 1;
+    } else if (inside_points_count == 1 && outside_points_count == 2 && d1 >= epsilon) {
+        Mat2D line_start = mat2D_alloc(3, 1);
+        Mat2D line_end   = mat2D_alloc(3, 1);
+
+        *tri_out1 = tri_in;
+        // tri_out1->colors[0] = 0xFF0000;
+        // tri_out1->colors[1] = 0xFF0000;
+        // tri_out1->colors[2] = 0xFF0000;
+        
+        (*tri_out1).points[0] = inside_points[0];
+        (*tri_out1).tex_points[0] = tex_inside_points[0];
+
+        ae_point_to_mat2D(inside_points[0], line_start);
+        ae_point_to_mat2D(outside_points[0], line_end);
+        (*tri_out1).points[1] = ae_line_itersect_plane(plane_p, plane_n, line_start, line_end, &t);
+        (*tri_out1).points[1].w = t * (outside_points[0].w - inside_points[0].w) + inside_points[0].w;
+        (*tri_out1).tex_points[1].x = t * (tex_outside_points[0].x - tex_inside_points[0].x) + tex_inside_points[0].x;
+        (*tri_out1).tex_points[1].y = t * (tex_outside_points[0].y - tex_inside_points[0].y) + tex_inside_points[0].y;
+
+        ae_point_to_mat2D(inside_points[0], line_start);
+        ae_point_to_mat2D(outside_points[1], line_end);
+        (*tri_out1).points[2] = ae_line_itersect_plane(plane_p, plane_n, line_start, line_end, &t);
+        (*tri_out1).points[2].w = t * (outside_points[1].w - inside_points[0].w) + inside_points[0].w;
+        (*tri_out1).tex_points[2].x = t * (tex_outside_points[1].x - tex_inside_points[0].x) + tex_inside_points[0].x;
+        (*tri_out1).tex_points[2].y = t * (tex_outside_points[1].y - tex_inside_points[0].y) + tex_inside_points[0].y;
+
+        mat2D_free(line_start);
+        mat2D_free(line_end);
+
+        /* fixing color ordering */
+        uint32_t temp_color = tri_out1->colors[2]; 
+        tri_out1->colors[2] = tri_out1->colors[1];
+        tri_out1->colors[1] = tri_out1->colors[0];
+        tri_out1->colors[0] = temp_color;
+
+        ae_assert_tri_is_valid(*tri_out1);
+
+        return 1;
+    } else if (inside_points_count == 1 && outside_points_count == 2 && d0 >= epsilon) {
+        Mat2D line_start = mat2D_alloc(3, 1);
+        Mat2D line_end   = mat2D_alloc(3, 1);
+
+        *tri_out1 = tri_in;
+        // tri_out1->colors[0] = 0xFF0000;
+        // tri_out1->colors[1] = 0xFF0000;
+        // tri_out1->colors[2] = 0xFF0000;
         
         (*tri_out1).points[0] = inside_points[0];
         (*tri_out1).tex_points[0] = tex_inside_points[0];
@@ -1257,12 +1336,19 @@ int ae_tri_clip_with_plane(Tri tri_in, Mat2D plane_p, Mat2D plane_n, Tri *tri_ou
         ae_assert_tri_is_valid(*tri_out1);
 
         return 1;
-    } else if (inside_points_count == 2 && outside_points_count == 1) {
+    } else if (inside_points_count == 2 && outside_points_count == 1 && d2 < epsilon) {
         Mat2D line_start = mat2D_alloc(3, 1);
         Mat2D line_end   = mat2D_alloc(3, 1);
         
         *tri_out1 = tri_in;
+        // tri_out1->colors[0] = 0x00FF00;
+        // tri_out1->colors[1] = 0x00FF00;
+        // tri_out1->colors[2] = 0x00FF00;
+
         *tri_out2 = tri_in;
+        // tri_out2->colors[0] = 0x0000FF;
+        // tri_out2->colors[1] = 0x0000FF;
+        // tri_out2->colors[2] = 0x0000FF;
 
         (*tri_out1).points[0] = inside_points[0];
         (*tri_out1).tex_points[0] = tex_inside_points[0];
@@ -1288,6 +1374,122 @@ int ae_tri_clip_with_plane(Tri tri_in, Mat2D plane_p, Mat2D plane_n, Tri *tri_ou
 
         mat2D_free(line_start);
         mat2D_free(line_end);
+
+        /* fixing color ordering */
+        uint32_t temp_color = tri_out2->colors[2]; 
+        tri_out2->colors[2] = tri_out2->colors[0];
+        tri_out2->colors[0] = tri_out2->colors[1];
+        tri_out2->colors[1] = temp_color;
+
+        ae_assert_tri_is_valid(*tri_out1);
+        ae_assert_tri_is_valid(*tri_out2);
+
+        return 2;
+    } else if (inside_points_count == 2 && outside_points_count == 1 && d1 < epsilon) {
+        Mat2D line_start = mat2D_alloc(3, 1);
+        Mat2D line_end   = mat2D_alloc(3, 1);
+        
+        *tri_out1 = tri_in;
+        // tri_out1->colors[0] = 0x00FF00;
+        // tri_out1->colors[1] = 0x00FF00;
+        // tri_out1->colors[2] = 0x00FF00;
+
+        *tri_out2 = tri_in;
+        // tri_out2->colors[0] = 0x0000FF;
+        // tri_out2->colors[1] = 0x0000FF;
+        // tri_out2->colors[2] = 0x0000FF;
+
+        (*tri_out1).points[0] = inside_points[0];
+        (*tri_out1).tex_points[0] = tex_inside_points[0];
+        (*tri_out1).points[1] = inside_points[1];
+        (*tri_out1).tex_points[1] = tex_inside_points[1];
+        ae_point_to_mat2D(inside_points[0], line_start);
+        ae_point_to_mat2D(outside_points[0], line_end);
+        (*tri_out1).points[2] = ae_line_itersect_plane(plane_p, plane_n, line_start, line_end, &t);
+        (*tri_out1).points[2].w = t * (outside_points[0].w - inside_points[0].w) + inside_points[0].w;
+        (*tri_out1).tex_points[2].x = t * (tex_outside_points[0].x - tex_inside_points[0].x) + tex_inside_points[0].x;
+        (*tri_out1).tex_points[2].y = t * (tex_outside_points[0].y - tex_inside_points[0].y) + tex_inside_points[0].y;
+
+        (*tri_out2).points[0] = inside_points[1];
+        (*tri_out2).tex_points[0] = tex_inside_points[1];
+        ae_point_to_mat2D(inside_points[1], line_start);
+        ae_point_to_mat2D(outside_points[0], line_end);
+        (*tri_out2).points[1] = ae_line_itersect_plane(plane_p, plane_n, line_start, line_end, &t);
+        (*tri_out2).points[1].w = t * (outside_points[0].w - inside_points[1].w) + inside_points[1].w;
+        (*tri_out2).tex_points[1].x = t * (tex_outside_points[0].x - tex_inside_points[1].x) + tex_inside_points[1].x;
+        (*tri_out2).tex_points[1].y = t * (tex_outside_points[0].y - tex_inside_points[1].y) + tex_inside_points[1].y;
+        (*tri_out2).points[2] = (*tri_out1).points[2];
+        (*tri_out2).tex_points[2] = (*tri_out1).tex_points[2];
+
+        mat2D_free(line_start);
+        mat2D_free(line_end);
+        
+        /* fixing color ordering */
+        uint32_t temp_color = tri_out1->colors[2]; 
+        tri_out1->colors[2] = tri_out1->colors[1];
+        tri_out1->colors[1] = temp_color;
+        
+        temp_color = tri_out2->colors[2]; 
+        tri_out2->colors[2] = tri_out2->colors[0];
+        tri_out2->colors[0] = tri_out2->colors[1];
+        tri_out2->colors[1] = temp_color;
+        temp_color = tri_out2->colors[1]; 
+        tri_out2->colors[1] = tri_out2->colors[0];
+        tri_out2->colors[0] = temp_color;
+
+        ae_assert_tri_is_valid(*tri_out1);
+        ae_assert_tri_is_valid(*tri_out2);
+
+        return 2;
+    } else if (inside_points_count == 2 && outside_points_count == 1 && d0 < epsilon) {
+        Mat2D line_start = mat2D_alloc(3, 1);
+        Mat2D line_end   = mat2D_alloc(3, 1);
+        
+        *tri_out1 = tri_in;
+        // tri_out1->colors[0] = 0x00FF00;
+        // tri_out1->colors[1] = 0x00FF00;
+        // tri_out1->colors[2] = 0x00FF00;
+
+        *tri_out2 = tri_in;
+        // tri_out2->colors[0] = 0x0000FF;
+        // tri_out2->colors[1] = 0x0000FF;
+        // tri_out2->colors[2] = 0x0000FF;
+
+        (*tri_out1).points[0] = inside_points[0];
+        (*tri_out1).tex_points[0] = tex_inside_points[0];
+        (*tri_out1).points[1] = inside_points[1];
+        (*tri_out1).tex_points[1] = tex_inside_points[1];
+        ae_point_to_mat2D(inside_points[0], line_start);
+        ae_point_to_mat2D(outside_points[0], line_end);
+        (*tri_out1).points[2] = ae_line_itersect_plane(plane_p, plane_n, line_start, line_end, &t);
+        (*tri_out1).points[2].w = t * (outside_points[0].w - inside_points[0].w) + inside_points[0].w;
+        (*tri_out1).tex_points[2].x = t * (tex_outside_points[0].x - tex_inside_points[0].x) + tex_inside_points[0].x;
+        (*tri_out1).tex_points[2].y = t * (tex_outside_points[0].y - tex_inside_points[0].y) + tex_inside_points[0].y;
+
+        (*tri_out2).points[0] = inside_points[1];
+        (*tri_out2).tex_points[0] = tex_inside_points[1];
+        ae_point_to_mat2D(inside_points[1], line_start);
+        ae_point_to_mat2D(outside_points[0], line_end);
+        (*tri_out2).points[1] = ae_line_itersect_plane(plane_p, plane_n, line_start, line_end, &t);
+        (*tri_out2).points[1].w = t * (outside_points[0].w - inside_points[1].w) + inside_points[1].w;
+        (*tri_out2).tex_points[1].x = t * (tex_outside_points[0].x - tex_inside_points[1].x) + tex_inside_points[1].x;
+        (*tri_out2).tex_points[1].y = t * (tex_outside_points[0].y - tex_inside_points[1].y) + tex_inside_points[1].y;
+        (*tri_out2).points[2] = (*tri_out1).points[2];
+        (*tri_out2).tex_points[2] = (*tri_out1).tex_points[2];
+
+        mat2D_free(line_start);
+        mat2D_free(line_end);
+
+        /* fixing color ordering */
+        uint32_t temp_color = tri_out1->colors[2]; 
+        tri_out1->colors[2] = tri_out1->colors[0];
+        tri_out1->colors[0] = tri_out1->colors[1];
+        tri_out1->colors[1] = temp_color;
+
+        temp_color = tri_out2->colors[2]; 
+        tri_out2->colors[2] = tri_out2->colors[1];
+        tri_out2->colors[1] = tri_out2->colors[0];
+        tri_out2->colors[0] = temp_color;
 
         ae_assert_tri_is_valid(*tri_out1);
         ae_assert_tri_is_valid(*tri_out2);
@@ -1737,8 +1939,8 @@ Tri_mesh ae_project_tri_world2screen(Mat2D proj_mat, Mat2D view_mat, Tri tri, in
 
     des_tri.light_intensity = fminf(1, des_tri.light_intensity);
 
-    if (des_tri.light_intensity <= 0.4) {
-        des_tri.light_intensity = 0.4;
+    if (des_tri.light_intensity <= 0.2) {
+        des_tri.light_intensity = 0.2;
     }
 
     /* calc if tri is visible to the camera */
@@ -1830,7 +2032,7 @@ void ae_project_tri_mesh_world2screen(Mat2D proj_mat, Mat2D view_mat, Tri_mesh *
     }
 
     /* clip tir */
-    int offset = 0;
+    int offset = 50;
     Mat2D top_p = mat2D_alloc(3, 1);
     Mat2D top_n = mat2D_alloc(3, 1);
     mat2D_fill(top_p, 0);
@@ -1943,8 +2145,8 @@ Quad_mesh ae_project_quad_world2screen(Mat2D proj_mat, Mat2D view_mat, Quad quad
     MAT2D_AT(dot_product, 0, 0) = MAT2D_AT(light_directio_traspose, 0, 0) * MAT2D_AT(quad_normal, 0, 0) + MAT2D_AT(light_directio_traspose, 0, 1) * MAT2D_AT(quad_normal, 1, 0) + MAT2D_AT(light_directio_traspose, 0, 2) * MAT2D_AT(quad_normal, 2, 0);
     des_quad.light_intensity = MAT2D_AT(dot_product, 0, 0);
 
-    if (des_quad.light_intensity <= 0.1) {
-        des_quad.light_intensity = 0.1;
+    if (des_quad.light_intensity <= 0.2) {
+        des_quad.light_intensity = 0.2;
     }
 
     /* calc if tri is visible to the camera */
@@ -2268,7 +2470,6 @@ void ae_copy_z_buffer_to_screen(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer)
         }
     }
 }
-
 
 
 #endif /* ALMOG_ENGINE_IMPLEMENTATION */ //
