@@ -178,6 +178,7 @@ void adl_linear_sRGB_to_okLab(uint32_t hex_ARGB, float *L, float *a, float *b);
 void adl_okLab_to_linear_sRGB(float L, float a, float b, uint32_t *hex_ARGB);
 void adl_linear_sRGB_to_okLch(uint32_t hex_ARGB, float *L, float *c, float *h_deg);
 void adl_okLch_to_linear_sRGB(float L, float c, float h_deg, uint32_t *hex_ARGB);
+void adl_interpolate_ARGBcolor_on_RGB(uint32_t color1, uint32_t color2, float t, uint32_t *color_out);
 void adl_interpolate_ARGBcolor_on_okLch(uint32_t color1, uint32_t color2, float t, float num_of_rotations, uint32_t *color_out);
 
 Figure adl_alloc_figure(size_t rows, size_t cols, Point top_left_position);
@@ -1336,6 +1337,22 @@ void adl_okLch_to_linear_sRGB(float L, float c, float h_deg, uint32_t *hex_ARGB)
     float a = c * cosf(h_deg * PI / 180);
     float b = c * sinf(h_deg * PI / 180);
     adl_okLab_to_linear_sRGB(L, a, b, hex_ARGB);
+}
+
+void adl_interpolate_ARGBcolor_on_RGB(uint32_t color1, uint32_t color2, float t, uint32_t *color_out)
+{
+    int R1, G1, B1;
+    int R2, G2, B2;
+
+    HexARGB_RGB_VAR(color1, R1, G1, B1);
+    HexARGB_RGB_VAR(color2, R2, G2, B2);
+
+    int R = R1 * (1 - t) + R2 * (t);
+    int G = G1 * (1 - t) + G2 * (t);
+    int B = B1 * (1 - t) + B2 * (t);
+
+    *color_out = RGBA_hexARGB(R, G, B, 0xff);
+    #define RGBA_hexARGB(r, g, b, a) (int)(0x01000000l*(int)(fminf(a, 255)) + 0x010000*(int)(r) + 0x000100*(int)(g) + 0x000001*(int)(b))
 }
 
 void adl_interpolate_ARGBcolor_on_okLch(uint32_t color1, uint32_t color2, float t, float num_of_rotations, uint32_t *color_out)

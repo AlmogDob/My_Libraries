@@ -157,7 +157,7 @@ Point ae_line_itersect_plane(Mat2D plane_p, Mat2D plane_n, Mat2D line_start, Mat
 int ae_line_clip_with_plane(Point start_in, Point end_in, Mat2D plane_p, Mat2D plane_n, Point *start_out, Point *end_out);
 float ae_signed_dist_point_and_plane(Point p, Mat2D plane_p, Mat2D plane_n);
 int ae_tri_clip_with_plane(Tri tri_in, Mat2D plane_p, Mat2D plane_n, Tri *tri_out1, Tri *tri_out2);
-int ae_quad_clip_with_plane(Quad quad_in, Mat2D plane_p, Mat2D plane_n, Quad *quad_out);
+int ae_quad_clip_with_plane(Quad quad_in, Mat2D plane_p, Mat2D plane_n, Quad *quad_out1, Quad *quad_out2);
 
 void ae_set_projection_mat(Mat2D proj_mat,float aspect_ratio, float FOV_deg, float z_near, float z_far);
 void ae_set_view_mat(Mat2D view_mat, Camera camera, Mat2D up);
@@ -1301,6 +1301,10 @@ int ae_tri_clip_with_plane(Tri tri_in, Mat2D plane_p, Mat2D plane_n, Tri *tri_ou
         tri_out1->colors[1] = tri_out1->colors[0];
         tri_out1->colors[0] = temp_color;
 
+        temp_color = tri_out1->colors[2]; 
+        tri_out1->colors[2] = tri_out1->colors[0];
+        tri_out1->colors[0] = temp_color;
+
         ae_assert_tri_is_valid(*tri_out1);
 
         return 1;
@@ -1501,7 +1505,7 @@ int ae_tri_clip_with_plane(Tri tri_in, Mat2D plane_p, Mat2D plane_n, Tri *tri_ou
 
 /* returns number of inside quads
 return -1 on error */
-int ae_quad_clip_with_plane(Quad quad_in, Mat2D plane_p, Mat2D plane_n, Quad *quad_out)
+int ae_quad_clip_with_plane(Quad quad_in, Mat2D plane_p, Mat2D plane_n, Quad *quad_out1, Quad *quad_out2)
 {
     ae_assert_quad_is_valid(quad_in);
 
@@ -1547,79 +1551,442 @@ int ae_quad_clip_with_plane(Quad quad_in, Mat2D plane_p, Mat2D plane_n, Quad *qu
     if (inside_points_count == 0) {
         return 0;
     } else if (inside_points_count == 4) {
-        *quad_out = quad_in;
+        *quad_out1 = quad_in;
+        return 1;
+    } else if (inside_points_count == 1 && outside_points_count == 3 && d1 >= epsilon) {
+        Mat2D line_start = mat2D_alloc(3, 1);
+        Mat2D line_end   = mat2D_alloc(3, 1);
+
+        *quad_out1 = quad_in;        
+        *quad_out2 = quad_in;        
+
+        (*quad_out1).points[1] = quad_in.points[1];
+
+        ae_point_to_mat2D(quad_in.points[1], line_start);
+        ae_point_to_mat2D(quad_in.points[2], line_end);
+        (*quad_out1).points[2] = ae_line_itersect_plane(plane_p, plane_n, line_start, line_end, &t);
+        (*quad_out1).points[2].w = t * (quad_in.points[2].w - quad_in.points[1].w) + quad_in.points[1].w;
+        (*quad_out1).colors[2] = quad_in.colors[2];
+
+        ae_point_to_mat2D(quad_in.points[1], line_start);
+        ae_point_to_mat2D(quad_in.points[0], line_end);
+        (*quad_out1).points[0] = ae_line_itersect_plane(plane_p, plane_n, line_start, line_end, &t);
+        (*quad_out1).points[0].w = t * (quad_in.points[0].w - quad_in.points[1].w) + quad_in.points[1].w;
+        (*quad_out1).colors[0] = quad_in.colors[0];
+
+        (*quad_out1).points[3].x = ((*quad_out1).points[0].x + (*quad_out1).points[2].x) / 2;
+        (*quad_out1).points[3].y = ((*quad_out1).points[0].y + (*quad_out1).points[2].y) / 2;
+        (*quad_out1).points[3].z = ((*quad_out1).points[0].z + (*quad_out1).points[2].z) / 2;
+        (*quad_out1).points[3].w = ((*quad_out1).points[0].w + (*quad_out1).points[2].w) / 2;
+        (*quad_out1).colors[3] = quad_in.colors[3];
+
+        mat2D_free(line_start);
+        mat2D_free(line_end);
+
+        ae_assert_quad_is_valid(*quad_out1);
+
+        return 1;
+    } else if (inside_points_count == 1 && outside_points_count == 3 && d2 >= epsilon) {
+        Mat2D line_start = mat2D_alloc(3, 1);
+        Mat2D line_end   = mat2D_alloc(3, 1);
+
+        *quad_out1 = quad_in;        
+        *quad_out2 = quad_in;        
+
+        (*quad_out1).points[2] = quad_in.points[2];
+
+        ae_point_to_mat2D(quad_in.points[2], line_start);
+        ae_point_to_mat2D(quad_in.points[3], line_end);
+        (*quad_out1).points[3] = ae_line_itersect_plane(plane_p, plane_n, line_start, line_end, &t);
+        (*quad_out1).points[3].w = t * (quad_in.points[3].w - quad_in.points[2].w) + quad_in.points[2].w;
+        (*quad_out1).colors[3] = quad_in.colors[3];
+
+        ae_point_to_mat2D(quad_in.points[2], line_start);
+        ae_point_to_mat2D(quad_in.points[1], line_end);
+        (*quad_out1).points[1] = ae_line_itersect_plane(plane_p, plane_n, line_start, line_end, &t);
+        (*quad_out1).points[1].w = t * (quad_in.points[1].w - quad_in.points[2].w) + quad_in.points[2].w;
+        (*quad_out1).colors[1] = quad_in.colors[1];
+
+        (*quad_out1).points[0].x = ((*quad_out1).points[3].x + (*quad_out1).points[1].x) / 2;
+        (*quad_out1).points[0].y = ((*quad_out1).points[3].y + (*quad_out1).points[1].y) / 2;
+        (*quad_out1).points[0].z = ((*quad_out1).points[3].z + (*quad_out1).points[1].z) / 2;
+        (*quad_out1).points[0].w = ((*quad_out1).points[3].w + (*quad_out1).points[1].w) / 2;
+        (*quad_out1).colors[0] = quad_in.colors[0];
+
+        mat2D_free(line_start);
+        mat2D_free(line_end);
+
+        ae_assert_quad_is_valid(*quad_out1);
+
+        return 1;
+    } else if (inside_points_count == 1 && outside_points_count == 3 && d3 >= epsilon) {
+        Mat2D line_start = mat2D_alloc(3, 1);
+        Mat2D line_end   = mat2D_alloc(3, 1);
+
+        *quad_out1 = quad_in;        
+        *quad_out2 = quad_in;        
+
+        (*quad_out1).points[3] = quad_in.points[3];
+
+        ae_point_to_mat2D(quad_in.points[3], line_start);
+        ae_point_to_mat2D(quad_in.points[0], line_end);
+        (*quad_out1).points[0] = ae_line_itersect_plane(plane_p, plane_n, line_start, line_end, &t);
+        (*quad_out1).points[0].w = t * (quad_in.points[0].w - quad_in.points[3].w) + quad_in.points[3].w;
+        (*quad_out1).colors[0] = quad_in.colors[0];
+
+        ae_point_to_mat2D(quad_in.points[3], line_start);
+        ae_point_to_mat2D(quad_in.points[2], line_end);
+        (*quad_out1).points[2] = ae_line_itersect_plane(plane_p, plane_n, line_start, line_end, &t);
+        (*quad_out1).points[2].w = t * (quad_in.points[2].w - quad_in.points[3].w) + quad_in.points[3].w;
+        (*quad_out1).colors[2] = quad_in.colors[2];
+
+        (*quad_out1).points[1].x = ((*quad_out1).points[2].x + (*quad_out1).points[0].x) / 2;
+        (*quad_out1).points[1].y = ((*quad_out1).points[2].y + (*quad_out1).points[0].y) / 2;
+        (*quad_out1).points[1].z = ((*quad_out1).points[2].z + (*quad_out1).points[0].z) / 2;
+        (*quad_out1).points[1].w = ((*quad_out1).points[2].w + (*quad_out1).points[0].w) / 2;
+        (*quad_out1).colors[1] = quad_in.colors[1];
+
+        mat2D_free(line_start);
+        mat2D_free(line_end);
+
+        ae_assert_quad_is_valid(*quad_out1);
+
         return 1;
     } else if (inside_points_count == 1 && outside_points_count == 3) {
         Mat2D line_start = mat2D_alloc(3, 1);
         Mat2D line_end   = mat2D_alloc(3, 1);
 
-        *quad_out = quad_in;        
+        *quad_out1 = quad_in;        
+        *quad_out2 = quad_in;        
 
-        (*quad_out).points[0] = inside_points[0];
+        (*quad_out1).points[0] = inside_points[0];
 
         ae_point_to_mat2D(inside_points[0], line_start);
         ae_point_to_mat2D(outside_points[0], line_end);
-        (*quad_out).points[1] = ae_line_itersect_plane(plane_p, plane_n, line_start, line_end, &t);
-        (*quad_out).points[1].w = t * (outside_points[0].w - inside_points[0].w) + inside_points[0].w;
+        (*quad_out1).points[1] = ae_line_itersect_plane(plane_p, plane_n, line_start, line_end, &t);
+        (*quad_out1).points[1].w = t * (outside_points[0].w - inside_points[0].w) + inside_points[0].w;
 
         ae_point_to_mat2D(inside_points[0], line_start);
         ae_point_to_mat2D(outside_points[1], line_end);
-        (*quad_out).points[2] = ae_line_itersect_plane(plane_p, plane_n, line_start, line_end, &t);
-        (*quad_out).points[2].w = t * (outside_points[1].w - inside_points[0].w) + inside_points[0].w;
+        (*quad_out1).points[2] = ae_line_itersect_plane(plane_p, plane_n, line_start, line_end, &t);
+        (*quad_out1).points[2].w = t * (outside_points[1].w - inside_points[0].w) + inside_points[0].w;
 
         ae_point_to_mat2D(inside_points[0], line_start);
         ae_point_to_mat2D(outside_points[2], line_end);
-        (*quad_out).points[3] = ae_line_itersect_plane(plane_p, plane_n, line_start, line_end, &t);
-        (*quad_out).points[3].w = t * (outside_points[2].w - inside_points[0].w) + inside_points[0].w;
+        (*quad_out1).points[3] = ae_line_itersect_plane(plane_p, plane_n, line_start, line_end, &t);
+        (*quad_out1).points[3].w = t * (outside_points[2].w - inside_points[0].w) + inside_points[0].w;
 
         mat2D_free(line_start);
         mat2D_free(line_end);
 
-        ae_assert_quad_is_valid(*quad_out);
+        ae_assert_quad_is_valid(*quad_out1);
+
+        return 1;
+    } else if (inside_points_count == 2 && outside_points_count == 2 && d2 < epsilon && d1 < epsilon) {
+        Mat2D line_start = mat2D_alloc(3, 1);
+        Mat2D line_end   = mat2D_alloc(3, 1);
+        
+        *quad_out1 = quad_in;
+
+        (*quad_out1).points[0] = quad_in.points[3];
+        (*quad_out1).colors[0] = quad_in.colors[3];
+        (*quad_out1).points[1] = quad_in.points[0];
+        (*quad_out1).colors[1] = quad_in.colors[0];
+
+        ae_point_to_mat2D(quad_in.points[0], line_start);
+        ae_point_to_mat2D(quad_in.points[1], line_end);
+        (*quad_out1).points[2] = ae_line_itersect_plane(plane_p, plane_n, line_start, line_end, &t);
+        (*quad_out1).points[2].w = t * (quad_in.points[1].w - quad_in.points[0].w) + quad_in.points[0].w;
+        (*quad_out1).colors[2] = quad_in.colors[1];
+
+        ae_point_to_mat2D(quad_in.points[3], line_start);
+        ae_point_to_mat2D(quad_in.points[2], line_end);
+        (*quad_out1).points[3] = ae_line_itersect_plane(plane_p, plane_n, line_start, line_end, &t);
+        (*quad_out1).points[3].w = t * (quad_in.points[2].w - quad_in.points[3].w) + quad_in.points[3].w;
+        (*quad_out1).colors[3] = quad_in.colors[2];
+
+        mat2D_free(line_start);
+        mat2D_free(line_end);
+
+        ae_assert_quad_is_valid(*quad_out1);
+
+        return 2;
+    } else if (inside_points_count == 2 && outside_points_count == 2 && d0 < epsilon && d1 < epsilon) {
+        Mat2D line_start = mat2D_alloc(3, 1);
+        Mat2D line_end   = mat2D_alloc(3, 1);
+        
+        *quad_out1 = quad_in;
+
+        (*quad_out1).points[0] = quad_in.points[2];
+        (*quad_out1).colors[0] = quad_in.colors[2];
+        (*quad_out1).points[1] = quad_in.points[3];
+        (*quad_out1).colors[1] = quad_in.colors[3];
+
+        ae_point_to_mat2D(quad_in.points[2], line_start);
+        ae_point_to_mat2D(quad_in.points[1], line_end);
+        (*quad_out1).points[3] = ae_line_itersect_plane(plane_p, plane_n, line_start, line_end, &t);
+        (*quad_out1).points[3].w = t * (quad_in.points[1].w - quad_in.points[2].w) + quad_in.points[2].w;
+        (*quad_out1).colors[3] = quad_in.colors[1];
+
+        ae_point_to_mat2D(quad_in.points[3], line_start);
+        ae_point_to_mat2D(quad_in.points[0], line_end);
+        (*quad_out1).points[2] = ae_line_itersect_plane(plane_p, plane_n, line_start, line_end, &t);
+        (*quad_out1).points[2].w = t * (quad_in.points[0].w - quad_in.points[3].w) + quad_in.points[3].w;
+        (*quad_out1).colors[2] = quad_in.colors[0];
+
+        mat2D_free(line_start);
+        mat2D_free(line_end);
+
+        ae_assert_quad_is_valid(*quad_out1);
+
+        return 2;
+    } else if (inside_points_count == 2 && outside_points_count == 2 && d0 < epsilon && d3 < epsilon) {
+        Mat2D line_start = mat2D_alloc(3, 1);
+        Mat2D line_end   = mat2D_alloc(3, 1);
+        
+        *quad_out1 = quad_in;
+
+        (*quad_out1).points[0] = quad_in.points[1];
+        (*quad_out1).colors[0] = quad_in.colors[1];
+        (*quad_out1).points[1] = quad_in.points[2];
+        (*quad_out1).colors[1] = quad_in.colors[2];
+
+        ae_point_to_mat2D(quad_in.points[2], line_start);
+        ae_point_to_mat2D(quad_in.points[3], line_end);
+        (*quad_out1).points[2] = ae_line_itersect_plane(plane_p, plane_n, line_start, line_end, &t);
+        (*quad_out1).points[2].w = t * (quad_in.points[3].w - quad_in.points[2].w) + quad_in.points[2].w;
+        (*quad_out1).colors[2] = quad_in.colors[3];
+
+        ae_point_to_mat2D(quad_in.points[1], line_start);
+        ae_point_to_mat2D(quad_in.points[0], line_end);
+        (*quad_out1).points[3] = ae_line_itersect_plane(plane_p, plane_n, line_start, line_end, &t);
+        (*quad_out1).points[3].w = t * (quad_in.points[1].w - quad_in.points[3].w) + quad_in.points[3].w;
+        (*quad_out1).colors[3] = quad_in.colors[0];
+
+        mat2D_free(line_start);
+        mat2D_free(line_end);
+
+        ae_assert_quad_is_valid(*quad_out1);
 
         return 1;
     } else if (inside_points_count == 2 && outside_points_count == 2) {
         Mat2D line_start = mat2D_alloc(3, 1);
         Mat2D line_end   = mat2D_alloc(3, 1);
         
-        *quad_out = quad_in;
+        *quad_out1 = quad_in;
 
-        (*quad_out).points[0] = inside_points[0];
-        (*quad_out).points[1] = inside_points[1];
+        (*quad_out1).points[0] = inside_points[0];
+        (*quad_out1).points[1] = inside_points[1];
         ae_point_to_mat2D(inside_points[1], line_start);
         ae_point_to_mat2D(outside_points[0], line_end);
-        (*quad_out).points[2] = ae_line_itersect_plane(plane_p, plane_n, line_start, line_end, &t);
-        (*quad_out).points[2].w = t * (outside_points[0].w - inside_points[1].w) + inside_points[1].w;
+        (*quad_out1).points[2] = ae_line_itersect_plane(plane_p, plane_n, line_start, line_end, &t);
+        (*quad_out1).points[2].w = t * (outside_points[0].w - inside_points[1].w) + inside_points[1].w;
 
         ae_point_to_mat2D(inside_points[0], line_start);
         ae_point_to_mat2D(outside_points[1], line_end);
-        (*quad_out).points[3] = ae_line_itersect_plane(plane_p, plane_n, line_start, line_end, &t);
-        (*quad_out).points[3].w = t * (outside_points[1].w - inside_points[0].w) + inside_points[0].w;
+        (*quad_out1).points[3] = ae_line_itersect_plane(plane_p, plane_n, line_start, line_end, &t);
+        (*quad_out1).points[3].w = t * (outside_points[1].w - inside_points[0].w) + inside_points[0].w;
 
         mat2D_free(line_start);
         mat2D_free(line_end);
 
-        ae_assert_quad_is_valid(*quad_out);
+        ae_assert_quad_is_valid(*quad_out1);
 
         return 1;
+    } else if (inside_points_count == 3 && outside_points_count == 1 && d0 < epsilon) {
+        Mat2D line_start = mat2D_alloc(3, 1);
+        Mat2D line_end   = mat2D_alloc(3, 1);
+        
+        *quad_out1 = quad_in;
+        *quad_out2 = quad_in;
+
+        ae_point_to_mat2D(quad_in.points[3], line_start);
+        ae_point_to_mat2D(quad_in.points[0], line_end);
+        (*quad_out1).points[0] = ae_line_itersect_plane(plane_p, plane_n, line_start, line_end, &t);
+        (*quad_out1).points[0].w = t * (quad_in.points[0].w - quad_in.points[3].w) + quad_in.points[3].w;
+        // adl_interpolate_ARGBcolor_on_RGB((quad_in).colors[3], (quad_in).colors[0], t, &((*quad_out1).colors[0]));
+
+        (*quad_out2).points[1] = quad_in.points[1];
+        // (*quad_out2).colors[1] = quad_in.colors[1];
+
+        ae_point_to_mat2D(quad_in.points[1], line_start);
+        ae_point_to_mat2D(quad_in.points[0], line_end);
+        (*quad_out2).points[0] = ae_line_itersect_plane(plane_p, plane_n, line_start, line_end, &t);
+        (*quad_out2).points[0].w = t * (quad_in.points[0].w - quad_in.points[1].w) + quad_in.points[1].w;
+        // adl_interpolate_ARGBcolor_on_RGB((quad_in).colors[1], (quad_in).colors[0], t, &((*quad_out2).colors[0]));
+
+        (*quad_out2).points[2] = (*quad_out1).points[0];
+        // (*quad_out2).colors[2] = (*quad_out1).colors[0];
+
+        (*quad_out2).points[3].x = ((*quad_out2).points[2].x + (*quad_out2).points[0].x) / 2;
+        (*quad_out2).points[3].y = ((*quad_out2).points[2].y + (*quad_out2).points[0].y) / 2;
+        (*quad_out2).points[3].z = ((*quad_out2).points[2].z + (*quad_out2).points[0].z) / 2;
+        (*quad_out2).points[3].w = ((*quad_out2).points[2].w + (*quad_out2).points[0].w) / 2;
+        // adl_interpolate_ARGBcolor_on_RGB((*quad_out2).colors[2], (*quad_out2).colors[0], 0.5f, &((*quad_out2).colors[3]));
+
+
+        mat2D_free(line_start);
+        mat2D_free(line_end);
+
+        ae_assert_quad_is_valid(*quad_out1);
+
+        return 2;
+    } else if (inside_points_count == 3 && outside_points_count == 1 && d1 < epsilon) {
+        Mat2D line_start = mat2D_alloc(3, 1);
+        Mat2D line_end   = mat2D_alloc(3, 1);
+        
+        *quad_out1 = quad_in;
+        *quad_out2 = quad_in;
+
+        (*quad_out1).points[0] = quad_in.points[0];
+        (*quad_out1).colors[0] = quad_in.colors[0];
+        (*quad_out1).points[2] = quad_in.points[2];
+        (*quad_out1).colors[2] = quad_in.colors[2];
+        (*quad_out1).points[3] = quad_in.points[3];
+        (*quad_out1).colors[3] = quad_in.colors[3];
+
+        ae_point_to_mat2D(quad_in.points[2], line_start);
+        ae_point_to_mat2D(quad_in.points[1], line_end);
+        (*quad_out1).points[1] = ae_line_itersect_plane(plane_p, plane_n, line_start, line_end, &t);
+        (*quad_out1).points[1].w = t * (quad_in.points[1].w - quad_in.points[2].w) + quad_in.points[2].w;
+        (*quad_out1).colors[1] = (*quad_out1).colors[1];
+        // adl_interpolate_ARGBcolor_on_RGB((quad_in).colors[2], (quad_in).colors[1], t, &((*quad_out1).colors[1]));
+
+        (*quad_out2).points[0] = quad_in.points[0];
+        (*quad_out2).colors[0] = quad_in.colors[0];
+        (*quad_out2).points[3] = (*quad_out1).points[1];
+        (*quad_out2).colors[3] = (*quad_out1).colors[3];
+
+        ae_point_to_mat2D(quad_in.points[0], line_start);
+        ae_point_to_mat2D(quad_in.points[1], line_end);
+        (*quad_out2).points[1] = ae_line_itersect_plane(plane_p, plane_n, line_start, line_end, &t);
+        (*quad_out2).points[1].w = t * (quad_in.points[1].w - quad_in.points[0].w) + quad_in.points[0].w;
+        (*quad_out2).colors[1] = quad_in.colors[1];
+        // adl_interpolate_ARGBcolor_on_RGB((quad_in).colors[0], (quad_in).colors[1], t, &((*quad_out2).colors[1]));
+
+        (*quad_out2).points[2].x = ((*quad_out2).points[1].x + (*quad_out2).points[3].x) / 2;
+        (*quad_out2).points[2].y = ((*quad_out2).points[1].y + (*quad_out2).points[3].y) / 2;
+        (*quad_out2).points[2].z = ((*quad_out2).points[1].z + (*quad_out2).points[3].z) / 2;
+        (*quad_out2).points[2].w = ((*quad_out2).points[1].w + (*quad_out2).points[3].w) / 2;
+        // adl_interpolate_ARGBcolor_on_RGB((*quad_out2).colors[1], (*quad_out2).colors[3], 0.5f, &((*quad_out2).colors[2]));
+
+
+        mat2D_free(line_start);
+        mat2D_free(line_end);
+
+        ae_assert_quad_is_valid(*quad_out1);
+
+        return 2;
+    } else if (inside_points_count == 3 && outside_points_count == 1 && d2 < epsilon) {
+        Mat2D line_start = mat2D_alloc(3, 1);
+        Mat2D line_end   = mat2D_alloc(3, 1);
+        
+        *quad_out1 = quad_in;
+        *quad_out2 = quad_in;
+
+        (*quad_out1).points[0] = quad_in.points[0];
+        (*quad_out1).colors[0] = quad_in.colors[0];
+        (*quad_out1).points[1] = quad_in.points[1];
+        (*quad_out1).colors[1] = quad_in.colors[1];
+        (*quad_out1).points[3] = quad_in.points[3];
+        (*quad_out1).colors[3] = quad_in.colors[3];
+
+        ae_point_to_mat2D(quad_in.points[1], line_start);
+        ae_point_to_mat2D(quad_in.points[2], line_end);
+        (*quad_out1).points[2] = ae_line_itersect_plane(plane_p, plane_n, line_start, line_end, &t);
+        (*quad_out1).points[2].w = t * (quad_in.points[2].w - quad_in.points[1].w) + quad_in.points[1].w;
+        (*quad_out1).colors[2] = (*quad_out1).colors[2];
+        // adl_interpolate_ARGBcolor_on_RGB((quad_in).colors[2], (quad_in).colors[1], t, &((*quad_out1).colors[1]));
+
+        (*quad_out2).points[3] = quad_in.points[3];
+        (*quad_out2).colors[3] = quad_in.colors[3];
+        (*quad_out2).points[0] = (*quad_out1).points[2];
+        (*quad_out2).colors[0] = (*quad_out1).colors[0];
+
+        ae_point_to_mat2D(quad_in.points[3], line_start);
+        ae_point_to_mat2D(quad_in.points[2], line_end);
+        (*quad_out2).points[2] = ae_line_itersect_plane(plane_p, plane_n, line_start, line_end, &t);
+        (*quad_out2).points[2].w = t * (quad_in.points[2].w - quad_in.points[3].w) + quad_in.points[3].w;
+        (*quad_out2).colors[2] = quad_in.colors[2];
+        // adl_interpolate_ARGBcolor_on_RGB((quad_in).colors[0], (quad_in).colors[1], t, &((*quad_out2).colors[1]));
+
+        (*quad_out2).points[1].x = ((*quad_out2).points[2].x + (*quad_out2).points[0].x) / 2;
+        (*quad_out2).points[1].y = ((*quad_out2).points[2].y + (*quad_out2).points[0].y) / 2;
+        (*quad_out2).points[1].z = ((*quad_out2).points[2].z + (*quad_out2).points[0].z) / 2;
+        (*quad_out2).points[1].w = ((*quad_out2).points[2].w + (*quad_out2).points[0].w) / 2;
+        // adl_interpolate_ARGBcolor_on_RGB((*quad_out2).colors[1], (*quad_out2).colors[3], 0.5f, &((*quad_out2).colors[2]));
+
+
+        mat2D_free(line_start);
+        mat2D_free(line_end);
+
+        ae_assert_quad_is_valid(*quad_out1);
+
+        return 2;
+    } else if (inside_points_count == 3 && outside_points_count == 1 && d3 < epsilon) {
+        Mat2D line_start = mat2D_alloc(3, 1);
+        Mat2D line_end   = mat2D_alloc(3, 1);
+        
+        *quad_out1 = quad_in;
+        *quad_out2 = quad_in;
+
+        (*quad_out1).points[0] = quad_in.points[0];
+        (*quad_out1).colors[0] = quad_in.colors[0];
+        (*quad_out1).points[1] = quad_in.points[1];
+        (*quad_out1).colors[1] = quad_in.colors[1];
+        (*quad_out1).points[2] = quad_in.points[2];
+        (*quad_out1).colors[2] = quad_in.colors[2];
+
+        ae_point_to_mat2D(quad_in.points[0], line_start);
+        ae_point_to_mat2D(quad_in.points[3], line_end);
+        (*quad_out1).points[3] = ae_line_itersect_plane(plane_p, plane_n, line_start, line_end, &t);
+        (*quad_out1).points[3].w = t * (quad_in.points[3].w - quad_in.points[0].w) + quad_in.points[0].w;
+        (*quad_out1).colors[3] = (*quad_out1).colors[3];
+        // adl_interpolate_ARGBcolor_on_RGB((quad_in).colors[2], (quad_in).colors[1], t, &((*quad_out1).colors[1]));
+
+        (*quad_out2).points[2] = quad_in.points[2];
+        (*quad_out2).colors[2] = quad_in.colors[2];
+        (*quad_out2).points[1] = (*quad_out1).points[3];
+        (*quad_out2).colors[1] = (*quad_out1).colors[1];
+
+        ae_point_to_mat2D(quad_in.points[2], line_start);
+        ae_point_to_mat2D(quad_in.points[3], line_end);
+        (*quad_out2).points[3] = ae_line_itersect_plane(plane_p, plane_n, line_start, line_end, &t);
+        (*quad_out2).points[3].w = t * (quad_in.points[3].w - quad_in.points[2].w) + quad_in.points[2].w;
+        (*quad_out2).colors[3] = quad_in.colors[3];
+        // adl_interpolate_ARGBcolor_on_RGB((quad_in).colors[0], (quad_in).colors[1], t, &((*quad_out2).colors[1]));
+
+        (*quad_out2).points[0].x = ((*quad_out2).points[3].x + (*quad_out2).points[1].x) / 2;
+        (*quad_out2).points[0].y = ((*quad_out2).points[3].y + (*quad_out2).points[1].y) / 2;
+        (*quad_out2).points[0].z = ((*quad_out2).points[3].z + (*quad_out2).points[1].z) / 2;
+        (*quad_out2).points[0].w = ((*quad_out2).points[3].w + (*quad_out2).points[1].w) / 2;
+        // adl_interpolate_ARGBcolor_on_RGB((*quad_out2).colors[1], (*quad_out2).colors[3], 0.5f, &((*quad_out2).colors[2]));
+
+
+        mat2D_free(line_start);
+        mat2D_free(line_end);
+
+        ae_assert_quad_is_valid(*quad_out1);
+
+        return 2;
     } else if (inside_points_count == 3 && outside_points_count == 1) {
         Mat2D line_start = mat2D_alloc(3, 1);
         Mat2D line_end   = mat2D_alloc(3, 1);
         
-        *quad_out = quad_in;
+        *quad_out1 = quad_in;
 
-        (*quad_out).points[0] = inside_points[0];
-        (*quad_out).points[1] = inside_points[1];
-        (*quad_out).points[2] = inside_points[2];
+        (*quad_out1).points[0] = inside_points[0];
+        (*quad_out1).points[1] = inside_points[1];
+        (*quad_out1).points[2] = inside_points[2];
         ae_point_to_mat2D(inside_points[2], line_start);
         ae_point_to_mat2D(outside_points[0], line_end);
-        (*quad_out).points[3] = ae_line_itersect_plane(plane_p, plane_n, line_start, line_end, &t);
-        (*quad_out).points[3].w = t * (outside_points[0].w - inside_points[2].w) + inside_points[2].w;
+        (*quad_out1).points[3] = ae_line_itersect_plane(plane_p, plane_n, line_start, line_end, &t);
+        (*quad_out1).points[3].w = t * (outside_points[0].w - inside_points[2].w) + inside_points[2].w;
 
         mat2D_free(line_start);
         mat2D_free(line_end);
 
-        ae_assert_quad_is_valid(*quad_out);
+        ae_assert_quad_is_valid(*quad_out1);
 
         return 1;
     }
@@ -2161,7 +2528,7 @@ Quad_mesh ae_project_quad_world2screen(Mat2D proj_mat, Mat2D view_mat, Quad quad
     quad = ae_transform_quad_to_view(view_mat, quad);
 
     /* clip quad */
-    Quad  clipped_quad = {0};
+    Quad  clipped_quad1 = {0}, clipped_quad2 = {0};
     Mat2D z_plane_p = mat2D_alloc(3, 1);
     Mat2D z_plane_n = mat2D_alloc(3, 1);
     mat2D_fill(z_plane_p, 0);
@@ -2169,7 +2536,7 @@ Quad_mesh ae_project_quad_world2screen(Mat2D proj_mat, Mat2D view_mat, Quad quad
     MAT2D_AT(z_plane_p, 2, 0) = scene->camera.z_near+0.01;
     MAT2D_AT(z_plane_n, 2, 0) = 1;
 
-    int num_clipped_quad = ae_quad_clip_with_plane(quad, z_plane_p, z_plane_n, &clipped_quad);
+    int num_clipped_quad = ae_quad_clip_with_plane(quad, z_plane_p, z_plane_n, &clipped_quad1, &clipped_quad2);
     Quad_mesh temp_quad_array; 
     ada_init_array(Quad, temp_quad_array);
     if (num_clipped_quad == -1) {
@@ -2178,8 +2545,13 @@ Quad_mesh ae_project_quad_world2screen(Mat2D proj_mat, Mat2D view_mat, Quad quad
     } else if (num_clipped_quad == 0) {
         ;
     } else if (num_clipped_quad == 1) {
-        ae_assert_quad_is_valid(clipped_quad);
-        ada_appand(Quad, temp_quad_array, clipped_quad);
+        ae_assert_quad_is_valid(clipped_quad1);
+        ada_appand(Quad, temp_quad_array, clipped_quad1);
+    } else if (num_clipped_quad == 2) {
+        ae_assert_quad_is_valid(clipped_quad1);
+        ae_assert_quad_is_valid(clipped_quad2);
+        ada_appand(Quad, temp_quad_array, clipped_quad1);
+        ada_appand(Quad, temp_quad_array, clipped_quad2);
     }
     mat2D_free(z_plane_p);
     mat2D_free(z_plane_n);
@@ -2262,20 +2634,20 @@ void ae_project_quad_mesh_world2screen(Mat2D proj_mat, Mat2D view_mat, Quad_mesh
             //     quad_index = (int)fmaxf((float)quad_index, 0.0f);
             //     continue;
             // }
-            Quad clipped_quad = {0};
+            Quad clipped_quad1 = {0}, clipped_quad2 = {0};
             int num_clipped_quad;
             switch (plane_number) {
                 case 0:
-                    num_clipped_quad = ae_quad_clip_with_plane(temp_des.elements[quad_index], top_p, top_n, &clipped_quad);
+                    num_clipped_quad = ae_quad_clip_with_plane(temp_des.elements[quad_index], top_p, top_n, &clipped_quad1, &clipped_quad2);
                 break;
                 case 1:
-                    num_clipped_quad = ae_quad_clip_with_plane(temp_des.elements[quad_index], right_p, right_n, &clipped_quad);
+                    num_clipped_quad = ae_quad_clip_with_plane(temp_des.elements[quad_index], right_p, right_n, &clipped_quad1, &clipped_quad2);
                 break;
                 case 2:
-                    num_clipped_quad = ae_quad_clip_with_plane(temp_des.elements[quad_index], bottom_p, bottom_n, &clipped_quad);
+                    num_clipped_quad = ae_quad_clip_with_plane(temp_des.elements[quad_index], bottom_p, bottom_n, &clipped_quad1, &clipped_quad2);
                 break;
                 case 3:
-                    num_clipped_quad = ae_quad_clip_with_plane(temp_des.elements[quad_index], left_p, left_n, &clipped_quad);
+                    num_clipped_quad = ae_quad_clip_with_plane(temp_des.elements[quad_index], left_p, left_n, &clipped_quad1, &clipped_quad2);
                 break;
             }
             if (num_clipped_quad == -1) {
@@ -2286,8 +2658,14 @@ void ae_project_quad_mesh_world2screen(Mat2D proj_mat, Mat2D view_mat, Quad_mesh
                 quad_index--;
                 quad_index = (int)fmaxf((float)quad_index, 0.0f);
             } else if (num_clipped_quad == 1) {
-                ae_assert_quad_is_valid(clipped_quad);
-                temp_des.elements[quad_index] = clipped_quad;
+                ae_assert_quad_is_valid(clipped_quad1);
+                temp_des.elements[quad_index] = clipped_quad1;
+            } else if (num_clipped_quad == 2) {
+                ae_assert_quad_is_valid(clipped_quad1);
+                ae_assert_quad_is_valid(clipped_quad2);
+                temp_des.elements[quad_index] = clipped_quad1;
+                ada_insert_unordered(Quad, temp_des, clipped_quad2, quad_index+1);
+                quad_index++;
             }
         }
     }
