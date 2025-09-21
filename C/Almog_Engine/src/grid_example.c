@@ -22,10 +22,10 @@ void setup(game_state_t *game_state)
 
 void update(game_state_t *game_state)
 {
-    ae_set_projection_mat(game_state->scene.proj_mat, game_state->scene.camera.aspect_ratio, game_state->scene.camera.fov_deg, game_state->scene.camera.z_near, game_state->scene.camera.z_far);
-    ae_set_view_mat(game_state->scene.view_mat, game_state->scene.camera, game_state->scene.up_direction);
+    ae_projection_mat_set(game_state->scene.proj_mat, game_state->scene.camera.aspect_ratio, game_state->scene.camera.fov_deg, game_state->scene.camera.z_near, game_state->scene.camera.z_far);
+    ae_view_mat_set(game_state->scene.view_mat, game_state->scene.camera, game_state->scene.up_direction);
 
-    ae_project_grid_world2screen(game_state->scene.proj_mat, game_state->scene.view_mat, grid_proj, grid, game_state->window_w, game_state->window_h, &(game_state->scene));
+    ae_grid_project_world2screen(game_state->scene.proj_mat, game_state->scene.view_mat, grid_proj, grid, game_state->window_w, game_state->window_h, &(game_state->scene));
 
 }
 

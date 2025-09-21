@@ -83,3 +83,44 @@ profile_build_grid_example: ./src/grid_example.c
 
 # valgrind -s --leak-check=full ./grid_example
 # cloc --exclude-lang=JSON,make .
+
+#############################################################
+teapot_example: build_teapot_example run_teapot_example clean_teapot_example  
+	@echo ./build/teapot_example done
+
+build_teapot_example: ./src/teapot_example.c 
+	@echo [INFO] building teapot_example
+	@gcc ./src/teapot_example.c $(CFLAGS) -o ./build/teapot_example
+
+run_teapot_example:
+	@echo
+	./build/teapot_example
+	@echo
+
+clean_teapot_example:
+	@echo [INFO] removing all build files
+	@rm ./build/teapot_example
+
+debug_teapot_example: debug_build_teapot_example
+	gdb ./build/teapot_example
+
+debug_build_teapot_example: ./src/teapot_example.c
+	@echo [INFO] building teapot_example
+	@gcc ./src/teapot_example.c $(CFLAGS) -ggdb -o ./build/teapot_example
+
+profile_teapot_example: profile_build_teapot_example
+	./build/teapot_example
+	@echo
+	gprof ./build/teapot_example gmon.out | /home/almog/.local/bin/gprof2dot | dot -Tpng -Gdpi=200 -o output.png
+	imview ./output.png
+	# xdg-open ./output.png
+	@echo
+	rm ./gmon.out ./output.png 
+	make clean_teapot_example
+
+profile_build_teapot_example: ./src/teapot_example.c
+	@echo [INFO] building teapot_example
+	@gcc ./src/teapot_example.c $(CFLAGS) -p -ggdb -o ./build/teapot_example
+
+# valgrind -s --leak-check=full ./teapot_example
+# cloc --exclude-lang=JSON,make .

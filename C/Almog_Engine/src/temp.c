@@ -37,6 +37,8 @@ void setup(game_state_t *game_state)
     quad.colors[2] = 0x00FF00;
     quad.colors[3] = 0xFF0000;
 
+    ae_quad_set_normals(&quad);
+
     ada_appand(Quad, quad_mesh, quad);
 
     tri.points[2] = (Point){1  , -1  , 1, 1};
@@ -51,17 +53,19 @@ void setup(game_state_t *game_state)
     // tri.colors[1] = 0xFFFFFF;
     // tri.colors[2] = 0xFFFFFF;
 
+    ae_tri_set_normals(&tri);
+
     ada_appand(Tri, tri_mesh, tri);
 
 }
 
 void update(game_state_t *game_state)
 {
-    ae_set_projection_mat(game_state->scene.proj_mat, game_state->scene.camera.aspect_ratio, game_state->scene.camera.fov_deg, game_state->scene.camera.z_near, game_state->scene.camera.z_far);
-    ae_set_view_mat(game_state->scene.view_mat, game_state->scene.camera, game_state->scene.up_direction);
+    ae_projection_mat_set(game_state->scene.proj_mat, game_state->scene.camera.aspect_ratio, game_state->scene.camera.fov_deg, game_state->scene.camera.z_near, game_state->scene.camera.z_far);
+    ae_view_mat_set(game_state->scene.view_mat, game_state->scene.camera, game_state->scene.up_direction);
 
-    ae_project_quad_mesh_world2screen(game_state->scene.proj_mat, game_state->scene.view_mat, &proj_quad_mesh, quad_mesh, game_state->window_w, game_state->window_h, game_state->scene.light_direction, &(game_state->scene));
-    ae_project_tri_mesh_world2screen(game_state->scene.proj_mat, game_state->scene.view_mat, &proj_tri_mesh, tri_mesh, game_state->window_w, game_state->window_h, game_state->scene.light_direction, &(game_state->scene));
+    ae_quad_mesh_project_world2screen(game_state->scene.proj_mat, game_state->scene.view_mat, &proj_quad_mesh, quad_mesh, game_state->window_w, game_state->window_h, game_state->scene.light_direction, &(game_state->scene));
+    ae_tri_mesh_project_world2screen(game_state->scene.proj_mat, game_state->scene.view_mat, &proj_tri_mesh, tri_mesh, game_state->window_w, game_state->window_h, game_state->scene.light_direction, &(game_state->scene));
 }
 
 void render(game_state_t *game_state)
