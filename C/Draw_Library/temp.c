@@ -26,14 +26,16 @@ void setup(game_state_t *game_state)
     quad1.colors[2] = 0x00FF00;
     quad1.colors[3] = 0xFF0000;
 
-    tri.points[2] = (Point){700 , 100, 1, 1};
-    tri.points[1] = (Point){1200, 700, 1, 1};
-    tri.points[0] = (Point){600 , 500, 1, 1};
+    tri.points[2] = (Point){750 , 100, 1, 1};
+    tri.points[1] = (Point){1250, 700, 1, 1};
+    tri.points[0] = (Point){650 , 500, 1, 1};
     tri.to_draw = true;
     tri.light_intensity = 1;
     tri.colors[0] = 0xFFFFFF;
     tri.colors[1] = 0x0000FF;
     tri.colors[2] = 0x00FF00;
+
+    SDL_Delay(1);
 
 }
 
@@ -44,9 +46,11 @@ void update(game_state_t *game_state)
 
 void render(game_state_t *game_state)
 {
-    adl_fill_quad_interpolate_color_mean_value(game_state->window_pixels_mat, game_state->inv_z_buffer_mat, quad1, game_state->offset_zoom_param);
+    adl_quad_fill_interpolate_color_mean_value(game_state->window_pixels_mat, game_state->inv_z_buffer_mat, quad1, game_state->offset_zoom_param);
+    adl_quad_draw(game_state->window_pixels_mat, game_state->inv_z_buffer_mat, quad1, 0, game_state->offset_zoom_param);
 
-    adl_fill_tri_Pinedas_rasterizer_interpolate_color(game_state->window_pixels_mat, game_state->inv_z_buffer_mat, tri, game_state->offset_zoom_param);
+    adl_tri_fill_Pinedas_rasterizer_interpolate_color(game_state->window_pixels_mat, game_state->inv_z_buffer_mat, tri, game_state->offset_zoom_param);
+    adl_tri_draw(game_state->window_pixels_mat, tri, 0, game_state->offset_zoom_param);
 
     #if 0
     Mat2D inv_z_buffer = game_state->inv_z_buffer_mat;
