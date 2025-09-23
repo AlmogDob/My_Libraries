@@ -71,14 +71,8 @@ void update(game_state_t *game_state)
 void render(game_state_t *game_state)
 {
 
-    adl_fill_quad_mesh_interpolate_color(game_state->window_pixels_mat, game_state->inv_z_buffer_mat, proj_quad_mesh, ADL_DEFAULT_OFFSET_ZOOM);
-    adl_draw_quad_mesh(game_state->window_pixels_mat, game_state->inv_z_buffer_mat, proj_quad_mesh, 0x0, ADL_DEFAULT_OFFSET_ZOOM);
-
-    // adl_fill_tri_mesh_Pinedas_rasterizer_interpolate_color(game_state->window_pixels_mat, game_state->inv_z_buffer_mat, proj_tri_mesh, ADL_DEFAULT_OFFSET_ZOOM);
-    // adl_draw_tri_mesh(game_state->window_pixels_mat, proj_tri_mesh, 0x0, ADL_DEFAULT_OFFSET_ZOOM);
-
-    // adl_fill_quad_mesh_interpolate_color(game_state->window_pixels_mat, game_state->inv_z_buffer_mat, proj_quad_mesh, ADL_DEFAULT_OFFSET_ZOOM);
-    // adl_fill_tri_mesh_Pinedas_rasterizer_interpolate_color(game_state->window_pixels_mat, game_state->inv_z_buffer_mat, proj_tri_mesh, ADL_DEFAULT_OFFSET_ZOOM);
+    adl_quad_mesh_fill_interpolate_color(game_state->window_pixels_mat, game_state->inv_z_buffer_mat, proj_quad_mesh, ADL_DEFAULT_OFFSET_ZOOM);
+    adl_quad_mesh_draw(game_state->window_pixels_mat, game_state->inv_z_buffer_mat, proj_quad_mesh, 0x0, ADL_DEFAULT_OFFSET_ZOOM);
 
     proj_tri_mesh.length  = 0;
     proj_quad_mesh.length = 0;

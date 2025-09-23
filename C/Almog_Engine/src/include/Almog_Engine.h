@@ -631,7 +631,9 @@ Tri_mesh ae_tri_mesh_get_from_obj_file(char *file_path)
                 }
 
                 tri1.to_draw = true;
-                tri1.light_intensity = 1;
+                tri1.light_intensity[0] = 1;
+                tri1.light_intensity[1] = 1;
+                tri1.light_intensity[2] = 1;
                 tri1.center.x = (tri1.points[0].x + tri1.points[1].x + tri1.points[2].x) / 3;
                 tri1.center.y = (tri1.points[0].y + tri1.points[1].y + tri1.points[2].y) / 3;
                 tri1.center.z = (tri1.points[0].z + tri1.points[1].z + tri1.points[2].z) / 3;
@@ -685,7 +687,9 @@ Tri_mesh ae_tri_mesh_get_from_obj_file(char *file_path)
                 }
 
                 tri1.to_draw = true;
-                tri1.light_intensity = 1;
+                tri1.light_intensity[0] = 1;
+                tri1.light_intensity[1] = 1;
+                tri1.light_intensity[2] = 1;
                 tri1.center.x = (tri1.points[0].x + tri1.points[1].x + tri1.points[2].x) / 3;
                 tri1.center.y = (tri1.points[0].y + tri1.points[1].y + tri1.points[2].y) / 3;
                 tri1.center.z = (tri1.points[0].z + tri1.points[1].z + tri1.points[2].z) / 3;
@@ -696,7 +700,9 @@ Tri_mesh ae_tri_mesh_get_from_obj_file(char *file_path)
                 tri1.colors[2] = 0xFFFFFFFF;
 
                 tri2.to_draw = true;
-                tri2.light_intensity = 1;
+                tri2.light_intensity[0] = 1;
+                tri2.light_intensity[1] = 1;
+                tri2.light_intensity[2] = 1;
                 tri2.center.x = (tri2.points[0].x + tri2.points[1].x + tri2.points[2].x) / 3;
                 tri2.center.y = (tri2.points[0].y + tri2.points[1].y + tri2.points[2].y) / 3;
                 tri2.center.z = (tri2.points[0].z + tri2.points[1].z + tri2.points[2].z) / 3;
@@ -762,7 +768,9 @@ Tri_mesh ae_tri_mesh_get_from_stl_file(char *file_path)
         fseek(file, STL_ATTRIBUTE_BITS_SIZE, SEEK_CUR);
 
         temp_tri.to_draw = true;
-        temp_tri.light_intensity = 1;
+        temp_tri.light_intensity[0] = 1;
+        temp_tri.light_intensity[1] = 1;
+        temp_tri.light_intensity[2] = 1;
         temp_tri.center.x = (temp_tri.points[0].x + temp_tri.points[1].x + temp_tri.points[2].x) / 3;
         temp_tri.center.y = (temp_tri.points[0].y + temp_tri.points[1].y + temp_tri.points[2].y) / 3;
         temp_tri.center.z = (temp_tri.points[0].z + temp_tri.points[1].z + temp_tri.points[2].z) / 3;
@@ -771,6 +779,8 @@ Tri_mesh ae_tri_mesh_get_from_stl_file(char *file_path)
         temp_tri.colors[0] = 0xFFFFFFFF;
         temp_tri.colors[1] = 0xFFFFFFFF;
         temp_tri.colors[2] = 0xFFFFFFFF;
+
+        ae_tri_set_normals(&temp_tri);
 
         ada_appand(Tri, mesh, temp_tri);
     }
@@ -824,29 +834,35 @@ Tri_mesh ae_tri_mesh_get_from_quad_mesh(Quad_mesh q_mesh)
 
     for (size_t q_index = 0; q_index < q_mesh.length; q_index++) {
         Quad current_q = q_mesh.elements[q_index];
-        Tri temp_t = {.light_intensity = current_q.light_intensity, .to_draw = current_q.to_draw};
+        Tri temp_t = {.to_draw = current_q.to_draw};
 
         temp_t.points[0] = current_q.points[0];
         temp_t.colors[0] = current_q.colors[0];
         temp_t.normals[0] = current_q.normals[0];
+        temp_t.light_intensity[0] = current_q.light_intensity[0];
         temp_t.points[1] = current_q.points[1];
         temp_t.colors[1] = current_q.colors[1];
         temp_t.normals[1] = current_q.normals[1];
+        temp_t.light_intensity[1] = current_q.light_intensity[1];
         temp_t.points[2] = current_q.points[2];
         temp_t.colors[2] = current_q.colors[2];
         temp_t.normals[2] = current_q.normals[2];
+        temp_t.light_intensity[2] = current_q.light_intensity[2];
 
         ada_appand(Tri, t_mesh, temp_t);
 
         temp_t.points[0] = current_q.points[2];
         temp_t.colors[0] = current_q.colors[2];
         temp_t.normals[0] = current_q.normals[2];
+        temp_t.light_intensity[0] = current_q.light_intensity[2];
         temp_t.points[1] = current_q.points[3];
         temp_t.colors[1] = current_q.colors[3];
         temp_t.normals[1] = current_q.normals[3];
+        temp_t.light_intensity[1] = current_q.light_intensity[3];
         temp_t.points[2] = current_q.points[0];
         temp_t.colors[2] = current_q.colors[0];
         temp_t.normals[2] = current_q.normals[0];
+        temp_t.light_intensity[2] = current_q.light_intensity[0];
 
         ada_appand(Tri, t_mesh, temp_t);
     }
@@ -2395,29 +2411,22 @@ Tri_mesh ae_tri_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Tri tri, in
     Mat2D tri_normal = mat2D_alloc(3, 1);
     Mat2D temp_camera2tri = mat2D_alloc(3, 1);
     Mat2D camera2tri = mat2D_alloc(1, 3);
-    Mat2D light_directio_traspose = mat2D_alloc(1, 3);
     Mat2D dot_product = mat2D_alloc(1, 1);
     Tri des_tri = tri;
-    Point tri_normal_point;
 
-    tri_normal_point = ae_tri_get_average_normal(tri);
-    ae_point_to_mat2D(tri_normal_point, tri_normal);
-    ae_tri_calc_normal(tri_normal, tri);
     ae_point_to_mat2D(tri.points[0], temp_camera2tri);
     mat2D_sub(temp_camera2tri, scene->camera.current_position);
     mat2D_transpose(camera2tri, temp_camera2tri);
-    mat2D_transpose(light_directio_traspose, light_direction);
 
     /* calc lighting intensity of tri */
-    MAT2D_AT(dot_product, 0, 0) = MAT2D_AT(light_directio_traspose, 0, 0) * MAT2D_AT(tri_normal, 0, 0) + MAT2D_AT(light_directio_traspose, 0, 1) * MAT2D_AT(tri_normal, 1, 0) + MAT2D_AT(light_directio_traspose, 0, 2) * MAT2D_AT(tri_normal, 2, 0);
-    des_tri.light_intensity = MAT2D_AT(dot_product, 0, 0);
-
-    des_tri.light_intensity = fminf(1, des_tri.light_intensity);
-
-    if (des_tri.light_intensity <= 0.2) {
-        des_tri.light_intensity = 0.2;
+    for (int i = 0; i < 3; i++) {
+        ae_point_to_mat2D(tri.normals[i], tri_normal);
+        MAT2D_AT(dot_product, 0, 0) = MAT2D_AT(light_direction, 0, 0) * MAT2D_AT(tri_normal, 0, 0) + MAT2D_AT(light_direction, 1, 0) * MAT2D_AT(tri_normal, 1, 0) + MAT2D_AT(light_direction, 2, 0) * MAT2D_AT(tri_normal, 2, 0);
+        des_tri.light_intensity[i] = fmaxf(0.2, fminf(1, MAT2D_AT(dot_product, 0, 0)));
     }
 
+    Point ave_normal = ae_tri_get_average_normal(tri);
+    ae_point_to_mat2D(ave_normal, tri_normal);
     /* calc if tri is visible to the camera */
     MAT2D_AT(dot_product, 0, 0) = MAT2D_AT(camera2tri, 0, 0) * MAT2D_AT(tri_normal, 0, 0) + MAT2D_AT(camera2tri, 0, 1) * MAT2D_AT(tri_normal, 1, 0) + MAT2D_AT(camera2tri, 0, 2) * MAT2D_AT(tri_normal, 2, 0);
     if (MAT2D_AT(dot_product, 0, 0) < 0) {
@@ -2484,7 +2493,6 @@ Tri_mesh ae_tri_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Tri tri, in
     mat2D_free(tri_normal);
     mat2D_free(temp_camera2tri);
     mat2D_free(camera2tri);
-    mat2D_free(light_directio_traspose);
     mat2D_free(dot_product);
 
     return temp_tri_array;
@@ -2609,21 +2617,17 @@ Quad_mesh ae_quad_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Quad quad
     Mat2D light_directio_traspose = mat2D_alloc(1, 3);
     Mat2D dot_product = mat2D_alloc(1, 1);
     Quad des_quad = quad;
-    Point quad_normal_point;
 
-    quad_normal_point = ae_quad_get_average_normal(quad);
-    ae_point_to_mat2D(quad_normal_point, quad_normal);
     ae_point_to_mat2D(quad.points[1], temp_camera2quad);
     mat2D_sub(temp_camera2quad, scene->camera.current_position);
     mat2D_transpose(camera2quad, temp_camera2quad);
     mat2D_transpose(light_directio_traspose, light_direction);
 
     /* calc lighting intensity of tri */
-    MAT2D_AT(dot_product, 0, 0) = MAT2D_AT(light_directio_traspose, 0, 0) * MAT2D_AT(quad_normal, 0, 0) + MAT2D_AT(light_directio_traspose, 0, 1) * MAT2D_AT(quad_normal, 1, 0) + MAT2D_AT(light_directio_traspose, 0, 2) * MAT2D_AT(quad_normal, 2, 0);
-    des_quad.light_intensity = MAT2D_AT(dot_product, 0, 0);
-
-    if (des_quad.light_intensity <= 0.2) {
-        des_quad.light_intensity = 0.2;
+    for (int i = 0; i < 4; i++) {
+        ae_point_to_mat2D(quad.normals[i], quad_normal);
+        MAT2D_AT(dot_product, 0, 0) = MAT2D_AT(light_direction, 0, 0) * MAT2D_AT(quad_normal, 0, 0) + MAT2D_AT(light_direction, 1, 0) * MAT2D_AT(quad_normal, 1, 0) + MAT2D_AT(light_direction, 2, 0) * MAT2D_AT(quad_normal, 2, 0);
+        des_quad.light_intensity[i] = fmaxf(0.2, fminf(1, MAT2D_AT(dot_product, 0, 0)));
     }
 
     /* calc if tri is visible to the camera */

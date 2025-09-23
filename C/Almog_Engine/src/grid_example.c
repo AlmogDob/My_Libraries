@@ -16,8 +16,8 @@ void setup(game_state_t *game_state)
     // game_state->to_limit_fps = 0;
     game_state->const_fps = 500;
 
-    grid      = adl_create_cartesian_grid(-1, 1, -2, 2, 10, 20, "XZ", 1);
-    grid_proj = adl_create_cartesian_grid(-1, 1, -2, 2, 10, 20, "XZ", 1);
+    grid      = adl_cartesian_grid_create(-1, 1, -2, 2, 10, 20, "XZ", 1);
+    grid_proj = adl_cartesian_grid_create(-1, 1, -2, 2, 10, 20, "XZ", 1);
 }
 
 void update(game_state_t *game_state)
@@ -31,6 +31,6 @@ void update(game_state_t *game_state)
 
 void render(game_state_t *game_state)
 {
-    adl_draw_grid(game_state->window_pixels_mat, grid_proj, 0xffffff, ADL_DEFAULT_OFFSET_ZOOM);
+    adl_grid_draw(game_state->window_pixels_mat, grid_proj, 0xffffff, ADL_DEFAULT_OFFSET_ZOOM);
 
 }
