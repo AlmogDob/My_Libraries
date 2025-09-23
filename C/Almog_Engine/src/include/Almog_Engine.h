@@ -750,6 +750,10 @@ Tri_mesh ae_tri_mesh_get_from_stl_file(char *file_path)
         fread(&(temp_tri.normals[0].y), STL_NUM_SIZE, 1, file);
         fread(&(temp_tri.normals[0].z), STL_NUM_SIZE, 1, file);
 
+        temp_tri.normals[0].x = - temp_tri.normals[0].x;
+        temp_tri.normals[0].y = - temp_tri.normals[0].y;
+        temp_tri.normals[0].z = - temp_tri.normals[0].z;
+
         temp_tri.normals[1] = temp_tri.normals[0];
         temp_tri.normals[2] = temp_tri.normals[0];
 
@@ -780,7 +784,7 @@ Tri_mesh ae_tri_mesh_get_from_stl_file(char *file_path)
         temp_tri.colors[1] = 0xFFFFFFFF;
         temp_tri.colors[2] = 0xFFFFFFFF;
 
-        ae_tri_set_normals(&temp_tri);
+        // ae_tri_set_normals(&temp_tri);
 
         ada_appand(Tri, mesh, temp_tri);
     }
@@ -917,6 +921,7 @@ void ae_tri_set_normals(Tri *tri)
         mat2D_copy(to_p, point);
 
         mat2D_cross(normal, to_p, from_p);
+        // mat2D_cross(normal, from_p, to_p);
         mat2D_normalize(normal);
 
         tri->normals[current_index] = ae_mat2D_to_point(normal);
@@ -2425,8 +2430,7 @@ Tri_mesh ae_tri_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Tri tri, in
         des_tri.light_intensity[i] = fmaxf(0.2, fminf(1, MAT2D_AT(dot_product, 0, 0)));
     }
 
-    Point ave_normal = ae_tri_get_average_normal(tri);
-    ae_point_to_mat2D(ave_normal, tri_normal);
+    ae_tri_calc_normal(tri_normal, tri);
     /* calc if tri is visible to the camera */
     MAT2D_AT(dot_product, 0, 0) = MAT2D_AT(camera2tri, 0, 0) * MAT2D_AT(tri_normal, 0, 0) + MAT2D_AT(camera2tri, 0, 1) * MAT2D_AT(tri_normal, 1, 0) + MAT2D_AT(camera2tri, 0, 2) * MAT2D_AT(tri_normal, 2, 0);
     if (MAT2D_AT(dot_product, 0, 0) < 0) {
@@ -2515,7 +2519,7 @@ void ae_tri_mesh_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Tri_mesh *
     }
 
     /* clip tir */
-    int offset = 50;
+    int offset = 0;
     Mat2D top_p = mat2D_alloc(3, 1);
     Mat2D top_n = mat2D_alloc(3, 1);
     mat2D_fill(top_p, 0);
@@ -2630,6 +2634,8 @@ Quad_mesh ae_quad_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Quad quad
         des_quad.light_intensity[i] = fmaxf(0.2, fminf(1, MAT2D_AT(dot_product, 0, 0)));
     }
 
+    Point ave_norm = ae_quad_get_average_normal(quad);
+    ae_point_to_mat2D(ave_norm, quad_normal);
     /* calc if tri is visible to the camera */
     MAT2D_AT(dot_product, 0, 0) = MAT2D_AT(camera2quad, 0, 0) * MAT2D_AT(quad_normal, 0, 0) + MAT2D_AT(camera2quad, 0, 1) * MAT2D_AT(quad_normal, 1, 0) + MAT2D_AT(camera2quad, 0, 2) * MAT2D_AT(quad_normal, 2, 0);
     if (MAT2D_AT(dot_product, 0, 0) < 0) {
@@ -2708,7 +2714,7 @@ void ae_quad_mesh_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Quad_mesh
 
 
     /* clip quad */
-    int offset = 50;
+    int offset = 0;
     Mat2D top_p = mat2D_alloc(3, 1);
     Mat2D top_n = mat2D_alloc(3, 1);
     mat2D_fill(top_p, 0);

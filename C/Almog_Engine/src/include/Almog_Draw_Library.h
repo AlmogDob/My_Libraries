@@ -153,10 +153,12 @@ void    adl_rectangle_fill_min_max(Mat2D_uint32 screen_mat, int min_x, int max_x
 
 void    adl_quad_draw(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer, Quad quad, uint32_t color, Offset_zoom_param offset_zoom_param);
 void    adl_quad_fill(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer, Quad quad, uint32_t color, Offset_zoom_param offset_zoom_param);
+void    adl_quad_fill_interpolate_normal_mean_value(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer, Quad quad, uint32_t color, Offset_zoom_param offset_zoom_param);
 void    adl_quad_fill_interpolate_color_mean_value(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer, Quad quad, Offset_zoom_param offset_zoom_param);
 
 void    adl_quad_mesh_draw(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer_mat, Quad_mesh mesh, uint32_t color, Offset_zoom_param offset_zoom_param);
 void    adl_quad_mesh_fill(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer_mat, Quad_mesh mesh, uint32_t color, Offset_zoom_param offset_zoom_param);
+void    adl_quad_mesh_fill_interpolate_normal(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer_mat, Quad_mesh mesh, uint32_t color, Offset_zoom_param offset_zoom_param);
 void    adl_quad_mesh_fill_interpolate_color(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer_mat, Quad_mesh mesh, Offset_zoom_param offset_zoom_param);
 
 void    adl_circle_draw(Mat2D_uint32 screen_mat, float center_x, float center_y, float r, uint32_t color, Offset_zoom_param offset_zoom_param);
@@ -861,6 +863,89 @@ void adl_quad_fill(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer, Quad quad, uint3
     }
 }
 
+void adl_quad_fill_interpolate_normal_mean_value(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer, Quad quad, uint32_t color, Offset_zoom_param offset_zoom_param)
+{
+    Point p0 = quad.points[0];
+    Point p1 = quad.points[1];
+    Point p2 = quad.points[2];
+    Point p3 = quad.points[3];
+
+    int x_min = fminf(p0.x, fminf(p1.x, fminf(p2.x, p3.x)));
+    int x_max = fmaxf(p0.x, fmaxf(p1.x, fmaxf(p2.x, p3.x)));
+    int y_min = fminf(p0.y, fminf(p1.y, fminf(p2.y, p3.y)));
+    int y_max = fmaxf(p0.y, fmaxf(p1.y, fmaxf(p2.y, p3.y)));
+
+    if (x_min < 0) x_min = 0;
+    if (y_min < 0) y_min = 0;
+    if (x_max >= (int)screen_mat.cols) x_max = (int)screen_mat.cols - 1;
+    if (y_max >= (int)screen_mat.rows) y_max = (int)screen_mat.rows - 1;
+
+    float w = edge_cross_point(p0, p1, p1, p2) + edge_cross_point(p2, p3, p3, p0);
+    if (fabs(w) < 1e-6) {
+        adl_quad_draw(screen_mat, inv_z_buffer, quad, quad.colors[0], offset_zoom_param);
+        return;
+    }
+
+    int r, g, b;
+    HexARGB_RGB_VAR(color, r, g, b);
+
+    for (int y = y_min; y <= y_max; y++) {
+        for (int x = x_min; x <= x_max; x++) {
+            Point p = {.x = x, .y = y, .z = 0};
+            bool in_01, in_12, in_23, in_30;
+
+            in_01 = (edge_cross_point(p0, p1, p0, p) >= 0) != (w < 0);
+            in_12 = (edge_cross_point(p1, p2, p1, p) >= 0) != (w < 0);
+            in_23 = (edge_cross_point(p2, p3, p2, p) >= 0) != (w < 0);
+            in_30 = (edge_cross_point(p3, p0, p3, p) >= 0) != (w < 0);
+
+            /* using 'mean value coordinates'
+             * https://www.mn.uio.no/math/english/people/aca/michaelf/papers/mv3d.pdf. */
+            float size_p_to_p0 = sqrt((p0.x - p.x)*(p0.x - p.x) + (p0.y - p.y)*(p0.y - p.y));
+            float size_p_to_p1 = sqrt((p1.x - p.x)*(p1.x - p.x) + (p1.y - p.y)*(p1.y - p.y));
+            float size_p_to_p2 = sqrt((p2.x - p.x)*(p2.x - p.x) + (p2.y - p.y)*(p2.y - p.y));
+            float size_p_to_p3 = sqrt((p3.x - p.x)*(p3.x - p.x) + (p3.y - p.y)*(p3.y - p.y));
+
+            /* calculating the tangent of half the angle directly using vector math */
+            float t0 = adl_tan_half_angle(p0, p1, p, size_p_to_p0, size_p_to_p1);
+            float t1 = adl_tan_half_angle(p1, p2, p, size_p_to_p1, size_p_to_p2);
+            float t2 = adl_tan_half_angle(p2, p3, p, size_p_to_p2, size_p_to_p3);
+            float t3 = adl_tan_half_angle(p3, p0, p, size_p_to_p3, size_p_to_p0);
+
+            float w0 = (t3 + t0) / size_p_to_p0;
+            float w1 = (t0 + t1) / size_p_to_p1;
+            float w2 = (t1 + t2) / size_p_to_p2;
+            float w3 = (t2 + t3) / size_p_to_p3;
+
+            float inv_w_tot = 1.0f / (w0 + w1 + w2 + w3);
+            float alpha = w0 * inv_w_tot;
+            float beta  = w1 * inv_w_tot;
+            float gamma = w2 * inv_w_tot;
+            float delta = w3 * inv_w_tot;
+
+            if (in_01 && in_12 && in_23 && in_30) {
+                float light_intensity = quad.light_intensity[0]*alpha + quad.light_intensity[1]*beta + quad.light_intensity[2]*gamma + quad.light_intensity[3]*delta;
+
+                float rf = r * light_intensity;
+                float gf = g * light_intensity;
+                float bf = b * light_intensity;
+                uint8_t r8 = (uint8_t)fmaxf(0, fminf(255, rf));
+                uint8_t g8 = (uint8_t)fmaxf(0, fminf(255, gf));
+                uint8_t b8 = (uint8_t)fmaxf(0, fminf(255, bf));
+
+                double inv_w = alpha * (1.0f / p0.w) + beta  * (1.0f / p1.w) + gamma * (1.0f / p2.w) + delta * (1.0f / p3.w);
+                double z_over_w = alpha * (p0.z / p0.w) + beta  * (p1.z / p1.w) + gamma * (p2.z / p2.w) + delta * (p3.z / p3.w);
+                double inv_z = inv_w / z_over_w;
+
+                if (inv_z >= MAT2D_AT(inv_z_buffer, y, x)) {
+                    adl_point_draw(screen_mat, x, y, RGB_hexRGB(r8, g8, b8), offset_zoom_param);
+                    MAT2D_AT(inv_z_buffer, y, x) = inv_z;
+                }
+            }
+        }
+    }
+}
+
 void adl_quad_fill_interpolate_color_mean_value(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer, Quad quad, Offset_zoom_param offset_zoom_param)
 {
     Point p0 = quad.points[0];
@@ -976,6 +1061,19 @@ void adl_quad_mesh_fill(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer_mat, Quad_me
         if (!quad.to_draw) continue;
 
         adl_quad_fill(screen_mat, inv_z_buffer_mat, quad, color, offset_zoom_param);
+    }
+}
+
+void adl_quad_mesh_fill_interpolate_normal(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer_mat, Quad_mesh mesh, uint32_t color, Offset_zoom_param offset_zoom_param)
+{
+    for (size_t i = 0; i < mesh.length; i++) {
+        Quad quad = mesh.elements[i];
+        /* Reject invalid quad */
+        adl_assert_quad_is_valid(quad);
+
+        if (!quad.to_draw) continue;
+
+        adl_quad_fill_interpolate_normal_mean_value(screen_mat, inv_z_buffer_mat, quad, color, offset_zoom_param);
     }
 }
 
