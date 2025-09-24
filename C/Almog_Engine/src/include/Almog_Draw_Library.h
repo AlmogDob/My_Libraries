@@ -138,6 +138,46 @@ typedef struct {
 #define RGBA_hexARGB(r, g, b, a) (int)(0x01000000l*(int)(fminf(a, 255)) + 0x010000*(int)(r) + 0x000100*(int)(g) + 0x000001*(int)(b))
 #endif
 
+#define RED_hexARGB    0xFFFF0000
+#define GREEN_hexARGB  0xFF00FF00
+#define BLUE_hexARGB   0xFF0000FF
+#define PURPLE_hexARGB 0xFFFF00FF
+#define CYAN_hexARGB   0xFF00FFFF
+#define YELLOW_hexARGB 0xFFFFFF00
+
+#define edge_cross_point(a1, b, a2, p) (b.x-a1.x)*(p.y-a2.y)-(b.y-a1.y)*(p.x-a2.x)
+#define is_top_edge(x, y) (y == 0 && x > 0)
+#define is_left_edge(x, y) (y < 0)
+#define is_top_left(ps, pe) (is_top_edge(pe.x-ps.x, pe.y-ps.y) || is_left_edge(pe.x-ps.x, pe.y-ps.y))
+
+#define ADL_MAX_POINT_VAL 1e5
+#define adl_assert_point_is_valid(p) ADL_ASSERT(isfinite(p.x) && isfinite(p.y) && isfinite(p.z) && isfinite(p.w))
+#define adl_assert_tri_is_valid(tri) adl_assert_point_is_valid(tri.points[0]); \
+        adl_assert_point_is_valid(tri.points[1]);                              \
+        adl_assert_point_is_valid(tri.points[2])
+#define adl_assert_quad_is_valid(quad) adl_assert_point_is_valid(quad.points[0]);   \
+        adl_assert_point_is_valid(quad.points[1]);                                  \
+        adl_assert_point_is_valid(quad.points[2]);                                  \
+        adl_assert_point_is_valid(quad.points[3])
+
+#define ADL_FIGURE_PADDING_PRECENTAGE 20
+#define ADL_MAX_FIGURE_PADDING 70
+#define ADL_MIN_FIGURE_PADDING 20
+#define ADL_MAX_HEAD_SIZE 15
+#define ADL_FIGURE_HEAD_ANGLE_DEG 30
+#define ADL_FIGURE_AXIS_COLOR 0x0
+
+#define ADL_MAX_CHARACTER_OFFSET 10
+#define ADL_MIN_CHARACTER_OFFSET 5
+#define ADL_MAX_SENTENCE_LEN 256
+#define ADL_MAX_ZOOM 1e3
+
+#define ADL_DEFAULT_OFFSET_ZOOM (Offset_zoom_param){1,0,0,0,0}
+#define adl_offset_zoom_point(p, window_w, window_h, offset_zoom_param)                                             \
+    (p).x = ((p).x - (window_w)/2 + offset_zoom_param.offset_x) * offset_zoom_param.zoom_multiplier + (window_w)/2; \
+    (p).y = ((p).y - (window_h)/2 + offset_zoom_param.offset_y) * offset_zoom_param.zoom_multiplier + (window_h)/2
+
+
 
 void    adl_point_draw(Mat2D_uint32 screen_mat, int x, int y, uint32_t color, Offset_zoom_param offset_zoom_param);
 void    adl_line_draw(Mat2D_uint32 screen_mat, const float x1_input, const float y1_input, const float x2_input, const float y2_input, uint32_t color, Offset_zoom_param offset_zoom_param);
@@ -198,45 +238,6 @@ void    adl_grid_draw(Mat2D_uint32 screen_mat, Grid grid, uint32_t color, Offset
 
 #ifdef ALMOG_DRAW_LIBRARY_IMPLEMENTATION
 #undef ALMOG_DRAW_LIBRARY_IMPLEMENTATION
-
-#define RED_hexARGB    0xFFFF0000
-#define GREEN_hexARGB  0xFF00FF00
-#define BLUE_hexARGB   0xFF0000FF
-#define PURPLE_hexARGB 0xFFFF00FF
-#define CYAN_hexARGB   0xFF00FFFF
-#define YELLOW_hexARGB 0xFFFFFF00
-
-#define edge_cross_point(a1, b, a2, p) (b.x-a1.x)*(p.y-a2.y)-(b.y-a1.y)*(p.x-a2.x)
-#define is_top_edge(x, y) (y == 0 && x > 0)
-#define is_left_edge(x, y) (y < 0)
-#define is_top_left(ps, pe) (is_top_edge(pe.x-ps.x, pe.y-ps.y) || is_left_edge(pe.x-ps.x, pe.y-ps.y))
-
-#define ADL_MAX_POINT_VAL 1e5
-#define adl_assert_point_is_valid(p) ADL_ASSERT(isfinite(p.x) && isfinite(p.y) && isfinite(p.z) && isfinite(p.w))
-#define adl_assert_tri_is_valid(tri) adl_assert_point_is_valid(tri.points[0]); \
-        adl_assert_point_is_valid(tri.points[1]);                              \
-        adl_assert_point_is_valid(tri.points[2])
-#define adl_assert_quad_is_valid(quad) adl_assert_point_is_valid(quad.points[0]);   \
-        adl_assert_point_is_valid(quad.points[1]);                                  \
-        adl_assert_point_is_valid(quad.points[2]);                                  \
-        adl_assert_point_is_valid(quad.points[3])
-
-#define ADL_FIGURE_PADDING_PRECENTAGE 20
-#define ADL_MAX_FIGURE_PADDING 70
-#define ADL_MIN_FIGURE_PADDING 20
-#define ADL_MAX_HEAD_SIZE 15
-#define ADL_FIGURE_HEAD_ANGLE_DEG 30
-#define ADL_FIGURE_AXIS_COLOR 0x0
-
-#define ADL_MAX_CHARACTER_OFFSET 10
-#define ADL_MIN_CHARACTER_OFFSET 5
-#define ADL_MAX_SENTENCE_LEN 256
-#define ADL_MAX_ZOOM 1e3
-
-#define ADL_DEFAULT_OFFSET_ZOOM (Offset_zoom_param){1,0,0,0,0}
-#define adl_offset_zoom_point(p, window_w, window_h, offset_zoom_param)                                             \
-    (p).x = ((p).x - (window_w)/2 + offset_zoom_param.offset_x) * offset_zoom_param.zoom_multiplier + (window_w)/2; \
-    (p).y = ((p).y - (window_h)/2 + offset_zoom_param.offset_y) * offset_zoom_param.zoom_multiplier + (window_h)/2
 
 /* default values should be: 
 zoom_multiplier = 1;
@@ -1289,11 +1290,6 @@ void adl_tri_fill_Pinedas_rasterizer_interpolate_normal(Mat2D_uint32 screen_mat,
     }
     MATRIX2D_ASSERT(w != 0 && "triangle has area");
 
-    /* fill conventions */
-    int bias0 = is_top_left(p0, p1) ? 0 : -1;
-    int bias1 = is_top_left(p1, p2) ? 0 : -1;
-    int bias2 = is_top_left(p2, p0) ? 0 : -1;
-
     /* finding bounding box */
     int x_min = fmin(p0.x, fmin(p1.x, p2.x));
     int x_max = fmax(p0.x, fmax(p1.x, p2.x));
@@ -1314,9 +1310,9 @@ void adl_tri_fill_Pinedas_rasterizer_interpolate_normal(Mat2D_uint32 screen_mat,
         for (int x = x_min; x <= x_max; x++) {
             Point p = {.x = x, .y = y, .z = 0};
 
-            float w0 = edge_cross_point(p0, p1, p0, p) + bias0;
-            float w1 = edge_cross_point(p1, p2, p1, p) + bias1;
-            float w2 = edge_cross_point(p2, p0, p2, p) + bias2;
+            float w0 = edge_cross_point(p0, p1, p0, p);
+            float w1 = edge_cross_point(p1, p2, p1, p);
+            float w2 = edge_cross_point(p2, p0, p2, p);
 
             float alpha = fabs(w1 / w);
             float beta  = fabs(w2 / w);

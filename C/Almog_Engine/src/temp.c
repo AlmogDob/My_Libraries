@@ -9,73 +9,65 @@
 #define ALMOG_ENGINE_IMPLEMENTATION
 #include "./include/Almog_Engine.h"
 
-Quad_mesh quad_mesh;
-Quad_mesh proj_quad_mesh;
-Tri_mesh tri_mesh;
-Tri_mesh proj_tri_mesh;
-
 void setup(game_state_t *game_state)
 {
-    game_state->const_fps = 30;
     game_state->to_limit_fps = 0;
 
-    ada_init_array(Quad, quad_mesh);
-    ada_init_array(Tri, tri_mesh);
-    ada_init_array(Quad, proj_quad_mesh);
-    ada_init_array(Tri, proj_tri_mesh);
-    Quad quad;
-    Tri tri;
+    ada_init_array(Tri_mesh, game_state->scene.original_tri_meshes);
+    ada_init_array(Tri_mesh, game_state->scene.in_world_tri_meshes);
+    ada_init_array(Tri_mesh, game_state->scene.projected_tri_meshes);
 
-    quad.points[3] = (Point){-2  , -1  , -1, 1};
-    quad.points[2] = (Point){-1  , 0.5, -1, 1};
-    quad.points[1] = (Point){-1.5, 1   , -1, 1};
-    quad.points[0] = (Point){-2.5, -0.5 , -1, 1};
-    quad.to_draw = true;
-    quad.light_intensity = 1;
-    quad.colors[0] = 0xFFFFFF;
-    quad.colors[1] = 0x0000FF;
-    quad.colors[2] = 0x00FF00;
-    quad.colors[3] = 0xFF0000;
+    char file_path[MAX_LEN_LINE];
+    strncpy(file_path, "./teapot.stl", MAX_LEN_LINE);
 
-    ae_quad_set_normals(&quad);
+    Tri_mesh tri_mesh = ae_tri_mesh_get_from_file(file_path);
+    ae_tri_mesh_flip_normals(tri_mesh);
 
-    ada_appand(Quad, quad_mesh, quad);
+    ada_appand(Tri_mesh, game_state->scene.original_tri_meshes, tri_mesh);
 
-    tri.points[2] = (Point){1  , -1  , 1, 1};
-    tri.points[1] = (Point){2  , -0.5, 1, 1};
-    tri.points[0] = (Point){0.5, 1   , 1, 1};
-    tri.to_draw = true;
-    tri.light_intensity = 1;
-    tri.colors[0] = 0xFFFFFF;
-    tri.colors[1] = 0x0000FF;
-    tri.colors[2] = 0x00FF00;
-    // tri.colors[0] = 0xFFFFFF;
-    // tri.colors[1] = 0xFFFFFF;
-    // tri.colors[2] = 0xFFFFFF;
+    printf("[INFO] number of meshes: %zu\n", game_state->scene.original_tri_meshes.length);
+    size_t sum = 0;
+    for (size_t i = 0; i < game_state->scene.original_tri_meshes.length; i++) {
+        printf("[INFO] mesh number %zu: %zu\n", i, game_state->scene.original_tri_meshes.elements[i].length);
+        sum += game_state->scene.original_tri_meshes.elements[i].length;
+    }
+    printf("[INFO] total number of triangles: %zu\n", sum);
 
-    ae_tri_set_normals(&tri);
 
-    ada_appand(Tri, tri_mesh, tri);
+    for (size_t i = 0; i < game_state->scene.original_tri_meshes.length; i++) {
+        ae_tri_mesh_normalize(game_state->scene.original_tri_meshes.elements[i]);
+    }
+    for (size_t i = 0; i < game_state->scene.original_tri_meshes.length; i++) {
+        ae_tri_mesh_appand_copy(&(game_state->scene.in_world_tri_meshes), game_state->scene.original_tri_meshes.elements[i]);
+        ae_tri_mesh_appand_copy(&(game_state->scene.projected_tri_meshes), game_state->scene.original_tri_meshes.elements[i]);
+        game_state->scene.projected_tri_meshes.elements[i].length = 0;
+    }
+
+    ae_tri_mesh_rotate_Euler_xyz(game_state->scene.in_world_tri_meshes.elements[0], -90, 0, 180);
 
 }
 
 void update(game_state_t *game_state)
 {
+    // MAT2D_PRINT(game_state->scene.camera.current_position);
+    // MAT2D_PRINT(game_state->scene.light_direction);
+
     ae_projection_mat_set(game_state->scene.proj_mat, game_state->scene.camera.aspect_ratio, game_state->scene.camera.fov_deg, game_state->scene.camera.z_near, game_state->scene.camera.z_far);
     ae_view_mat_set(game_state->scene.view_mat, game_state->scene.camera, game_state->scene.up_direction);
 
-    ae_quad_mesh_project_world2screen(game_state->scene.proj_mat, game_state->scene.view_mat, &proj_quad_mesh, quad_mesh, game_state->window_w, game_state->window_h, game_state->scene.light_direction, &(game_state->scene));
-    ae_tri_mesh_project_world2screen(game_state->scene.proj_mat, game_state->scene.view_mat, &proj_tri_mesh, tri_mesh, game_state->window_w, game_state->window_h, game_state->scene.light_direction, &(game_state->scene));
+    for (size_t i = 0; i < game_state->scene.in_world_tri_meshes.length; i++) {
+        ae_tri_mesh_project_world2screen(game_state->scene.proj_mat, game_state->scene.view_mat, &(game_state->scene.projected_tri_meshes.elements[i]), game_state->scene.in_world_tri_meshes.elements[i], game_state->window_w, game_state->window_h, game_state->scene.light_direction, &(game_state->scene));
+    }
+
 }
 
 void render(game_state_t *game_state)
 {
+    for (size_t i = 0; i < game_state->scene.projected_tri_meshes.length; i++) {
+        adl_tri_mesh_fill_Pinedas_rasterizer_interpolate_normal(game_state->window_pixels_mat, game_state->inv_z_buffer_mat, game_state->scene.projected_tri_meshes.elements[i], 0xffffffff, ADL_DEFAULT_OFFSET_ZOOM);
+    }
 
-    adl_quad_mesh_fill_interpolate_color(game_state->window_pixels_mat, game_state->inv_z_buffer_mat, proj_quad_mesh, ADL_DEFAULT_OFFSET_ZOOM);
-    adl_quad_mesh_draw(game_state->window_pixels_mat, game_state->inv_z_buffer_mat, proj_quad_mesh, 0x0, ADL_DEFAULT_OFFSET_ZOOM);
-
-    proj_tri_mesh.length  = 0;
-    proj_quad_mesh.length = 0;
-    
+    for (size_t i = 0; i < game_state->scene.in_world_tri_meshes.length; i++) {
+        game_state->scene.projected_tri_meshes.elements[i].length = 0;
+    }
 }
-

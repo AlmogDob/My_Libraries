@@ -157,6 +157,7 @@ void        ae_tri_mesh_rotate_Euler_xyz(Tri_mesh mesh, float phi_deg, float the
 void        ae_tri_mesh_set_bounding_box(Tri_mesh mesh, float *x_min, float *x_max, float *y_min, float *y_max, float *z_min, float *z_max);
 void        ae_tri_set_center_zmin_zmax(Tri *tri);
 void        ae_tri_mesh_normalize(Tri_mesh mesh);
+void        ae_tri_mesh_flip_normals(Tri_mesh mesh);
 
 Point       ae_line_itersect_plane(Mat2D plane_p, Mat2D plane_n, Mat2D line_start, Mat2D line_end, float *t);
 int         ae_line_clip_with_plane(Point start_in, Point end_in, Mat2D plane_p, Mat2D plane_n, Point *start_out, Point *end_out);
@@ -750,9 +751,9 @@ Tri_mesh ae_tri_mesh_get_from_stl_file(char *file_path)
         fread(&(temp_tri.normals[0].y), STL_NUM_SIZE, 1, file);
         fread(&(temp_tri.normals[0].z), STL_NUM_SIZE, 1, file);
 
-        temp_tri.normals[0].x = - temp_tri.normals[0].x;
-        temp_tri.normals[0].y = - temp_tri.normals[0].y;
-        temp_tri.normals[0].z = - temp_tri.normals[0].z;
+        // temp_tri.normals[0].x = - temp_tri.normals[0].x;
+        // temp_tri.normals[0].y = - temp_tri.normals[0].y;
+        // temp_tri.normals[0].z = - temp_tri.normals[0].z;
 
         temp_tri.normals[1] = temp_tri.normals[0];
         temp_tri.normals[2] = temp_tri.normals[0];
@@ -760,14 +761,17 @@ Tri_mesh ae_tri_mesh_get_from_stl_file(char *file_path)
         fread(&(temp_tri.points[0].x), STL_NUM_SIZE, 1, file);
         fread(&(temp_tri.points[0].y), STL_NUM_SIZE, 1, file);
         fread(&(temp_tri.points[0].z), STL_NUM_SIZE, 1, file);
+        temp_tri.points[0].w = 1;
 
         fread(&(temp_tri.points[1].x), STL_NUM_SIZE, 1, file);
         fread(&(temp_tri.points[1].y), STL_NUM_SIZE, 1, file);
         fread(&(temp_tri.points[1].z), STL_NUM_SIZE, 1, file);
+        temp_tri.points[1].w = 1;
         
         fread(&(temp_tri.points[2].x), STL_NUM_SIZE, 1, file);
         fread(&(temp_tri.points[2].y), STL_NUM_SIZE, 1, file);
         fread(&(temp_tri.points[2].z), STL_NUM_SIZE, 1, file);
+        temp_tri.points[2].w = 1;
 
         fseek(file, STL_ATTRIBUTE_BITS_SIZE, SEEK_CUR);
 
@@ -784,7 +788,7 @@ Tri_mesh ae_tri_mesh_get_from_stl_file(char *file_path)
         temp_tri.colors[1] = 0xFFFFFFFF;
         temp_tri.colors[2] = 0xFFFFFFFF;
 
-        // ae_tri_set_normals(&temp_tri);
+        ae_tri_set_normals(&temp_tri);
 
         ada_appand(Tri, mesh, temp_tri);
     }
@@ -884,8 +888,17 @@ void ae_print_points(Curve p)
 void ae_print_tri(Tri tri, char *name, size_t padding)
 {
     printf("%*s%s:\n", (int) padding, "", name);
-    printf("%*s    (%f, %f, %f)\n%*s    (%f, %f, %f)\n%*s    (%f, %f, %f)\n", (int) padding, "", tri.points[0].x, tri.points[0].y, tri.points[0].z, (int) padding, "", tri.points[1].x, tri.points[1].y, tri.points[1].z, (int) padding, "", tri.points[2].x, tri.points[2].y, tri.points[2].z);
-    printf("%*s    draw? %d\n", (int)padding, "", tri.to_draw);
+    printf("%*spoints:\n", (int) padding, "");
+    printf("%*s    (%f, %f, %f, %f)\n%*s    (%f, %f, %f, %f)\n%*s    (%f, %f, %f, %f)\n", (int) padding, "", tri.points[0].x, tri.points[0].y, tri.points[0].z, tri.points[0].w, (int) padding, "", tri.points[1].x, tri.points[1].y, tri.points[1].z, tri.points[1].w, (int) padding, "", tri.points[2].x, tri.points[2].y, tri.points[2].z, tri.points[2].w);
+    printf("%*stex_points:\n", (int) padding, "");
+    printf("%*s    (%f, %f, %f, %f)\n%*s    (%f, %f, %f, %f)\n%*s    (%f, %f, %f, %f)\n", (int) padding, "", tri.tex_points[0].x, tri.tex_points[0].y, tri.tex_points[0].z, tri.tex_points[0].w, (int) padding, "", tri.tex_points[1].x, tri.tex_points[1].y, tri.tex_points[1].z, tri.tex_points[1].w, (int) padding, "", tri.tex_points[2].x, tri.tex_points[2].y, tri.tex_points[2].z, tri.tex_points[2].w);
+    printf("%*snormals:\n", (int) padding, "");
+    printf("%*s    (%f, %f, %f)\n%*s    (%f, %f, %f)\n%*s    (%f, %f, %f)\n", (int) padding, "", tri.normals[0].x, tri.normals[0].y, tri.normals[0].z, (int) padding, "", tri.normals[1].x, tri.normals[1].y, tri.normals[1].z, (int) padding, "", tri.normals[2].x, tri.normals[2].y, tri.normals[2].z);
+    printf("%*scolors:\n", (int) padding, "");
+    printf("%*s    (%X)\n%*s    (%X)\n%*s    (%X)\n", (int) padding, "", tri.colors[0], (int) padding, "", tri.colors[1], (int) padding, "", tri.colors[2]);
+    printf("%*slight_intensity:\n", (int) padding, "");
+    printf("%*s    (%f)\n%*s    (%f)\n%*s    (%f)\n", (int) padding, "", tri.light_intensity[0], (int) padding, "", tri.light_intensity[1], (int) padding, "", tri.light_intensity[2]);
+    printf("%*sdraw? %d\n", (int)padding, "", tri.to_draw);
 }
 
 void ae_print_tri_mesh(Tri_mesh mesh, char *name, size_t padding)
@@ -919,6 +932,11 @@ void ae_tri_set_normals(Tri *tri)
         mat2D_sub(point, to_p);
 
         mat2D_copy(to_p, point);
+
+        mat2D_normalize(to_p);
+        mat2D_normalize(from_p);
+
+        // mat2D_mult(to_p, -1);
 
         mat2D_cross(normal, to_p, from_p);
         // mat2D_cross(normal, from_p, to_p);
@@ -1015,7 +1033,10 @@ void ae_tri_calc_normal(Mat2D normal, Tri tri)
     mat2D_sub(b, a);
     mat2D_sub(c, a);
 
-    mat2D_cross(normal, b, c);
+    mat2D_normalize(b);
+    mat2D_normalize(c);
+
+    mat2D_cross(normal, c, b);
 
     mat2D_mult(normal, 1/mat2D_calc_norma(normal));
 
@@ -1179,6 +1200,40 @@ void ae_tri_mesh_normalize(Tri_mesh mesh)
             mesh.elements[t].points[p].y = y;
             mesh.elements[t].points[p].z = z;
         }
+    }
+}
+
+void ae_tri_mesh_flip_normals(Tri_mesh mesh)
+{
+    for (size_t i = 0; i < mesh.length; i++) {
+        Tri res_tri, tri = mesh.elements[i];
+
+        res_tri.center  = tri.center;
+        res_tri.to_draw = tri.to_draw;
+        res_tri.z_max   = tri.z_max;
+        res_tri.z_min   = tri.z_min;
+
+        res_tri.colors[0]          = tri.colors[2];
+        res_tri.light_intensity[0] = tri.light_intensity[2];
+        res_tri.normals[0]         = tri.normals[2];
+        res_tri.points[0]          = tri.points[2];
+        res_tri.tex_points[0]      = tri.tex_points[2];
+
+        res_tri.colors[1]          = tri.colors[1];
+        res_tri.light_intensity[1] = tri.light_intensity[1];
+        res_tri.normals[1]         = tri.normals[1];
+        res_tri.points[1]          = tri.points[1];
+        res_tri.tex_points[1]      = tri.tex_points[1];
+
+        res_tri.colors[2]          = tri.colors[0];
+        res_tri.light_intensity[2] = tri.light_intensity[0];
+        res_tri.normals[2]         = tri.normals[0];
+        res_tri.points[2]          = tri.points[0];
+        res_tri.tex_points[2]      = tri.tex_points[0];
+
+        ae_tri_set_normals(&res_tri);
+
+        mesh.elements[i] = res_tri;
     }
 }
 
@@ -2414,14 +2469,13 @@ Tri_mesh ae_tri_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Tri tri, in
     ae_assert_tri_is_valid(tri);
 
     Mat2D tri_normal = mat2D_alloc(3, 1);
-    Mat2D temp_camera2tri = mat2D_alloc(3, 1);
-    Mat2D camera2tri = mat2D_alloc(1, 3);
+    Mat2D camera2tri = mat2D_alloc(3, 1);
     Mat2D dot_product = mat2D_alloc(1, 1);
     Tri des_tri = tri;
 
-    ae_point_to_mat2D(tri.points[0], temp_camera2tri);
-    mat2D_sub(temp_camera2tri, scene->camera.current_position);
-    mat2D_transpose(camera2tri, temp_camera2tri);
+    ae_point_to_mat2D(tri.points[0], camera2tri);
+    mat2D_sub(camera2tri, scene->camera.current_position);
+    // mat2D_normalize(camera2tri);
 
     /* calc lighting intensity of tri */
     for (int i = 0; i < 3; i++) {
@@ -2431,12 +2485,13 @@ Tri_mesh ae_tri_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Tri tri, in
     }
 
     ae_tri_calc_normal(tri_normal, tri);
+
     /* calc if tri is visible to the camera */
-    MAT2D_AT(dot_product, 0, 0) = MAT2D_AT(camera2tri, 0, 0) * MAT2D_AT(tri_normal, 0, 0) + MAT2D_AT(camera2tri, 0, 1) * MAT2D_AT(tri_normal, 1, 0) + MAT2D_AT(camera2tri, 0, 2) * MAT2D_AT(tri_normal, 2, 0);
-    if (MAT2D_AT(dot_product, 0, 0) < 0) {
-        des_tri.to_draw = true;
-    } else {
+    MAT2D_AT(dot_product, 0, 0) = MAT2D_AT(camera2tri, 0, 0) * MAT2D_AT(tri_normal, 0, 0) + MAT2D_AT(camera2tri, 1, 0) * MAT2D_AT(tri_normal, 1, 0) + MAT2D_AT(camera2tri, 2, 0) * MAT2D_AT(tri_normal, 2, 0);
+    if (MAT2D_AT(dot_product, 0, 0) > 0) {
         des_tri.to_draw = false;
+    } else {
+        des_tri.to_draw = true;
     }
 
     /* transform tri to camera view */
@@ -2495,7 +2550,6 @@ Tri_mesh ae_tri_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Tri tri, in
 
 
     mat2D_free(tri_normal);
-    mat2D_free(temp_camera2tri);
     mat2D_free(camera2tri);
     mat2D_free(dot_product);
 
