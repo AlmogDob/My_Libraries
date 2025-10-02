@@ -20,22 +20,27 @@ void setup(game_state_t *game_state)
     quad1.points[1] = (Point){200, 700, 1, 1};
     quad1.points[0] = (Point){100, 300, 1, 1};
     quad1.to_draw = true;
-    quad1.light_intensity = 1;
-    quad1.colors[0] = 0xFFFFFF;
-    quad1.colors[1] = 0x0000FF;
-    quad1.colors[2] = 0x00FF00;
-    quad1.colors[3] = 0xFF0000;
+    quad1.light_intensity[0] = 1;
+    quad1.light_intensity[1] = 1;
+    quad1.light_intensity[2] = 1;
+    quad1.light_intensity[3] = 1;
+    quad1.colors[0] = 0xFFFFFFFF;
+    quad1.colors[1] = 0xFF0000FF;
+    quad1.colors[2] = 0xFF00FF00;
+    quad1.colors[3] = 0xFFFF0000;
 
     tri.points[2] = (Point){750 , 100, 1, 1};
     tri.points[1] = (Point){1250, 700, 1, 1};
     tri.points[0] = (Point){650 , 500, 1, 1};
     tri.to_draw = true;
-    tri.light_intensity = 1;
-    tri.colors[0] = 0xFFFFFF;
-    tri.colors[1] = 0x0000FF;
-    tri.colors[2] = 0x00FF00;
+    tri.light_intensity[0] = 1;
+    tri.light_intensity[1] = 1;
+    tri.light_intensity[2] = 1;
+    tri.colors[0] = 0xFFFFFFFF;
+    tri.colors[1] = 0xFF0000FF;
+    tri.colors[2] = 0xFF00FF00;
 
-    SDL_Delay(1);
+    SDL_Delay(5);
 
 }
 
@@ -47,10 +52,10 @@ void update(game_state_t *game_state)
 void render(game_state_t *game_state)
 {
     adl_quad_fill_interpolate_color_mean_value(game_state->window_pixels_mat, game_state->inv_z_buffer_mat, quad1, game_state->offset_zoom_param);
-    adl_quad_draw(game_state->window_pixels_mat, game_state->inv_z_buffer_mat, quad1, 0, game_state->offset_zoom_param);
+    adl_quad_draw(game_state->window_pixels_mat, game_state->inv_z_buffer_mat, quad1, 0xFF000000, game_state->offset_zoom_param);
 
     adl_tri_fill_Pinedas_rasterizer_interpolate_color(game_state->window_pixels_mat, game_state->inv_z_buffer_mat, tri, game_state->offset_zoom_param);
-    adl_tri_draw(game_state->window_pixels_mat, tri, 0, game_state->offset_zoom_param);
+    adl_tri_draw(game_state->window_pixels_mat, tri, 0xff000000, game_state->offset_zoom_param);
 
     #if 0
     Mat2D inv_z_buffer = game_state->inv_z_buffer_mat;

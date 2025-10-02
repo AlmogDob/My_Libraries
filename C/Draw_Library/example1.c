@@ -41,19 +41,19 @@ void setup(game_state_t *game_state)
     temp_point = (Point){3.5,-10,0,0};
     ada_appand(Point, points1, temp_point);
 
-    figure1.background_color = 0xFFFFFF;
+    figure1.background_color = 0xFFFFFFFF;
     figure1.to_draw_axis = true;
     figure1.to_draw_max_min_values = true;
 
-    figure2.background_color = 0xFFFFFF;
+    figure2.background_color = 0xFFFFFFFF;
     figure2.to_draw_axis = true;
     figure2.to_draw_max_min_values = true;
 
-    adl_curve_add_to_figure(&figure1, points.elements, points.length, 0xFF0000);
-    adl_curve_add_to_figure(&figure2, points.elements, points.length, 0xFF0000);
+    adl_curve_add_to_figure(&figure1, points.elements, points.length, 0xFFFF0000);
+    adl_curve_add_to_figure(&figure2, points.elements, points.length, 0xFFFF0000);
        
-    adl_curve_add_to_figure(&figure1, points1.elements, points1.length, 0x0000FF);
-    adl_curve_add_to_figure(&figure2, points1.elements, points1.length, 0x0000FF);
+    adl_curve_add_to_figure(&figure1, points1.elements, points1.length, 0xFF0000FF);
+    adl_curve_add_to_figure(&figure2, points1.elements, points1.length, 0xFF0000FF);
 
 }
 
@@ -70,44 +70,44 @@ void render(game_state_t *game_state)
     adl_figure_copy_to_screen(game_state->window_pixels_mat, figure2);
 
 
-    adl_character_draw(game_state->window_pixels_mat, 'A', 50, 100, 700 , 200, 0xFFFFFF, ADL_DEFAULT_OFFSET_ZOOM);
-    adl_character_draw(game_state->window_pixels_mat, 'B', 50, 100, 755 , 200, 0xFFFFFF, ADL_DEFAULT_OFFSET_ZOOM);
-    adl_character_draw(game_state->window_pixels_mat, 'C', 50, 100, 810 , 200, 0xFFFFFF, ADL_DEFAULT_OFFSET_ZOOM);
-    adl_character_draw(game_state->window_pixels_mat, 'D', 50, 100, 865 , 200, 0xFFFFFF, ADL_DEFAULT_OFFSET_ZOOM);
-    adl_character_draw(game_state->window_pixels_mat, 'E', 50, 100, 920 , 200, 0xFFFFFF, ADL_DEFAULT_OFFSET_ZOOM);
-    adl_character_draw(game_state->window_pixels_mat, 'F', 50, 100, 975 , 200, 0xFFFFFF, ADL_DEFAULT_OFFSET_ZOOM);
-    adl_character_draw(game_state->window_pixels_mat, 'G', 50, 100, 1030, 200, 0xFFFFFF, ADL_DEFAULT_OFFSET_ZOOM);
-    adl_character_draw(game_state->window_pixels_mat, 'H', 50, 100, 1085, 200, 0xFFFFFF, ADL_DEFAULT_OFFSET_ZOOM);
-    adl_character_draw(game_state->window_pixels_mat, 'I', 50, 100, 1140, 200, 0xFFFFFF, ADL_DEFAULT_OFFSET_ZOOM);
-    adl_character_draw(game_state->window_pixels_mat, 'J', 50, 100, 1195, 200, 0xFFFFFF, ADL_DEFAULT_OFFSET_ZOOM);
-    adl_character_draw(game_state->window_pixels_mat, 'K', 50, 100, 700 , 305, 0xFFFFFF, ADL_DEFAULT_OFFSET_ZOOM);
-    adl_character_draw(game_state->window_pixels_mat, 'L', 50, 100, 755 , 305, 0xFFFFFF, ADL_DEFAULT_OFFSET_ZOOM);
-    adl_character_draw(game_state->window_pixels_mat, 'M', 50, 100, 810 , 305, 0xFFFFFF, ADL_DEFAULT_OFFSET_ZOOM);
-    adl_character_draw(game_state->window_pixels_mat, 'N', 50, 100, 865 , 305, 0xFFFFFF, ADL_DEFAULT_OFFSET_ZOOM);
-    adl_character_draw(game_state->window_pixels_mat, 'O', 50, 100, 920 , 305, 0xFFFFFF, ADL_DEFAULT_OFFSET_ZOOM);
-    adl_character_draw(game_state->window_pixels_mat, 'P', 50, 100, 975 , 305, 0xFFFFFF, ADL_DEFAULT_OFFSET_ZOOM);
-    adl_character_draw(game_state->window_pixels_mat, 'Q', 50, 100, 1030, 305, 0xFFFFFF, ADL_DEFAULT_OFFSET_ZOOM);
-    adl_character_draw(game_state->window_pixels_mat, 'R', 50, 100, 1085, 305, 0xFFFFFF, ADL_DEFAULT_OFFSET_ZOOM);
-    adl_character_draw(game_state->window_pixels_mat, 'S', 50, 100, 1140, 305, 0xFFFFFF, ADL_DEFAULT_OFFSET_ZOOM);
-    adl_character_draw(game_state->window_pixels_mat, 'T', 50, 100, 1195, 305, 0xFFFFFF, ADL_DEFAULT_OFFSET_ZOOM);
-    adl_character_draw(game_state->window_pixels_mat, 'U', 50, 100, 700 , 410, 0xFFFFFF, ADL_DEFAULT_OFFSET_ZOOM);
-    adl_character_draw(game_state->window_pixels_mat, 'V', 50, 100, 755 , 410, 0xFFFFFF, ADL_DEFAULT_OFFSET_ZOOM);
-    adl_character_draw(game_state->window_pixels_mat, 'W', 50, 100, 810 , 410, 0xFFFFFF, ADL_DEFAULT_OFFSET_ZOOM);
-    adl_character_draw(game_state->window_pixels_mat, 'X', 50, 100, 865 , 410, 0xFFFFFF, ADL_DEFAULT_OFFSET_ZOOM);
-    adl_character_draw(game_state->window_pixels_mat, 'Y', 50, 100, 920 , 410, 0xFFFFFF, ADL_DEFAULT_OFFSET_ZOOM);
-    adl_character_draw(game_state->window_pixels_mat, 'Z', 50, 100, 975 , 410, 0xFFFFFF, ADL_DEFAULT_OFFSET_ZOOM);
-    adl_character_draw(game_state->window_pixels_mat, '.', 50, 100, 1030, 410, 0xFFFFFF, ADL_DEFAULT_OFFSET_ZOOM);
-    adl_character_draw(game_state->window_pixels_mat, ':', 50, 100, 1085, 410, 0xFFFFFF, ADL_DEFAULT_OFFSET_ZOOM);
-    adl_character_draw(game_state->window_pixels_mat, '0', 50, 100, 700 , 515, 0xFFFFFF, ADL_DEFAULT_OFFSET_ZOOM);
-    adl_character_draw(game_state->window_pixels_mat, '1', 50, 100, 755 , 515, 0xFFFFFF, ADL_DEFAULT_OFFSET_ZOOM);
-    adl_character_draw(game_state->window_pixels_mat, '2', 50, 100, 810 , 515, 0xFFFFFF, ADL_DEFAULT_OFFSET_ZOOM);
-    adl_character_draw(game_state->window_pixels_mat, '3', 50, 100, 865 , 515, 0xFFFFFF, ADL_DEFAULT_OFFSET_ZOOM);
-    adl_character_draw(game_state->window_pixels_mat, '4', 50, 100, 920 , 515, 0xFFFFFF, ADL_DEFAULT_OFFSET_ZOOM);
-    adl_character_draw(game_state->window_pixels_mat, '5', 50, 100, 975 , 515, 0xFFFFFF, ADL_DEFAULT_OFFSET_ZOOM);
-    adl_character_draw(game_state->window_pixels_mat, '6', 50, 100, 1030, 515, 0xFFFFFF, ADL_DEFAULT_OFFSET_ZOOM);
-    adl_character_draw(game_state->window_pixels_mat, '7', 50, 100, 1085, 515, 0xFFFFFF, ADL_DEFAULT_OFFSET_ZOOM);
-    adl_character_draw(game_state->window_pixels_mat, '8', 50, 100, 1140, 515, 0xFFFFFF, ADL_DEFAULT_OFFSET_ZOOM);
-    adl_character_draw(game_state->window_pixels_mat, '9', 50, 100, 1195, 515, 0xFFFFFF, ADL_DEFAULT_OFFSET_ZOOM);
+    adl_character_draw(game_state->window_pixels_mat, 'A', 50, 100, 700 , 200, 0xFFFFFFFF, ADL_DEFAULT_OFFSET_ZOOM);
+    adl_character_draw(game_state->window_pixels_mat, 'B', 50, 100, 755 , 200, 0xFFFFFFFF, ADL_DEFAULT_OFFSET_ZOOM);
+    adl_character_draw(game_state->window_pixels_mat, 'C', 50, 100, 810 , 200, 0xFFFFFFFF, ADL_DEFAULT_OFFSET_ZOOM);
+    adl_character_draw(game_state->window_pixels_mat, 'D', 50, 100, 865 , 200, 0xFFFFFFFF, ADL_DEFAULT_OFFSET_ZOOM);
+    adl_character_draw(game_state->window_pixels_mat, 'E', 50, 100, 920 , 200, 0xFFFFFFFF, ADL_DEFAULT_OFFSET_ZOOM);
+    adl_character_draw(game_state->window_pixels_mat, 'F', 50, 100, 975 , 200, 0xFFFFFFFF, ADL_DEFAULT_OFFSET_ZOOM);
+    adl_character_draw(game_state->window_pixels_mat, 'G', 50, 100, 1030, 200, 0xFFFFFFFF, ADL_DEFAULT_OFFSET_ZOOM);
+    adl_character_draw(game_state->window_pixels_mat, 'H', 50, 100, 1085, 200, 0xFFFFFFFF, ADL_DEFAULT_OFFSET_ZOOM);
+    adl_character_draw(game_state->window_pixels_mat, 'I', 50, 100, 1140, 200, 0xFFFFFFFF, ADL_DEFAULT_OFFSET_ZOOM);
+    adl_character_draw(game_state->window_pixels_mat, 'J', 50, 100, 1195, 200, 0xFFFFFFFF, ADL_DEFAULT_OFFSET_ZOOM);
+    adl_character_draw(game_state->window_pixels_mat, 'K', 50, 100, 700 , 305, 0xFFFFFFFF, ADL_DEFAULT_OFFSET_ZOOM);
+    adl_character_draw(game_state->window_pixels_mat, 'L', 50, 100, 755 , 305, 0xFFFFFFFF, ADL_DEFAULT_OFFSET_ZOOM);
+    adl_character_draw(game_state->window_pixels_mat, 'M', 50, 100, 810 , 305, 0xFFFFFFFF, ADL_DEFAULT_OFFSET_ZOOM);
+    adl_character_draw(game_state->window_pixels_mat, 'N', 50, 100, 865 , 305, 0xFFFFFFFF, ADL_DEFAULT_OFFSET_ZOOM);
+    adl_character_draw(game_state->window_pixels_mat, 'O', 50, 100, 920 , 305, 0xFFFFFFFF, ADL_DEFAULT_OFFSET_ZOOM);
+    adl_character_draw(game_state->window_pixels_mat, 'P', 50, 100, 975 , 305, 0xFFFFFFFF, ADL_DEFAULT_OFFSET_ZOOM);
+    adl_character_draw(game_state->window_pixels_mat, 'Q', 50, 100, 1030, 305, 0xFFFFFFFF, ADL_DEFAULT_OFFSET_ZOOM);
+    adl_character_draw(game_state->window_pixels_mat, 'R', 50, 100, 1085, 305, 0xFFFFFFFF, ADL_DEFAULT_OFFSET_ZOOM);
+    adl_character_draw(game_state->window_pixels_mat, 'S', 50, 100, 1140, 305, 0xFFFFFFFF, ADL_DEFAULT_OFFSET_ZOOM);
+    adl_character_draw(game_state->window_pixels_mat, 'T', 50, 100, 1195, 305, 0xFFFFFFFF, ADL_DEFAULT_OFFSET_ZOOM);
+    adl_character_draw(game_state->window_pixels_mat, 'U', 50, 100, 700 , 410, 0xFFFFFFFF, ADL_DEFAULT_OFFSET_ZOOM);
+    adl_character_draw(game_state->window_pixels_mat, 'V', 50, 100, 755 , 410, 0xFFFFFFFF, ADL_DEFAULT_OFFSET_ZOOM);
+    adl_character_draw(game_state->window_pixels_mat, 'W', 50, 100, 810 , 410, 0xFFFFFFFF, ADL_DEFAULT_OFFSET_ZOOM);
+    adl_character_draw(game_state->window_pixels_mat, 'X', 50, 100, 865 , 410, 0xFFFFFFFF, ADL_DEFAULT_OFFSET_ZOOM);
+    adl_character_draw(game_state->window_pixels_mat, 'Y', 50, 100, 920 , 410, 0xFFFFFFFF, ADL_DEFAULT_OFFSET_ZOOM);
+    adl_character_draw(game_state->window_pixels_mat, 'Z', 50, 100, 975 , 410, 0xFFFFFFFF, ADL_DEFAULT_OFFSET_ZOOM);
+    adl_character_draw(game_state->window_pixels_mat, '.', 50, 100, 1030, 410, 0xFFFFFFFF, ADL_DEFAULT_OFFSET_ZOOM);
+    adl_character_draw(game_state->window_pixels_mat, ':', 50, 100, 1085, 410, 0xFFFFFFFF, ADL_DEFAULT_OFFSET_ZOOM);
+    adl_character_draw(game_state->window_pixels_mat, '0', 50, 100, 700 , 515, 0xFFFFFFFF, ADL_DEFAULT_OFFSET_ZOOM);
+    adl_character_draw(game_state->window_pixels_mat, '1', 50, 100, 755 , 515, 0xFFFFFFFF, ADL_DEFAULT_OFFSET_ZOOM);
+    adl_character_draw(game_state->window_pixels_mat, '2', 50, 100, 810 , 515, 0xFFFFFFFF, ADL_DEFAULT_OFFSET_ZOOM);
+    adl_character_draw(game_state->window_pixels_mat, '3', 50, 100, 865 , 515, 0xFFFFFFFF, ADL_DEFAULT_OFFSET_ZOOM);
+    adl_character_draw(game_state->window_pixels_mat, '4', 50, 100, 920 , 515, 0xFFFFFFFF, ADL_DEFAULT_OFFSET_ZOOM);
+    adl_character_draw(game_state->window_pixels_mat, '5', 50, 100, 975 , 515, 0xFFFFFFFF, ADL_DEFAULT_OFFSET_ZOOM);
+    adl_character_draw(game_state->window_pixels_mat, '6', 50, 100, 1030, 515, 0xFFFFFFFF, ADL_DEFAULT_OFFSET_ZOOM);
+    adl_character_draw(game_state->window_pixels_mat, '7', 50, 100, 1085, 515, 0xFFFFFFFF, ADL_DEFAULT_OFFSET_ZOOM);
+    adl_character_draw(game_state->window_pixels_mat, '8', 50, 100, 1140, 515, 0xFFFFFFFF, ADL_DEFAULT_OFFSET_ZOOM);
+    adl_character_draw(game_state->window_pixels_mat, '9', 50, 100, 1195, 515, 0xFFFFFFFF, ADL_DEFAULT_OFFSET_ZOOM);
 
 }
 

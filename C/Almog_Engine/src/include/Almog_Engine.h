@@ -52,10 +52,13 @@ https://youtu.be/ih20l3pJoeU?si=CzQ8rjk5ZEOlqEHN. */
 #ifndef HexARGB_RGBA
 #define HexARGB_RGBA(x) ((x)>>(8*2)&0xFF), ((x)>>(8*1)&0xFF), ((x)>>(8*0)&0xFF), ((x)>>(8*3)&0xFF)
 #endif
-#ifndef HexARGB_RGBA_VAR
-#define HexARGB_RGBA_VAR(x) uint8_t r = ((x)>>(8*2)&0xFF); uint8_t g = ((x)>>(8*1)&0xFF); uint8_t b = ((x)>>(8*0)&0xFF); uint8_t a = ((x)>>(8*3)&0xFF)
+#ifndef HexARGB_RGB_VAR
+#define HexARGB_RGB_VAR(x, r, g, b) r = ((x)>>(8*2)&0xFF); g = ((x)>>(8*1)&0xFF); b = ((x)>>(8*0)&0xFF);
 #endif
-#define ARGB_hexARGB(a, r, g, b) 0x01000000*(a) + 0x00010000*(r) + 0x00000100*(g) + 0x00000001*(b)
+#ifndef HexARGB_RGBA_VAR
+#define HexARGB_RGBA_VAR(x, r, g, b, a) r = ((x)>>(8*2)&0xFF); g = ((x)>>(8*1)&0xFF); b = ((x)>>(8*0)&0xFF); a = ((x)>>(8*3)&0xFF)
+#endif
+#define ARGB_hexARGB(a, r, g, b) 0x01000000l*(uint8_t)(a) + 0x00010000*(uint8_t)(r) + 0x00000100*(uint8_t)(g) + 0x00000001*(uint8_t)(b)
 #ifndef RGB_hexRGB
 #define RGB_hexRGB(r, g, b) (int)(0x010000*(int)(r) + 0x000100*(int)(g) + 0x000001*(int)(b))
 #endif
@@ -73,7 +76,29 @@ https://youtu.be/ih20l3pJoeU?si=CzQ8rjk5ZEOlqEHN. */
         ae_assert_point_is_valid((quad).points[1]);                                 \
         ae_assert_point_is_valid((quad).points[2]);                                 \
         ae_assert_point_is_valid((quad).points[3])
+#define ae_point_normalize_xyz_norma(p, norma) (p).x = (p).x / norma;  \
+        (p).y = (p).y / norma;                        \
+        (p).z = (p).z / norma 
+#define ae_point_calc_norma(p) sqrt(((p).x * (p).x) + ((p).y * (p).y) + ((p).z * (p).z))
+#define ae_point_add_point(p, p1, p2) (p).x = (p1).x + (p2).x;  \
+        (p).y = (p1).y + (p2).y;                                \
+        (p).z = (p1).z + (p2).z;                                \
+        (p).w = (p1).w + (p2).w
+#define ae_point_sub_point(p, p1, p2) (p).x = (p1).x - (p2).x;  \
+        (p).y = (p1).y - (p2).y;                                \
+        (p).z = (p1).z - (p2).z;                                \
+        (p).w = (p1).w - (p2).w
+#define ae_point_dot_point(p1, p2) (((p1).x * (p2).x) + ((p1).y * (p2).y) + ((p1).z * (p2).z))
+#define ae_point_mult(p, const) (p).x *= const; \
+        (p).y *= const;                         \
+        (p).z *= const
 
+
+typedef enum {
+    AE_LIGHTING_FLAT,
+    AE_LIGHTING_SMOOTH,
+    AE_LIGHTING_MODE_LENGTH
+} Lighting_mode;
 
 #ifndef TRI_MESH_ARRAY
 #define TRI_MESH_ARRAY
@@ -111,6 +136,18 @@ typedef struct {
 } Camera;
 
 typedef struct {
+    Point light_direction_or_pos;
+    float light_intensity;
+} Light_source;
+
+typedef struct {
+    float specular_power_alpha;
+    float c_ambi;
+    float c_diff;
+    float c_spec;
+} Material;
+
+typedef struct {
     Tri_mesh_array in_world_tri_meshes;
     Tri_mesh_array projected_tri_meshes;
     Tri_mesh_array original_tri_meshes;
@@ -121,9 +158,11 @@ typedef struct {
 
     Camera camera;
     Mat2D up_direction;
-    Mat2D light_direction;
     Mat2D proj_mat;
     Mat2D view_mat;
+
+    Light_source light_source0;
+    Material material0;
 } Scene;
 
 Tri         ae_tri_create(Point p1, Point p2, Point p3);
@@ -136,6 +175,7 @@ void        ae_camera_reset_pos(Scene *scene);
 
 void        ae_point_to_mat2D(Point p, Mat2D m);
 Point       ae_mat2D_to_point(Mat2D m);
+
 Tri_mesh    ae_tri_mesh_get_from_obj_file(char *file_path);
 Tri_mesh    ae_tri_mesh_get_from_stl_file(char *file_path);
 Tri_mesh    ae_tri_mesh_get_from_file(char *file_path);
@@ -146,18 +186,24 @@ void        ae_print_points(Curve p);
 void        ae_print_tri(Tri tri, char *name, size_t padding);
 void        ae_print_tri_mesh(Tri_mesh mesh, char *name, size_t padding);
 
+Point       ae_point_normalize_xyz(Point p);
 void        ae_tri_set_normals(Tri *tri);
 Point       ae_tri_get_average_normal(Tri tri);
-void        ae_quad_set_normals(Quad *quad);
-Point       ae_quad_get_average_normal(Quad quad);
+Point       ae_tri_get_average_point(Tri tri);
 void        ae_tri_calc_normal(Mat2D normal, Tri tri);
-void        ae_quad_calc_normal(Mat2D normal, Quad quad);
 void        ae_tri_mesh_translate(Tri_mesh mesh, float x, float y, float z);
 void        ae_tri_mesh_rotate_Euler_xyz(Tri_mesh mesh, float phi_deg, float theta_deg, float psi_deg);
 void        ae_tri_mesh_set_bounding_box(Tri_mesh mesh, float *x_min, float *x_max, float *y_min, float *y_max, float *z_min, float *z_max);
 void        ae_tri_set_center_zmin_zmax(Tri *tri);
 void        ae_tri_mesh_normalize(Tri_mesh mesh);
 void        ae_tri_mesh_flip_normals(Tri_mesh mesh);
+void        ae_quad_set_normals(Quad *quad);
+Point       ae_quad_get_average_normal(Quad quad);
+Point       ae_quad_get_average_point(Quad quad);
+void        ae_quad_calc_normal(Mat2D normal, Quad quad);
+
+void        ae_tri_calc_light_intensity(Tri *tri, Scene *scene, Lighting_mode lighting_mode);
+void        ae_quad_calc_light_intensity(Quad *quad, Scene *scene, Lighting_mode lighting_mode);
 
 Point       ae_line_itersect_plane(Mat2D plane_p, Mat2D plane_n, Mat2D line_start, Mat2D line_end, float *t);
 int         ae_line_clip_with_plane(Point start_in, Point end_in, Mat2D plane_p, Mat2D plane_n, Point *start_out, Point *end_out);
@@ -172,11 +218,11 @@ Point       ae_point_project_world2view(Mat2D view_mat, Point src);
 Point       ae_point_project_view2screen(Mat2D proj_mat, Point src, int window_w, int window_h);
 void        ae_line_project_world2screen(Mat2D view_mat, Mat2D proj_mat, Point start_src, Point end_src, int window_w, int window_h, Point *start_des, Point *end_des, Scene *scene);
 Tri         ae_tri_transform_to_view(Mat2D view_mat, Tri tri);
+Tri_mesh    ae_tri_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Tri tri, int window_w, int window_h, Scene *scene, Lighting_mode lighting_mode);
+void        ae_tri_mesh_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Tri_mesh *des, Tri_mesh src, int window_w, int window_h, Scene *scene, Lighting_mode lighting_mode);
 Quad        ae_quad_transform_to_view(Mat2D view_mat, Quad quad);
-Tri_mesh    ae_tri_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Tri tri, int window_w, int window_h, Mat2D light_direction, Scene *scene);
-void        ae_tri_mesh_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Tri_mesh *des, Tri_mesh src, int window_w, int window_h, Mat2D light_direction, Scene *scene);
-Quad_mesh   ae_quad_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Quad quad, int window_w, int window_h, Mat2D light_direction, Scene *scene);
-void        ae_quad_mesh_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Quad_mesh *des, Quad_mesh src, int window_w, int window_h, Mat2D light_direction, Scene *scene);
+Quad_mesh   ae_quad_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Quad quad, int window_w, int window_h, Scene *scene, Lighting_mode lighting_mode);
+void        ae_quad_mesh_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Quad_mesh *des, Quad_mesh src, int window_w, int window_h, Scene *scene, Lighting_mode lighting_mode);
 void        ae_grid_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Grid des, Grid src, int window_w, int window_h, Scene *scene);
 
 void        ae_tri_swap(Tri *v, int i, int j);
@@ -234,6 +280,7 @@ Tri_mesh ae_cube_create_tri_mesh(const size_t len, uint32_t color)
         .to_draw = true,
         .colors = {color, color, color},
     };
+    ae_tri_set_normals(&tri1);
     ada_appand(Tri, cube, tri1);
     Tri tri2 = {
         .points[0].x = len,
@@ -250,6 +297,7 @@ Tri_mesh ae_cube_create_tri_mesh(const size_t len, uint32_t color)
         .to_draw = true,
         .colors = {color, color, color},
     };
+    ae_tri_set_normals(&tri2);
     ada_appand(Tri, cube, tri2);
     Tri tri3 = { /* north */
         .points[0].x = len,
@@ -266,6 +314,7 @@ Tri_mesh ae_cube_create_tri_mesh(const size_t len, uint32_t color)
         .to_draw = true,
         .colors = {color, color, color},
     };
+    ae_tri_set_normals(&tri3);
     ada_appand(Tri, cube, tri3);
     Tri tri4 = {
         .points[0].x = len,
@@ -282,6 +331,7 @@ Tri_mesh ae_cube_create_tri_mesh(const size_t len, uint32_t color)
         .to_draw = true,
         .colors = {color, color, color},
     };
+    ae_tri_set_normals(&tri4);
     ada_appand(Tri, cube, tri4);
     Tri tri5 = { /* east */
         .points[0].x = len,
@@ -298,6 +348,7 @@ Tri_mesh ae_cube_create_tri_mesh(const size_t len, uint32_t color)
         .to_draw = true,
         .colors = {color, color, color},
     };
+    ae_tri_set_normals(&tri5);
     ada_appand(Tri, cube, tri5);
     Tri tri6 = {
         .points[0].x = len,
@@ -314,6 +365,7 @@ Tri_mesh ae_cube_create_tri_mesh(const size_t len, uint32_t color)
         .to_draw = true,
         .colors = {color, color, color},
     };
+    ae_tri_set_normals(&tri6);
     ada_appand(Tri, cube, tri6);
     Tri tri7 = { /* west */
         .points[0].x = 0,
@@ -330,6 +382,7 @@ Tri_mesh ae_cube_create_tri_mesh(const size_t len, uint32_t color)
         .to_draw = true,
         .colors = {color, color, color},
     };
+    ae_tri_set_normals(&tri7);
     ada_appand(Tri, cube, tri7);
     Tri tri8 = {
         .points[0].x = 0,
@@ -346,6 +399,7 @@ Tri_mesh ae_cube_create_tri_mesh(const size_t len, uint32_t color)
         .to_draw = true,
         .colors = {color, color, color},
     };
+    ae_tri_set_normals(&tri8);
     ada_appand(Tri, cube, tri8);
     Tri tri9 = { /* top */
         .points[0].x = 0,
@@ -362,6 +416,7 @@ Tri_mesh ae_cube_create_tri_mesh(const size_t len, uint32_t color)
         .to_draw = true,
         .colors = {color, color, color},
     };
+    ae_tri_set_normals(&tri9);
     ada_appand(Tri, cube, tri9);
     Tri tri10 = {
         .points[0].x = 0,
@@ -378,6 +433,7 @@ Tri_mesh ae_cube_create_tri_mesh(const size_t len, uint32_t color)
         .to_draw = true,
         .colors = {color, color, color},
     };
+    ae_tri_set_normals(&tri10);
     ada_appand(Tri, cube, tri10);
     Tri tri11 = { /* bottom */
         .points[0].x = len,
@@ -394,6 +450,7 @@ Tri_mesh ae_cube_create_tri_mesh(const size_t len, uint32_t color)
         .to_draw = true,
         .colors = {color, color, color},
     };
+    ae_tri_set_normals(&tri11);
     ada_appand(Tri, cube, tri11);
     Tri tri12 = {
         .points[0].x = len,
@@ -410,6 +467,7 @@ Tri_mesh ae_cube_create_tri_mesh(const size_t len, uint32_t color)
         .to_draw = true,
         .colors = {color, color, color},
     };
+    ae_tri_set_normals(&tri12);
     ada_appand(Tri, cube, tri12);
     
     return cube;
@@ -462,11 +520,17 @@ Scene ae_scene_init(int window_h, int window_w)
     mat2D_fill(scene.up_direction, 0);
     MAT2D_AT(scene.up_direction, 1, 0) = 1;
 
-    scene.light_direction = mat2D_alloc(3, 1);
-    mat2D_fill(scene.light_direction, 0);
-    MAT2D_AT(scene.light_direction, 1, 0) = -1;
-    MAT2D_AT(scene.light_direction, 2, 0) = -1;
-    mat2D_normalize(scene.light_direction);
+    scene.light_source0.light_direction_or_pos.x = 0.5;
+    scene.light_source0.light_direction_or_pos.y = 1;
+    scene.light_source0.light_direction_or_pos.z = 1;
+    scene.light_source0.light_direction_or_pos.w = 0;
+    scene.light_source0.light_direction_or_pos = ae_point_normalize_xyz(scene.light_source0.light_direction_or_pos);
+    scene.light_source0.light_intensity = 1;
+
+    scene.material0.specular_power_alpha = 1;
+    scene.material0.c_ambi = 0.2;
+    scene.material0.c_diff = 0.6;
+    scene.material0.c_spec = 0.2;
 
     scene.proj_mat = mat2D_alloc(4, 4);
     ae_projection_mat_set(scene.proj_mat, scene.camera.aspect_ratio, scene.camera.fov_deg, scene.camera.z_near, scene.camera.z_far);
@@ -751,9 +815,9 @@ Tri_mesh ae_tri_mesh_get_from_stl_file(char *file_path)
         fread(&(temp_tri.normals[0].y), STL_NUM_SIZE, 1, file);
         fread(&(temp_tri.normals[0].z), STL_NUM_SIZE, 1, file);
 
-        // temp_tri.normals[0].x = - temp_tri.normals[0].x;
-        // temp_tri.normals[0].y = - temp_tri.normals[0].y;
-        // temp_tri.normals[0].z = - temp_tri.normals[0].z;
+        temp_tri.normals[0].x = - temp_tri.normals[0].x;
+        temp_tri.normals[0].y = - temp_tri.normals[0].y;
+        temp_tri.normals[0].z = - temp_tri.normals[0].z;
 
         temp_tri.normals[1] = temp_tri.normals[0];
         temp_tri.normals[2] = temp_tri.normals[0];
@@ -761,17 +825,14 @@ Tri_mesh ae_tri_mesh_get_from_stl_file(char *file_path)
         fread(&(temp_tri.points[0].x), STL_NUM_SIZE, 1, file);
         fread(&(temp_tri.points[0].y), STL_NUM_SIZE, 1, file);
         fread(&(temp_tri.points[0].z), STL_NUM_SIZE, 1, file);
-        temp_tri.points[0].w = 1;
 
         fread(&(temp_tri.points[1].x), STL_NUM_SIZE, 1, file);
         fread(&(temp_tri.points[1].y), STL_NUM_SIZE, 1, file);
         fread(&(temp_tri.points[1].z), STL_NUM_SIZE, 1, file);
-        temp_tri.points[1].w = 1;
         
         fread(&(temp_tri.points[2].x), STL_NUM_SIZE, 1, file);
         fread(&(temp_tri.points[2].y), STL_NUM_SIZE, 1, file);
         fread(&(temp_tri.points[2].z), STL_NUM_SIZE, 1, file);
-        temp_tri.points[2].w = 1;
 
         fseek(file, STL_ATTRIBUTE_BITS_SIZE, SEEK_CUR);
 
@@ -788,7 +849,7 @@ Tri_mesh ae_tri_mesh_get_from_stl_file(char *file_path)
         temp_tri.colors[1] = 0xFFFFFFFF;
         temp_tri.colors[2] = 0xFFFFFFFF;
 
-        ae_tri_set_normals(&temp_tri);
+        // ae_tri_set_normals(&temp_tri);
 
         ada_appand(Tri, mesh, temp_tri);
     }
@@ -888,17 +949,8 @@ void ae_print_points(Curve p)
 void ae_print_tri(Tri tri, char *name, size_t padding)
 {
     printf("%*s%s:\n", (int) padding, "", name);
-    printf("%*spoints:\n", (int) padding, "");
-    printf("%*s    (%f, %f, %f, %f)\n%*s    (%f, %f, %f, %f)\n%*s    (%f, %f, %f, %f)\n", (int) padding, "", tri.points[0].x, tri.points[0].y, tri.points[0].z, tri.points[0].w, (int) padding, "", tri.points[1].x, tri.points[1].y, tri.points[1].z, tri.points[1].w, (int) padding, "", tri.points[2].x, tri.points[2].y, tri.points[2].z, tri.points[2].w);
-    printf("%*stex_points:\n", (int) padding, "");
-    printf("%*s    (%f, %f, %f, %f)\n%*s    (%f, %f, %f, %f)\n%*s    (%f, %f, %f, %f)\n", (int) padding, "", tri.tex_points[0].x, tri.tex_points[0].y, tri.tex_points[0].z, tri.tex_points[0].w, (int) padding, "", tri.tex_points[1].x, tri.tex_points[1].y, tri.tex_points[1].z, tri.tex_points[1].w, (int) padding, "", tri.tex_points[2].x, tri.tex_points[2].y, tri.tex_points[2].z, tri.tex_points[2].w);
-    printf("%*snormals:\n", (int) padding, "");
-    printf("%*s    (%f, %f, %f)\n%*s    (%f, %f, %f)\n%*s    (%f, %f, %f)\n", (int) padding, "", tri.normals[0].x, tri.normals[0].y, tri.normals[0].z, (int) padding, "", tri.normals[1].x, tri.normals[1].y, tri.normals[1].z, (int) padding, "", tri.normals[2].x, tri.normals[2].y, tri.normals[2].z);
-    printf("%*scolors:\n", (int) padding, "");
-    printf("%*s    (%X)\n%*s    (%X)\n%*s    (%X)\n", (int) padding, "", tri.colors[0], (int) padding, "", tri.colors[1], (int) padding, "", tri.colors[2]);
-    printf("%*slight_intensity:\n", (int) padding, "");
-    printf("%*s    (%f)\n%*s    (%f)\n%*s    (%f)\n", (int) padding, "", tri.light_intensity[0], (int) padding, "", tri.light_intensity[1], (int) padding, "", tri.light_intensity[2]);
-    printf("%*sdraw? %d\n", (int)padding, "", tri.to_draw);
+    printf("%*s    (%f, %f, %f)\n%*s    (%f, %f, %f)\n%*s    (%f, %f, %f)\n", (int) padding, "", tri.points[0].x, tri.points[0].y, tri.points[0].z, (int) padding, "", tri.points[1].x, tri.points[1].y, tri.points[1].z, (int) padding, "", tri.points[2].x, tri.points[2].y, tri.points[2].z);
+    printf("%*s    draw? %d\n", (int)padding, "", tri.to_draw);
 }
 
 void ae_print_tri_mesh(Tri_mesh mesh, char *name, size_t padding)
@@ -909,6 +961,20 @@ void ae_print_tri_mesh(Tri_mesh mesh, char *name, size_t padding)
         snprintf(tri_name, 256, "tri %zu", i);
         ae_print_tri(mesh.elements[i], tri_name, 4);
     }
+}
+
+Point ae_point_normalize_xyz(Point p)
+{
+    Point res = {0};
+
+    float norma = ae_point_calc_norma(p);
+
+    res.x = p.x / norma;
+    res.y = p.y / norma;
+    res.z = p.z / norma;
+    res.w = p.w;
+
+    return res;
 }
 
 void ae_tri_set_normals(Tri *tri)
@@ -932,11 +998,6 @@ void ae_tri_set_normals(Tri *tri)
         mat2D_sub(point, to_p);
 
         mat2D_copy(to_p, point);
-
-        mat2D_normalize(to_p);
-        mat2D_normalize(from_p);
-
-        // mat2D_mult(to_p, -1);
 
         mat2D_cross(normal, to_p, from_p);
         // mat2D_cross(normal, from_p, to_p);
@@ -963,56 +1024,20 @@ Point ae_tri_get_average_normal(Tri tri)
     res.z = (normal0.z + normal1.z + normal2.z) / 3;
     res.w = (normal0.w + normal1.w + normal2.w) / 3;
 
-    return res;
+    return ae_point_normalize_xyz(res);
 }
 
-void ae_quad_set_normals(Quad *quad)
+Point ae_tri_get_average_point(Tri tri)
 {
-    ae_assert_quad_is_valid(*quad);
-
-    Mat2D point  = mat2D_alloc(3, 1);
-    Mat2D to_p   = mat2D_alloc(3, 1);
-    Mat2D from_p = mat2D_alloc(3, 1);
-    Mat2D normal = mat2D_alloc(3, 1);
-
-    for (int i = 0; i < 4; i++) {
-        int current_index  = i;
-        int next_index     = (i + 1) % 4;
-        int previous_index = (i - 1 + 4) % 4;
-        ae_point_to_mat2D(quad->points[current_index], point);
-        ae_point_to_mat2D(quad->points[next_index], from_p);
-        ae_point_to_mat2D(quad->points[previous_index], to_p);
-
-        mat2D_sub(from_p, point);
-        mat2D_sub(point, to_p);
-
-        mat2D_copy(to_p, point);
-
-        mat2D_cross(normal, to_p, from_p);
-        mat2D_normalize(normal);
-
-        quad->normals[current_index] = ae_mat2D_to_point(normal);
-    }
-
-    mat2D_free(point);
-    mat2D_free(to_p);
-    mat2D_free(from_p);
-    mat2D_free(normal);
-
-}
-
-Point ae_quad_get_average_normal(Quad quad)
-{
-    Point normal0 = quad.normals[0];
-    Point normal1 = quad.normals[1];
-    Point normal2 = quad.normals[2];
-    Point normal3 = quad.normals[3];
+    Point point0 = tri.points[0];
+    Point point1 = tri.points[1];
+    Point point2 = tri.points[2];
 
     Point res;
-    res.x = (normal0.x + normal1.x + normal2.x + normal3.x) / 4;
-    res.y = (normal0.y + normal1.y + normal2.y + normal3.y) / 4;
-    res.z = (normal0.z + normal1.z + normal2.z + normal3.z) / 4;
-    res.w = (normal0.w + normal1.w + normal2.w + normal3.w) / 4;
+    res.x = (point0.x + point1.x + point2.x) / 3;
+    res.y = (point0.y + point1.y + point2.y) / 3;
+    res.z = (point0.z + point1.z + point2.z) / 3;
+    res.w = (point0.w + point1.w + point2.w) / 3;
 
     return res;
 }
@@ -1029,34 +1054,6 @@ void ae_tri_calc_normal(Mat2D normal, Tri tri)
     ae_point_to_mat2D(tri.points[0], a);
     ae_point_to_mat2D(tri.points[1], b);
     ae_point_to_mat2D(tri.points[2], c);
-
-    mat2D_sub(b, a);
-    mat2D_sub(c, a);
-
-    mat2D_normalize(b);
-    mat2D_normalize(c);
-
-    mat2D_cross(normal, c, b);
-
-    mat2D_mult(normal, 1/mat2D_calc_norma(normal));
-
-    mat2D_free(a);
-    mat2D_free(b);
-    mat2D_free(c);
-}
-
-void ae_quad_calc_normal(Mat2D normal, Quad quad)
-{
-    AE_ASSERT(3 == normal.rows && 1 == normal.cols);
-    ae_assert_quad_is_valid(quad);
-
-    Mat2D a = mat2D_alloc(3, 1);
-    Mat2D b = mat2D_alloc(3, 1);
-    Mat2D c = mat2D_alloc(3, 1);
-
-    ae_point_to_mat2D(quad.points[0], a);
-    ae_point_to_mat2D(quad.points[1], b);
-    ae_point_to_mat2D(quad.points[2], c);
 
     mat2D_sub(b, a);
     mat2D_sub(c, a);
@@ -1234,6 +1231,266 @@ void ae_tri_mesh_flip_normals(Tri_mesh mesh)
         ae_tri_set_normals(&res_tri);
 
         mesh.elements[i] = res_tri;
+    }
+}
+
+void ae_quad_set_normals(Quad *quad)
+{
+    ae_assert_quad_is_valid(*quad);
+
+    Mat2D point  = mat2D_alloc(3, 1);
+    Mat2D to_p   = mat2D_alloc(3, 1);
+    Mat2D from_p = mat2D_alloc(3, 1);
+    Mat2D normal = mat2D_alloc(3, 1);
+
+    for (int i = 0; i < 4; i++) {
+        int current_index  = i;
+        int next_index     = (i + 1) % 4;
+        int previous_index = (i - 1 + 4) % 4;
+        ae_point_to_mat2D(quad->points[current_index], point);
+        ae_point_to_mat2D(quad->points[next_index], from_p);
+        ae_point_to_mat2D(quad->points[previous_index], to_p);
+
+        mat2D_sub(from_p, point);
+        mat2D_sub(point, to_p);
+
+        mat2D_copy(to_p, point);
+
+        mat2D_cross(normal, to_p, from_p);
+        mat2D_normalize(normal);
+
+        quad->normals[current_index] = ae_mat2D_to_point(normal);
+    }
+
+    mat2D_free(point);
+    mat2D_free(to_p);
+    mat2D_free(from_p);
+    mat2D_free(normal);
+
+}
+
+Point ae_quad_get_average_normal(Quad quad)
+{
+    Point normal0 = quad.normals[0];
+    Point normal1 = quad.normals[1];
+    Point normal2 = quad.normals[2];
+    Point normal3 = quad.normals[3];
+
+    Point res;
+    res.x = (normal0.x + normal1.x + normal2.x + normal3.x) / 4;
+    res.y = (normal0.y + normal1.y + normal2.y + normal3.y) / 4;
+    res.z = (normal0.z + normal1.z + normal2.z + normal3.z) / 4;
+    res.w = (normal0.w + normal1.w + normal2.w + normal3.w) / 4;
+
+    res = ae_point_normalize_xyz(res);
+
+    return res;
+}
+
+Point ae_quad_get_average_point(Quad quad)
+{
+    Point point0 = quad.points[0];
+    Point point1 = quad.points[1];
+    Point point2 = quad.points[2];
+    Point point3 = quad.points[3];
+
+    Point res;
+    res.x = (point0.x + point1.x + point2.x + point3.x) / 4;
+    res.y = (point0.y + point1.y + point2.y + point3.y) / 4;
+    res.z = (point0.z + point1.z + point2.z + point3.z) / 4;
+    res.w = (point0.w + point1.w + point2.w + point3.w) / 4;
+
+    return res;
+}
+
+void ae_quad_calc_normal(Mat2D normal, Quad quad)
+{
+    AE_ASSERT(3 == normal.rows && 1 == normal.cols);
+    ae_assert_quad_is_valid(quad);
+
+    Mat2D a = mat2D_alloc(3, 1);
+    Mat2D b = mat2D_alloc(3, 1);
+    Mat2D c = mat2D_alloc(3, 1);
+
+    ae_point_to_mat2D(quad.points[0], a);
+    ae_point_to_mat2D(quad.points[1], b);
+    ae_point_to_mat2D(quad.points[2], c);
+
+    mat2D_sub(b, a);
+    mat2D_sub(c, a);
+
+    mat2D_cross(normal, b, c);
+
+    mat2D_mult(normal, 1/mat2D_calc_norma(normal));
+
+    mat2D_free(a);
+    mat2D_free(b);
+    mat2D_free(c);
+}
+
+void ae_tri_calc_light_intensity(Tri *tri, Scene *scene, Lighting_mode lighting_mode)
+{
+    /* based on the lighting model described in: 'Alexandru C. Telea-Data Visualization_ Principles and Practice-A K Peters_CRC Press (2014)' Pg.29 */
+    Point L = {0};
+    Point r = {0};
+    Point v = {0};
+    Point mL = {0};
+    Point pml = {0};
+    Point mLn2n = {0};
+    Point ave_norm = ae_tri_get_average_normal(*tri);
+    Point camera_pos = ae_mat2D_to_point(scene->camera.current_position);
+
+    float c_ambi = scene->material0.c_ambi;
+    float c_diff = scene->material0.c_diff;
+    float c_spec = scene->material0.c_spec;
+    float alpha  = scene->material0.specular_power_alpha;
+
+    switch (lighting_mode) {
+    case AE_LIGHTING_FLAT:
+        for (int i = 0; i < 3; i++) {
+            if (scene->light_source0.light_direction_or_pos.w == 0) {
+                L = scene->light_source0.light_direction_or_pos;
+                L = ae_point_normalize_xyz(L);
+                mL = L;
+                ae_point_mult(mL, -1);
+            } else {
+                Point l = scene->light_source0.light_direction_or_pos;
+                Point p = tri->points[i];
+                ae_point_sub_point(pml, p, l);
+                pml = ae_point_normalize_xyz(pml);
+                L = pml;
+                L.w = 0;
+                mL = L;
+                ae_point_mult(mL, -1);
+            }
+            
+            ae_point_sub_point(v, camera_pos, ae_tri_get_average_point(*tri));
+            float mL_dot_norm = ae_point_dot_point(mL, ave_norm);
+            mLn2n = ave_norm;
+            ae_point_mult(mLn2n, 2 * mL_dot_norm);
+            ae_point_add_point(r, L, mLn2n);
+            
+            tri->light_intensity[i] = c_ambi + scene->light_source0.light_intensity * (c_diff * fmaxf(mL_dot_norm, 0) + c_spec * powf(fmaxf(ae_point_dot_point(r, v), 0), alpha));
+        }
+        break;
+    case AE_LIGHTING_SMOOTH:
+        for (int i = 0; i < 3; i++) {
+            if (scene->light_source0.light_direction_or_pos.w == 0) {
+                L = scene->light_source0.light_direction_or_pos;
+                L = ae_point_normalize_xyz(L);
+                mL = L;
+                ae_point_mult(mL, -1);
+            } else {
+                Point l = scene->light_source0.light_direction_or_pos;
+                Point p = tri->points[i];
+                ae_point_sub_point(pml, p, l);
+                pml = ae_point_normalize_xyz(pml);
+                L = pml;
+                L.w = 0;
+                mL = L;
+                ae_point_mult(mL, -1);
+            }
+            ae_point_sub_point(v, camera_pos, tri->points[i]);
+            float mL_dot_norm = ae_point_dot_point(mL, tri->normals[i]);
+            mLn2n = tri->normals[i];
+            ae_point_mult(mLn2n, 2 * mL_dot_norm);
+            ae_point_add_point(r, L, mLn2n);
+            
+            tri->light_intensity[i] = c_ambi + scene->light_source0.light_intensity * (c_diff * fmaxf(mL_dot_norm, 0) + c_spec * powf(fmaxf(ae_point_dot_point(r, v), 0), alpha));
+        }
+        break;
+    default:
+        for (int i = 0; i < 3; i++) {
+            tri->light_intensity[i] = 1;
+        }
+        break;
+    }
+
+    for (int i = 0; i < 3; i++) {
+        tri->light_intensity[i] = fminf(1, fmaxf(0, tri->light_intensity[i]));
+    }
+}
+
+void ae_quad_calc_light_intensity(Quad *quad, Scene *scene, Lighting_mode lighting_mode)
+{
+    /* based on the lighting model described in: 'Alexandru C. Telea-Data Visualization_ Principles and Practice-A K Peters_CRC Press (2014)' Pg.29 */
+    Point L = {0};
+    Point r = {0};
+    Point v = {0};
+    Point mL = {0};
+    Point pml = {0};
+    Point mLn2n = {0};
+    Point ave_norm = ae_quad_get_average_normal(*quad);
+    Point camera_pos = ae_mat2D_to_point(scene->camera.current_position);
+
+    float c_ambi = scene->material0.c_ambi;
+    float c_diff = scene->material0.c_diff;
+    float c_spec = scene->material0.c_spec;
+    float alpha  = scene->material0.specular_power_alpha;
+
+    switch (lighting_mode) {
+    case AE_LIGHTING_FLAT:
+        for (int i = 0; i < 4; i++) {
+            if (scene->light_source0.light_direction_or_pos.w == 0) {
+                L = scene->light_source0.light_direction_or_pos;
+                L = ae_point_normalize_xyz(L);
+                mL = L;
+                ae_point_mult(mL, -1);
+            } else {
+                Point l = scene->light_source0.light_direction_or_pos;
+                Point p = quad->points[i];
+                ae_point_sub_point(pml, p, l);
+                pml = ae_point_normalize_xyz(pml);
+                L = pml;
+                L.w = 0;
+                mL = L;
+                ae_point_mult(mL, -1);
+            }
+            
+            ae_point_sub_point(v, camera_pos, ae_quad_get_average_point(*quad));
+            float mL_dot_norm = ae_point_dot_point(mL, ave_norm);
+            mLn2n = ave_norm;
+            ae_point_mult(mLn2n, 2 * mL_dot_norm);
+            ae_point_add_point(r, L, mLn2n);
+            
+            quad->light_intensity[i] = c_ambi + scene->light_source0.light_intensity * (c_diff * fmaxf(mL_dot_norm, 0) + c_spec * powf(fmaxf(ae_point_dot_point(r, v), 0), alpha));
+        }
+        break;
+    case AE_LIGHTING_SMOOTH:
+        for (int i = 0; i < 4; i++) {
+            if (scene->light_source0.light_direction_or_pos.w == 0) {
+                L = scene->light_source0.light_direction_or_pos;
+                L = ae_point_normalize_xyz(L);
+                mL = L;
+                ae_point_mult(mL, -1);
+            } else {
+                Point l = scene->light_source0.light_direction_or_pos;
+                Point p = quad->points[i];
+                ae_point_sub_point(pml, p, l);
+                pml = ae_point_normalize_xyz(pml);
+                L = pml;
+                L.w = 0;
+                mL = L;
+                ae_point_mult(mL, -1);
+            }
+            ae_point_sub_point(v, camera_pos, quad->points[i]);
+            float mL_dot_norm = ae_point_dot_point(mL, quad->normals[i]);
+            mLn2n = quad->normals[i];
+            ae_point_mult(mLn2n, 2 * mL_dot_norm);
+            ae_point_add_point(r, L, mLn2n);
+            
+            quad->light_intensity[i] = c_ambi + scene->light_source0.light_intensity * (c_diff * fmaxf(mL_dot_norm, 0) + c_spec * powf(fmaxf(ae_point_dot_point(r, v), 0), alpha));
+        }
+        break;
+    default:
+        for (int i = 0; i < 4; i++) {
+            quad->light_intensity[i] = 1;
+        }
+        break;
+    }
+
+    for (int i = 0; i < 4; i++) {
+        quad->light_intensity[i] = fminf(1, fmaxf(0, quad->light_intensity[i]));
     }
 }
 
@@ -2431,67 +2688,39 @@ Tri ae_tri_transform_to_view(Mat2D view_mat, Tri tri)
     return des_tri;
 }
 
-Quad ae_quad_transform_to_view(Mat2D view_mat, Quad quad)
-{
-    ae_assert_quad_is_valid(quad);
-
-    Mat2D src_point_mat = mat2D_alloc(1,4);
-    Mat2D des_point_mat = mat2D_alloc(1,4);
-
-    Quad des_quad = quad;
-
-    for (int i = 0; i < 4; i++) {
-        MAT2D_AT(src_point_mat, 0, 0) = quad.points[i].x;
-        MAT2D_AT(src_point_mat, 0, 1) = quad.points[i].y;
-        MAT2D_AT(src_point_mat, 0, 2) = quad.points[i].z;
-        MAT2D_AT(src_point_mat, 0, 3) = 1;
-
-        mat2D_dot(des_point_mat, src_point_mat, view_mat);
-
-        double w = MAT2D_AT(des_point_mat, 0, 3);
-        AE_ASSERT(w == 1);
-        des_quad.points[i].x = MAT2D_AT(des_point_mat, 0, 0) / w;
-        des_quad.points[i].y = MAT2D_AT(des_point_mat, 0, 1) / w;
-        des_quad.points[i].z = MAT2D_AT(des_point_mat, 0, 2) / w;
-        des_quad.points[i].w = w;
-    }
-
-    mat2D_free(src_point_mat);
-    mat2D_free(des_point_mat);
-
-    ae_assert_quad_is_valid(des_quad);
-
-    return des_quad;
-}
-
-Tri_mesh ae_tri_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Tri tri, int window_w, int window_h, Mat2D light_direction, Scene *scene)
+Tri_mesh ae_tri_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Tri tri, int window_w, int window_h, Scene *scene, Lighting_mode lighting_mode)
 {
     ae_assert_tri_is_valid(tri);
 
     Mat2D tri_normal = mat2D_alloc(3, 1);
-    Mat2D camera2tri = mat2D_alloc(3, 1);
+    Mat2D temp_camera2tri = mat2D_alloc(3, 1);
+    Mat2D camera2tri = mat2D_alloc(1, 3);
     Mat2D dot_product = mat2D_alloc(1, 1);
     Tri des_tri = tri;
 
-    ae_point_to_mat2D(tri.points[0], camera2tri);
-    mat2D_sub(camera2tri, scene->camera.current_position);
-    // mat2D_normalize(camera2tri);
+    ae_point_to_mat2D(tri.points[0], temp_camera2tri);
+    mat2D_sub(temp_camera2tri, scene->camera.current_position);
+    mat2D_transpose(camera2tri, temp_camera2tri);
 
     /* calc lighting intensity of tri */
+    #if 1
+        ae_tri_calc_light_intensity(&des_tri, scene, lighting_mode);
+    #else
     for (int i = 0; i < 3; i++) {
         ae_point_to_mat2D(tri.normals[i], tri_normal);
         MAT2D_AT(dot_product, 0, 0) = MAT2D_AT(light_direction, 0, 0) * MAT2D_AT(tri_normal, 0, 0) + MAT2D_AT(light_direction, 1, 0) * MAT2D_AT(tri_normal, 1, 0) + MAT2D_AT(light_direction, 2, 0) * MAT2D_AT(tri_normal, 2, 0);
         des_tri.light_intensity[i] = fmaxf(0.2, fminf(1, MAT2D_AT(dot_product, 0, 0)));
     }
-
-    ae_tri_calc_normal(tri_normal, tri);
+    #endif
 
     /* calc if tri is visible to the camera */
-    MAT2D_AT(dot_product, 0, 0) = MAT2D_AT(camera2tri, 0, 0) * MAT2D_AT(tri_normal, 0, 0) + MAT2D_AT(camera2tri, 1, 0) * MAT2D_AT(tri_normal, 1, 0) + MAT2D_AT(camera2tri, 2, 0) * MAT2D_AT(tri_normal, 2, 0);
-    if (MAT2D_AT(dot_product, 0, 0) > 0) {
-        des_tri.to_draw = false;
-    } else {
+    ae_tri_calc_normal(tri_normal, tri);
+    // ae_point_to_mat2D(tri.normals[0], tri_normal);
+    MAT2D_AT(dot_product, 0, 0) = MAT2D_AT(camera2tri, 0, 0) * MAT2D_AT(tri_normal, 0, 0) + MAT2D_AT(camera2tri, 0, 1) * MAT2D_AT(tri_normal, 1, 0) + MAT2D_AT(camera2tri, 0, 2) * MAT2D_AT(tri_normal, 2, 0);
+    if (MAT2D_AT(dot_product, 0, 0) < 0) {
         des_tri.to_draw = true;
+    } else {
+        des_tri.to_draw = false;
     }
 
     /* transform tri to camera view */
@@ -2550,19 +2779,20 @@ Tri_mesh ae_tri_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Tri tri, in
 
 
     mat2D_free(tri_normal);
+    mat2D_free(temp_camera2tri);
     mat2D_free(camera2tri);
     mat2D_free(dot_product);
 
     return temp_tri_array;
 }
 
-void ae_tri_mesh_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Tri_mesh *des, Tri_mesh src, int window_w, int window_h, Mat2D light_direction, Scene *scene)
+void ae_tri_mesh_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Tri_mesh *des, Tri_mesh src, int window_w, int window_h, Scene *scene, Lighting_mode lighting_mode)
 {
     Tri_mesh temp_des = *des;
 
     size_t i;
     for (i = 0; i < src.length; i++) {
-        Tri_mesh temp_tri_array = ae_tri_project_world2screen(proj_mat, view_mat, src.elements[i], window_w, window_h, light_direction, scene);
+        Tri_mesh temp_tri_array = ae_tri_project_world2screen(proj_mat, view_mat, src.elements[i], window_w, window_h, scene, lighting_mode);
 
         for (size_t tri_index = 0; tri_index < temp_tri_array.length; tri_index++) {
             Tri temp_tri = temp_tri_array.elements[tri_index];
@@ -2665,34 +2895,81 @@ void ae_tri_mesh_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Tri_mesh *
     *des = temp_des;
 }
 
-Quad_mesh ae_quad_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Quad quad, int window_w, int window_h, Mat2D light_direction, Scene *scene)
+Quad ae_quad_transform_to_view(Mat2D view_mat, Quad quad)
+{
+    ae_assert_quad_is_valid(quad);
+
+    Mat2D src_point_mat = mat2D_alloc(1,4);
+    Mat2D des_point_mat = mat2D_alloc(1,4);
+
+    Quad des_quad = quad;
+
+    for (int i = 0; i < 4; i++) {
+        MAT2D_AT(src_point_mat, 0, 0) = quad.points[i].x;
+        MAT2D_AT(src_point_mat, 0, 1) = quad.points[i].y;
+        MAT2D_AT(src_point_mat, 0, 2) = quad.points[i].z;
+        MAT2D_AT(src_point_mat, 0, 3) = 1;
+
+        mat2D_dot(des_point_mat, src_point_mat, view_mat);
+
+        double w = MAT2D_AT(des_point_mat, 0, 3);
+        AE_ASSERT(w == 1);
+        des_quad.points[i].x = MAT2D_AT(des_point_mat, 0, 0) / w;
+        des_quad.points[i].y = MAT2D_AT(des_point_mat, 0, 1) / w;
+        des_quad.points[i].z = MAT2D_AT(des_point_mat, 0, 2) / w;
+        des_quad.points[i].w = w;
+    }
+
+    mat2D_free(src_point_mat);
+    mat2D_free(des_point_mat);
+
+    ae_assert_quad_is_valid(des_quad);
+
+    return des_quad;
+}
+
+Quad_mesh ae_quad_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Quad quad, int window_w, int window_h, Scene *scene, Lighting_mode lighting_mode)
 {
     ae_assert_quad_is_valid(quad);
 
     Mat2D quad_normal = mat2D_alloc(3, 1);
-    Mat2D temp_camera2quad = mat2D_alloc(3, 1);
-    Mat2D camera2quad = mat2D_alloc(1, 3);
-    Mat2D light_directio_traspose = mat2D_alloc(1, 3);
+    Mat2D camera2quad = mat2D_alloc(3, 1);
     Mat2D dot_product = mat2D_alloc(1, 1);
     Quad des_quad = quad;
 
-    ae_point_to_mat2D(quad.points[1], temp_camera2quad);
-    mat2D_sub(temp_camera2quad, scene->camera.current_position);
-    mat2D_transpose(camera2quad, temp_camera2quad);
-    mat2D_transpose(light_directio_traspose, light_direction);
-
     /* calc lighting intensity of tri */
+    #if 1
+        ae_quad_calc_light_intensity(&des_quad, scene, lighting_mode);
+    #else
     for (int i = 0; i < 4; i++) {
         ae_point_to_mat2D(quad.normals[i], quad_normal);
-        MAT2D_AT(dot_product, 0, 0) = MAT2D_AT(light_direction, 0, 0) * MAT2D_AT(quad_normal, 0, 0) + MAT2D_AT(light_direction, 1, 0) * MAT2D_AT(quad_normal, 1, 0) + MAT2D_AT(light_direction, 2, 0) * MAT2D_AT(quad_normal, 2, 0);
+        MAT2D_AT(dot_product, 0, 0) = scene->light_source0.light_direction_or_pos.x * MAT2D_AT(quad_normal, 0, 0) + scene->light_source0.light_direction_or_pos.y * MAT2D_AT(quad_normal, 1, 0) + scene->light_source0.light_direction_or_pos.z * MAT2D_AT(quad_normal, 2, 0);
         des_quad.light_intensity[i] = fmaxf(0.2, fminf(1, MAT2D_AT(dot_product, 0, 0)));
     }
+    #endif
+
+    /* calc if quad is visible to the camera */
+    bool visible = 0;
+    #if 1
+    for (int i = 0; i < 4; i++) {
+        ae_point_to_mat2D(quad.points[i], camera2quad);
+        mat2D_sub(camera2quad, scene->camera.current_position);
+
+        ae_point_to_mat2D(quad.normals[i], quad_normal);
+        MAT2D_AT(dot_product, 0, 0) = MAT2D_AT(camera2quad, 0, 0) * MAT2D_AT(quad_normal, 0, 0) + MAT2D_AT(camera2quad, 1, 0) * MAT2D_AT(quad_normal, 1, 0) + MAT2D_AT(camera2quad, 2, 0) * MAT2D_AT(quad_normal, 2, 0);
+        visible = visible || (MAT2D_AT(dot_product, 0, 0) < 0);
+    }
+    #else
+    ae_point_to_mat2D(quad.points[0], camera2quad);
+    mat2D_sub(camera2quad, scene->camera.current_position);
 
     Point ave_norm = ae_quad_get_average_normal(quad);
     ae_point_to_mat2D(ave_norm, quad_normal);
-    /* calc if tri is visible to the camera */
-    MAT2D_AT(dot_product, 0, 0) = MAT2D_AT(camera2quad, 0, 0) * MAT2D_AT(quad_normal, 0, 0) + MAT2D_AT(camera2quad, 0, 1) * MAT2D_AT(quad_normal, 1, 0) + MAT2D_AT(camera2quad, 0, 2) * MAT2D_AT(quad_normal, 2, 0);
-    if (MAT2D_AT(dot_product, 0, 0) < 0) {
+    MAT2D_AT(dot_product, 0, 0) = MAT2D_AT(camera2quad, 0, 0) * MAT2D_AT(quad_normal, 0, 0) + MAT2D_AT(camera2quad, 1, 0) * MAT2D_AT(quad_normal, 1, 0) + MAT2D_AT(camera2quad, 2, 0) * MAT2D_AT(quad_normal, 2, 0);
+    visible = MAT2D_AT(dot_product, 0, 0) < 0;
+    #endif
+
+    if (visible) {
         des_quad.to_draw = true;
     } else {
         des_quad.to_draw = false;
@@ -2742,21 +3019,19 @@ Quad_mesh ae_quad_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Quad quad
 
 
     mat2D_free(quad_normal);
-    mat2D_free(temp_camera2quad);
     mat2D_free(camera2quad);
-    mat2D_free(light_directio_traspose);
     mat2D_free(dot_product);
 
     return temp_quad_array;
 }
 
-void ae_quad_mesh_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Quad_mesh *des, Quad_mesh src, int window_w, int window_h, Mat2D light_direction, Scene *scene)
+void ae_quad_mesh_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Quad_mesh *des, Quad_mesh src, int window_w, int window_h, Scene *scene, Lighting_mode lighting_mode)
 {
     Quad_mesh temp_des = *des;
 
     size_t i;
     for (i = 0; i < src.length; i++) {
-        Quad_mesh temp_quad_array = ae_quad_project_world2screen(proj_mat, view_mat, src.elements[i], window_w, window_h, light_direction, scene);
+        Quad_mesh temp_quad_array = ae_quad_project_world2screen(proj_mat, view_mat, src.elements[i], window_w, window_h, scene, lighting_mode);
 
         for (size_t quad_index = 0; quad_index < temp_quad_array.length; quad_index++) {
             Quad temp_quad = temp_quad_array.elements[quad_index];
@@ -3022,6 +3297,5 @@ void ae_z_buffer_copy_to_screen(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer)
         }
     }
 }
-
 
 #endif /* ALMOG_ENGINE_IMPLEMENTATION */ //

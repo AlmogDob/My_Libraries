@@ -21,7 +21,7 @@ void setup(game_state_t *game_state)
     strncpy(file_path, "./teapot.stl", MAX_LEN_LINE);
 
     Tri_mesh tri_mesh = ae_tri_mesh_get_from_file(file_path);
-    ae_tri_mesh_flip_normals(tri_mesh);
+    // ae_tri_mesh_flip_normals(tri_mesh);
 
     ada_appand(Tri_mesh, game_state->scene.original_tri_meshes, tri_mesh);
 
@@ -56,7 +56,7 @@ void update(game_state_t *game_state)
     ae_view_mat_set(game_state->scene.view_mat, game_state->scene.camera, game_state->scene.up_direction);
 
     for (size_t i = 0; i < game_state->scene.in_world_tri_meshes.length; i++) {
-        ae_tri_mesh_project_world2screen(game_state->scene.proj_mat, game_state->scene.view_mat, &(game_state->scene.projected_tri_meshes.elements[i]), game_state->scene.in_world_tri_meshes.elements[i], game_state->window_w, game_state->window_h, game_state->scene.light_direction, &(game_state->scene));
+        ae_tri_mesh_project_world2screen(game_state->scene.proj_mat, game_state->scene.view_mat, &(game_state->scene.projected_tri_meshes.elements[i]), game_state->scene.in_world_tri_meshes.elements[i], game_state->window_w, game_state->window_h, &(game_state->scene), AE_LIGHTING_FLAT);
     }
 
 }

@@ -31,6 +31,6 @@ void update(game_state_t *game_state)
 
 void render(game_state_t *game_state)
 {
-    adl_grid_draw(game_state->window_pixels_mat, grid_proj, 0xffffff, ADL_DEFAULT_OFFSET_ZOOM);
+    adl_grid_draw(game_state->window_pixels_mat, grid_proj, 0xffffffff, ADL_DEFAULT_OFFSET_ZOOM);
 
 }
