@@ -223,6 +223,7 @@ void        ae_tri_mesh_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Tri
 Quad        ae_quad_transform_to_view(Mat2D view_mat, Quad quad);
 Quad_mesh   ae_quad_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Quad quad, int window_w, int window_h, Scene *scene, Lighting_mode lighting_mode);
 void        ae_quad_mesh_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Quad_mesh *des, Quad_mesh src, int window_w, int window_h, Scene *scene, Lighting_mode lighting_mode);
+void        ae_curve_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Curve des, Curve src, int window_w, int window_h, Scene *scene);
 void        ae_grid_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Grid des, Grid src, int window_w, int window_h, Scene *scene);
 
 void        ae_tri_swap(Tri *v, int i, int j);
@@ -3131,7 +3132,7 @@ void ae_quad_mesh_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Quad_mesh
     *des = temp_des;
 }
 
-void ae_grid_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Grid des, Grid src, int window_w, int window_h, Scene *scene)
+void ae_curve_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Curve des, Curve src, int window_w, int window_h, Scene *scene)
 {
     /* set planes */
     int offset = 0;
@@ -3163,53 +3164,48 @@ void ae_grid_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Grid des, Grid
     MAT2D_AT(right_p, 0, 0) = window_w - offset;
     MAT2D_AT(right_n, 0, 0) = -1;
 
-    for (size_t curve_index = 0; curve_index < src.curves.length; curve_index++) {
-        for (size_t point_index = 0; point_index < src.curves.elements[curve_index].length-1; point_index++) {
-            Point start_src_point = src.curves.elements[curve_index].elements[point_index];
-            Point end_src_point = src.curves.elements[curve_index].elements[point_index+1];
+    for (size_t point_index = 0; point_index < src.length-1; point_index++) {
+        Point start_src_point = src.elements[point_index];
+        Point end_src_point = src.elements[point_index+1];
 
-            Point start_des_point = {0}, end_des_point = {0};
+        Point start_des_point = {0}, end_des_point = {0};
 
-            ae_line_project_world2screen(view_mat, proj_mat, start_src_point, end_src_point, window_w, window_h, &start_des_point, &end_des_point, scene);
+        ae_line_project_world2screen(view_mat, proj_mat, start_src_point, end_src_point, window_w, window_h, &start_des_point, &end_des_point, scene);
 
-            // start_des_point = ae_project_point_world2screen(view_mat, proj_mat, start_src_point, window_w, window_h);
-            // end_des_point = ae_project_point_world2screen(view_mat, proj_mat, end_src_point, window_w, window_h);
+        Point clipped_start_des_point = {0}, clipped_end_des_point = {0};
 
-            Point clipped_start_des_point = {0}, clipped_end_des_point = {0};
-
-            for (int plane_number = 0; plane_number < 4; plane_number++) {
-                int rc;
-                switch (plane_number) {
-                    case 0:
-                        rc = ae_line_clip_with_plane(start_des_point, end_des_point, top_p, top_n, &clipped_start_des_point, &clipped_end_des_point);           
-                    break;
-                    case 1:
-                        rc = ae_line_clip_with_plane(start_des_point, end_des_point, right_p, right_n, &clipped_start_des_point, &clipped_end_des_point);           
-                    break;
-                    case 2:
-                        rc = ae_line_clip_with_plane(start_des_point, end_des_point, bottom_p, bottom_n, &clipped_start_des_point, &clipped_end_des_point);           
-                    break;
-                    case 3:
-                        rc = ae_line_clip_with_plane(start_des_point, end_des_point, left_p, left_n, &clipped_start_des_point, &clipped_end_des_point);           
-                    break;
-                }
-                if (rc == -1) {
-                    fprintf(stderr, "%s:%d: [error] problem with clipping lines\n", __FILE__, __LINE__);
-                    exit(1);
-                } else if (rc == 0) {
-                    clipped_start_des_point = (Point){-1,-1,1,1};
-                    clipped_end_des_point = (Point){-1,-1,1,1};
-                    start_des_point = clipped_start_des_point;
-                    end_des_point = clipped_end_des_point;
-                } else if (rc == 1) {
-                    start_des_point = clipped_start_des_point;
-                    end_des_point = clipped_end_des_point;
-                }
+        for (int plane_number = 0; plane_number < 4; plane_number++) {
+            int rc;
+            switch (plane_number) {
+                case 0:
+                    rc = ae_line_clip_with_plane(start_des_point, end_des_point, top_p, top_n, &clipped_start_des_point, &clipped_end_des_point);           
+                break;
+                case 1:
+                    rc = ae_line_clip_with_plane(start_des_point, end_des_point, right_p, right_n, &clipped_start_des_point, &clipped_end_des_point);           
+                break;
+                case 2:
+                    rc = ae_line_clip_with_plane(start_des_point, end_des_point, bottom_p, bottom_n, &clipped_start_des_point, &clipped_end_des_point);           
+                break;
+                case 3:
+                    rc = ae_line_clip_with_plane(start_des_point, end_des_point, left_p, left_n, &clipped_start_des_point, &clipped_end_des_point);           
+                break;
             }
-
-            des.curves.elements[curve_index].elements[point_index] = start_des_point;
-            des.curves.elements[curve_index].elements[point_index+1] = end_des_point;
+            if (rc == -1) {
+                fprintf(stderr, "%s:%d: [error] problem with clipping lines\n", __FILE__, __LINE__);
+                exit(1);
+            } else if (rc == 0) {
+                clipped_start_des_point = (Point){-1,-1,1,1};
+                clipped_end_des_point = (Point){-1,-1,1,1};
+                start_des_point = clipped_start_des_point;
+                end_des_point = clipped_end_des_point;
+            } else if (rc == 1) {
+                start_des_point = clipped_start_des_point;
+                end_des_point = clipped_end_des_point;
+            }
         }
+
+        des.elements[point_index] = start_des_point;
+        des.elements[point_index+1] = end_des_point;
     }
 
     mat2D_free(top_p);
@@ -3220,6 +3216,13 @@ void ae_grid_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Grid des, Grid
     mat2D_free(left_n);
     mat2D_free(right_p);
     mat2D_free(right_n);
+}
+
+void ae_grid_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Grid des, Grid src, int window_w, int window_h, Scene *scene)
+{
+    for (size_t curve_index = 0; curve_index < src.curves.length; curve_index++) {
+        ae_curve_project_world2screen(proj_mat, view_mat, des.curves.elements[curve_index], src.curves.elements[curve_index], window_w, window_h, scene);
+    }
 }
 
 /* swap: interchange v[i] and v[j] */
