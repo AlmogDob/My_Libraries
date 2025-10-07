@@ -226,6 +226,7 @@ Quad        ae_quad_transform_to_view(Mat2D view_mat, Quad quad);
 Quad_mesh   ae_quad_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Quad quad, int window_w, int window_h, Scene *scene, Lighting_mode lighting_mode);
 void        ae_quad_mesh_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Quad_mesh *des, Quad_mesh src, int window_w, int window_h, Scene *scene, Lighting_mode lighting_mode);
 void        ae_curve_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Curve *des, Curve src, int window_w, int window_h, Scene *scene);
+void        ae_curve_ada_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Curve_ada *des, Curve_ada src, int window_w, int window_h, Scene *scene);
 void        ae_grid_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Grid des, Grid src, int window_w, int window_h, Scene *scene);
 
 void        ae_tri_swap(Tri *v, int i, int j);
@@ -3242,6 +3243,13 @@ void ae_curve_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Curve *des, C
     mat2D_free(left_n);
     mat2D_free(right_p);
     mat2D_free(right_n);
+}
+
+void ae_curve_ada_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Curve_ada *des, Curve_ada src, int window_w, int window_h, Scene *scene)
+{
+    for (size_t curve_index = 0; curve_index < src.length; curve_index++) {
+        ae_curve_project_world2screen(proj_mat, view_mat, &(des->elements[curve_index]), src.elements[curve_index], window_w, window_h, scene);
+    }
 }
 
 void ae_grid_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Grid des, Grid src, int window_w, int window_h, Scene *scene)

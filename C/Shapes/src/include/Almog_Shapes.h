@@ -39,6 +39,15 @@ typedef struct {
 } Curve;
 #endif
 
+#ifndef CURVE_ADA
+#define CURVE_ADA
+typedef struct {
+    size_t length;
+    size_t capacity;
+    Curve *elements;
+} Curve_ada;
+#endif
+
 #ifndef TRI
 #define TRI
 typedef struct {
@@ -86,7 +95,9 @@ Point       as_mat2D_to_point(Mat2D m);
 void        as_tri_set_normals(Tri *tri);
 
 Tri_mesh    as_cube_create_tri_mesh(const size_t len, const uint32_t color);
-Curve       as_circle_create(const Point center, const size_t r, const size_t num_of_points, const uint32_t color, const char plane[]);
+Curve       as_circle_curve_create(const Point center, const float r, const size_t num_of_points, const uint32_t color, const char plane[]);
+Curve_ada   as_sphere_curve_ada_create(const Point center, const float r, const size_t num_of_points_horizontal, const size_t num_of_points_vertical, const uint32_t color);
+Tri_mesh    as_sphere_tri_mesh_create(const Point center, const float r, const size_t num_of_points_horizontal, const size_t num_of_points_vertical, const uint32_t color);
 
 #endif /*ALMOG_SHAPES_H_*/
 
@@ -393,7 +404,7 @@ Tri_mesh as_cube_create_tri_mesh(const size_t len, const uint32_t color)
     return cube;
 }
 
-Curve as_circle_create(const Point center, const size_t r, const size_t num_of_points, const uint32_t color, const char plane[])
+Curve as_circle_curve_create(const Point center, const float r, const size_t num_of_points, const uint32_t color, const char plane[])
 {
     AS_ASSERT(r > 0);
     AS_ASSERT(num_of_points > 0);
@@ -415,6 +426,60 @@ Curve as_circle_create(const Point center, const size_t r, const size_t num_of_p
     }
 
     return c;
+}
+
+Curve_ada as_sphere_curve_ada_create(const Point center, const float r, const size_t num_of_points_horizontal, const size_t num_of_points_vertical, const uint32_t color)
+{
+    AS_ASSERT(r > 0);
+    AS_ASSERT(num_of_points_horizontal > 0);
+    AS_ASSERT(num_of_points_vertical > 0);
+    AS_ASSERT(!(num_of_points_horizontal % 2) && "needs to be even");
+    AS_ASSERT(!(num_of_points_vertical % 2) && "needs to be even");
+
+    Curve_ada sphere = {0};
+    ada_init_array(Curve, sphere);
+
+    float delta_theta_hor = 2.0f * PI / (float)num_of_points_horizontal;
+    float delta_theta_ver =     PI / ((float)num_of_points_vertical - 1);
+
+    for (size_t ver = 0; ver < num_of_points_vertical; ver++) {
+        Curve c = {0};
+        ada_init_array(Point, c);
+        c.color = color;
+        for (size_t hor = 0; hor < num_of_points_horizontal; hor++) {
+            Point p = center;
+
+            p.x += r * sin(delta_theta_ver * ver) * cosf(delta_theta_hor * hor);
+            p.z += r * sin(delta_theta_ver * ver) * sinf(delta_theta_hor * hor);
+            p.y += r * cos(delta_theta_ver * ver);
+
+            ada_appand(Point, c, p);
+        }
+        ada_appand(Curve, sphere, c);
+    }
+
+    for (size_t hor = 0; hor < num_of_points_horizontal / 2.0f; hor++) {
+        Curve c = {0};
+        ada_init_array(Point, c);
+        c.color = color;
+        for (size_t ver = 0; ver < 2.0f*(num_of_points_vertical)-1; ver++) {
+            Point p = center;
+
+            p.x += r * sin(delta_theta_ver * ver) * cosf(delta_theta_hor * hor);
+            p.z += r * sin(delta_theta_ver * ver) * sinf(delta_theta_hor * hor);
+            p.y += r * cos(delta_theta_ver * ver);
+
+            ada_appand(Point, c, p);
+        }
+        ada_appand(Curve, sphere, c);
+    }
+
+    return sphere;
+}
+
+Tri_mesh as_sphere_tri_mesh_create(const Point center, const float r, const size_t num_of_points_horizontal, const size_t num_of_points_vertical, const uint32_t color)
+{
+
 }
 
 #endif /*ALMOG_SHAPES_IMPLEMENTATION*/

@@ -43,11 +43,14 @@ typedef struct {
 } Curve;
 #endif
 
+#ifndef CURVE_ADA
+#define CURVE_ADA
 typedef struct {
     size_t length;
     size_t capacity;
     Curve *elements;
 } Curve_ada;
+#endif
 
 #ifndef TRI
 #define TRI
