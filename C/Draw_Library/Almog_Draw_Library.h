@@ -341,6 +341,7 @@ void adl_line_draw(Mat2D_uint32 screen_mat, const float x1_input, const float y1
 
 void adl_lines_draw(const Mat2D_uint32 screen_mat, const Point *points, const size_t len, const uint32_t color, Offset_zoom_param offset_zoom_param)
 {
+    if (len == 0) return;
     for (size_t i = 0; i < len-1; i++) {
         adl_line_draw(screen_mat, points[i].x, points[i].y, points[i+1].x, points[i+1].y, color, offset_zoom_param);
     }
@@ -348,6 +349,7 @@ void adl_lines_draw(const Mat2D_uint32 screen_mat, const Point *points, const si
 
 void adl_lines_loop_draw(const Mat2D_uint32 screen_mat, const Point *points, const size_t len, const uint32_t color, Offset_zoom_param offset_zoom_param)
 {
+    if (len == 0) return;
     for (size_t i = 0; i < len-1; i++) {
         adl_line_draw(screen_mat, points[i].x, points[i].y, points[i+1].x, points[i+1].y, color, offset_zoom_param);
     }

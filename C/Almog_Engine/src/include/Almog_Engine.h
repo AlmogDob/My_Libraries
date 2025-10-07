@@ -92,6 +92,7 @@ https://youtu.be/ih20l3pJoeU?si=CzQ8rjk5ZEOlqEHN. */
 #define ae_point_mult(p, const) (p).x *= const; \
         (p).y *= const;                         \
         (p).z *= const
+#define ae_points_equal(p1, p2) (p1).x == (p2).x && (p1).y == (p2).y && (p1).z == (p2).z
 
 
 typedef enum {
@@ -201,6 +202,7 @@ void        ae_quad_set_normals(Quad *quad);
 Point       ae_quad_get_average_normal(Quad quad);
 Point       ae_quad_get_average_point(Quad quad);
 void        ae_quad_calc_normal(Mat2D normal, Quad quad);
+void        ae_curve_copy(Curve *des, Curve src);
 
 void        ae_tri_calc_light_intensity(Tri *tri, Scene *scene, Lighting_mode lighting_mode);
 void        ae_quad_calc_light_intensity(Quad *quad, Scene *scene, Lighting_mode lighting_mode);
@@ -223,7 +225,7 @@ void        ae_tri_mesh_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Tri
 Quad        ae_quad_transform_to_view(Mat2D view_mat, Quad quad);
 Quad_mesh   ae_quad_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Quad quad, int window_w, int window_h, Scene *scene, Lighting_mode lighting_mode);
 void        ae_quad_mesh_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Quad_mesh *des, Quad_mesh src, int window_w, int window_h, Scene *scene, Lighting_mode lighting_mode);
-void        ae_curve_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Curve des, Curve src, int window_w, int window_h, Scene *scene);
+void        ae_curve_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Curve *des, Curve src, int window_w, int window_h, Scene *scene);
 void        ae_grid_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Grid des, Grid src, int window_w, int window_h, Scene *scene);
 
 void        ae_tri_swap(Tri *v, int i, int j);
@@ -1327,6 +1329,18 @@ void ae_quad_calc_normal(Mat2D normal, Quad quad)
     mat2D_free(a);
     mat2D_free(b);
     mat2D_free(c);
+}
+
+void ae_curve_copy(Curve *des, Curve src)
+{
+    Curve temp_des = *des;
+    temp_des.length = 0;
+
+    for (size_t i = 0; i < src.length; i++) {
+        ada_appand(Point, temp_des, src.elements[i]);
+    }
+
+    *des = temp_des;
 }
 
 void ae_tri_calc_light_intensity(Tri *tri, Scene *scene, Lighting_mode lighting_mode)
@@ -3132,31 +3146,31 @@ void ae_quad_mesh_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Quad_mesh
     *des = temp_des;
 }
 
-void ae_curve_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Curve des, Curve src, int window_w, int window_h, Scene *scene)
+/* This solution is not prefect. It sometimes delete one more edge then necessary, but I think that it won't brake */
+void ae_curve_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Curve *des, Curve src, int window_w, int window_h, Scene *scene)
 {
+    ae_curve_copy(des, src);
+    Curve temp_des = *des;
     /* set planes */
-    int offset = 0;
+    int offset = 50;
     Mat2D top_p = mat2D_alloc(3, 1);
     Mat2D top_n = mat2D_alloc(3, 1);
     mat2D_fill(top_p, 0);
     mat2D_fill(top_n, 0);
     MAT2D_AT(top_p, 1, 0) = 0 + offset;
     MAT2D_AT(top_n, 1, 0) = 1;
-
     Mat2D bottom_p = mat2D_alloc(3, 1);
     Mat2D bottom_n = mat2D_alloc(3, 1);
     mat2D_fill(bottom_p, 0);
     mat2D_fill(bottom_n, 0);
     MAT2D_AT(bottom_p, 1, 0) = window_h - offset;
     MAT2D_AT(bottom_n, 1, 0) = -1;
-
     Mat2D left_p = mat2D_alloc(3, 1);
     Mat2D left_n = mat2D_alloc(3, 1);
     mat2D_fill(left_p, 0);
     mat2D_fill(left_n, 0);
     MAT2D_AT(left_p, 0, 0) = 0 + offset;
     MAT2D_AT(left_n, 0, 0) = 1;
-
     Mat2D right_p = mat2D_alloc(3, 1);
     Mat2D right_n = mat2D_alloc(3, 1);
     mat2D_fill(right_p, 0);
@@ -3164,13 +3178,14 @@ void ae_curve_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Curve des, Cu
     MAT2D_AT(right_p, 0, 0) = window_w - offset;
     MAT2D_AT(right_n, 0, 0) = -1;
 
-    for (size_t point_index = 0; point_index < src.length-1; point_index++) {
+    for (size_t point_index = 0; point_index < temp_des.length-1; point_index++) {
         Point start_src_point = src.elements[point_index];
         Point end_src_point = src.elements[point_index+1];
 
         Point start_des_point = {0}, end_des_point = {0};
 
         ae_line_project_world2screen(view_mat, proj_mat, start_src_point, end_src_point, window_w, window_h, &start_des_point, &end_des_point, scene);
+
 
         Point clipped_start_des_point = {0}, clipped_end_des_point = {0};
 
@@ -3198,15 +3213,27 @@ void ae_curve_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Curve des, Cu
                 clipped_end_des_point = (Point){-1,-1,1,1};
                 start_des_point = clipped_start_des_point;
                 end_des_point = clipped_end_des_point;
+                temp_des.elements[point_index] = start_des_point;
+                temp_des.elements[point_index+1] = end_des_point;
             } else if (rc == 1) {
                 start_des_point = clipped_start_des_point;
                 end_des_point = clipped_end_des_point;
+                temp_des.elements[point_index] = start_des_point;
+                temp_des.elements[point_index+1] = end_des_point;
             }
         }
 
-        des.elements[point_index] = start_des_point;
-        des.elements[point_index+1] = end_des_point;
     }
+
+    Point default_point = (Point){-1,-1,1,1};
+    for (int i = 0; i < (int)temp_des.length; i++) {
+        if (ae_points_equal(temp_des.elements[i], default_point)) {
+            ada_remove(Point, temp_des, i);
+            i--;
+        }
+    }
+
+    *des = temp_des;
 
     mat2D_free(top_p);
     mat2D_free(top_n);
@@ -3221,7 +3248,7 @@ void ae_curve_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Curve des, Cu
 void ae_grid_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Grid des, Grid src, int window_w, int window_h, Scene *scene)
 {
     for (size_t curve_index = 0; curve_index < src.curves.length; curve_index++) {
-        ae_curve_project_world2screen(proj_mat, view_mat, des.curves.elements[curve_index], src.curves.elements[curve_index], window_w, window_h, scene);
+        ae_curve_project_world2screen(proj_mat, view_mat, &(des.curves.elements[curve_index]), src.curves.elements[curve_index], window_w, window_h, scene);
     }
 }
 
