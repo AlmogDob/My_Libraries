@@ -93,11 +93,12 @@ void        as_tri_mesh_print(Tri_mesh mesh, char *name, size_t padding);
 void        as_point_to_mat2D(Point p, Mat2D m);
 Point       as_mat2D_to_point(Mat2D m);
 void        as_tri_set_normals(Tri *tri);
+void        as_curve_ada_free(Curve_ada curves);
 
 Tri_mesh    as_cube_create_tri_mesh(const size_t len, const uint32_t color);
 Curve       as_circle_curve_create(const Point center, const float r, const size_t num_of_points, const uint32_t color, const char plane[]);
 Curve_ada   as_sphere_curve_ada_create(const Point center, const float r, const size_t num_of_points_horizontal, const size_t num_of_points_vertical, const uint32_t color);
-Tri_mesh    as_sphere_tri_mesh_create(const Point center, const float r, const size_t num_of_points_horizontal, const size_t num_of_points_vertical, const uint32_t color);
+Tri_mesh    as_sphere_tri_mesh_create(const Point center, const float r, const size_t num_of_points_horizontal, const size_t num_of_points_vertical, const uint32_t color, float light_intensity);
 
 #endif /*ALMOG_SHAPES_H_*/
 
@@ -122,6 +123,8 @@ void as_tri_print(Tri tri, char *name, size_t padding)
     printf("%*s    (%f, %f, %f)\n%*s    (%f, %f, %f)\n%*s    (%f, %f, %f)\n", (int) padding, "", tri.normals[0].x, tri.normals[0].y, tri.normals[0].z, (int) padding, "", tri.normals[1].x, tri.normals[1].y, tri.normals[1].z, (int) padding, "", tri.normals[2].x, tri.normals[2].y, tri.normals[2].z);
     printf("%*s    colors:\n", (int)padding, "");
     printf("%*s    (%X, %X, %X)\n", (int)padding, "", tri.colors[0], tri.colors[1], tri.colors[2]);
+    printf("%*s    light intensity:\n", (int)padding, "");
+    printf("%*s    (%f, %f, %f)\n", (int)padding, "", tri.light_intensity[0], tri.light_intensity[1], tri.light_intensity[2]);
     printf("%*s    draw? %d\n", (int)padding, "", tri.to_draw);
 }
 
@@ -189,6 +192,13 @@ void as_tri_set_normals(Tri *tri)
     mat2D_free(normal);
 }
 
+void as_curve_ada_free(Curve_ada curves)
+{
+    for (size_t i = 0; i < curves.length; i++) {
+        free(curves.elements[i].elements);
+    }
+    free(curves.elements);
+}
 
 Tri_mesh as_cube_create_tri_mesh(const size_t len, const uint32_t color)
 {
@@ -477,9 +487,71 @@ Curve_ada as_sphere_curve_ada_create(const Point center, const float r, const si
     return sphere;
 }
 
-Tri_mesh as_sphere_tri_mesh_create(const Point center, const float r, const size_t num_of_points_horizontal, const size_t num_of_points_vertical, const uint32_t color)
+Tri_mesh as_sphere_tri_mesh_create(const Point center, const float r, const size_t num_of_points_horizontal, const size_t num_of_points_vertical, const uint32_t color, float light_intensity)
 {
+    AS_ASSERT(r > 0);
+    AS_ASSERT(num_of_points_horizontal > 0);
+    AS_ASSERT(num_of_points_vertical > 0);
+    AS_ASSERT(!(num_of_points_horizontal % 2) && "needs to be even");
+    AS_ASSERT(!(num_of_points_vertical % 2) && "needs to be even");
 
+    Curve_ada sphere = {0};
+    ada_init_array(Curve, sphere);
+
+    float delta_theta_hor = 2.0f * PI / (float)num_of_points_horizontal;
+    float delta_theta_ver =     PI / ((float)num_of_points_vertical - 1);
+
+    for (size_t ver = 0; ver < num_of_points_vertical; ver++) {
+        Curve c = {0};
+        ada_init_array(Point, c);
+        c.color = color;
+        for (size_t hor = 0; hor < num_of_points_horizontal; hor++) {
+            Point p = center;
+
+            p.x += r * sin(delta_theta_ver * ver) * cosf(delta_theta_hor * hor);
+            p.z += r * sin(delta_theta_ver * ver) * sinf(delta_theta_hor * hor);
+            p.y += r * cos(delta_theta_ver * ver);
+
+            ada_appand(Point, c, p);
+        }
+        ada_appand(Curve, sphere, c);
+    }
+
+    Tri_mesh mesh = {0};
+    ada_init_array(Tri, mesh);
+
+    for (size_t c_index = 1; c_index < sphere.length; c_index++) {
+        Curve current_curve  = sphere.elements[c_index];
+        Curve previous_curve = sphere.elements[c_index-1];
+        for (size_t p_index = 0; p_index < current_curve.length; p_index++) {
+            size_t p_index_p1 = (p_index + 1) % current_curve.length;
+            Tri tri1 = {0};
+            for (int i = 0; i < 3; i++) {
+                tri1.colors[i] = color;
+                tri1.light_intensity[i] = light_intensity;
+            }
+            tri1.to_draw = 1;
+            
+            tri1.points[0] = current_curve.elements[p_index];
+            tri1.points[1] = previous_curve.elements[p_index];
+            tri1.points[2] = current_curve.elements[p_index_p1];
+            as_tri_set_normals(&tri1);
+            ada_appand(Tri, mesh, tri1);
+
+            if (c_index != 1) {
+                Tri tri2 = tri1;
+                tri2.points[0] = current_curve.elements[p_index_p1];
+                tri2.points[1] = previous_curve.elements[p_index];
+                tri2.points[2] = previous_curve.elements[p_index_p1];
+                as_tri_set_normals(&tri2);
+                ada_appand(Tri, mesh, tri2);
+            }
+        }
+    }
+
+    as_curve_ada_free(sphere);
+
+    return mesh;
 }
 
 #endif /*ALMOG_SHAPES_IMPLEMENTATION*/

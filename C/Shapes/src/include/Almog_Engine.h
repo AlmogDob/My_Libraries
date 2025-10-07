@@ -533,8 +533,8 @@ Scene ae_scene_init(int window_h, int window_w)
 
     scene.material0.specular_power_alpha = 1;
     scene.material0.c_ambi = 0.2;
-    scene.material0.c_diff = 0.6;
-    scene.material0.c_spec = 0.2;
+    scene.material0.c_diff = 0.7;
+    scene.material0.c_spec = 0.1;
 
     scene.proj_mat = mat2D_alloc(4, 4);
     ae_projection_mat_set(scene.proj_mat, scene.camera.aspect_ratio, scene.camera.fov_deg, scene.camera.z_near, scene.camera.z_far);
@@ -2805,6 +2805,7 @@ Tri_mesh ae_tri_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Tri tri, in
 void ae_tri_mesh_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Tri_mesh *des, Tri_mesh src, int window_w, int window_h, Scene *scene, Lighting_mode lighting_mode)
 {
     Tri_mesh temp_des = *des;
+    temp_des.length = 0;
 
     size_t i;
     for (i = 0; i < src.length; i++) {

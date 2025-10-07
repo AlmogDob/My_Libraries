@@ -33,18 +33,24 @@ typedef struct {
 } Point ;
 #endif
 
+#ifndef CURVE
+#define CURVE
 typedef struct {
     uint32_t color;
     size_t length;
     size_t capacity;
     Point *elements;
 } Curve;
+#endif
 
+#ifndef CURVE_ADA
+#define CURVE_ADA
 typedef struct {
     size_t length;
     size_t capacity;
     Curve *elements;
 } Curve_ada;
+#endif
 
 #ifndef TRI
 #define TRI
@@ -1189,8 +1195,8 @@ void adl_tri_fill_Pinedas_rasterizer(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer
             float gamma = fabs(w0 / w);
 
             if (w0 * w >= 0 && w1 * w >= 0 &&  w2 * w >= 0) {
-                int r, b, g;
-                HexARGB_RGB_VAR(color, r, g, b);
+                int r, b, g, a;
+                HexARGB_RGBA_VAR(color, r, g, b, a);
                 float light_intensity = (tri.light_intensity[0] + tri.light_intensity[1] + tri.light_intensity[2]) / 3;
                 float rf = r * light_intensity;
                 float gf = g * light_intensity;
@@ -1204,7 +1210,7 @@ void adl_tri_fill_Pinedas_rasterizer(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer
                 double inv_z = inv_w / z_over_w;
 
                 if (inv_z >= MAT2D_AT(inv_z_buffer, y, x)) {
-                    adl_point_draw(screen_mat, x, y, RGB_hexRGB(r8, g8, b8), offset_zoom_param);
+                    adl_point_draw(screen_mat, x, y, RGBA_hexARGB(r8, g8, b8, a), offset_zoom_param);
                     MAT2D_AT(inv_z_buffer, y, x) = inv_z;
                 }
             }
@@ -1258,16 +1264,17 @@ void adl_tri_fill_Pinedas_rasterizer_interpolate_color(Mat2D_uint32 screen_mat, 
             float gamma = fabs(w0 / w);
 
             if (w0 * w >= 0 && w1 * w >= 0 &&  w2 * w >= 0) {
-                int r0, b0, g0;
-                int r1, b1, g1;
-                int r2, b2, g2;
-                HexARGB_RGB_VAR(tri.colors[0], r0, g0, b0);
-                HexARGB_RGB_VAR(tri.colors[1], r1, g1, b1);
-                HexARGB_RGB_VAR(tri.colors[2], r2, g2, b2);
+                int r0, b0, g0, a0;
+                int r1, b1, g1, a1;
+                int r2, b2, g2, a2;
+                HexARGB_RGBA_VAR(tri.colors[0], r0, g0, b0, a0);
+                HexARGB_RGBA_VAR(tri.colors[1], r1, g1, b1, a1);
+                HexARGB_RGBA_VAR(tri.colors[2], r2, g2, b2, a2);
                 
                 uint8_t current_r = r0*alpha + r1*beta + r2*gamma;
                 uint8_t current_g = g0*alpha + g1*beta + g2*gamma;
                 uint8_t current_b = b0*alpha + b1*beta + b2*gamma;
+                uint8_t current_a = a0*alpha + a1*beta + a2*gamma;
 
                 float light_intensity = (tri.light_intensity[0] + tri.light_intensity[1] + tri.light_intensity[2]) / 3;
                 float rf = current_r * light_intensity;
@@ -1282,7 +1289,7 @@ void adl_tri_fill_Pinedas_rasterizer_interpolate_color(Mat2D_uint32 screen_mat, 
                 double inv_z = inv_w / z_over_w;
 
                 if (inv_z >= MAT2D_AT(inv_z_buffer, y, x)) {
-                    adl_point_draw(screen_mat, x, y, RGB_hexRGB(r8, g8, b8), offset_zoom_param);
+                    adl_point_draw(screen_mat, x, y, RGBA_hexARGB(r8, g8, b8, current_a), offset_zoom_param);
                     MAT2D_AT(inv_z_buffer, y, x) = inv_z;
                 }
             }
@@ -1367,6 +1374,7 @@ void adl_tri_mesh_draw(Mat2D_uint32 screen_mat, Tri_mesh mesh, uint32_t color, O
     for (size_t i = 0; i < mesh.length; i++) {
         Tri tri = mesh.elements[i];
         if (tri.to_draw) {
+            // color = rand_double() * 0xFFFFFFFF;
             adl_tri_draw(screen_mat, tri, color, offset_zoom_param);
         }
     }

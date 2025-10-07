@@ -33,18 +33,24 @@ typedef struct {
 } Point ;
 #endif
 
+#ifndef CURVE
+#define CURVE
 typedef struct {
     uint32_t color;
     size_t length;
     size_t capacity;
     Point *elements;
 } Curve;
+#endif
 
+#ifndef CURVE_ADA
+#define CURVE_ADA
 typedef struct {
     size_t length;
     size_t capacity;
     Curve *elements;
 } Curve_ada;
+#endif
 
 #ifndef TRI
 #define TRI
@@ -229,7 +235,7 @@ void    adl_grid_draw(Mat2D_uint32 screen_mat, Grid grid, uint32_t color, Offset
 #define ADL_MIN_FIGURE_PADDING 20
 #define ADL_MAX_HEAD_SIZE 15
 #define ADL_FIGURE_HEAD_ANGLE_DEG 30
-#define ADL_FIGURE_AXIS_COLOR 0xFF000000
+#define ADL_FIGURE_AXIS_COLOR 0x0
 
 #define ADL_MAX_CHARACTER_OFFSET 10
 #define ADL_MIN_CHARACTER_OFFSET 5
@@ -1014,19 +1020,18 @@ void adl_quad_fill_interpolate_color_mean_value(Mat2D_uint32 screen_mat, Mat2D i
             float delta = w3 * inv_w_tot;
 
             if (in_01 && in_12 && in_23 && in_30) {
-                int r0, b0, g0, a0;
-                int r1, b1, g1, a1;
-                int r2, b2, g2, a2;
-                int r3, b3, g3, a3;
-                HexARGB_RGBA_VAR(quad.colors[0], r0, g0, b0, a0);
-                HexARGB_RGBA_VAR(quad.colors[1], r1, g1, b1, a1);
-                HexARGB_RGBA_VAR(quad.colors[2], r2, g2, b2, a2);
-                HexARGB_RGBA_VAR(quad.colors[3], r3, g3, b3, a3);
+                int r0, b0, g0;
+                int r1, b1, g1;
+                int r2, b2, g2;
+                int r3, b3, g3;
+                HexARGB_RGB_VAR(quad.colors[0], r0, g0, b0);
+                HexARGB_RGB_VAR(quad.colors[1], r1, g1, b1);
+                HexARGB_RGB_VAR(quad.colors[2], r2, g2, b2);
+                HexARGB_RGB_VAR(quad.colors[3], r3, g3, b3);
                 
                 uint8_t current_r = r0*alpha + r1*beta + r2*gamma + r3*delta;
                 uint8_t current_g = g0*alpha + g1*beta + g2*gamma + g3*delta;
                 uint8_t current_b = b0*alpha + b1*beta + b2*gamma + b3*delta;
-                uint8_t current_a = a0*alpha + a1*beta + a2*gamma + a3*delta;
 
                 float light_intensity = (quad.light_intensity[0] + quad.light_intensity[1] + quad.light_intensity[2] + quad.light_intensity[3]) / 4;
                 float rf = current_r * light_intensity;
@@ -1041,7 +1046,7 @@ void adl_quad_fill_interpolate_color_mean_value(Mat2D_uint32 screen_mat, Mat2D i
                 double inv_z = inv_w / z_over_w;
 
                 if (inv_z >= MAT2D_AT(inv_z_buffer, y, x)) {
-                    adl_point_draw(screen_mat, x, y, RGBA_hexARGB(r8, g8, b8, current_a), offset_zoom_param);
+                    adl_point_draw(screen_mat, x, y, RGB_hexRGB(r8, g8, b8), offset_zoom_param);
                     MAT2D_AT(inv_z_buffer, y, x) = inv_z;
                 }
             }
@@ -1190,8 +1195,8 @@ void adl_tri_fill_Pinedas_rasterizer(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer
             float gamma = fabs(w0 / w);
 
             if (w0 * w >= 0 && w1 * w >= 0 &&  w2 * w >= 0) {
-                int r, b, g;
-                HexARGB_RGB_VAR(color, r, g, b);
+                int r, b, g, a;
+                HexARGB_RGBA_VAR(color, r, g, b, a);
                 float light_intensity = (tri.light_intensity[0] + tri.light_intensity[1] + tri.light_intensity[2]) / 3;
                 float rf = r * light_intensity;
                 float gf = g * light_intensity;
@@ -1205,7 +1210,7 @@ void adl_tri_fill_Pinedas_rasterizer(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer
                 double inv_z = inv_w / z_over_w;
 
                 if (inv_z >= MAT2D_AT(inv_z_buffer, y, x)) {
-                    adl_point_draw(screen_mat, x, y, RGB_hexRGB(r8, g8, b8), offset_zoom_param);
+                    adl_point_draw(screen_mat, x, y, RGBA_hexARGB(r8, g8, b8, a), offset_zoom_param);
                     MAT2D_AT(inv_z_buffer, y, x) = inv_z;
                 }
             }
@@ -1369,6 +1374,7 @@ void adl_tri_mesh_draw(Mat2D_uint32 screen_mat, Tri_mesh mesh, uint32_t color, O
     for (size_t i = 0; i < mesh.length; i++) {
         Tri tri = mesh.elements[i];
         if (tri.to_draw) {
+            // color = rand_double() * 0xFFFFFFFF;
             adl_tri_draw(screen_mat, tri, color, offset_zoom_param);
         }
     }
@@ -1619,8 +1625,8 @@ void adl_axis_draw_on_figure(Figure *figure)
     int arrow_head_size_x = (int)fminf(ADL_MAX_HEAD_SIZE, ADL_FIGURE_PADDING_PRECENTAGE / 100.0f * (max_j - 2 * offset_j));
     int arrow_head_size_y = (int)fminf(ADL_MAX_HEAD_SIZE, ADL_FIGURE_PADDING_PRECENTAGE / 100.0f * (max_i - 2 * offset_i));
 
-    adl_arrow_draw(figure->pixels_mat, figure->min_x_pixel, figure->max_y_pixel, figure->max_x_pixel, figure->max_y_pixel, (float)arrow_head_size_x / (max_j-2*offset_j), ADL_FIGURE_HEAD_ANGLE_DEG, ADL_FIGURE_AXIS_COLOR, figure->offset_zoom_param);
-    adl_arrow_draw(figure->pixels_mat, figure->min_x_pixel, figure->max_y_pixel, figure->min_x_pixel, figure->min_y_pixel, (float)arrow_head_size_y / (max_i-2*offset_i), ADL_FIGURE_HEAD_ANGLE_DEG, ADL_FIGURE_AXIS_COLOR, figure->offset_zoom_param);
+    adl_arrow_draw(figure->pixels_mat, figure->min_x_pixel, figure->max_y_pixel, figure->max_x_pixel, figure->max_y_pixel, (float)arrow_head_size_x / (max_j-2*offset_j), ADL_FIGURE_HEAD_ANGLE_DEG, 0, figure->offset_zoom_param);
+    adl_arrow_draw(figure->pixels_mat, figure->min_x_pixel, figure->max_y_pixel, figure->min_x_pixel, figure->min_y_pixel, (float)arrow_head_size_y / (max_i-2*offset_i), ADL_FIGURE_HEAD_ANGLE_DEG, 0, figure->offset_zoom_param);
     // adl_draw_rectangle_min_max(figure->pixels_mat, figure->min_x_pixel, figure->max_x_pixel, figure->min_y_pixel, figure->max_y_pixel, 0);
 
     figure->x_axis_head_size = arrow_head_size_x;
@@ -1652,8 +1658,8 @@ void adl_max_min_values_draw_on_figure(Figure figure)
 
     int x_max_x_top_left = figure.max_x_pixel - strlen(x_max_sentence) * (x_max_sentence_hight_pixel / 2 + ADL_MIN_CHARACTER_OFFSET) - figure.x_axis_head_size;
 
-    adl_sentence_draw(figure.pixels_mat, x_min_sentence, strlen(x_min_sentence), figure.min_x_pixel, figure.max_y_pixel+ADL_MIN_CHARACTER_OFFSET*2, x_min_sentence_hight_pixel, ADL_FIGURE_AXIS_COLOR, figure.offset_zoom_param);
-    adl_sentence_draw(figure.pixels_mat, x_max_sentence, strlen(x_max_sentence), x_max_x_top_left, figure.max_y_pixel+ADL_MIN_CHARACTER_OFFSET*2, x_max_sentence_hight_pixel, ADL_FIGURE_AXIS_COLOR, figure.offset_zoom_param);
+    adl_sentence_draw(figure.pixels_mat, x_min_sentence, strlen(x_min_sentence), figure.min_x_pixel, figure.max_y_pixel+ADL_MIN_CHARACTER_OFFSET*2, x_min_sentence_hight_pixel, 0, figure.offset_zoom_param);
+    adl_sentence_draw(figure.pixels_mat, x_max_sentence, strlen(x_max_sentence), x_max_x_top_left, figure.max_y_pixel+ADL_MIN_CHARACTER_OFFSET*2, x_max_sentence_hight_pixel, 0, figure.offset_zoom_param);
     
     char y_min_sentence[256];
     char y_max_sentence[256];
@@ -1672,8 +1678,8 @@ void adl_max_min_values_draw_on_figure(Figure figure)
     y_min_sentence_hight_pixel = (int)fmaxf(fminf(y_min_sentence_hight_pixel, y_max_sentence_hight_pixel), 1);
     y_max_sentence_hight_pixel = y_min_sentence_hight_pixel;
 
-    adl_sentence_draw(figure.pixels_mat, y_max_sentence, strlen(y_max_sentence), ADL_MAX_CHARACTER_OFFSET/2, figure.min_y_pixel, y_max_sentence_hight_pixel, ADL_FIGURE_AXIS_COLOR, figure.offset_zoom_param);
-    adl_sentence_draw(figure.pixels_mat, y_min_sentence, strlen(y_min_sentence), ADL_MAX_CHARACTER_OFFSET/2, figure.max_y_pixel-y_min_sentence_hight_pixel, y_min_sentence_hight_pixel, ADL_FIGURE_AXIS_COLOR, figure.offset_zoom_param);
+    adl_sentence_draw(figure.pixels_mat, y_max_sentence, strlen(y_max_sentence), ADL_MAX_CHARACTER_OFFSET/2, figure.min_y_pixel, y_max_sentence_hight_pixel, 0, figure.offset_zoom_param);
+    adl_sentence_draw(figure.pixels_mat, y_min_sentence, strlen(y_min_sentence), ADL_MAX_CHARACTER_OFFSET/2, figure.max_y_pixel-y_min_sentence_hight_pixel, y_min_sentence_hight_pixel, 0, figure.offset_zoom_param);
 }
 
 
@@ -1752,8 +1758,8 @@ void adl_curves_plot_on_figure(Figure figure)
 
         int x_max_x_top_left = figure.max_x_pixel - strlen(x_max_sentence) * (x_max_sentence_hight_pixel / 2 + ADL_MIN_CHARACTER_OFFSET) - figure.x_axis_head_size;
 
-        adl_sentence_draw(figure.pixels_mat, x_min_sentence, strlen(x_min_sentence), figure.min_x_pixel, figure.max_y_pixel+ADL_MIN_CHARACTER_OFFSET*2, x_min_sentence_hight_pixel, ADL_FIGURE_AXIS_COLOR, figure.offset_zoom_param);
-        adl_sentence_draw(figure.pixels_mat, x_max_sentence, strlen(x_max_sentence), x_max_x_top_left, figure.max_y_pixel+ADL_MIN_CHARACTER_OFFSET*2, x_max_sentence_hight_pixel, ADL_FIGURE_AXIS_COLOR, figure.offset_zoom_param);
+        adl_sentence_draw(figure.pixels_mat, x_min_sentence, strlen(x_min_sentence), figure.min_x_pixel, figure.max_y_pixel+ADL_MIN_CHARACTER_OFFSET*2, x_min_sentence_hight_pixel, 0, figure.offset_zoom_param);
+        adl_sentence_draw(figure.pixels_mat, x_max_sentence, strlen(x_max_sentence), x_max_x_top_left, figure.max_y_pixel+ADL_MIN_CHARACTER_OFFSET*2, x_max_sentence_hight_pixel, 0, figure.offset_zoom_param);
         
         char y_min_sentence[256];
         char y_max_sentence[256];
@@ -1772,8 +1778,8 @@ void adl_curves_plot_on_figure(Figure figure)
         y_min_sentence_hight_pixel = (int)fmaxf(fminf(y_min_sentence_hight_pixel, y_max_sentence_hight_pixel), 1);
         y_max_sentence_hight_pixel = y_min_sentence_hight_pixel;
 
-        adl_sentence_draw(figure.pixels_mat, y_max_sentence, strlen(y_max_sentence), ADL_MAX_CHARACTER_OFFSET/2, figure.min_y_pixel, y_max_sentence_hight_pixel, ADL_FIGURE_AXIS_COLOR, figure.offset_zoom_param);
-        adl_sentence_draw(figure.pixels_mat, y_min_sentence, strlen(y_min_sentence), ADL_MAX_CHARACTER_OFFSET/2, figure.max_y_pixel-y_min_sentence_hight_pixel, y_min_sentence_hight_pixel, ADL_FIGURE_AXIS_COLOR, figure.offset_zoom_param);
+        adl_sentence_draw(figure.pixels_mat, y_max_sentence, strlen(y_max_sentence), ADL_MAX_CHARACTER_OFFSET/2, figure.min_y_pixel, y_max_sentence_hight_pixel, 0, figure.offset_zoom_param);
+        adl_sentence_draw(figure.pixels_mat, y_min_sentence, strlen(y_min_sentence), ADL_MAX_CHARACTER_OFFSET/2, figure.max_y_pixel-y_min_sentence_hight_pixel, y_min_sentence_hight_pixel, 0, figure.offset_zoom_param);
     }
 }
 
