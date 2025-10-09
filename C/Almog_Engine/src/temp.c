@@ -66,8 +66,4 @@ void render(game_state_t *game_state)
     for (size_t i = 0; i < game_state->scene.projected_tri_meshes.length; i++) {
         adl_tri_mesh_fill_Pinedas_rasterizer_interpolate_normal(game_state->window_pixels_mat, game_state->inv_z_buffer_mat, game_state->scene.projected_tri_meshes.elements[i], 0xffffffff, ADL_DEFAULT_OFFSET_ZOOM);
     }
-
-    for (size_t i = 0; i < game_state->scene.in_world_tri_meshes.length; i++) {
-        game_state->scene.projected_tri_meshes.elements[i].length = 0;
-    }
 }

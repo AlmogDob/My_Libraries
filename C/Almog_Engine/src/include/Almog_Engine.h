@@ -2769,6 +2769,7 @@ Tri_mesh ae_tri_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Tri tri, in
 void ae_tri_mesh_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Tri_mesh *des, Tri_mesh src, int window_w, int window_h, Scene *scene, Lighting_mode lighting_mode)
 {
     Tri_mesh temp_des = *des;
+    temp_des.length = 0;
 
     size_t i;
     for (i = 0; i < src.length; i++) {
@@ -3008,6 +3009,7 @@ Quad_mesh ae_quad_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Quad quad
 void ae_quad_mesh_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Quad_mesh *des, Quad_mesh src, int window_w, int window_h, Scene *scene, Lighting_mode lighting_mode)
 {
     Quad_mesh temp_des = *des;
+    temp_des.length = 0;
 
     size_t i;
     for (i = 0; i < src.length; i++) {

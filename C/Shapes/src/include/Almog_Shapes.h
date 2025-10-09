@@ -53,11 +53,8 @@ typedef struct {
 typedef struct {
     Point points[3];
     Point tex_points[3];
-    Point center;
     Point normals[3];
     uint32_t colors[3];
-    float z_min;
-    float z_max;
     bool to_draw;
     float light_intensity[3];
 } Tri;
