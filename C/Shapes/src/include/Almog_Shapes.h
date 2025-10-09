@@ -83,20 +83,48 @@ typedef struct {
 } Tri_mesh; /* Tri ada array */
 #endif
 
-#define AS_TRI_MESH_PRINT(tm) as_tri_mesh_print(tm, #tm, 0)
-#define AS_CURVE_PRINT(c) as_curve_print(c, #c, 0)
+#ifndef HexARGB_RGBA
+#define HexARGB_RGBA(x) ((x)>>(8*2)&0xFF), ((x)>>(8*1)&0xFF), ((x)>>(8*0)&0xFF), ((x)>>(8*3)&0xFF)
+#endif
+#ifndef HexARGB_RGB_VAR
+#define HexARGB_RGB_VAR(x, r, g, b) r = ((x)>>(8*2)&0xFF); g = ((x)>>(8*1)&0xFF); b = ((x)>>(8*0)&0xFF);
+#endif
+#ifndef HexARGB_RGBA_VAR
+#define HexARGB_RGBA_VAR(x, r, g, b, a) r = ((x)>>(8*2)&0xFF); g = ((x)>>(8*1)&0xFF); b = ((x)>>(8*0)&0xFF); a = ((x)>>(8*3)&0xFF)
+#endif
+#ifndef RGB_hexRGB
+#define RGB_hexRGB(r, g, b) (int)(0x010000*(int)(r) + 0x000100*(int)(g) + 0x000001*(int)(b))
+#endif
+#ifndef RGBA_hexARGB
+#define RGBA_hexARGB(r, g, b, a) (int)(0x01000000l*(int)(fminf(a, 255)) + 0x010000*(int)(r) + 0x000100*(int)(g) + 0x000001*(int)(b))
+#endif
+
+#define     as_point_interpolate(p, p1, p2, t)              \
+                (p).x = (p1).x * (t) + (p2).x * (1 - (t));  \
+                (p).y = (p1).y * (t) + (p2).y * (1 - (t));  \
+                (p).z = (p1).z * (t) + (p2).z * (1 - (t));  \
+                (p).w = (p1).w * (t) + (p2).w * (1 - (t))
+
+#define     AS_CURVE_PRINT(c) as_curve_print(c, #c, 0)
+#define     AS_TRI_MESH_PRINT(tm) as_tri_mesh_print(tm, #tm, 0)
 
 void        as_curve_print(Curve c, char *name, size_t padding);
 void        as_tri_print(Tri tri, char *name, size_t padding);
 void        as_tri_mesh_print(Tri_mesh mesh, char *name, size_t padding);
 
-void        as_point_to_mat2D(Point p, Mat2D m);
-Point       as_mat2D_to_point(Mat2D m);
-void        as_tri_set_normals(Tri *tri);
+uint32_t    as_color_interpolate(uint32_t c1, uint32_t c2, float t);
 void        as_curve_ada_free(Curve_ada curves);
+Point       as_mat2D_to_point(Mat2D m);
+void        as_point_to_mat2D(Point p, Mat2D m);
+void        as_tri_set_normals(Tri *tri);
+void        as_tri_mesh_copy(Tri_mesh *des, Tri_mesh src);
+void        as_tri_mesh_subdivide_simple(Tri_mesh *mesh);
+
+Curve       as_circle_curve_create(const Point center, const float r, const size_t num_of_points, const uint32_t color, const char plane[]);
+Tri_mesh    as_circle_tri_mesh_create(const Point center, const float r, const size_t num_of_points, const uint32_t color, float light_intensity, const char plane[]);
 
 Tri_mesh    as_cube_create_tri_mesh(const size_t len, const uint32_t color);
-Curve       as_circle_curve_create(const Point center, const float r, const size_t num_of_points, const uint32_t color, const char plane[]);
+
 Curve_ada   as_sphere_curve_ada_create(const Point center, const float r, const size_t num_of_points_horizontal, const size_t num_of_points_vertical, const uint32_t color);
 Tri_mesh    as_sphere_tri_mesh_create(const Point center, const float r, const size_t num_of_points_horizontal, const size_t num_of_points_vertical, const uint32_t color, float light_intensity);
 
@@ -138,6 +166,35 @@ void as_tri_mesh_print(Tri_mesh mesh, char *name, size_t padding)
     }
 }
 
+uint32_t as_color_interpolate(uint32_t c1, uint32_t c2, float t)
+{
+    uint32_t r1, g1, b1, a1;
+    uint32_t r2, g2, b2, a2;
+    HexARGB_RGBA_VAR(c1, r1, g1, b1, a1);
+    HexARGB_RGBA_VAR(c2, r2, g2, b2, a2);
+
+    uint32_t r = r1 * t + r2 * (1 - t);
+    uint32_t g = g1 * t + g2 * (1 - t);
+    uint32_t b = b1 * t + b2 * (1 - t);
+    uint32_t a = a1 * t + a2 * (1 - t);
+
+    return RGBA_hexARGB(r, g, b, a);
+}
+
+void as_curve_ada_free(Curve_ada curves)
+{
+    for (size_t i = 0; i < curves.length; i++) {
+        free(curves.elements[i].elements);
+    }
+    free(curves.elements);
+}
+
+Point as_mat2D_to_point(Mat2D m)
+{
+    Point res = {.x = MAT2D_AT(m, 0, 0), .y = MAT2D_AT(m, 1, 0), .z = MAT2D_AT(m, 2, 0), .w = 1};
+    return res;
+}
+
 void as_point_to_mat2D(Point p, Mat2D m)
 {
     MATRIX2D_ASSERT((3 == m.rows && 1 == m.cols) || (1 == m.rows && 3 == m.cols));
@@ -152,12 +209,6 @@ void as_point_to_mat2D(Point p, Mat2D m)
         MAT2D_AT(m, 0, 1) = p.y;
         MAT2D_AT(m, 0, 2) = p.z;
     }
-}
-
-Point as_mat2D_to_point(Mat2D m)
-{
-    Point res = {.x = MAT2D_AT(m, 0, 0), .y = MAT2D_AT(m, 1, 0), .z = MAT2D_AT(m, 2, 0), .w = 1};
-    return res;
 }
 
 void as_tri_set_normals(Tri *tri)
@@ -192,12 +243,172 @@ void as_tri_set_normals(Tri *tri)
     mat2D_free(normal);
 }
 
-void as_curve_ada_free(Curve_ada curves)
+void as_tri_mesh_copy(Tri_mesh *des, Tri_mesh src)
 {
-    for (size_t i = 0; i < curves.length; i++) {
-        free(curves.elements[i].elements);
+    Tri_mesh temp_des = *des;
+    temp_des.length = 0;
+    for (size_t i = 0; i < src.length; i++) {
+        ada_appand(Tri, temp_des, src.elements[i]);
     }
-    free(curves.elements);
+    *des = temp_des;
+}
+
+void as_tri_mesh_subdivide_simple(Tri_mesh *mesh)
+{
+    Tri_mesh origin_mesh = {0};
+    ada_init_array(Tri, origin_mesh);
+    as_tri_mesh_copy(&origin_mesh, *mesh);
+
+    Tri_mesh new_mesh = *mesh;
+    new_mesh.length = 0;
+    
+    for (size_t tri_index = 0; tri_index < origin_mesh.length; tri_index++) {
+        Tri current_tri = origin_mesh.elements[tri_index];
+        Point p0 = current_tri.points[0];
+        Point p1 = current_tri.points[1];
+        Point p2 = current_tri.points[2];
+        Point p01 = {0}, p12 = {0}, p20 = {0};
+        as_point_interpolate(p01, p0, p1, 0.5);
+        as_point_interpolate(p12, p1, p2, 0.5);
+        as_point_interpolate(p20, p2, p0, 0.5);
+        uint32_t c01 = as_color_interpolate(current_tri.colors[0], current_tri.colors[1], 0.5);
+        uint32_t c12 = as_color_interpolate(current_tri.colors[1], current_tri.colors[2], 0.5);
+        uint32_t c20 = as_color_interpolate(current_tri.colors[2], current_tri.colors[0], 0.5);
+        float t = 0.5;
+        float light_intensity01 = current_tri.light_intensity[0] * t + current_tri.light_intensity[1] * (1 - t);
+        float light_intensity12 = current_tri.light_intensity[1] * t + current_tri.light_intensity[2] * (1 - t);
+        float light_intensity20 = current_tri.light_intensity[2] * t + current_tri.light_intensity[0] * (1 - t);
+
+        Tri tri1 = {0};
+        tri1.points[0] = current_tri.points[0];
+        tri1.points[1] = p01;
+        tri1.points[2] = p20;
+        tri1.colors[0] = current_tri.colors[0];
+        tri1.colors[1] = c01;
+        tri1.colors[2] = c20;
+        tri1.light_intensity[0] = current_tri.light_intensity[0];
+        tri1.light_intensity[1] = light_intensity01;
+        tri1.light_intensity[2] = light_intensity20;
+        as_tri_set_normals(&tri1);
+        tri1.to_draw = 1;
+        ada_appand(Tri, new_mesh, tri1);
+        
+        Tri tri2 = {0};
+        tri2.points[0] = current_tri.points[1];
+        tri2.points[1] = p12;
+        tri2.points[2] = p01;
+        tri2.colors[0] = current_tri.colors[1];
+        tri2.colors[1] = c12;
+        tri2.colors[2] = c01;
+        tri2.light_intensity[0] = current_tri.light_intensity[1];
+        tri2.light_intensity[1] = light_intensity12;
+        tri2.light_intensity[2] = light_intensity01;
+        as_tri_set_normals(&tri2);
+        tri2.to_draw = 1;
+        ada_appand(Tri, new_mesh, tri2);
+        
+        Tri tri3 = {0};
+        tri3.points[0] = current_tri.points[2];
+        tri3.points[1] = p20;
+        tri3.points[2] = p12;
+        tri3.colors[0] = current_tri.colors[2];
+        tri3.colors[1] = c20;
+        tri3.colors[2] = c12;
+        tri3.light_intensity[0] = current_tri.light_intensity[2];
+        tri3.light_intensity[1] = light_intensity20;
+        tri3.light_intensity[2] = light_intensity12;
+        as_tri_set_normals(&tri3);
+        tri3.to_draw = 1;
+        ada_appand(Tri, new_mesh, tri3);
+        
+        Tri tri4 = {0};
+        tri4.points[0] = p01;
+        tri4.points[1] = p12;
+        tri4.points[2] = p20;
+        tri4.colors[0] = c01;
+        tri4.colors[1] = c12;
+        tri4.colors[2] = c20;
+        tri4.light_intensity[0] = light_intensity01;
+        tri4.light_intensity[1] = light_intensity12;
+        tri4.light_intensity[2] = light_intensity20;
+        as_tri_set_normals(&tri4);
+        tri4.to_draw = 1;
+        ada_appand(Tri, new_mesh, tri4);
+    }
+
+    free(origin_mesh.elements);
+
+    *mesh = new_mesh;
+}
+
+Curve as_circle_curve_create(const Point center, const float r, const size_t num_of_points, const uint32_t color, const char plane[])
+{
+    AS_ASSERT(r > 0);
+    AS_ASSERT(num_of_points > 0);
+    AS_ASSERT((!strncmp(plane, "XY", 3) || !strncmp(plane, "xy", 3)) && "other planes are no implemented.");
+
+    float delta_theta = 2 * PI / (float)num_of_points; 
+
+    Curve c = {0};
+    ada_init_array(Point, c);
+    c.color = color;
+
+    for (int i = 0; i < (int)num_of_points; i++) {
+        Point p = center;
+
+        p.x += r * cosf(delta_theta * i - PI / 2.0f);
+        p.y += r * sinf(delta_theta * i - PI / 2.0f);
+
+        ada_appand(Point, c, p);
+    }
+
+    return c;
+}
+
+Tri_mesh as_circle_tri_mesh_create(const Point center, const float r, const size_t num_of_points, const uint32_t color, float light_intensity, const char plane[])
+{
+    AS_ASSERT(r > 0);
+    AS_ASSERT(num_of_points > 0);
+    AS_ASSERT((!strncmp(plane, "XY", 3) || !strncmp(plane, "xy", 3)) && "other planes are no implemented.");
+
+    float delta_theta = 2 * PI / (float)num_of_points; 
+
+    Curve c = {0};
+    ada_init_array(Point, c);
+    c.color = color;
+
+    for (int i = 0; i < (int)num_of_points; i++) {
+        Point p = center;
+
+        p.x += r * cosf(delta_theta * i - PI / 2.0f);
+        p.y += r * sinf(delta_theta * i - PI / 2.0f);
+
+        ada_appand(Point, c, p);
+    }
+
+    Tri_mesh mesh = {0};
+    ada_init_array(Tri, mesh);
+
+    for (size_t p_index = 0; p_index < c.length; p_index++) {
+        size_t p_index_p1 = (p_index + 1) % c.length;
+        Tri tri = {0};
+        for (int i = 0; i < 3; i++) {
+            tri.colors[i] = color;
+            tri.light_intensity[i] = light_intensity;
+        }
+        tri.to_draw = 1;
+        
+        tri.points[0] = c.elements[0];
+        tri.points[1] = c.elements[p_index_p1];
+        tri.points[2] = c.elements[p_index];
+        as_tri_set_normals(&tri);
+        ada_appand(Tri, mesh, tri);
+
+    }
+
+    free(c.elements);
+
+    return mesh;
 }
 
 Tri_mesh as_cube_create_tri_mesh(const size_t len, const uint32_t color)
@@ -412,30 +623,6 @@ Tri_mesh as_cube_create_tri_mesh(const size_t len, const uint32_t color)
     ada_appand(Tri, cube, tri12);
     
     return cube;
-}
-
-Curve as_circle_curve_create(const Point center, const float r, const size_t num_of_points, const uint32_t color, const char plane[])
-{
-    AS_ASSERT(r > 0);
-    AS_ASSERT(num_of_points > 0);
-    AS_ASSERT((!strncmp(plane, "XY", 3) || !strncmp(plane, "xy", 3)) && "other planes are no implemented.");
-
-    float delta_theta = 2 * PI / (float)num_of_points; 
-
-    Curve c = {0};
-    ada_init_array(Point, c);
-    c.color = color;
-
-    for (int i = 0; i < (int)num_of_points; i++) {
-        Point p = center;
-
-        p.x += r * cosf(delta_theta * i - PI / 2.0f);
-        p.y += r * sinf(delta_theta * i - PI / 2.0f);
-
-        ada_appand(Point, c, p);
-    }
-
-    return c;
 }
 
 Curve_ada as_sphere_curve_ada_create(const Point center, const float r, const size_t num_of_points_horizontal, const size_t num_of_points_vertical, const uint32_t color)
