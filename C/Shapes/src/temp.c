@@ -26,7 +26,6 @@ void setup(game_state_t *game_state)
     // proj_mesh = as_circle_tri_mesh_create((Point){0,0,0,1}, 1, temp, 1, 0xffffffff, "XY");
 
     as_tri_mesh_subdivide_simple(&mesh);
-    as_tri_mesh_subdivide_simple(&mesh);
 
     dprintSIZE_T(mesh.length);
 }

@@ -7,12 +7,12 @@
 #define MATRIX2D_IMPLEMENTATION
 #include "./Matrix2D.h"
 
-
 Quad quad1;
 Tri tri;
+
 void setup(game_state_t *game_state)
 {
-    game_state->const_fps = 30;
+    // game_state->const_fps = 30;
     game_state->to_limit_fps = 0;
 
     quad1.points[3] = (Point){200, 100, 1, 1};
@@ -40,13 +40,11 @@ void setup(game_state_t *game_state)
     tri.colors[1] = 0xFF0000FF;
     tri.colors[2] = 0xFF00FF00;
 
-    SDL_Delay(5);
-
 }
 
 void update(game_state_t *game_state)
 {
-
+    SDL_Delay(1);
 }
 
 void render(game_state_t *game_state)

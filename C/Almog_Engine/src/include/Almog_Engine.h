@@ -195,7 +195,6 @@ void        ae_tri_calc_normal(Mat2D normal, Tri tri);
 void        ae_tri_mesh_translate(Tri_mesh mesh, float x, float y, float z);
 void        ae_tri_mesh_rotate_Euler_xyz(Tri_mesh mesh, float phi_deg, float theta_deg, float psi_deg);
 void        ae_tri_mesh_set_bounding_box(Tri_mesh mesh, float *x_min, float *x_max, float *y_min, float *y_max, float *z_min, float *z_max);
-void        ae_tri_set_center_zmin_zmax(Tri *tri);
 void        ae_tri_mesh_normalize(Tri_mesh mesh);
 void        ae_tri_mesh_flip_normals(Tri_mesh mesh);
 void        ae_quad_set_normals(Quad *quad);
@@ -702,11 +701,6 @@ Tri_mesh ae_tri_mesh_get_from_obj_file(char *file_path)
                 tri1.light_intensity[0] = 1;
                 tri1.light_intensity[1] = 1;
                 tri1.light_intensity[2] = 1;
-                tri1.center.x = (tri1.points[0].x + tri1.points[1].x + tri1.points[2].x) / 3;
-                tri1.center.y = (tri1.points[0].y + tri1.points[1].y + tri1.points[2].y) / 3;
-                tri1.center.z = (tri1.points[0].z + tri1.points[1].z + tri1.points[2].z) / 3;
-                tri1.z_min = fmin(tri1.points[0].z, fmin(tri1.points[1].z, tri1.points[2].z));
-                tri1.z_max = fmax(tri1.points[0].z, fmax(tri1.points[1].z, tri1.points[2].z));
                 tri1.colors[0] = 0xFFFFFFFF;
                 tri1.colors[1] = 0xFFFFFFFF;
                 tri1.colors[2] = 0xFFFFFFFF;
@@ -758,11 +752,6 @@ Tri_mesh ae_tri_mesh_get_from_obj_file(char *file_path)
                 tri1.light_intensity[0] = 1;
                 tri1.light_intensity[1] = 1;
                 tri1.light_intensity[2] = 1;
-                tri1.center.x = (tri1.points[0].x + tri1.points[1].x + tri1.points[2].x) / 3;
-                tri1.center.y = (tri1.points[0].y + tri1.points[1].y + tri1.points[2].y) / 3;
-                tri1.center.z = (tri1.points[0].z + tri1.points[1].z + tri1.points[2].z) / 3;
-                tri1.z_min = fmin(tri1.points[0].z, fmin(tri1.points[1].z, tri1.points[2].z));
-                tri1.z_max = fmax(tri1.points[0].z, fmax(tri1.points[1].z, tri1.points[2].z));
                 tri1.colors[0] = 0xFFFFFFFF;
                 tri1.colors[1] = 0xFFFFFFFF;
                 tri1.colors[2] = 0xFFFFFFFF;
@@ -771,11 +760,6 @@ Tri_mesh ae_tri_mesh_get_from_obj_file(char *file_path)
                 tri2.light_intensity[0] = 1;
                 tri2.light_intensity[1] = 1;
                 tri2.light_intensity[2] = 1;
-                tri2.center.x = (tri2.points[0].x + tri2.points[1].x + tri2.points[2].x) / 3;
-                tri2.center.y = (tri2.points[0].y + tri2.points[1].y + tri2.points[2].y) / 3;
-                tri2.center.z = (tri2.points[0].z + tri2.points[1].z + tri2.points[2].z) / 3;
-                tri2.z_min = fmin(tri2.points[0].z, fmin(tri2.points[1].z, tri2.points[2].z));
-                tri2.z_max = fmax(tri2.points[0].z, fmax(tri2.points[1].z, tri2.points[2].z));
                 tri2.colors[0] = 0xFFFFFFFF;
                 tri2.colors[1] = 0xFFFFFFFF;
                 tri2.colors[2] = 0xFFFFFFFF;
@@ -843,11 +827,6 @@ Tri_mesh ae_tri_mesh_get_from_stl_file(char *file_path)
         temp_tri.light_intensity[0] = 1;
         temp_tri.light_intensity[1] = 1;
         temp_tri.light_intensity[2] = 1;
-        temp_tri.center.x = (temp_tri.points[0].x + temp_tri.points[1].x + temp_tri.points[2].x) / 3;
-        temp_tri.center.y = (temp_tri.points[0].y + temp_tri.points[1].y + temp_tri.points[2].y) / 3;
-        temp_tri.center.z = (temp_tri.points[0].z + temp_tri.points[1].z + temp_tri.points[2].z) / 3;
-        temp_tri.z_min = fmin(temp_tri.points[0].z, fmin(temp_tri.points[1].z, temp_tri.points[2].z));
-        temp_tri.z_max = fmax(temp_tri.points[0].z, fmax(temp_tri.points[1].z, temp_tri.points[2].z));
         temp_tri.colors[0] = 0xFFFFFFFF;
         temp_tri.colors[1] = 0xFFFFFFFF;
         temp_tri.colors[2] = 0xFFFFFFFF;
@@ -1159,16 +1138,6 @@ void ae_tri_mesh_set_bounding_box(Tri_mesh mesh, float *x_min, float *x_max, flo
     *z_max = zmax;
 }
 
-void ae_tri_set_center_zmin_zmax(Tri *tri)
-{
-    ae_assert_tri_is_valid(*tri);
-    tri->center.x = (tri->points[0].x + tri->points[1].x + tri->points[2].x) / 3;
-    tri->center.y = (tri->points[0].y + tri->points[1].y + tri->points[2].y) / 3;
-    tri->center.z = (tri->points[0].z + tri->points[1].z + tri->points[2].z) / 3;
-    tri->z_min = fmin(tri->points[0].z, fmin(tri->points[1].z, tri->points[2].z));
-    tri->z_max = fmax(tri->points[0].z, fmax(tri->points[1].z, tri->points[2].z));
-}
-
 /* normalize all the points in between -1 and 1. the origin is in the center of the body. */
 void ae_tri_mesh_normalize(Tri_mesh mesh)
 {
@@ -1208,10 +1177,7 @@ void ae_tri_mesh_flip_normals(Tri_mesh mesh)
     for (size_t i = 0; i < mesh.length; i++) {
         Tri res_tri, tri = mesh.elements[i];
 
-        res_tri.center  = tri.center;
         res_tri.to_draw = tri.to_draw;
-        res_tri.z_max   = tri.z_max;
-        res_tri.z_min   = tri.z_min;
 
         res_tri.colors[0]          = tri.colors[2];
         res_tri.light_intensity[0] = tri.light_intensity[2];
@@ -2788,7 +2754,6 @@ Tri_mesh ae_tri_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Tri tri, in
 
         }
         ae_assert_tri_is_valid(des_tri);
-        ae_tri_set_center_zmin_zmax(&des_tri);
         temp_tri_array.elements[temp_tri_index] = des_tri;
     }
 
@@ -3278,7 +3243,10 @@ bool ae_tri_compare(Tri t1, Tri t2)
 
     // return t1.z_min > t2.z_min;
 
-    return t1.z_max > t2.z_max;
+    float t1_z_max = fmaxf(t1.points[0].z, fmaxf(t1.points[1].z, t1.points[2].z));
+    float t2_z_max = fmaxf(t2.points[0].z, fmaxf(t2.points[1].z, t2.points[2].z));
+
+    return t1_z_max > t2_z_max;
 }
 
 /* qsort: sort v[left]...v[right] int increasing order */
