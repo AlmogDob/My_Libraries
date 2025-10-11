@@ -2,6 +2,7 @@
 #ifndef ALMOG_SHAPES_H_
 #define ALMOG_SHAPES_H_
 
+#include <stdio.h>
 #include <stdint.h>
 #include <stddef.h>
 #include <string.h>
@@ -112,7 +113,7 @@ typedef struct {
 #define RGBA_hexARGB(r, g, b, a) (int)(0x01000000l*(int)(fminf(a, 255)) + 0x010000*(int)(r) + 0x000100*(int)(g) + 0x000001*(int)(b))
 #endif
 
-#define             as_points_interpolate(p, p1, p2, t)              \
+#define             as_points_interpolate(p, p1, p2, t)             \
                         (p).x = (p1).x * (t) + (p2).x * (1 - (t));  \
                         (p).y = (p1).y * (t) + (p2).y * (1 - (t));  \
                         (p).z = (p1).z * (t) + (p2).z * (1 - (t));  \
@@ -121,22 +122,18 @@ typedef struct {
 #define             as_points_equal(p1, p2) (p1).x == (p2).x && (p1).y == (p2).y && (p1).z == (p2).z
 #define             as_point_dot_point(p1, p2) (((p1).x * (p2).x) + ((p1).y * (p2).y) + ((p1).z * (p2).z))
 #define             as_point_add_point(p, p1, p2) (p).x = (p1).x + (p2).x;  \
-                        (p).y = (p1).y + (p2).y;                                \
-                        (p).z = (p1).z + (p2).z;                                \
+                        (p).y = (p1).y + (p2).y;                            \
+                        (p).z = (p1).z + (p2).z;                            \
                         (p).w = (p1).w + (p2).w
 #define             as_point_sub_point(p, p1, p2) (p).x = (p1).x - (p2).x;  \
-                        (p).y = (p1).y - (p2).y;                                \
-                        (p).z = (p1).z - (p2).z;                                \
+                        (p).y = (p1).y - (p2).y;                            \
+                        (p).z = (p1).z - (p2).z;                            \
                         (p).w = (p1).w - (p2).w
 #define             as_point_dot_point(p1, p2) (((p1).x * (p2).x) + ((p1).y * (p2).y) + ((p1).z * (p2).z))
 #define             as_point_mult(p, const) (p).x *= const; \
-                        (p).y *= const;                         \
+                        (p).y *= const;                     \
                         (p).z *= const
-
-#define             AS_POINT_PRINT(c) as_point_print(c, #c, 0)
-#define             AS_CURVE_PRINT(c) as_curve_print(c, #c, 0)
-#define             AS_TRI_IMPLICIT_MESH_PRINT(tm) as_tri_implicit_mesh_print(tm, #tm, 0)
-#define             AS_TRI_MESH_PRINT(tm) as_tri_mesh_print(tm, #tm, 0)
+#define             as_tri_area_xy(p1, p2, p3) 0.5 * ((p2).x-(p1).x)*((p3).y-(p1).y)- 0.5 * ((p3).x-(p1).x)*((p2).y-(p1).y)
 
 /* init functions */
 Tri_implicit_mesh   as_Tri_implicit_mesh_init(void);
@@ -169,9 +166,13 @@ float               as_tri_mesh_const_y(Tri_mesh mesh);
 float               as_tri_mesh_const_z(Tri_mesh mesh);
 
 /* Delaunay Mesh Generation utils functions */
+void                as_points_array_convex_hull(Curve *conv, Point *points, const size_t len);
+void                as_points_array_swap_points(Point *c, const size_t index1, const size_t index2);
+void                as_points_array_order_lexicographically(Point *c, const size_t len);
 void                as_tri_get_circumcircle(Point p1, Point p2, Point p3, const char plane[], Point *center, float *r);
 void                as_tri_get_in_circle(Point p1, Point p2, Point p3, const char plane[], Point *center, float *r);
 void                as_tri_get_min_containment_circle(Point p1, Point p2, Point p3, const char plane[], Point *center, float *r);
+void                as_tri_implicit_mesh_set_lexicographic_triangulation(Tri_implicit_mesh implicit_mesh);
 
 /* circle operations functions */
 Curve               as_circle_curve_create(const Point center, const float r, const size_t num_of_points, const uint32_t color, const char plane[]);
@@ -188,6 +189,11 @@ Tri_mesh            as_sphere_tri_mesh_create_simple(const Point center, const f
 
 #ifdef ALMOG_SHAPES_IMPLEMENTATION
 #undef ALMOG_SHAPES_IMPLEMENTATION
+
+#define             AS_POINT_PRINT(c) as_point_print(c, #c, 0)
+#define             AS_CURVE_PRINT(c) as_curve_print(c, #c, 0)
+#define             AS_TRI_IMPLICIT_MESH_PRINT(tm) as_tri_implicit_mesh_print(tm, #tm, 0)
+#define             AS_TRI_MESH_PRINT(tm) as_tri_mesh_print(tm, #tm, 0)
 
 Tri_implicit_mesh as_Tri_implicit_mesh_init(void)
 {
@@ -589,6 +595,67 @@ float as_tri_mesh_const_z(Tri_mesh mesh)
     return z_value;
 }
 
+void as_points_array_convex_hull(Curve *conv, Point *points, const size_t len)
+{
+    /* make sure points have the same z value */
+    float z_value = points[0].z;
+    for (size_t i = 1; i < len; i++) {
+        AS_ASSERT(points[i].z == z_value);
+    }
+
+    as_points_array_order_lexicographically(points, len);
+    
+    Curve temp_c = *conv;
+    temp_c.length = 0;
+
+    /* first point on the convex hull is the left most point and going acw */
+    ada_appand(Point, temp_c, points[0]);
+
+    /* guess next point on convex hull*/
+    for (size_t i = 0; i < len; i++) {
+        size_t current_guess = i+1;
+        for (size_t next_guess = 0; next_guess < len; next_guess++) {
+            if (next_guess == current_guess) continue;
+            float cross = as_tri_area_xy(temp_c.elements[temp_c.length-1], points[next_guess], points[current_guess]);
+            if (cross > 0) {
+                current_guess = next_guess;
+            }
+        }
+        if (as_points_equal(temp_c.elements[0], points[current_guess])) break;
+        if (as_point_in_curve_occurrences(points[current_guess], temp_c)) continue;
+        ada_appand(Point, temp_c, points[current_guess]);
+    }
+
+    *conv = temp_c;
+}
+
+void as_points_array_swap_points(Point *c, const size_t index1, const size_t index2)
+{
+    Point temp = c[index1];
+    c[index1] = c[index2];
+    c[index2] = temp;
+}
+
+/* bubble sort */
+void as_points_array_order_lexicographically(Point *c, const size_t len)
+{
+    for (size_t i = 0; i < len-1; i++) {
+        for (size_t j = i+1; j < len; j++) {
+            if (c[i].x > c[j].x) {
+                as_points_array_swap_points(c, i, j);
+            } else if (c[i].x == c[j].x) {
+                if (c[i].y > c[j].y) {
+                    as_points_array_swap_points(c, i, j);
+                } else if (c[i].y == c[j].y) {
+                    if (c[i].z > c[j].z) {
+                        as_points_array_swap_points(c, i, j);
+                    }
+                }
+            }
+        }
+    }
+}
+
 void as_tri_get_circumcircle(Point p1, Point p2, Point p3, const char plane[], Point *center, float *r)
 {
     AS_ASSERT((!strncmp(plane, "XY", 3) || !strncmp(plane, "xy", 3)) && "other planes are no implemented.");
@@ -701,6 +768,34 @@ void as_tri_get_min_containment_circle(Point p1, Point p2, Point p3, const char 
             *r = d3 / 2;
         }
     }
+}
+
+void as_tri_implicit_mesh_set_lexicographic_triangulation(Tri_implicit_mesh implicit_mesh)
+{
+    implicit_mesh.triangles.length = 0; /* zeroing the current triangulation */
+    Curve points = implicit_mesh.points;
+    as_points_array_order_lexicographically(implicit_mesh.points.elements, implicit_mesh.points.length);
+
+    /* make sure points have the same z value */
+    float z_value = points.elements[0].z;
+    for (size_t i = 1; i < points.length; i++) {
+        AS_ASSERT(points.elements[i].z == z_value);
+    }
+
+    /* find first non-degenerate triangle */
+    Tri_implicit first_implicit_tri = {0};
+    for (size_t i = 2; i < points.length; i++) {
+        Point p1 = points.elements[i-2];
+        Point p2 = points.elements[i-1];
+        Point p3 = points.elements[i];
+        if (as_tri_area_xy(p1, p2, p3)) {
+            first_implicit_tri.points_index[0] = i-2;
+            first_implicit_tri.points_index[1] = i-1;
+            first_implicit_tri.points_index[2] = i;
+            break;
+        }
+    }
+    (void)first_implicit_tri;
 }
 
 Curve as_circle_curve_create(const Point center, const float r, const size_t num_of_points, const uint32_t color, const char plane[])
