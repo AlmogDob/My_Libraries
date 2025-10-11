@@ -197,6 +197,7 @@ void        ae_tri_mesh_rotate_Euler_xyz(Tri_mesh mesh, float phi_deg, float the
 void        ae_tri_mesh_set_bounding_box(Tri_mesh mesh, float *x_min, float *x_max, float *y_min, float *y_max, float *z_min, float *z_max);
 void        ae_tri_mesh_normalize(Tri_mesh mesh);
 void        ae_tri_mesh_flip_normals(Tri_mesh mesh);
+void        ae_tri_mesh_set_normals(Tri_mesh mesh);
 void        ae_quad_set_normals(Quad *quad);
 Point       ae_quad_get_average_normal(Quad quad);
 Point       ae_quad_get_average_point(Quad quad);
@@ -523,7 +524,7 @@ Scene ae_scene_init(int window_h, int window_w)
     mat2D_fill(scene.up_direction, 0);
     MAT2D_AT(scene.up_direction, 1, 0) = 1;
 
-    scene.light_source0.light_direction_or_pos.x = 0.5;
+    scene.light_source0.light_direction_or_pos.x = 1;
     scene.light_source0.light_direction_or_pos.y = 1;
     scene.light_source0.light_direction_or_pos.z = 1;
     scene.light_source0.light_direction_or_pos.w = 0;
@@ -1102,6 +1103,8 @@ void ae_tri_mesh_rotate_Euler_xyz(Tri_mesh mesh, float phi_deg, float theta_deg,
         }
     }
 
+    ae_tri_mesh_set_normals(mesh);
+
     mat2D_free(RotZ);
     mat2D_free(RotY);
     mat2D_free(RotX);
@@ -1201,6 +1204,13 @@ void ae_tri_mesh_flip_normals(Tri_mesh mesh)
         ae_tri_set_normals(&res_tri);
 
         mesh.elements[i] = res_tri;
+    }
+}
+
+void ae_tri_mesh_set_normals(Tri_mesh mesh)
+{
+    for (size_t i = 0; i < mesh.length; i++) {
+        ae_tri_set_normals(&(mesh.elements[i]));
     }
 }
 

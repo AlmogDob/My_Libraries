@@ -813,7 +813,7 @@ void adl_quad_fill(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer, Quad quad, uint3
 
     float w = edge_cross_point(p0, p1, p1, p2) + edge_cross_point(p2, p3, p3, p0);
     if (fabs(w) < 1e-6) {
-        adl_quad_draw(screen_mat, inv_z_buffer, quad, quad.colors[0], offset_zoom_param);
+        // adl_quad_draw(screen_mat, inv_z_buffer, quad, quad.colors[0], offset_zoom_param);
         return;
     }
 
@@ -895,7 +895,7 @@ void adl_quad_fill_interpolate_normal_mean_value(Mat2D_uint32 screen_mat, Mat2D 
 
     float w = edge_cross_point(p0, p1, p1, p2) + edge_cross_point(p2, p3, p3, p0);
     if (fabs(w) < 1e-6) {
-        adl_quad_draw(screen_mat, inv_z_buffer, quad, quad.colors[0], offset_zoom_param);
+        // adl_quad_draw(screen_mat, inv_z_buffer, quad, quad.colors[0], offset_zoom_param);
         return;
     }
 
@@ -978,7 +978,7 @@ void adl_quad_fill_interpolate_color_mean_value(Mat2D_uint32 screen_mat, Mat2D i
 
     float w = edge_cross_point(p0, p1, p1, p2) + edge_cross_point(p2, p3, p3, p0);
     if (fabs(w) < 1e-6) {
-        adl_quad_draw(screen_mat, inv_z_buffer, quad, quad.colors[0], offset_zoom_param);
+        // adl_quad_draw(screen_mat, inv_z_buffer, quad, quad.colors[0], offset_zoom_param);
         return;
     }
 
@@ -1170,7 +1170,7 @@ void adl_tri_fill_Pinedas_rasterizer(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer
     /* draw only outline of the tri if there is no area */
     float w = edge_cross_point(p0, p1, p1, p2);
     if (fabsf(w) < 1e-6) {
-        adl_tri_draw(screen_mat, tri, tri.colors[0], offset_zoom_param);
+        // adl_tri_draw(screen_mat, tri, tri.colors[0], offset_zoom_param);
         return;
     }
     MATRIX2D_ASSERT(fabsf(w) > 1e-6 && "triangle must have area");
@@ -1226,7 +1226,7 @@ void adl_tri_fill_Pinedas_rasterizer_interpolate_color(Mat2D_uint32 screen_mat, 
 
     float w = edge_cross_point(p0, p1, p1, p2);
     if (fabsf(w) < 1e-6) {
-        adl_tri_draw(screen_mat, tri, tri.colors[0], offset_zoom_param);
+        // adl_tri_draw(screen_mat, tri, tri.colors[0], offset_zoom_param);
         return;
     }
     MATRIX2D_ASSERT(w != 0 && "triangle has area");
@@ -1305,7 +1305,7 @@ void adl_tri_fill_Pinedas_rasterizer_interpolate_normal(Mat2D_uint32 screen_mat,
 
     float w = edge_cross_point(p0, p1, p1, p2);
     if (fabsf(w) < 1e-6) {
-        adl_tri_draw(screen_mat, tri, tri.colors[0], offset_zoom_param);
+        // adl_tri_draw(screen_mat, tri, tri.colors[0], offset_zoom_param);
         return;
     }
     MATRIX2D_ASSERT(w != 0 && "triangle has area");
