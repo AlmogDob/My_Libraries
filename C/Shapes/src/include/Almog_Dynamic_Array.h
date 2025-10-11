@@ -29,7 +29,7 @@
         header.length = 0;                                                      \
         header.elements = (type *)ADA_MALLOC(sizeof(type) * header.capacity);   \
         ADA_ASSERT(header.elements != NULL);                                    \
-    } while (0)                                                                 \
+    } while (0)
 
 #define ada_resize(type, header, new_capacity) do {                                                         \
         type *ada_temp_pointer = (type *)ADA_REALLOC((void *)(header.elements), new_capacity*sizeof(type)); \
@@ -39,7 +39,7 @@
         header.elements = ada_temp_pointer;                                                                 \
         ADA_ASSERT(header.elements != NULL);                                                                \
         header.capacity = new_capacity;                                                                     \
-    } while (0)                                                                                             \
+    } while (0)
 
 #define ada_appand(type, header, value) do {                        \
         if (header.length >= header.capacity) {                     \
@@ -47,7 +47,7 @@
         }                                                           \
         header.elements[header.length] = value;                     \
         header.length++;                                            \
-    } while (0)                                                     \
+    } while (0)
 
 #define ada_insert(type, header, value, index) do {                                                         \
     ADA_ASSERT((int)(index) >= 0);                                                                          \
@@ -57,7 +57,7 @@
         header.elements[ada_for_loop_index] = header.elements [ada_for_loop_index-1];                       \
     }                                                                                                       \
     header.elements[(index)] = value;                                                                       \
-} while (0)                                                                                                 \
+} while (0)
 
 #define ada_insert_unordered(type, header, value, index) do {   \
     ADA_ASSERT((int)(index) >= 0);                              \

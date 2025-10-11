@@ -3130,7 +3130,7 @@ void ae_curve_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Curve *des, C
     ae_curve_copy(des, src);
     Curve temp_des = *des;
     /* set planes */
-    int offset = 50;
+    int offset = 0;
     Mat2D top_p = mat2D_alloc(3, 1);
     Mat2D top_n = mat2D_alloc(3, 1);
     mat2D_fill(top_p, 0);

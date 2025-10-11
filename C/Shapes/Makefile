@@ -44,42 +44,83 @@ profile_build_temp: ./src/temp.c
 # cloc --exclude-lang=JSON,make .
 
 #############################################################
-sphere_circle_example: build_sphere_circle_example run_sphere_circle_example clean_sphere_circle_example  
-	@echo ./build/sphere_circle_example done
+example1: build_example1 run_example1 clean_example1  
+	@echo ./build/example1 done
 
-build_sphere_circle_example: ./src/sphere_circle_example.c 
-	@echo [INFO] building sphere_circle_example
-	@gcc ./src/sphere_circle_example.c $(CFLAGS) -o ./build/sphere_circle_example
+build_example1: ./src/example1.c 
+	@echo [INFO] building example1
+	@gcc ./src/example1.c $(CFLAGS) -o ./build/example1
 
-run_sphere_circle_example:
+run_example1:
 	@echo
-	./build/sphere_circle_example
+	./build/example1
 	@echo
 
-clean_sphere_circle_example:
+clean_example1:
 	@echo [INFO] removing all build files
-	@rm ./build/sphere_circle_example
+	@rm ./build/example1
 
-debug_sphere_circle_example: debug_build_sphere_circle_example
-	gdb ./build/sphere_circle_example
+debug_example1: debug_build_example1
+	gdb ./build/example1
 
-debug_build_sphere_circle_example: ./src/sphere_circle_example.c
-	@echo [INFO] building sphere_circle_example
-	@gcc ./src/sphere_circle_example.c $(CFLAGS) -ggdb -o ./build/sphere_circle_example
+debug_build_example1: ./src/example1.c
+	@echo [INFO] building example1
+	@gcc ./src/example1.c $(CFLAGS) -ggdb -o ./build/example1
 
-profile_sphere_circle_example: profile_build_sphere_circle_example
-	./build/sphere_circle_example
+profile_example1: profile_build_example1
+	./build/example1
 	@echo
-	gprof ./build/sphere_circle_example gmon.out | /home/almog/.local/bin/gprof2dot | dot -Tpng -Gdpi=200 -o output.png
+	gprof ./build/example1 gmon.out | /home/almog/.local/bin/gprof2dot | dot -Tpng -Gdpi=200 -o output.png
 	imview ./output.png
 	# xdg-open ./output.png
 	@echo
 	rm ./gmon.out ./output.png 
-	make clean_sphere_circle_example
+	make clean_example1
 
-profile_build_sphere_circle_example: ./src/sphere_circle_example.c
-	@echo [INFO] building sphere_circle_example
-	@gcc ./src/sphere_circle_example.c $(CFLAGS) -p -ggdb -o ./build/sphere_circle_example
+profile_build_example1: ./src/example1.c
+	@echo [INFO] building example1
+	@gcc ./src/example1.c $(CFLAGS) -p -ggdb -o ./build/example1
 
-# valgrind -s --leak-check=full ./sphere_circle_example
+# valgrind -s --leak-check=full ./example1
+# cloc --exclude-lang=JSON,make .
+
+#############################################################
+example2: build_example2 run_example2 clean_example2  
+	@echo ./build/example2 done
+
+build_example2: ./src/example2.c 
+	@echo [INFO] building example2
+	@gcc ./src/example2.c $(CFLAGS) -o ./build/example2
+
+run_example2:
+	@echo
+	./build/example2
+	@echo
+
+clean_example2:
+	@echo [INFO] removing all build files
+	@rm ./build/example2
+
+debug_example2: debug_build_example2
+	gdb ./build/example2
+
+debug_build_example2: ./src/example2.c
+	@echo [INFO] building example2
+	@gcc ./src/example2.c $(CFLAGS) -ggdb -o ./build/example2
+
+profile_example2: profile_build_example2
+	./build/example2
+	@echo
+	gprof ./build/example2 gmon.out | /home/almog/.local/bin/gprof2dot | dot -Tpng -Gdpi=200 -o output.png
+	imview ./output.png
+	# xdg-open ./output.png
+	@echo
+	rm ./gmon.out ./output.png 
+	make clean_example2
+
+profile_build_example2: ./src/example2.c
+	@echo [INFO] building example2
+	@gcc ./src/example2.c $(CFLAGS) -p -ggdb -o ./build/example2
+
+# valgrind -s --leak-check=full ./example2
 # cloc --exclude-lang=JSON,make .

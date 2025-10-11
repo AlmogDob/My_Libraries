@@ -112,13 +112,28 @@ typedef struct {
 #define RGBA_hexARGB(r, g, b, a) (int)(0x01000000l*(int)(fminf(a, 255)) + 0x010000*(int)(r) + 0x000100*(int)(g) + 0x000001*(int)(b))
 #endif
 
-#define             as_point_interpolate(p, p1, p2, t)              \
+#define             as_points_interpolate(p, p1, p2, t)              \
                         (p).x = (p1).x * (t) + (p2).x * (1 - (t));  \
                         (p).y = (p1).y * (t) + (p2).y * (1 - (t));  \
                         (p).z = (p1).z * (t) + (p2).z * (1 - (t));  \
                         (p).w = (p1).w * (t) + (p2).w * (1 - (t))
+#define             as_tri_equal_z(tri) ((tri.points[0].z == tri.points[1].z) && (tri.points[1].z == tri.points[2].z) && (tri.points[2].z == tri.points[0].z))
 #define             as_points_equal(p1, p2) (p1).x == (p2).x && (p1).y == (p2).y && (p1).z == (p2).z
+#define             as_point_dot_point(p1, p2) (((p1).x * (p2).x) + ((p1).y * (p2).y) + ((p1).z * (p2).z))
+#define             as_point_add_point(p, p1, p2) (p).x = (p1).x + (p2).x;  \
+                        (p).y = (p1).y + (p2).y;                                \
+                        (p).z = (p1).z + (p2).z;                                \
+                        (p).w = (p1).w + (p2).w
+#define             as_point_sub_point(p, p1, p2) (p).x = (p1).x - (p2).x;  \
+                        (p).y = (p1).y - (p2).y;                                \
+                        (p).z = (p1).z - (p2).z;                                \
+                        (p).w = (p1).w - (p2).w
+#define             as_point_dot_point(p1, p2) (((p1).x * (p2).x) + ((p1).y * (p2).y) + ((p1).z * (p2).z))
+#define             as_point_mult(p, const) (p).x *= const; \
+                        (p).y *= const;                         \
+                        (p).z *= const
 
+#define             AS_POINT_PRINT(c) as_point_print(c, #c, 0)
 #define             AS_CURVE_PRINT(c) as_curve_print(c, #c, 0)
 #define             AS_TRI_IMPLICIT_MESH_PRINT(tm) as_tri_implicit_mesh_print(tm, #tm, 0)
 #define             AS_TRI_MESH_PRINT(tm) as_tri_mesh_print(tm, #tm, 0)
@@ -127,6 +142,7 @@ typedef struct {
 Tri_implicit_mesh   as_Tri_implicit_mesh_init(void);
 
 /* printing functions */
+void                as_point_print(Point p, char *name, size_t padding);
 void                as_curve_print(Curve c, char *name, size_t padding);
 void                as_tri_print(Tri tri, char *name, size_t padding);
 void                as_tri_implicit_mesh_print(Tri_implicit_mesh mesh, char *name, size_t padding);
@@ -137,13 +153,25 @@ uint32_t            as_color_interpolate(uint32_t c1, uint32_t c2, float t);
 void                as_curve_ada_free(Curve_ada curves);
 Point               as_mat2D_to_point(Mat2D m);
 void                as_point_to_mat2D(Point p, Mat2D m);
+float               as_points_distance(Point p1, Point p2);
 size_t              as_point_in_curve_occurrences(Point p, Curve c);
 int                 as_point_in_curve_index(Point p, Curve c);
 void                as_tri_set_normals(Tri *tri);
+float               as_tri_implicit_mesh_const_x(Tri_implicit_mesh mesh);
+float               as_tri_implicit_mesh_const_y(Tri_implicit_mesh mesh);
+float               as_tri_implicit_mesh_const_z(Tri_implicit_mesh mesh);
 Tri_mesh            as_tri_implicit_mesh_to_tri_mesh(Tri_implicit_mesh implicit_mesh, float light_intensity, uint32_t color);
 Tri_implicit_mesh   as_tri_mesh_to_tri_implicit_mesh(Tri_mesh mesh);
 void                as_tri_mesh_copy(Tri_mesh *des, Tri_mesh src);
 void                as_tri_mesh_subdivide_simple(Tri_mesh *mesh);
+float               as_tri_mesh_const_x(Tri_mesh mesh);
+float               as_tri_mesh_const_y(Tri_mesh mesh);
+float               as_tri_mesh_const_z(Tri_mesh mesh);
+
+/* Delaunay Mesh Generation utils functions */
+void                as_tri_get_circumcircle(Point p1, Point p2, Point p3, const char plane[], Point *center, float *r);
+void                as_tri_get_in_circle(Point p1, Point p2, Point p3, const char plane[], Point *center, float *r);
+void                as_tri_get_min_containment_circle(Point p1, Point p2, Point p3, const char plane[], Point *center, float *r);
 
 /* circle operations functions */
 Curve               as_circle_curve_create(const Point center, const float r, const size_t num_of_points, const uint32_t color, const char plane[]);
@@ -169,6 +197,12 @@ Tri_implicit_mesh as_Tri_implicit_mesh_init(void)
     ada_init_array(Tri_implicit, mesh.triangles);
 
     return mesh;
+}
+
+void as_point_print(Point p, char *name, size_t padding)
+{
+    printf("%*s%s:\n", (int) padding, "", name);
+    printf("%*s    (%f, %f, %f)\n", (int) padding, "", p.x, p.y, p.z);
 }
 
 void as_curve_print(Curve c, char *name, size_t padding)
@@ -263,6 +297,13 @@ void as_point_to_mat2D(Point p, Mat2D m)
     }
 }
 
+/* Euclidean distance */
+float as_points_distance(Point p1, Point p2)
+{
+    return sqrtf((p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y) + (p1.z - p2.z) * (p1.z - p2.z));
+}
+// #define as_points_distance(p1, p2) sqrtf(((p1).x - (p2).x) * ((p1).x - (p2).x) + ((p1).y - (p2).y) * ((p1).y - (p2).y) + ((p1).z - (p2).z) * ((p1).z - (p2).z));
+
 /* returns num of occurrences of p in c */
 size_t as_point_in_curve_occurrences(Point p, Curve c)
 {
@@ -317,6 +358,45 @@ void as_tri_set_normals(Tri *tri)
     mat2D_free(to_p);
     mat2D_free(from_p);
     mat2D_free(normal);
+}
+
+float as_tri_implicit_mesh_const_x(Tri_implicit_mesh mesh)
+{
+    float value;
+
+    for (size_t p_index = 0; p_index < mesh.points.length; p_index++) {
+        if (p_index == 0) value = mesh.points.elements[p_index].x;
+
+        if (value != mesh.points.elements[p_index].x) return NAN;
+    }
+
+    return value;
+}
+
+float as_tri_implicit_mesh_const_y(Tri_implicit_mesh mesh)
+{
+    float value;
+
+    for (size_t p_index = 0; p_index < mesh.points.length; p_index++) {
+        if (p_index == 0) value = mesh.points.elements[p_index].y;
+
+        if (value != mesh.points.elements[p_index].y) return NAN;
+    }
+
+    return value;
+}
+
+float as_tri_implicit_mesh_const_z(Tri_implicit_mesh mesh)
+{
+    float value;
+
+    for (size_t p_index = 0; p_index < mesh.points.length; p_index++) {
+        if (p_index == 0) value = mesh.points.elements[p_index].z;
+
+        if (value != mesh.points.elements[p_index].z) return NAN;
+    }
+
+    return value;
 }
 
 Tri_mesh as_tri_implicit_mesh_to_tri_mesh(Tri_implicit_mesh implicit_mesh, float light_intensity, uint32_t color)
@@ -385,9 +465,9 @@ void as_tri_mesh_subdivide_simple(Tri_mesh *mesh)
         Point p1 = current_tri.points[1];
         Point p2 = current_tri.points[2];
         Point p01 = {0}, p12 = {0}, p20 = {0};
-        as_point_interpolate(p01, p0, p1, 0.5);
-        as_point_interpolate(p12, p1, p2, 0.5);
-        as_point_interpolate(p20, p2, p0, 0.5);
+        as_points_interpolate(p01, p0, p1, 0.5);
+        as_points_interpolate(p12, p1, p2, 0.5);
+        as_points_interpolate(p20, p2, p0, 0.5);
         uint32_t c01 = as_color_interpolate(current_tri.colors[0], current_tri.colors[1], 0.5);
         uint32_t c12 = as_color_interpolate(current_tri.colors[1], current_tri.colors[2], 0.5);
         uint32_t c20 = as_color_interpolate(current_tri.colors[2], current_tri.colors[0], 0.5);
@@ -456,6 +536,171 @@ void as_tri_mesh_subdivide_simple(Tri_mesh *mesh)
     free(origin_mesh.elements);
 
     *mesh = new_mesh;
+}
+
+/* returns nan when no constant values */
+float as_tri_mesh_const_x(Tri_mesh mesh)
+{
+    float x_value;
+
+    for (size_t tri_index = 0; tri_index < mesh.length; tri_index++) {
+        Tri current_tri = mesh.elements[tri_index];
+        if (tri_index == 0) x_value = current_tri.points[0].x;
+
+        for (size_t i = 0; i < 3; i++) {
+            if (x_value != current_tri.points[i].x) return NAN;
+        }
+    }
+
+    return x_value;
+}
+
+/* returns nan when no constant values */
+float as_tri_mesh_const_y(Tri_mesh mesh)
+{
+    float y_value;
+
+    for (size_t tri_index = 0; tri_index < mesh.length; tri_index++) {
+        Tri current_tri = mesh.elements[tri_index];
+        if (tri_index == 0) y_value = current_tri.points[0].y;
+
+        for (size_t i = 0; i < 3; i++) {
+            if (y_value != current_tri.points[i].y) return NAN;
+        }
+    }
+
+    return y_value;
+}
+
+/* returns nan when no constant values */
+float as_tri_mesh_const_z(Tri_mesh mesh)
+{
+    float z_value;
+
+    for (size_t tri_index = 0; tri_index < mesh.length; tri_index++) {
+        Tri current_tri = mesh.elements[tri_index];
+        if (tri_index == 0) z_value = current_tri.points[0].z;
+
+        for (size_t i = 0; i < 3; i++) {
+            if (z_value != current_tri.points[i].z) return NAN;
+        }
+    }
+
+    return z_value;
+}
+
+void as_tri_get_circumcircle(Point p1, Point p2, Point p3, const char plane[], Point *center, float *r)
+{
+    AS_ASSERT((!strncmp(plane, "XY", 3) || !strncmp(plane, "xy", 3)) && "other planes are no implemented.");
+    Tri temp_tri = {.points = {p1, p2, p3}};
+    AS_ASSERT(as_tri_equal_z(temp_tri));
+
+    /* wiki: https://en.wikipedia.org/wiki/Circumcircle */
+    /* https://youtu.be/uIBGSztyB04 */
+    float line1_a = (p2.y - p1.y);
+    float line1_b = (p1.x - p2.x);
+    // float line1_c = line1_a * p1.x + line1_b * p1.y;
+    Point line1_mid = {0};
+    as_points_interpolate(line1_mid, p1, p2, 0.5);
+
+    float line2_a = (p3.y - p2.y);
+    float line2_b = (p2.x - p3.x);
+    // float line2_c = line2_a * p2.x + line2_b * p2.y;
+    Point line2_mid = {0};
+    as_points_interpolate(line2_mid, p2, p3, 0.5);
+
+    float line1_per_a = -line1_b;
+    float line1_per_b = line1_a;
+    float line1_per_c = line1_per_a * line1_mid.x + line1_per_b * line1_mid.y;
+
+    float line2_per_a = -line2_b;
+    float line2_per_b = line2_a;
+    float line2_per_c = line2_per_a * line2_mid.x + line2_per_b * line2_mid.y;
+
+    float det  = line1_per_a * line2_per_b - line2_per_a * line1_per_b;
+    float detx = line1_per_c * line2_per_b - line2_per_c * line1_per_b;
+    float dety = line1_per_a * line2_per_c - line2_per_a * line1_per_c;
+
+    float x = detx / det;
+    float y = dety / det;
+
+    *center = (Point){0,0,0,0};
+    (*center).x = x;
+    (*center).y = y;
+    (*center).z = p1.z;
+
+    *r = as_points_distance(p1, *center);
+}
+
+void as_tri_get_in_circle(Point p1, Point p2, Point p3, const char plane[], Point *center, float *r)
+{
+    AS_ASSERT((!strncmp(plane, "XY", 3) || !strncmp(plane, "xy", 3)) && "other planes are no implemented.");
+    Tri temp_tri = {.points = {p1, p2, p3}};
+    AS_ASSERT(as_tri_equal_z(temp_tri));
+
+    /* wiki: https://en.wikipedia.org/wiki/Incircle_and_excircles */
+    float a = as_points_distance(p2, p3);
+    float b = as_points_distance(p3, p1);
+    float c = as_points_distance(p1, p2);
+
+    (*center)   = (Point){0,0,0,0};
+    (*center).x = (a * p1.x + b * p2.x + c * p3.x) / (a + b + c);
+    (*center).y = (a * p1.y + b * p2.y + c * p3.y) / (a + b + c);
+    (*center).z = p1.z;
+    float s = 0.5 * (a + b + c);
+    *r = sqrt((s - a) * (s - b) * (s - c) / s);
+}
+
+void as_tri_get_min_containment_circle(Point p1, Point p2, Point p3, const char plane[], Point *center, float *r)
+{
+    AS_ASSERT((!strncmp(plane, "XY", 3) || !strncmp(plane, "xy", 3)) && "other planes are no implemented.");
+    Tri temp_tri = {.points = {p1, p2, p3}};
+    AS_ASSERT(as_tri_equal_z(temp_tri));
+
+    float d1 = as_points_distance(p1, p2);
+    float d2 = as_points_distance(p2, p3);
+    float d3 = as_points_distance(p3, p1);
+    Point line12 = {0};
+    Point line13 = {0};
+    Point line21 = {0};
+    Point line23 = {0};
+    Point line31 = {0};
+    Point line32 = {0};
+    as_point_sub_point(line12, p2, p1);
+    as_point_sub_point(line13, p3, p1);
+    as_point_sub_point(line21, p1, p2);
+    as_point_sub_point(line23, p3, p2);
+    as_point_sub_point(line31, p1, p3);
+    as_point_sub_point(line32, p2, p3);
+
+    if (d1 >= fmaxf(d2, d3)) {
+        if (as_point_dot_point(line31, line32) >= 0) {
+            as_tri_get_circumcircle(p1, p2, p3, plane, center, r);
+        } else {
+            Point mid = {0};
+            as_points_interpolate(mid, p1, p2, 0.5);
+            *center = mid;
+            *r = d1 / 2;
+        }
+    } else if (d2 >= fmaxf(d1, d3)) {
+        if (as_point_dot_point(line13, line12) >= 0) {
+            as_tri_get_circumcircle(p1, p2, p3, plane, center, r);
+        } else {
+            Point mid = {0};
+            as_points_interpolate(mid, p2, p3, 0.5);
+            *center = mid;
+            *r = d2 / 2;
+        }
+    } else if (d3 >= fmaxf(d1, d2)) {
+        if (as_point_dot_point(line23, line21) >= 0) {
+            as_tri_get_circumcircle(p1, p2, p3, plane, center, r);
+        } else {
+            Point mid = {0};
+            as_points_interpolate(mid, p3, p1, 0.5);
+            *center = mid;
+            *r = d3 / 2;
+        }
+    }
 }
 
 Curve as_circle_curve_create(const Point center, const float r, const size_t num_of_points, const uint32_t color, const char plane[])
