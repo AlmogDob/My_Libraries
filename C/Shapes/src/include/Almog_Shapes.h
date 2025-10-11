@@ -136,9 +136,11 @@ typedef struct {
 #define             as_tri_area_xy(p1, p2, p3) 0.5 * ((p2).x-(p1).x)*((p3).y-(p1).y)- 0.5 * ((p3).x-(p1).x)*((p2).y-(p1).y)
 
 /* init functions */
+
 Tri_implicit_mesh   as_Tri_implicit_mesh_init(void);
 
 /* printing functions */
+
 void                as_point_print(Point p, char *name, size_t padding);
 void                as_curve_print(Curve c, char *name, size_t padding);
 void                as_tri_print(Tri tri, char *name, size_t padding);
@@ -146,6 +148,7 @@ void                as_tri_implicit_mesh_print(Tri_implicit_mesh mesh, char *nam
 void                as_tri_mesh_print(Tri_mesh mesh, char *name, size_t padding);
 
 /* utils functions */
+
 uint32_t            as_color_interpolate(uint32_t c1, uint32_t c2, float t);
 void                as_curve_ada_free(Curve_ada curves);
 Point               as_mat2D_to_point(Mat2D m);
@@ -166,22 +169,26 @@ float               as_tri_mesh_const_y(Tri_mesh mesh);
 float               as_tri_mesh_const_z(Tri_mesh mesh);
 
 /* Delaunay Mesh Generation utils functions */
+
 void                as_points_array_convex_hull(Curve *conv, Point *points, const size_t len);
 void                as_points_array_swap_points(Point *c, const size_t index1, const size_t index2);
 void                as_points_array_order_lexicographically(Point *c, const size_t len);
 void                as_tri_get_circumcircle(Point p1, Point p2, Point p3, const char plane[], Point *center, float *r);
 void                as_tri_get_in_circle(Point p1, Point p2, Point p3, const char plane[], Point *center, float *r);
 void                as_tri_get_min_containment_circle(Point p1, Point p2, Point p3, const char plane[], Point *center, float *r);
-void                as_tri_implicit_mesh_set_lexicographic_triangulation(Tri_implicit_mesh implicit_mesh);
+Tri_implicit_mesh   as_points_array_get_lexicographic_triangulation(Point *points, const size_t len);
 
 /* circle operations functions */
+
 Curve               as_circle_curve_create(const Point center, const float r, const size_t num_of_points, const uint32_t color, const char plane[]);
 Tri_mesh            as_circle_tri_mesh_create_simple(const Point center, const float r, const size_t num_of_points, const uint32_t color, float light_intensity, const char plane[]);
 
 /* cube operations functions */
+
 Tri_mesh            as_cube_create_tri_mesh_simple(const size_t len, const uint32_t color);
 
 /* sphere operations functions */
+
 Curve_ada           as_sphere_curve_ada_create(const Point center, const float r, const size_t num_of_points_horizontal, const size_t num_of_points_vertical, const uint32_t color);
 Tri_mesh            as_sphere_tri_mesh_create_simple(const Point center, const float r, const size_t num_of_points_horizontal, const size_t num_of_points_vertical, const uint32_t color, float light_intensity);
 
@@ -238,6 +245,7 @@ void as_tri_implicit_mesh_print(Tri_implicit_mesh mesh, char *name, size_t paddi
 {
     char tri_name[256];
     printf("%*s%s:\n", (int) padding, "", name);
+    as_curve_print(mesh.points, "points", 4);
     for (size_t i = 0; i < mesh.triangles.length; i++) {
         Tri_implicit tri_imp = mesh.triangles.elements[i];
 
@@ -770,32 +778,58 @@ void as_tri_get_min_containment_circle(Point p1, Point p2, Point p3, const char 
     }
 }
 
-void as_tri_implicit_mesh_set_lexicographic_triangulation(Tri_implicit_mesh implicit_mesh)
+Tri_implicit_mesh as_points_array_get_lexicographic_triangulation(Point *points, const size_t len)
 {
-    implicit_mesh.triangles.length = 0; /* zeroing the current triangulation */
-    Curve points = implicit_mesh.points;
-    as_points_array_order_lexicographically(implicit_mesh.points.elements, implicit_mesh.points.length);
+    as_points_array_order_lexicographically(points, len);
+
+    Tri_implicit_mesh implicit_mesh = as_Tri_implicit_mesh_init();
+    Curve convex_hull = {0};
+    ada_init_array(Point, convex_hull);
 
     /* make sure points have the same z value */
-    float z_value = points.elements[0].z;
-    for (size_t i = 1; i < points.length; i++) {
-        AS_ASSERT(points.elements[i].z == z_value);
+    float z_value = points[0].z;
+    for (size_t i = 1; i < len; i++) {
+        AS_ASSERT(points[i].z == z_value);
     }
 
+    ada_appand(Point, implicit_mesh.points, points[0]);
+    ada_appand(Point, implicit_mesh.points, points[1]);
     /* find first non-degenerate triangle */
     Tri_implicit first_implicit_tri = {0};
-    for (size_t i = 2; i < points.length; i++) {
-        Point p1 = points.elements[i-2];
-        Point p2 = points.elements[i-1];
-        Point p3 = points.elements[i];
+    size_t point_index;
+    for (point_index = 2; point_index < len; point_index++) {
+        Point p1 = points[point_index-2];
+        Point p2 = points[point_index-1];
+        Point p3 = points[point_index];
+        ada_appand(Point, implicit_mesh.points, points[point_index]);
         if (as_tri_area_xy(p1, p2, p3)) {
-            first_implicit_tri.points_index[0] = i-2;
-            first_implicit_tri.points_index[1] = i-1;
-            first_implicit_tri.points_index[2] = i;
+            first_implicit_tri.points_index[0] = point_index-2;
+            first_implicit_tri.points_index[1] = point_index-1;
+            first_implicit_tri.points_index[2] = point_index;
             break;
         }
     }
-    (void)first_implicit_tri;
+    ada_appand(Tri_implicit, implicit_mesh.triangles, first_implicit_tri);
+
+    as_points_array_convex_hull(&convex_hull, implicit_mesh.points.elements, implicit_mesh.points.length);
+    AS_CURVE_PRINT(convex_hull);
+
+    /* adding more points */
+    for (point_index = point_index+1; point_index < len; point_index++) {
+        Point current_point = points[point_index];
+        ada_appand(Point, implicit_mesh.points, current_point);
+
+        for (size_t conv_index = 0; conv_index < convex_hull.length; conv_index++) {
+            ;
+        }
+
+        
+
+        as_points_array_convex_hull(&convex_hull, implicit_mesh.points.elements, implicit_mesh.points.length);
+        AS_CURVE_PRINT(convex_hull);
+    }
+
+    return implicit_mesh;
 }
 
 Curve as_circle_curve_create(const Point center, const float r, const size_t num_of_points, const uint32_t color, const char plane[])

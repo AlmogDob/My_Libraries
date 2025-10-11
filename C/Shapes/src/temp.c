@@ -10,6 +10,10 @@ int main()
 
     Point temp_p = (Point){-2,0,0,0};
     ada_appand(Point, c, temp_p);
+    temp_p = (Point){-1,0,0,0};
+    ada_appand(Point, c, temp_p);
+    temp_p = (Point){0,0,0,0};
+    ada_appand(Point, c, temp_p);
     temp_p = (Point){2,1,0,0};
     ada_appand(Point, c, temp_p);
     temp_p = (Point){2,-1,0,0};
@@ -19,15 +23,12 @@ int main()
     temp_p = (Point){1,-1,0,0};
     ada_appand(Point, c, temp_p);
 
-    as_points_array_order_lexicographically(c.elements, c.length);
-
     AS_CURVE_PRINT(c);
+    printf("------------------------------\n");
 
-    Curve conv = {0};
-    ada_init_array(Point, conv);
-    as_points_array_convex_hull(&conv, c.elements, c.length);
+    Tri_implicit_mesh implicit_mesh = as_points_array_get_lexicographic_triangulation(c.elements, c.length);
 
-    AS_CURVE_PRINT(conv);
+    AS_TRI_IMPLICIT_MESH_PRINT(implicit_mesh);
 
 }
 #else
