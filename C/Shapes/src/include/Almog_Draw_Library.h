@@ -1371,10 +1371,11 @@ void adl_tri_mesh_draw(Mat2D_uint32 screen_mat, Tri_mesh mesh, uint32_t color, O
 {
     for (size_t i = 0; i < mesh.length; i++) {
         Tri tri = mesh.elements[i];
-        if (tri.to_draw) {
-            // color = rand_double() * 0xFFFFFFFF;
-            adl_tri_draw(screen_mat, tri, color, offset_zoom_param);
-        }
+
+        if (!tri.to_draw) continue;
+
+        // color = rand_double() * 0xFFFFFFFF;
+        adl_tri_draw(screen_mat, tri, color, offset_zoom_param);
     }
 }
 
@@ -1385,7 +1386,7 @@ void adl_tri_mesh_fill_Pinedas_rasterizer(Mat2D_uint32 screen_mat, Mat2D inv_z_b
         /* Reject invalid triangles */
         adl_assert_tri_is_valid(tri);
 
-        if (!tri.to_draw) continue;
+        // if (!tri.to_draw) continue;
 
         adl_tri_fill_Pinedas_rasterizer(screen_mat, inv_z_buffer_mat, tri, color, offset_zoom_param);
     }

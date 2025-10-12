@@ -612,6 +612,9 @@ void as_points_array_convex_hull(Curve *conv, Point *points, const size_t len)
     }
 
     as_points_array_order_lexicographically(points, len);
+    // for (size_t i = 0; i < len; i++) {
+    //     AS_POINT_PRINT(points[i]);
+    // }
     
     Curve temp_c = *conv;
     temp_c.length = 0;
@@ -621,7 +624,7 @@ void as_points_array_convex_hull(Curve *conv, Point *points, const size_t len)
 
     /* guess next point on convex hull*/
     for (size_t i = 0; i < len; i++) {
-        size_t current_guess = i+1;
+        size_t current_guess = 1;
         for (size_t next_guess = 0; next_guess < len; next_guess++) {
             if (next_guess == current_guess) continue;
             float cross = as_tri_area_xy(temp_c.elements[temp_c.length-1], points[next_guess], points[current_guess]);
@@ -647,14 +650,15 @@ void as_points_array_swap_points(Point *c, const size_t index1, const size_t ind
 /* bubble sort */
 void as_points_array_order_lexicographically(Point *c, const size_t len)
 {
+    float epsilon = 1e-5;
     for (size_t i = 0; i < len-1; i++) {
         for (size_t j = i+1; j < len; j++) {
             if (c[i].x > c[j].x) {
                 as_points_array_swap_points(c, i, j);
-            } else if (c[i].x == c[j].x) {
+            } else if (fabsf(c[i].x - c[j].x) < epsilon) {
                 if (c[i].y > c[j].y) {
                     as_points_array_swap_points(c, i, j);
-                } else if (c[i].y == c[j].y) {
+                } else if (fabsf(c[i].y - c[j].y) < epsilon) {
                     if (c[i].z > c[j].z) {
                         as_points_array_swap_points(c, i, j);
                     }
@@ -794,6 +798,7 @@ Tri_implicit_mesh as_points_array_get_lexicographic_triangulation(Point *points,
 
     ada_appand(Point, implicit_mesh.points, points[0]);
     ada_appand(Point, implicit_mesh.points, points[1]);
+
     /* find first non-degenerate triangle */
     Tri_implicit first_implicit_tri = {0};
     size_t point_index;
@@ -803,30 +808,52 @@ Tri_implicit_mesh as_points_array_get_lexicographic_triangulation(Point *points,
         Point p3 = points[point_index];
         ada_appand(Point, implicit_mesh.points, points[point_index]);
         if (as_tri_area_xy(p1, p2, p3)) {
-            first_implicit_tri.points_index[0] = point_index-2;
-            first_implicit_tri.points_index[1] = point_index-1;
-            first_implicit_tri.points_index[2] = point_index;
+            if (as_tri_area_xy(p1, p2, p3) > 0) {
+                for (int i = point_index; i >= 2; i--) {
+                    first_implicit_tri.points_index[0] = i-2;
+                    first_implicit_tri.points_index[1] = i-1;
+                    first_implicit_tri.points_index[2] = point_index;
+                    ada_appand(Tri_implicit, implicit_mesh.triangles, first_implicit_tri);
+                }
+            } else {
+                for (int i = point_index; i >= 2; i--) {
+                    first_implicit_tri.points_index[2] = i-2;
+                    first_implicit_tri.points_index[1] = i-1;
+                    first_implicit_tri.points_index[0] = point_index;
+                    ada_appand(Tri_implicit, implicit_mesh.triangles, first_implicit_tri);
+                }
+            }
             break;
         }
     }
-    ada_appand(Tri_implicit, implicit_mesh.triangles, first_implicit_tri);
-
-    as_points_array_convex_hull(&convex_hull, implicit_mesh.points.elements, implicit_mesh.points.length);
-    AS_CURVE_PRINT(convex_hull);
+    /* WARNING: there might be a need to create triangles for all points that where on the same line at the start. Like in 'Delaunay Mesh Generation' Pg.32 */
 
     /* adding more points */
     for (point_index = point_index+1; point_index < len; point_index++) {
+        AS_TRI_IMPLICIT_MESH_PRINT(implicit_mesh);
+        as_points_array_convex_hull(&convex_hull, implicit_mesh.points.elements, implicit_mesh.points.length);
+        AS_CURVE_PRINT(convex_hull);
+
         Point current_point = points[point_index];
         ada_appand(Point, implicit_mesh.points, current_point);
 
         for (size_t conv_index = 0; conv_index < convex_hull.length; conv_index++) {
-            ;
+            size_t conv_index_p1 = (conv_index + 1) % convex_hull.length;
+            float cross = as_tri_area_xy(convex_hull.elements[conv_index], current_point, convex_hull.elements[conv_index_p1]);
+            if (cross > 0) {
+                Tri_implicit temp_implicit_tri = {0};
+                ADA_ASSERT(as_point_in_curve_index(convex_hull.elements[conv_index], implicit_mesh.points) != -1);
+                temp_implicit_tri.points_index[2] = as_point_in_curve_index(convex_hull.elements[conv_index], implicit_mesh.points);
+                ADA_ASSERT(as_point_in_curve_index(current_point, implicit_mesh.points) != -1);
+                temp_implicit_tri.points_index[1] = as_point_in_curve_index(current_point, implicit_mesh.points);
+                ADA_ASSERT(as_point_in_curve_index(convex_hull.elements[conv_index_p1], implicit_mesh.points) != -1);
+                temp_implicit_tri.points_index[0] = as_point_in_curve_index(convex_hull.elements[conv_index_p1], implicit_mesh.points);
+                
+                ada_appand(Tri_implicit, implicit_mesh.triangles, temp_implicit_tri);
+            }
         }
-
-        
-
-        as_points_array_convex_hull(&convex_hull, implicit_mesh.points.elements, implicit_mesh.points.length);
-        AS_CURVE_PRINT(convex_hull);
+        AS_TRI_IMPLICIT_MESH_PRINT(implicit_mesh);
+        // if (point_index >= 5) break;
     }
 
     return implicit_mesh;
