@@ -137,7 +137,8 @@ typedef struct {
 
 /* init functions */
 
-Tri_implicit_mesh   as_Tri_implicit_mesh_init(void);
+Tri_implicit_mesh   as_tri_implicit_mesh_init(void);
+void                as_tri_implicit_mesh_free(Tri_implicit_mesh mesh);
 
 /* printing functions */
 
@@ -157,6 +158,7 @@ float               as_points_distance(Point p1, Point p2);
 size_t              as_point_in_curve_occurrences(Point p, Curve c);
 int                 as_point_in_curve_index(Point p, Curve c);
 void                as_tri_set_normals(Tri *tri);
+Tri                 as_tri_implicit_to_tri(Tri_implicit tri_implicit, Point *points);
 float               as_tri_implicit_mesh_const_x(Tri_implicit_mesh mesh);
 float               as_tri_implicit_mesh_const_y(Tri_implicit_mesh mesh);
 float               as_tri_implicit_mesh_const_z(Tri_implicit_mesh mesh);
@@ -182,6 +184,7 @@ Tri_implicit_mesh   as_points_array_get_lexicographic_triangulation(Point *point
 
 Curve               as_circle_curve_create(const Point center, const float r, const size_t num_of_points, const uint32_t color, const char plane[]);
 Tri_mesh            as_circle_tri_mesh_create_simple(const Point center, const float r, const size_t num_of_points, const uint32_t color, float light_intensity, const char plane[]);
+Tri_mesh            as_circle_tri_mesh_create_lexicographically(const Point center, const float r, const size_t num_of_points, const uint32_t color, float light_intensity, const char plane[]);
 
 /* cube operations functions */
 
@@ -202,7 +205,7 @@ Tri_mesh            as_sphere_tri_mesh_create_simple(const Point center, const f
 #define             AS_TRI_IMPLICIT_MESH_PRINT(tm) as_tri_implicit_mesh_print(tm, #tm, 0)
 #define             AS_TRI_MESH_PRINT(tm) as_tri_mesh_print(tm, #tm, 0)
 
-Tri_implicit_mesh as_Tri_implicit_mesh_init(void)
+Tri_implicit_mesh as_tri_implicit_mesh_init(void)
 {
     Tri_implicit_mesh mesh = {0};
 
@@ -210,6 +213,11 @@ Tri_implicit_mesh as_Tri_implicit_mesh_init(void)
     ada_init_array(Tri_implicit, mesh.triangles);
 
     return mesh;
+}
+void as_tri_implicit_mesh_free(Tri_implicit_mesh mesh)
+{
+    free(mesh.points.elements);
+    free(mesh.triangles.elements);
 }
 
 void as_point_print(Point p, char *name, size_t padding)
@@ -374,6 +382,19 @@ void as_tri_set_normals(Tri *tri)
     mat2D_free(normal);
 }
 
+Tri as_tri_implicit_to_tri(Tri_implicit tri_implicit, Point *points)
+{
+    Tri tri = {0};
+
+    tri.points[0] = points[tri_implicit.points_index[0]];
+    tri.points[1] = points[tri_implicit.points_index[1]];
+    tri.points[2] = points[tri_implicit.points_index[2]];
+
+    as_tri_set_normals(&tri);
+
+    return tri;
+}
+
 float as_tri_implicit_mesh_const_x(Tri_implicit_mesh mesh)
 {
     float value;
@@ -436,7 +457,7 @@ Tri_mesh as_tri_implicit_mesh_to_tri_mesh(Tri_implicit_mesh implicit_mesh, float
 
 Tri_implicit_mesh as_tri_mesh_to_tri_implicit_mesh(Tri_mesh mesh)
 {
-    Tri_implicit_mesh implicit_mesh = as_Tri_implicit_mesh_init();
+    Tri_implicit_mesh implicit_mesh = as_tri_implicit_mesh_init();
 
     for (size_t tri_index = 0; tri_index < mesh.length; tri_index++) {
         Tri current_tri = mesh.elements[tri_index];
@@ -603,6 +624,7 @@ float as_tri_mesh_const_z(Tri_mesh mesh)
     return z_value;
 }
 
+/* expected lexicographically order */
 void as_points_array_convex_hull(Curve *conv, Point *points, const size_t len)
 {
     /* make sure points have the same z value */
@@ -611,7 +633,6 @@ void as_points_array_convex_hull(Curve *conv, Point *points, const size_t len)
         AS_ASSERT(points[i].z == z_value);
     }
 
-    as_points_array_order_lexicographically(points, len);
     // for (size_t i = 0; i < len; i++) {
     //     AS_POINT_PRINT(points[i]);
     // }
@@ -622,14 +643,25 @@ void as_points_array_convex_hull(Curve *conv, Point *points, const size_t len)
     /* first point on the convex hull is the left most point and going acw */
     ada_appand(Point, temp_c, points[0]);
 
+    if (len == 1) {
+        *conv = temp_c;
+        return;
+    }
+
     /* guess next point on convex hull*/
     for (size_t i = 0; i < len; i++) {
-        size_t current_guess = 1;
+        size_t current_guess = 0;
         for (size_t next_guess = 0; next_guess < len; next_guess++) {
             if (next_guess == current_guess) continue;
             float cross = as_tri_area_xy(temp_c.elements[temp_c.length-1], points[next_guess], points[current_guess]);
-            if (cross > 0) {
-                current_guess = next_guess;
+            if (temp_c.length == 1) {
+                if (cross >= 0) {
+                    current_guess = next_guess;
+                }
+            } else {
+                if (cross > 0) {
+                    current_guess = next_guess;
+                }
             }
         }
         if (as_points_equal(temp_c.elements[0], points[current_guess])) break;
@@ -786,7 +818,7 @@ Tri_implicit_mesh as_points_array_get_lexicographic_triangulation(Point *points,
 {
     as_points_array_order_lexicographically(points, len);
 
-    Tri_implicit_mesh implicit_mesh = as_Tri_implicit_mesh_init();
+    Tri_implicit_mesh implicit_mesh = as_tri_implicit_mesh_init();
     Curve convex_hull = {0};
     ada_init_array(Point, convex_hull);
 
@@ -808,7 +840,7 @@ Tri_implicit_mesh as_points_array_get_lexicographic_triangulation(Point *points,
         Point p3 = points[point_index];
         ada_appand(Point, implicit_mesh.points, points[point_index]);
         if (as_tri_area_xy(p1, p2, p3)) {
-            if (as_tri_area_xy(p1, p2, p3) > 0) {
+            if (as_tri_area_xy(p1, p2, p3) < 0) {
                 for (int i = point_index; i >= 2; i--) {
                     first_implicit_tri.points_index[0] = i-2;
                     first_implicit_tri.points_index[1] = i-1;
@@ -830,9 +862,7 @@ Tri_implicit_mesh as_points_array_get_lexicographic_triangulation(Point *points,
 
     /* adding more points */
     for (point_index = point_index+1; point_index < len; point_index++) {
-        AS_TRI_IMPLICIT_MESH_PRINT(implicit_mesh);
         as_points_array_convex_hull(&convex_hull, implicit_mesh.points.elements, implicit_mesh.points.length);
-        AS_CURVE_PRINT(convex_hull);
 
         Point current_point = points[point_index];
         ada_appand(Point, implicit_mesh.points, current_point);
@@ -842,18 +872,13 @@ Tri_implicit_mesh as_points_array_get_lexicographic_triangulation(Point *points,
             float cross = as_tri_area_xy(convex_hull.elements[conv_index], current_point, convex_hull.elements[conv_index_p1]);
             if (cross > 0) {
                 Tri_implicit temp_implicit_tri = {0};
-                ADA_ASSERT(as_point_in_curve_index(convex_hull.elements[conv_index], implicit_mesh.points) != -1);
                 temp_implicit_tri.points_index[2] = as_point_in_curve_index(convex_hull.elements[conv_index], implicit_mesh.points);
-                ADA_ASSERT(as_point_in_curve_index(current_point, implicit_mesh.points) != -1);
                 temp_implicit_tri.points_index[1] = as_point_in_curve_index(current_point, implicit_mesh.points);
-                ADA_ASSERT(as_point_in_curve_index(convex_hull.elements[conv_index_p1], implicit_mesh.points) != -1);
                 temp_implicit_tri.points_index[0] = as_point_in_curve_index(convex_hull.elements[conv_index_p1], implicit_mesh.points);
                 
                 ada_appand(Tri_implicit, implicit_mesh.triangles, temp_implicit_tri);
             }
         }
-        AS_TRI_IMPLICIT_MESH_PRINT(implicit_mesh);
-        // if (point_index >= 5) break;
     }
 
     return implicit_mesh;
@@ -907,7 +932,7 @@ Tri_mesh as_circle_tri_mesh_create_simple(const Point center, const float r, con
     Tri_mesh mesh = {0};
     ada_init_array(Tri, mesh);
 
-    for (size_t p_index = 0; p_index < c.length; p_index++) {
+    for (size_t p_index = 1; p_index < c.length-1; p_index++) {
         size_t p_index_p1 = (p_index + 1) % c.length;
         Tri tri = {0};
         for (int i = 0; i < 3; i++) {
@@ -925,6 +950,20 @@ Tri_mesh as_circle_tri_mesh_create_simple(const Point center, const float r, con
     }
 
     free(c.elements);
+
+    return mesh;
+}
+
+Tri_mesh as_circle_tri_mesh_create_lexicographically(const Point center, const float r, const size_t num_of_points, const uint32_t color, float light_intensity, const char plane[])
+{
+    Curve temp_circle = as_circle_curve_create(center, r, num_of_points, color, plane);
+    Tri_implicit_mesh temp_implicit_mesh = as_points_array_get_lexicographic_triangulation(temp_circle.elements, temp_circle.length);
+
+    free(temp_circle.elements);
+
+    Tri_mesh mesh =  as_tri_implicit_mesh_to_tri_mesh(temp_implicit_mesh, light_intensity, color);
+
+    as_tri_implicit_mesh_free(temp_implicit_mesh);
 
     return mesh;
 }

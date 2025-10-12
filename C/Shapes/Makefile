@@ -124,3 +124,44 @@ profile_build_example2: ./src/example2.c
 
 # valgrind -s --leak-check=full ./example2
 # cloc --exclude-lang=JSON,make .
+
+#############################################################
+example3: build_example3 run_example3 clean_example3  
+	@echo ./build/example3 done
+
+build_example3: ./src/example3.c 
+	@echo [INFO] building example3
+	@gcc ./src/example3.c $(CFLAGS) -o ./build/example3
+
+run_example3:
+	@echo
+	./build/example3
+	@echo
+
+clean_example3:
+	@echo [INFO] removing all build files
+	@rm ./build/example3
+
+debug_example3: debug_build_example3
+	gdb ./build/example3
+
+debug_build_example3: ./src/example3.c
+	@echo [INFO] building example3
+	@gcc ./src/example3.c $(CFLAGS) -ggdb -o ./build/example3
+
+profile_example3: profile_build_example3
+	./build/example3
+	@echo
+	gprof ./build/example3 gmon.out | /home/almog/.local/bin/gprof2dot | dot -Tpng -Gdpi=200 -o output.png
+	imview ./output.png
+	# xdg-open ./output.png
+	@echo
+	rm ./gmon.out ./output.png 
+	make clean_example3
+
+profile_build_example3: ./src/example3.c
+	@echo [INFO] building example3
+	@gcc ./src/example3.c $(CFLAGS) -p -ggdb -o ./build/example3
+
+# valgrind -s --leak-check=full ./example3
+# cloc --exclude-lang=JSON,make .

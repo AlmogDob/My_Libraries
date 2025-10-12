@@ -21,7 +21,7 @@ void setup(game_state_t *game_state)
     game_state->to_limit_fps = 0;
     game_state->const_fps = 30;
 
-    Tri_implicit_mesh implicit_mesh = as_Tri_implicit_mesh_init();
+    Tri_implicit_mesh implicit_mesh = as_tri_implicit_mesh_init();
     Point temp_p = (Point){-2,0,0,0};
     ada_appand(Point, implicit_mesh.points, temp_p);
     temp_p = (Point){2,1,0,0};
