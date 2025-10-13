@@ -135,9 +135,11 @@ typedef struct {
                         (p).w = (p1).w * (t) + (p2).w * (1 - (t))
 #define             as_points_equal(p1, p2) ((p1).x == (p2).x && (p1).y == (p2).y && (p1).z == (p2).z)
 #define             as_tri_area_xy(p1, p2, p3) 0.5 * ((p2).x-(p1).x)*((p3).y-(p1).y)- 0.5 * ((p3).x-(p1).x)*((p2).y-(p1).y)
+#define             as_tri_implicit_area_xy(tim, t_index) as_tri_area_xy(as_tri_implicit_mesh_get_point_of_tri_implicit(tim, t_index, 0), as_tri_implicit_mesh_get_point_of_tri_implicit(tim, t_index, 1), as_tri_implicit_mesh_get_point_of_tri_implicit(tim, t_index, 2));
 #define             as_tri_equal_z(tri) ((tri.points[0].z == tri.points[1].z) && (tri.points[1].z == tri.points[2].z) && (tri.points[2].z == tri.points[0].z))
 #define             as_tri_implicit_mesh_expand_tri_to_points(tim, t_index) (tim).points.elements[(tim).triangles.elements[t_index].points_index[0]], (tim).points.elements[(tim).triangles.elements[t_index].points_index[1]], (tim).points.elements[(tim).triangles.elements[t_index].points_index[2]]
-#define             as_tri_implicit_mesh_get_point_of_tri_implicit(tim, t_index, p_index) (tim).points.elements[(tim).triangles.elements[t_index].points_index[p_index]]; 
+#define             as_tri_implicit_mesh_get_point_of_tri_implicit(tim, t_index, p_index) (tim).points.elements[(tim).triangles.elements[t_index].points_index[p_index]]
+#define             as_tri_implicit_mesh_get_tri_implicit(tim, t_index) (tim).triangles.elements[t_index]
 
 /* init functions */
 
@@ -184,9 +186,12 @@ Tri_implicit_mesh   as_points_array_get_lexicographic_triangulation(Point *point
 void                as_tri_get_circumcircle(Point p1, Point p2, Point p3, const char plane[], Point *center, float *r);
 void                as_tri_get_in_circle(Point p1, Point p2, Point p3, const char plane[], Point *center, float *r);
 void                as_tri_get_min_containment_circle(Point p1, Point p2, Point p3, const char plane[], Point *center, float *r);
+bool                as_tri_implicit_mesh_check_Delaunay(Tri_implicit_mesh mesh);
 int                 as_tri_implicit_mesh_check_edge_is_locally_Delaunay(Tri_implicit_mesh mesh, Point p1, Point p2);
+void                as_tri_implicit_mesh_flip_edge(Tri_implicit_mesh mesh, Point p1, Point p2);
 int                 as_tri_implicit_mesh_get_triangles_with_edge(Tri_implicit_mesh mesh, Point p1, Point p2, Tri_implicit *tri_out1, Tri_implicit *tri_out2);
 int                 as_tri_implicit_mesh_get_triangles_indexs_with_edge(Tri_implicit_mesh mesh, Point p1, Point p2, int *tri_out1_index, int *tri_out2_index);
+void                as_tri_implicit_mesh_set_Delaunay_triangulation(Tri_implicit_mesh mesh);
 
 /* circle operations functions */
 
@@ -210,7 +215,7 @@ Tri_mesh            as_sphere_tri_mesh_create_simple(const Point center, const f
 
 #define             AS_POINT_PRINT(c) as_point_print(c, #c, 0)
 #define             AS_CURVE_PRINT(c) as_curve_print(c, #c, 0)
-#define             AS_TRI_IMPLICIT_PRINT(t, p) as_tri_implicit_print(t, p, #t, 0)
+#define             AS_TRI_IMPLICIT_PRINT(t, points) as_tri_implicit_print(t, points, #t, 0)
 #define             AS_TRI_IMPLICIT_MESH_PRINT(tm) as_tri_implicit_mesh_print(tm, #tm, 0)
 #define             AS_TRI_MESH_PRINT(tm) as_tri_mesh_print(tm, #tm, 0)
 
@@ -947,10 +952,24 @@ void as_tri_get_min_containment_circle(Point p1, Point p2, Point p3, const char 
     }
 }
 
+bool as_tri_implicit_mesh_check_Delaunay(Tri_implicit_mesh mesh)
+{
+    for (size_t i = 0; i < mesh.points.length-1; i++) {
+        for (size_t j = i+1; j < mesh.points.length; j++) {
+            int is_locally_Delaunay = as_tri_implicit_mesh_check_edge_is_locally_Delaunay(mesh, mesh.points.elements[i], mesh.points.elements[j]);
+            if (is_locally_Delaunay == -1) continue;
+            if (is_locally_Delaunay == 1) continue;
+            if (is_locally_Delaunay == 0) return false;
+        }
+    }
+
+    return true;
+}
+
 /* returns:
 -1: not an edge
- 0: not Delaunay
- 1: Delaunay */
+ 0: not locally Delaunay
+ 1: locally Delaunay */
 int as_tri_implicit_mesh_check_edge_is_locally_Delaunay(Tri_implicit_mesh mesh, Point p1, Point p2)
 {
     int p1_index = as_point_in_curve_index(p1, mesh.points);
@@ -972,8 +991,8 @@ int as_tri_implicit_mesh_check_edge_is_locally_Delaunay(Tri_implicit_mesh mesh, 
     float r1 = 0;
 
     as_tri_get_circumcircle(as_tri_implicit_mesh_expand_tri_to_points(mesh, tri1_index), "xy", &circumcenter_1, &r1);
-    AS_POINT_PRINT(circumcenter_1);
-    dprintD(r1);
+    // AS_POINT_PRINT(circumcenter_1);
+    // dprintD(r1);
 
     /* fined the point on tri2 that is not on the edge */
     Point tri2_outside_p = {0};
@@ -987,6 +1006,76 @@ int as_tri_implicit_mesh_check_edge_is_locally_Delaunay(Tri_implicit_mesh mesh, 
     if (tri2_out_p_and_center_dis >= r1) return 1;
 
     return 0;
+}
+
+void as_tri_implicit_mesh_flip_edge(Tri_implicit_mesh mesh, Point p1, Point p2)
+{
+    int p1_index = as_point_in_curve_index(p1, mesh.points);
+    int p2_index = as_point_in_curve_index(p2, mesh.points);
+
+    AS_ASSERT(p1_index != -1 || p2_index != -1);
+    
+    int tri1_index = 0;
+    int tri2_index = 0;
+
+    int num_of_triangles = as_tri_implicit_mesh_get_triangles_indexs_with_edge(mesh, p1, p2, &tri1_index, &tri2_index);
+    
+    if (num_of_triangles == 0) {
+        fprintf(stderr, "%s:%d: [Warning] one of the points is not in the tri implicit mesh.\n", __FILE__, __LINE__);
+        return;
+    }
+    if (num_of_triangles == 1) {
+        fprintf(stderr, "%s:%d: [Warning] this is a locally Delaunay edge.\n", __FILE__, __LINE__);
+        return;
+    }
+
+    int p1_tri1_index = 0;
+    int p2_tri1_index = 0;
+    int p3_tri1_index = 0;
+    for (size_t i = 0; i < 3; i++) {
+        Point current_point = as_tri_implicit_mesh_get_point_of_tri_implicit(mesh, tri1_index, i);
+        if (as_points_equal(current_point, p1)) p1_tri1_index = mesh.triangles.elements[tri1_index].points_index[i];
+        if (as_points_equal(current_point, p2)) p2_tri1_index = mesh.triangles.elements[tri1_index].points_index[i];
+        if (!as_points_equal(current_point, p1) && !as_points_equal(current_point, p2)) p3_tri1_index = mesh.triangles.elements[tri1_index].points_index[i];
+    }
+
+    int p1_tri2_index = 0;
+    int p2_tri2_index = 0;
+    int p3_tri2_index = 0;
+    for (size_t i = 0; i < 3; i++) {
+        Point current_point = as_tri_implicit_mesh_get_point_of_tri_implicit(mesh, tri2_index, i);
+        if (as_points_equal(current_point, p1)) p1_tri2_index = mesh.triangles.elements[tri2_index].points_index[i];
+        if (as_points_equal(current_point, p2)) p2_tri2_index = mesh.triangles.elements[tri2_index].points_index[i];
+        if (!as_points_equal(current_point, p1) && !as_points_equal(current_point, p2)) p3_tri2_index = mesh.triangles.elements[tri2_index].points_index[i];
+    }
+
+    mesh.triangles.elements[tri1_index].points_index[0] = p3_tri2_index;
+    mesh.triangles.elements[tri1_index].points_index[1] = p3_tri1_index;
+    mesh.triangles.elements[tri1_index].points_index[2] = p1_tri1_index;
+
+    mesh.triangles.elements[tri2_index].points_index[0] = p3_tri1_index;
+    mesh.triangles.elements[tri2_index].points_index[1] = p3_tri2_index;
+    mesh.triangles.elements[tri2_index].points_index[2] = p2_tri2_index;
+
+    /* fix orientation */
+    float cross = as_tri_implicit_area_xy(mesh, tri1_index);
+    if (cross > 0) {
+        int temp = mesh.triangles.elements[tri1_index].points_index[0];
+        mesh.triangles.elements[tri1_index].points_index[0] = mesh.triangles.elements[tri1_index].points_index[2];
+        mesh.triangles.elements[tri1_index].points_index[2] = temp;
+    }
+    cross = as_tri_implicit_area_xy(mesh, tri2_index);
+    if (cross > 0) {
+        int temp = mesh.triangles.elements[tri2_index].points_index[0];
+        mesh.triangles.elements[tri2_index].points_index[0] = mesh.triangles.elements[tri2_index].points_index[2];
+        mesh.triangles.elements[tri2_index].points_index[2] = temp;
+    }
+
+    // AS_TRI_IMPLICIT_PRINT(as_tri_implicit_mesh_get_tri_implicit(mesh, tri1_index), mesh.points.elements);
+    // AS_TRI_IMPLICIT_PRINT(as_tri_implicit_mesh_get_tri_implicit(mesh, tri2_index), mesh.points.elements);
+
+    (void)p2_tri1_index;
+    (void)p1_tri2_index;
 }
 
 int as_tri_implicit_mesh_get_triangles_with_edge(Tri_implicit_mesh mesh, Point p1, Point p2, Tri_implicit *tri_out1, Tri_implicit *tri_out2)
@@ -1063,7 +1152,7 @@ int as_tri_implicit_mesh_get_triangles_indexs_with_edge(Tri_implicit_mesh mesh, 
             } else if (num_of_tri_out == 1) {
                 *tri_out2_index = tri_index;
                 num_of_tri_out++;
-            } else if (num_of_tri_out > 1) {
+            } else if (num_of_tri_out > 2) {
                 fprintf(stderr, "%s:%d: [Warning] implicit mesh has an edge with more then two triangles\n", __FILE__, __LINE__);
                 exit(1);
             }
@@ -1071,6 +1160,22 @@ int as_tri_implicit_mesh_get_triangles_indexs_with_edge(Tri_implicit_mesh mesh, 
     }
 
     return num_of_tri_out;
+}
+
+/* Warning: time complexity is probably n!;
+   Might want to implement the way described in the 'Delaunay Mesh Generation' book: Pg.39*/
+void as_tri_implicit_mesh_set_Delaunay_triangulation(Tri_implicit_mesh mesh)
+{
+    for (size_t i = 0; i < mesh.points.length-1; i++) {
+        for (size_t j = i+1; j < mesh.points.length; j++) {
+            // int tri1_out_index = 0, tri2_out_index;
+            // int num_of_tri_on_edge = as_tri_implicit_mesh_get_triangles_indexs_with_edge(mesh, mesh.points.elements[i], mesh.points.elements[j], &tri1_out_index, &tri2_out_index);
+            int num_of_tri_on_edge = as_tri_implicit_mesh_check_edge_is_locally_Delaunay(mesh, mesh.points.elements[i], mesh.points.elements[j]);
+            if (num_of_tri_on_edge == -1) continue;
+            if (num_of_tri_on_edge == 1) continue;
+            as_tri_implicit_mesh_flip_edge(mesh, mesh.points.elements[i], mesh.points.elements[j]);
+        }
+    }
 }
 
 Curve as_circle_curve_create(const Point center, const float r, const size_t num_of_points, const uint32_t color, const char plane[])

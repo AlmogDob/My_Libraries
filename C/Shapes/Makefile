@@ -3,6 +3,10 @@ CWARNINGS = -Wall -Wextra -Wuninitialized
 CFLAGS = $(CWARNINGS) -lm -lSDL2 -lSDL2_ttf
 
 #############################################################
+
+examples: example1 example2 example3 example4
+
+#############################################################
 temp: build_temp run_temp clean_temp  
 	@echo ./build/temp done
 
@@ -45,9 +49,6 @@ profile_build_temp: ./src/temp.c
 
 #############################################################
 
-examples: example1 example2 example3
-
-#############################################################
 example1: build_example1 run_example1 clean_example1  
 	@echo ./build/example1 done
 
@@ -168,4 +169,45 @@ profile_build_example3: ./src/example3.c
 	@gcc ./src/example3.c $(CFLAGS) -p -ggdb -o ./build/example3
 
 # valgrind -s --leak-check=full ./example3
+# cloc --exclude-lang=JSON,make .
+
+#############################################################
+example4: build_example4 run_example4 clean_example4  
+	@echo ./build/example4 done
+
+build_example4: ./src/example4.c 
+	@echo [INFO] building example4
+	@gcc ./src/example4.c $(CFLAGS) -o ./build/example4
+
+run_example4:
+	@echo
+	./build/example4
+	@echo
+
+clean_example4:
+	@echo [INFO] removing all build files
+	@rm ./build/example4
+
+debug_example4: debug_build_example4
+	gdb ./build/example4
+
+debug_build_example4: ./src/example4.c
+	@echo [INFO] building example4
+	@gcc ./src/example4.c $(CFLAGS) -ggdb -o ./build/example4
+
+profile_example4: profile_build_example4
+	./build/example4
+	@echo
+	gprof ./build/example4 gmon.out | /home/almog/.local/bin/gprof2dot | dot -Tpng -Gdpi=200 -o output.png
+	imview ./output.png
+	# xdg-open ./output.png
+	@echo
+	rm ./gmon.out ./output.png 
+	make clean_example4
+
+profile_build_example4: ./src/example4.c
+	@echo [INFO] building example4
+	@gcc ./src/example4.c $(CFLAGS) -p -ggdb -o ./build/example4
+
+# valgrind -s --leak-check=full ./example4
 # cloc --exclude-lang=JSON,make .

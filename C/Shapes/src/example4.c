@@ -22,8 +22,8 @@ int main()
     return 0;
 }
 
-#else
 
+#else
 #define SETUP
 #define UPDATE
 #define RENDER
