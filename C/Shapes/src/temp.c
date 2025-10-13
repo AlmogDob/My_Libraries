@@ -1,7 +1,3 @@
-#define MATRIX2D_IMPLEMENTATION
-#include "./include/Matrix2D.h"
-#define ALMOG_SHAPES_IMPLEMENTATION
-#include "./include/Almog_Shapes.h"
 #if 0
 
 int main()
@@ -36,6 +32,10 @@ int main()
 #include "./include/Almog_Draw_Library.h"
 #define ALMOG_ENGINE_IMPLEMENTATION
 #include "./include/Almog_Engine.h"
+#define MATRIX2D_IMPLEMENTATION
+#include "./include/Matrix2D.h"
+#define ALMOG_SHAPES_IMPLEMENTATION
+#include "./include/Almog_Shapes.h"
 
 Tri_mesh mesh, proj_mesh;
 Curve_ada circles, proj_circles;
@@ -60,29 +60,41 @@ void setup(game_state_t *game_state)
     ada_appand(Point, c, temp_p);
     temp_p = (Point){2,-1,0,0};
     ada_appand(Point, c, temp_p);
-    // temp_p = (Point){1,1,0,0};
-    // ada_appand(Point, c, temp_p);
+    temp_p = (Point){1,1,0,0};
+    ada_appand(Point, c, temp_p);
     // temp_p = (Point){1,-1,0,0};
     // ada_appand(Point, c, temp_p);
     // temp_p = (Point){1,-2,0,0};
     // ada_appand(Point, c, temp_p);
+    temp_p = (Point){-2,4,0,0};
+    ada_appand(Point, c, temp_p);
 
     Tri_implicit_mesh temp_implicit_mesh = as_points_array_get_lexicographic_triangulation(c.elements, c.length);
+
+    AS_TRI_IMPLICIT_MESH_PRINT(temp_implicit_mesh);
+
+
+    int is_delaunay = as_tri_implicit_mesh_check_edge_is_locally_Delaunay(temp_implicit_mesh, (Point){-2,4,0,0}, (Point){0,0,0,0});
+    dprintINT(is_delaunay);
+
+
+
+
     mesh = as_tri_implicit_mesh_to_tri_mesh(temp_implicit_mesh, 1, 0xffffffff);
 
     ada_init_array(Curve, circles);
     ada_init_array(Curve, proj_circles);
-    // for (size_t i = 0; i < mesh.length; i++) {
-    //     float t = (float)i / ((float)mesh.length - 1);
-    //     Tri tri = mesh.elements[i];
-    //     Point center = {0};
-    //     float r = 0;
-    //     as_tri_get_circumcircle(tri.points[0], tri.points[1], tri.points[2], "xy", &center, &r);
-    //     Curve temp_curve = as_circle_curve_create(center, r, 1000, RGBA_hexARGB(255.0f * t, 255 * (1 - t), 255, 255), "xy");
-    //     Curve temp_proj_curve = as_circle_curve_create(center, r, 1000, RGBA_hexARGB(255.0f * t, 255 * (1 - t), 255, 255), "xy");
-    //     ada_appand(Curve, circles, temp_curve);
-    //     ada_appand(Curve, proj_circles, temp_proj_curve);
-    // }
+    for (size_t i = 0; i < mesh.length; i++) {
+        float t = (float)i / ((float)mesh.length - 1);
+        Tri tri = mesh.elements[i];
+        Point center = {0};
+        float r = 0;
+        as_tri_get_circumcircle(tri.points[0], tri.points[1], tri.points[2], "xy", &center, &r);
+        Curve temp_curve = as_circle_curve_create(center, r, 1000, RGBA_hexARGB(255.0f * t, 255 * (1 - t), 255, 255), "xy");
+        Curve temp_proj_curve = as_circle_curve_create(center, r, 1000, RGBA_hexARGB(255.0f * t, 255 * (1 - t), 255, 255), "xy");
+        ada_appand(Curve, circles, temp_curve);
+        ada_appand(Curve, proj_circles, temp_proj_curve);
+    }
 
 }
 
