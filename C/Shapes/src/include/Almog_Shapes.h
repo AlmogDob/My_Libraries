@@ -119,7 +119,7 @@ typedef struct {
                         (p).z = (p1).z * (t) + (p2).z * (1 - (t));  \
                         (p).w = (p1).w * (t) + (p2).w * (1 - (t))
 #define             as_tri_equal_z(tri) ((tri.points[0].z == tri.points[1].z) && (tri.points[1].z == tri.points[2].z) && (tri.points[2].z == tri.points[0].z))
-#define             as_points_equal(p1, p2) (p1).x == (p2).x && (p1).y == (p2).y && (p1).z == (p2).z
+#define             as_points_equal(p1, p2) ((p1).x == (p2).x && (p1).y == (p2).y && (p1).z == (p2).z)
 #define             as_point_dot_point(p1, p2) (((p1).x * (p2).x) + ((p1).y * (p2).y) + ((p1).z * (p2).z))
 #define             as_point_add_point(p, p1, p2) (p).x = (p1).x + (p2).x;  \
                         (p).y = (p1).y + (p2).y;                            \
@@ -172,7 +172,7 @@ float               as_tri_mesh_const_z(Tri_mesh mesh);
 
 /* Delaunay Mesh Generation utils functions */
 
-void                as_points_array_convex_hull(Curve *conv, Point *points, const size_t len);
+void                as_points_array_convex_hull_Jarvis_march(Curve *conv, Point *points, const size_t len);
 void                as_points_array_swap_points(Point *c, const size_t index1, const size_t index2);
 void                as_points_array_order_lexicographically(Point *c, const size_t len);
 void                as_tri_get_circumcircle(Point p1, Point p2, Point p3, const char plane[], Point *center, float *r);
@@ -625,8 +625,10 @@ float as_tri_mesh_const_z(Tri_mesh mesh)
 }
 
 /* expected lexicographically order */
-void as_points_array_convex_hull(Curve *conv, Point *points, const size_t len)
+void as_points_array_convex_hull_Jarvis_march(Curve *conv, Point *points, const size_t len)
 {
+    /* https://youtu.be/nBvCZi34F_o. */
+    /* I used AI to add collinear points on the convex hull. */
     /* make sure points have the same z value */
     float z_value = points[0].z;
     for (size_t i = 1; i < len; i++) {
@@ -648,25 +650,70 @@ void as_points_array_convex_hull(Curve *conv, Point *points, const size_t len)
         return;
     }
 
+    float eps = 1e-7;
+
     /* guess next point on convex hull*/
     for (size_t i = 0; i < len; i++) {
         size_t current_guess = 0;
         for (size_t next_guess = 0; next_guess < len; next_guess++) {
             if (next_guess == current_guess) continue;
             float cross = as_tri_area_xy(temp_c.elements[temp_c.length-1], points[next_guess], points[current_guess]);
-            if (temp_c.length == 1) {
-                if (cross >= 0) {
-                    current_guess = next_guess;
-                }
-            } else {
-                if (cross > 0) {
-                    current_guess = next_guess;
-                }
+            float d_next = as_points_distance(temp_c.elements[temp_c.length-1], points[next_guess]);
+            float d_curr = as_points_distance(temp_c.elements[temp_c.length-1], points[current_guess]);
+            if (cross > eps) {
+                current_guess = next_guess;
+            } else if (fabsf(cross) <= eps) {
+                /* Colinear: prefer farther point as the pivot */
+                if (d_next > d_curr) current_guess = next_guess;
             }
         }
+
+        /* Insert all intermediate colinear boundary points between last and pivot */
+        Point last = temp_c.elements[temp_c.length - 1];
+        Point pivot = points[current_guess];
+        float seg_dx = pivot.x - last.x;
+        float seg_dy = pivot.y - last.y;
+        float seg_len2 = seg_dx*seg_dx + seg_dy*seg_dy;
+
+        /* Simple insertion sort by distance (few points; avoid temp allocations) */
+        for (size_t k = 0; k < len; k++) {
+            if (k == current_guess) continue;
+            Point cand = points[k];
+            /* Colinear with segment last->pivot? */
+            float cross_lp = as_tri_area_xy(last, cand, pivot);
+            if (fabsf(cross_lp) > eps) continue;
+            /* Between last and pivot (projection in [0,1]) */
+            float t = (seg_len2 > 0) ? ((cand.x - last.x)*seg_dx + (cand.y - last.y)*seg_dy) / seg_len2 : 0.0f;
+            if (t < eps || t > 1.0f - eps) continue;
+            if (as_point_in_curve_occurrences(cand, temp_c)) continue;
+            /* Insert maintaining increasing distance from last */
+            float d_cand = as_points_distance(last, cand);
+            size_t insert_at = temp_c.length;
+            while (insert_at > 0) {
+                Point prev = temp_c.elements[insert_at - 1];
+                if (!as_points_equal(prev, last) &&
+                    as_tri_area_xy(last, prev, pivot) == 0.0f &&
+                    as_points_distance(last, prev) > d_cand) {
+                    insert_at--;
+                } else {
+                    break;
+                }
+            }
+            /* Append and then swap backwards to position insert_at */
+            ada_appand(Point, temp_c, cand);
+            for (size_t s = temp_c.length - 1; s > insert_at; s--) {
+                Point tmp = temp_c.elements[s];
+                temp_c.elements[s] = temp_c.elements[s - 1];
+                temp_c.elements[s - 1] = tmp;
+            }
+        }
+        /* If we wrapped back, stop */
         if (as_points_equal(temp_c.elements[0], points[current_guess])) break;
-        if (as_point_in_curve_occurrences(points[current_guess], temp_c)) continue;
-        ada_appand(Point, temp_c, points[current_guess]);
+
+        /* Finally add the pivot if not already present */
+        if (!as_point_in_curve_occurrences(pivot, temp_c)) {
+            ada_appand(Point, temp_c, pivot);
+        }
     }
 
     *conv = temp_c;
@@ -862,7 +909,7 @@ Tri_implicit_mesh as_points_array_get_lexicographic_triangulation(Point *points,
 
     /* adding more points */
     for (point_index = point_index+1; point_index < len; point_index++) {
-        as_points_array_convex_hull(&convex_hull, implicit_mesh.points.elements, implicit_mesh.points.length);
+        as_points_array_convex_hull_Jarvis_march(&convex_hull, implicit_mesh.points.elements, implicit_mesh.points.length);
 
         Point current_point = points[point_index];
         ada_appand(Point, implicit_mesh.points, current_point);

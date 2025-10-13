@@ -44,6 +44,10 @@ profile_build_temp: ./src/temp.c
 # cloc --exclude-lang=JSON,make .
 
 #############################################################
+
+examples: example1 example2 example3
+
+#############################################################
 example1: build_example1 run_example1 clean_example1  
 	@echo ./build/example1 done
 
