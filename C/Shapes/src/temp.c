@@ -1,29 +1,3 @@
-#if 0
-
-int main()
-{
-    Curve temp_circle = as_circle_curve_create((Point){0,0,0,0}, 1, 10, 0xff000000, "xy");
-    Curve conv = {0};
-    ada_init_array(Point, conv);
-
-    AS_CURVE_PRINT(temp_circle);
-
-    as_points_array_convex_hull(&conv, temp_circle.elements, temp_circle.length);
-
-    AS_CURVE_PRINT(conv);
-
-
-
-
-
-
-    // Tri_implicit_mesh temp_implicit_mesh = as_points_array_get_lexicographic_triangulation(temp_circle.elements, temp_circle.length);
-
-    return 0;
-}
-
-#else
-
 #define SETUP
 #define UPDATE
 #define RENDER
@@ -37,6 +11,8 @@ int main()
 #define ALMOG_SHAPES_IMPLEMENTATION
 #include "./include/Almog_Shapes.h"
 
+#include <time.h>
+
 Tri_mesh mesh, proj_mesh;
 Curve_ada circles, proj_circles;
 
@@ -47,41 +23,14 @@ void setup(game_state_t *game_state)
 
     ada_init_array(Tri, proj_mesh);
 
-    Curve c = {0};
-    ada_init_array(Point, c);
-
-    Point temp_p = (Point){-2,0,0,0};
-    ada_appand(Point, c, temp_p);
-    temp_p = (Point){-1,0.5,0,0};
-    ada_appand(Point, c, temp_p);
-    temp_p = (Point){0,0,0,0};
-    ada_appand(Point, c, temp_p);
-    temp_p = (Point){2,1,0,0};
-    ada_appand(Point, c, temp_p);
-    temp_p = (Point){2,-1,0,0};
-    ada_appand(Point, c, temp_p);
-    temp_p = (Point){1,1,0,0};
-    ada_appand(Point, c, temp_p);
-    temp_p = (Point){1,-1,0,0};
-    ada_appand(Point, c, temp_p);
-    temp_p = (Point){1,-2,0,0};
-    ada_appand(Point, c, temp_p);
-    temp_p = (Point){-2,4,0,0};
-    ada_appand(Point, c, temp_p);
-    temp_p = (Point){-4,-0.5,0,0};
-    ada_appand(Point, c, temp_p);
-    temp_p = (Point){4,4,0,0};
-    ada_appand(Point, c, temp_p);
-    temp_p = (Point){0,2,0,0};
-    ada_appand(Point, c, temp_p);
-    temp_p = (Point){-1,2.5,0,0};
-    ada_appand(Point, c, temp_p);
-    temp_p = (Point){-2,2,0,0};
-    ada_appand(Point, c, temp_p);
+    Curve c = as_curve_create_random_points(5, -2, 2, -2, 2, 0, 0, 1);
 
     Tri_implicit_mesh temp_implicit_mesh = as_points_array_get_lexicographic_triangulation(c.elements, c.length);
 
-    as_tri_implicit_mesh_set_Delaunay_triangulation(temp_implicit_mesh);
+    as_tri_implicit_mesh_set_Delaunay_triangulation_flip_algorithm(temp_implicit_mesh);
+
+
+
 
 
     mesh = as_tri_implicit_mesh_to_tri_mesh(temp_implicit_mesh, 1, 0xffffffff);
@@ -96,8 +45,8 @@ void setup(game_state_t *game_state)
     //     Point center = {0};
     //     float r = 0;
     //     as_tri_get_circumcircle(tri.points[0], tri.points[1], tri.points[2], "xy", &center, &r);
-    //     Curve temp_curve = as_circle_curve_create(center, r, 1000, RGBA_hexARGB(255.0f * t, 255 * (1-t1), 255 * (t2), 255), "xy");
-    //     Curve temp_proj_curve = as_circle_curve_create(center, r, 1000, RGBA_hexARGB(255.0f * t, 255 * (1-t1), 255 * (t2), 255), "xy");
+    //     Curve temp_curve = as_circle_curve_create(center, r, 500, RGBA_hexARGB(255.0f * t, 255 * (1-t1), 255 * (t2), 255), "xy");
+    //     Curve temp_proj_curve = as_circle_curve_create(center, r, 500, RGBA_hexARGB(255.0f * t, 255 * (1-t1), 255 * (t2), 255), "xy");
     //     ada_appand(Curve, circles, temp_curve);
     //     ada_appand(Curve, proj_circles, temp_proj_curve);
     // }
@@ -123,4 +72,4 @@ void render(game_state_t *game_state)
         adl_lines_loop_draw(game_state->window_pixels_mat, proj_circles.elements[i].elements, proj_circles.elements[i].length, proj_circles.elements[i].color, ADL_DEFAULT_OFFSET_ZOOM);
     }
 }
-#endif
+

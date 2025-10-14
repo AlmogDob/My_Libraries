@@ -486,7 +486,7 @@ void ae_camera_init(Scene *scene, int window_h, int window_w)
 
     scene->camera.init_position = mat2D_alloc(3, 1);
     mat2D_fill(scene->camera.init_position, 0);
-    MAT2D_AT(scene->camera.init_position, 2, 0) = -8;
+    MAT2D_AT(scene->camera.init_position, 2, 0) = -4;
 
     scene->camera.current_position = mat2D_alloc(3, 1);
     mat2D_copy(scene->camera.current_position, scene->camera.init_position);
@@ -532,9 +532,9 @@ Scene ae_scene_init(int window_h, int window_w)
     scene.light_source0.light_intensity = 1;
 
     scene.material0.specular_power_alpha = 1;
-    scene.material0.c_ambi = 0.2;
+    scene.material0.c_ambi = 0.4;
     scene.material0.c_diff = 0.6;
-    scene.material0.c_spec = 0.2;
+    scene.material0.c_spec = 0.0;
 
     scene.proj_mat = mat2D_alloc(4, 4);
     ae_projection_mat_set(scene.proj_mat, scene.camera.aspect_ratio, scene.camera.fov_deg, scene.camera.z_near, scene.camera.z_far);
