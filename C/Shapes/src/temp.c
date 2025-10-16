@@ -23,17 +23,22 @@ void setup(game_state_t *game_state)
 
     ada_init_array(Tri, proj_mesh);
 
-    Curve c = as_curve_create_random_points(5, -2, 2, -2, 2, 0, 0, 1);
+    Curve c = as_curve_create_random_points(10, -2, 2, -2, 2, 0, 0, 20);
 
     Tri_implicit_mesh temp_implicit_mesh = as_points_array_get_lexicographic_triangulation(c.elements, c.length);
 
     as_tri_implicit_mesh_set_Delaunay_triangulation_flip_algorithm(temp_implicit_mesh);
 
+    Tri_edge_implicit_mesh tei_mesh = as_tri_implicit_mesh_to_tri_edge_implicit_mesh(temp_implicit_mesh);
+
+    // as_tri_edge_implicit_mesh_remove_point(&tei_mesh, tei_mesh.points.elements[1]);
+    // as_tri_edge_implicit_mesh_remove_point(&tei_mesh, tei_mesh.points.elements[5]);
+
+    mesh = as_tri_edge_implicit_mesh_to_tri_mesh(tei_mesh, 1, 0xffffffff);
 
 
 
-
-    mesh = as_tri_implicit_mesh_to_tri_mesh(temp_implicit_mesh, 1, 0xffffffff);
+    // mesh = as_tri_implicit_mesh_to_tri_mesh(temp_implicit_mesh, 1, 0xffffffff);
 
     ada_init_array(Curve, circles);
     ada_init_array(Curve, proj_circles);

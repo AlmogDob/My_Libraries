@@ -143,7 +143,7 @@ typedef struct {
 #define RGBA_hexARGB(r, g, b, a) (int)(0x01000000l*(int)(fminf(a, 255)) + 0x010000*(int)(r) + 0x000100*(int)(g) + 0x000001*(int)(b))
 #endif
 
-#define                 as_point_dot_point(p1, p2) (((p1).x * (p2).x) + ((p1).y * (p2).y) + ((p1).z * (p2).z))
+#define                 as_point_expand_to_xyz(p) (p).x, (p).y, (p).z
 #define                 as_point_add_point(p, p1, p2) (p).x = (p1).x + (p2).x;  \
                             (p).y = (p1).y + (p2).y;                            \
                             (p).z = (p1).z + (p2).z;                            \
@@ -164,15 +164,17 @@ typedef struct {
 #define                 as_points_equal(p1, p2) ((p1).x == (p2).x && (p1).y == (p2).y && (p1).z == (p2).z)
 #define                 as_tri_area_xy(p1, p2, p3) 0.5 * ((p2).x-(p1).x)*((p3).y-(p1).y)- 0.5 * ((p3).x-(p1).x)*((p2).y-(p1).y)
 #define                 as_tri_equal_z(tri) ((tri.points[0].z == tri.points[1].z) && (tri.points[1].z == tri.points[2].z) && (tri.points[2].z == tri.points[0].z))
-#define                 as_tri_implicit_area_xy(tim, t_index) as_tri_area_xy(as_tri_implicit_mesh_get_point_of_tri_implicit(tim, t_index, 0), as_tri_implicit_mesh_get_point_of_tri_implicit(tim, t_index, 1), as_tri_implicit_mesh_get_point_of_tri_implicit(tim, t_index, 2));
 #define                 as_tri_implicit_mesh_expand_tri_to_points(tim, t_index) (tim).points.elements[(tim).triangles.elements[t_index].points_index[0]], (tim).points.elements[(tim).triangles.elements[t_index].points_index[1]], (tim).points.elements[(tim).triangles.elements[t_index].points_index[2]]
 #define                 as_tri_implicit_mesh_get_point_of_tri_implicit(tim, t_index, p_index) (tim).points.elements[(tim).triangles.elements[t_index].points_index[p_index]]
+#define                 as_tri_implicit_area_xy(tim, t_index) as_tri_area_xy(as_tri_implicit_mesh_get_point_of_tri_implicit(tim, t_index, 0), as_tri_implicit_mesh_get_point_of_tri_implicit(tim, t_index, 1), as_tri_implicit_mesh_get_point_of_tri_implicit(tim, t_index, 2))
 #define                 as_tri_implicit_mesh_get_tri_implicit(tim, t_index) (tim).triangles.elements[t_index]
+#define                 as_tri_edge_implicit_mesh_get_point_of_tri(teim, t_index, p_index) teim.points.elements[teim.edges.elements[teim.triangles.elements[t_index].edges_index[p_index]].p1_index]
 #define                 as_tri_edge_implicit_mesh_expand_tri_to_points(teim, t_index) teim.points.elements[teim.edges.elements[teim.triangles.elements[t_index].edges_index[0]].p1_index], teim.points.elements[teim.edges.elements[teim.triangles.elements[t_index].edges_index[1]].p1_index], teim.points.elements[teim.edges.elements[teim.triangles.elements[t_index].edges_index[2]].p1_index]
 #define                 as_tri_edge_implicit_mesh_expand_point_of_tri_to_xyz(teim, t_index, p_index) teim.points.elements[teim.edges.elements[teim.triangles.elements[t_index].edges_index[p_index]].p1_index].x, teim.points.elements[teim.edges.elements[teim.triangles.elements[t_index].edges_index[p_index]].p1_index].y, teim.points.elements[teim.edges.elements[teim.triangles.elements[t_index].edges_index[p_index]].p1_index].z
 
 /* init functions */
 
+void                    as_curve_ada_free(Curve_ada curves);
 Tri_implicit_mesh       as_tri_implicit_mesh_init(void);
 void                    as_tri_implicit_mesh_free(Tri_implicit_mesh mesh);
 Tri_edge_implicit_mesh  as_tri_edge_implicit_mesh_init(void);
@@ -191,7 +193,6 @@ void                    as_tri_edge_implicit_mesh_print(Tri_edge_implicit_mesh m
 /* utils functions */
 
 uint32_t                as_color_interpolate(uint32_t c1, uint32_t c2, float t);
-void                    as_curve_ada_free(Curve_ada curves);
 Curve                   as_curve_create_random_points(size_t num_of_points, float min_x, float max_x, float min_y, float max_y, float min_z, float max_z, unsigned int seed);
 int                     as_edge_implicit_ada_get_edge_index(Edge_implicit_ada eia, Point *points, Point p1, Point p2);
 Point                   as_mat2D_to_point(Mat2D m);
@@ -213,8 +214,13 @@ float                   as_tri_implicit_mesh_const_y(Tri_implicit_mesh mesh);
 float                   as_tri_implicit_mesh_const_z(Tri_implicit_mesh mesh);
 Tri_mesh                as_tri_implicit_mesh_to_tri_mesh(Tri_implicit_mesh implicit_mesh, float light_intensity, uint32_t color);
 Tri_edge_implicit_mesh  as_tri_implicit_mesh_to_tri_edge_implicit_mesh(Tri_implicit_mesh implicit_mesh);
-Tri_implicit_mesh       as_tri_edge_implicit_mesh_to_tri_implicit_mesh(Tri_edge_implicit_mesh tei_mesh);
+int                     as_tri_edge_implicit_mesh_get_triangles_with_edge(Tri_edge_implicit_mesh mesh, Point p1, Point p2, Tri_edge_implicit *tri_out1, Tri_edge_implicit *tri_out2);
+int                     as_tri_edge_implicit_mesh_get_triangles_indexs_with_edge(Tri_edge_implicit_mesh mesh, Point p1, Point p2, size_t *tri_out1_index, size_t *tri_out2_index);
+void                    as_tri_edge_implicit_mesh_remove_point(Tri_edge_implicit_mesh *mesh, Point p);
+void                    as_tri_edge_implicit_mesh_remove_edge(Tri_edge_implicit_mesh *mesh, Point p1, Point p2);
+void                    as_tri_edge_implicit_mesh_remove_triangle(Tri_edge_implicit_mesh *mesh, size_t tri_index);
 Tri_mesh                as_tri_edge_implicit_mesh_to_tri_mesh(Tri_edge_implicit_mesh tei_mesh, float light_intensity, uint32_t color);
+Tri_implicit_mesh       as_tri_edge_implicit_mesh_to_tri_implicit_mesh(Tri_edge_implicit_mesh tei_mesh);
 
 /* Delaunay Mesh Generation utils functions */
 
@@ -229,7 +235,7 @@ bool                    as_tri_implicit_mesh_check_Delaunay(Tri_implicit_mesh me
 int                     as_tri_implicit_mesh_check_edge_is_locally_Delaunay(Tri_implicit_mesh mesh, Point p1, Point p2);
 void                    as_tri_implicit_mesh_flip_edge(Tri_implicit_mesh mesh, Point p1, Point p2);
 int                     as_tri_implicit_mesh_get_triangles_with_edge(Tri_implicit_mesh mesh, Point p1, Point p2, Tri_implicit *tri_out1, Tri_implicit *tri_out2);
-int                     as_tri_implicit_mesh_get_triangles_indexs_with_edge(Tri_implicit_mesh mesh, Point p1, Point p2, int *tri_out1_index, int *tri_out2_index);
+int                     as_tri_implicit_mesh_get_triangles_indexs_with_edge(Tri_implicit_mesh mesh, Point p1, Point p2, size_t*tri_out1_index, size_t*tri_out2_index);
 void                    as_tri_implicit_mesh_set_Delaunay_triangulation_flip_algorithm(Tri_implicit_mesh mesh);
 
 /* circle operations functions */
@@ -252,13 +258,27 @@ Tri_mesh                as_sphere_tri_mesh_create_simple(const Point center, con
 #ifdef ALMOG_SHAPES_IMPLEMENTATION
 #undef ALMOG_SHAPES_IMPLEMENTATION
 
-#define             AS_POINT_PRINT(c) as_point_print(c, #c, 0)
-#define             AS_CURVE_PRINT(c) as_curve_print(c, #c, 0)
-#define             AS_TRI_MESH_PRINT(tm) as_tri_mesh_print(tm, #tm, 0)
-#define             AS_TRI_IMPLICIT_PRINT(t, points) as_tri_implicit_print(t, points, #t, 0)
-#define             AS_TRI_IMPLICIT_MESH_PRINT(tm) as_tri_implicit_mesh_print(tm, #tm, 0)
-#define             AS_TRI_EDGE_IMPLICIT_MESH_PRINT(tm) as_tri_edge_implicit_mesh_print(tm, #tm, 0)
+#define                 AS_POINT_PRINT(c) as_point_print(c, #c, 0)
+#define                 AS_CURVE_PRINT(c) as_curve_print(c, #c, 0)
+#define                 AS_TRI_MESH_PRINT(tm) as_tri_mesh_print(tm, #tm, 0)
+#define                 AS_TRI_IMPLICIT_PRINT(t, points) as_tri_implicit_print(t, points, #t, 0)
+#define                 AS_TRI_IMPLICIT_MESH_PRINT(tm) as_tri_implicit_mesh_print(tm, #tm, 0)
+#define                 AS_TRI_EDGE_IMPLICIT_MESH_PRINT(tm) as_tri_edge_implicit_mesh_print(tm, #tm, 0)
 
+/** Free a Curve_ada by freeing each Curve’s points and the curves array. */
+void as_curve_ada_free(Curve_ada curves)
+{
+    for (size_t i = 0; i < curves.length; i++) {
+        free(curves.elements[i].elements);
+    }
+    free(curves.elements);
+}
+
+/**
+ * Initialize and return an empty Tri_implicit_mesh.
+ * Allocates dynamic arrays for points and triangles (length=0).
+ * Must be freed with as_tri_implicit_mesh_free.
+ */
 Tri_implicit_mesh as_tri_implicit_mesh_init(void)
 {
     Tri_implicit_mesh mesh = {0};
@@ -268,12 +288,22 @@ Tri_implicit_mesh as_tri_implicit_mesh_init(void)
 
     return mesh;
 }
+
+/**
+ * Free internal allocations of a Tri_implicit_mesh (points, triangles).
+ * The mesh itself is passed by value; call after done using the mesh.
+ */
 void as_tri_implicit_mesh_free(Tri_implicit_mesh mesh)
 {
     free(mesh.points.elements);
     free(mesh.triangles.elements);
 }
 
+/**
+ * Initialize and return an empty Tri_edge_implicit_mesh.
+ * Allocates dynamic arrays for points, edges and triangles (length=0).
+ * Must be freed with as_tri_edge_implicit_mesh_free.
+ */
 Tri_edge_implicit_mesh as_tri_edge_implicit_mesh_init(void)
 {
     Tri_edge_implicit_mesh mesh = {0};
@@ -285,6 +315,10 @@ Tri_edge_implicit_mesh as_tri_edge_implicit_mesh_init(void)
     return mesh;
 }
 
+/**
+ * Free internal allocations of a Tri_edge_implicit_mesh (points, edges, triangles).
+ * The mesh itself is passed by value; call after done using the mesh.
+ */
 void as_tri_edge_implicit_mesh_free(Tri_edge_implicit_mesh mesh)
 {
     free(mesh.points.elements);
@@ -292,12 +326,14 @@ void as_tri_edge_implicit_mesh_free(Tri_edge_implicit_mesh mesh)
     free(mesh.triangles.elements);
 }
 
+/** Print a Point with a label and optional left padding. */
 void as_point_print(Point p, char *name, size_t padding)
 {
     printf("%*s%s:\n", (int) padding, "", name);
     printf("%*s    (%f, %f, %f)\n", (int) padding, "", p.x, p.y, p.z);
 }
 
+/** Print a Curve (list of points and color) with a label and padding. */
 void as_curve_print(Curve c, char *name, size_t padding)
 {
     printf("%*s%s:\n", (int) padding, "", name);
@@ -307,6 +343,7 @@ void as_curve_print(Curve c, char *name, size_t padding)
     printf("%*s    color: %X\n", (int)padding, "", c.color);
 }
 
+/** Print a Tri (points, normals, colors, light, draw flag) with a label and padding. */
 void as_tri_print(Tri tri, char *name, size_t padding)
 {
     printf("%*s%s:\n", (int) padding, "", name);
@@ -321,6 +358,7 @@ void as_tri_print(Tri tri, char *name, size_t padding)
     printf("%*s    draw? %d\n", (int)padding, "", tri.to_draw);
 }
 
+/** Print a Tri_mesh by iterating and printing each Tri. */
 void as_tri_mesh_print(Tri_mesh mesh, char *name, size_t padding)
 {
     char tri_name[256];
@@ -331,6 +369,7 @@ void as_tri_mesh_print(Tri_mesh mesh, char *name, size_t padding)
     }
 }
 
+/** Print a Tri_implicit (resolved through points array) with a label and padding. */
 void as_tri_implicit_print(Tri_implicit tri_imp, Point *points, char *name, size_t padding)
 {
     printf("%*s%s:\n", (int) padding, "", name);
@@ -338,11 +377,15 @@ void as_tri_implicit_print(Tri_implicit tri_imp, Point *points, char *name, size
     printf("%*s    (%f, %f, %f)\n%*s    (%f, %f, %f)\n%*s    (%f, %f, %f)\n", (int) padding, "", points[tri_imp.points_index[0]].x, points[tri_imp.points_index[0]].y, points[tri_imp.points_index[0]].z, (int) padding, "", points[tri_imp.points_index[1]].x, points[tri_imp.points_index[1]].y, points[tri_imp.points_index[1]].z, (int) padding, "", points[tri_imp.points_index[2]].x, points[tri_imp.points_index[2]].y, points[tri_imp.points_index[2]].z);
 }
 
+/** Print an entire Tri_implicit_mesh (points and triangles). */
 void as_tri_implicit_mesh_print(Tri_implicit_mesh mesh, char *name, size_t padding)
 {
     char tri_name[256];
     printf("%*s%s:\n", (int) padding, "", name);
     as_curve_print(mesh.points, "points", 4);
+
+    printf("%*s------------------------------\n", (int) padding+4, "");
+
     for (size_t i = 0; i < mesh.triangles.length; i++) {
         Tri_implicit tri_imp = mesh.triangles.elements[i];
 
@@ -353,14 +396,27 @@ void as_tri_implicit_mesh_print(Tri_implicit_mesh mesh, char *name, size_t paddi
     }
 }
 
+/** Print an entire Tri_edge_implicit_mesh (points, edges, and triangles). */
 void as_tri_edge_implicit_mesh_print(Tri_edge_implicit_mesh mesh, char *name, size_t padding)
 {
-    char tri_name[256];
+    char temp_str[256];
     printf("%*s%s:\n", (int) padding, "", name);
     as_curve_print(mesh.points, "points", 4);
+
+    printf("%*s------------------------------\n", (int) padding+4, "");
+
+    for (size_t i = 0; i < mesh.edges.length; i++) {
+        snprintf(temp_str, 256, "edge %zu", i);
+        printf("%*s%s:\n", (int) padding+4, "", temp_str);
+        printf("%*s    (%f, %f, %f)\n", (int) padding+4, "", as_point_expand_to_xyz(mesh.points.elements[mesh.edges.elements[i].p1_index]));
+        printf("%*s    (%f, %f, %f)\n", (int) padding+4, "", as_point_expand_to_xyz(mesh.points.elements[mesh.edges.elements[i].p2_index]));
+    }
+
+    printf("%*s------------------------------\n", (int) padding+4, "");
+
     for (size_t i = 0; i < mesh.triangles.length; i++) {
-        snprintf(tri_name, 256, "tri %zu", i);
-        printf("%*s%s:\n", (int) padding+4, "", tri_name);
+        snprintf(temp_str, 256, "tri %zu", i);
+        printf("%*s%s:\n", (int) padding+4, "", temp_str);
         printf("%*s    points:\n", (int)padding+4, "");
         for (size_t j = 0; j < 3; j++) {
             printf("%*s    (%f, %f, %f)\n", (int) padding+4, "", as_tri_edge_implicit_mesh_expand_point_of_tri_to_xyz(mesh, i, j));
@@ -368,6 +424,10 @@ void as_tri_edge_implicit_mesh_print(Tri_edge_implicit_mesh mesh, char *name, si
     }
 }
 
+/**
+ * Linearly interpolate between two ARGB colors with factor t in [0,1].
+ * t=1 yields c1, t=0 yields c2. Returns ARGB packed uint32_t.
+ */
 uint32_t as_color_interpolate(uint32_t c1, uint32_t c2, float t)
 {
     uint32_t r1, g1, b1, a1;
@@ -383,14 +443,10 @@ uint32_t as_color_interpolate(uint32_t c1, uint32_t c2, float t)
     return RGBA_hexARGB(r, g, b, a);
 }
 
-void as_curve_ada_free(Curve_ada curves)
-{
-    for (size_t i = 0; i < curves.length; i++) {
-        free(curves.elements[i].elements);
-    }
-    free(curves.elements);
-}
-
+/**
+ * Create a Curve of uniformly random points in the given AABB [min,max] for x,y,z.
+ * Uses the provided seed to seed rand(). Returns Curve with points and default color=0.
+ */
 Curve as_curve_create_random_points(size_t num_of_points, float min_x, float max_x, float min_y, float max_y, float min_z, float max_z, unsigned int seed)
 {
     Curve c = {0};
@@ -410,8 +466,10 @@ Curve as_curve_create_random_points(size_t num_of_points, float min_x, float max
     return c;
 }
 
-/* return the first index where edge(p1, p2) is in eia or -1 if the edge is not in the eia */
-int as_edge_implicit_ada_get_edge_index(Edge_implicit_ada eia, Point *points, Point p1, Point p2)
+/**
+ * Return index of edge (p1->p2) in an Edge_implicit_ada or -1 if not present.
+ * Points are matched by exact equality on coordinates.
+ */int as_edge_implicit_ada_get_edge_index(Edge_implicit_ada eia, Point *points, Point p1, Point p2)
 {
     int res = -1;
 
@@ -420,19 +478,21 @@ int as_edge_implicit_ada_get_edge_index(Edge_implicit_ada eia, Point *points, Po
         bool second_index_match = as_points_equal(points[eia.elements[edge_index].p2_index], p2);
         if (first_index_match && second_index_match) {
             res = edge_index;
+            return res;
         }
     }
 
     return res;
 }
 
-
+/** Convert a 3x1 or 1x3 Mat2D into a Point (x,y,z,w=1). */
 Point as_mat2D_to_point(Mat2D m)
 {
     Point res = {.x = MAT2D_AT(m, 0, 0), .y = MAT2D_AT(m, 1, 0), .z = MAT2D_AT(m, 2, 0), .w = 1};
     return res;
 }
 
+/** Store Point (x,y,z) into a 3x1 or 1x3 Mat2D; asserts valid shape. */
 void as_point_to_mat2D(Point p, Mat2D m)
 {
     MATRIX2D_ASSERT((3 == m.rows && 1 == m.cols) || (1 == m.rows && 3 == m.cols));
@@ -449,7 +509,7 @@ void as_point_to_mat2D(Point p, Mat2D m)
     }
 }
 
-/* returns num of occurrences of p in c */
+/** Count number of occurrences of a Point in a Curve (exact comparisons). */
 size_t as_point_in_curve_occurrences(Point p, Curve c)
 {
     size_t num_of_occurrences = 0;
@@ -461,7 +521,7 @@ size_t as_point_in_curve_occurrences(Point p, Curve c)
     return num_of_occurrences;
 }
 
-/* return the first index where c[index] = p or -1 if p is not in c */
+/** Return first index of Point in Curve or -1 if not found (exact comparisons). */
 int as_point_in_curve_index(Point p, Curve c)
 {
     int index = -1;
@@ -473,18 +533,23 @@ int as_point_in_curve_index(Point p, Curve c)
     return index;
 }
 
-/* Euclidean distance */
+/** Compute Euclidean distance between two Points (uses x,y,z). */
 float as_points_distance(Point p1, Point p2)
 {
     return sqrtf((p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y) + (p1.z - p2.z) * (p1.z - p2.z));
 }
 // #define as_points_distance(p1, p2) sqrtf(((p1).x - (p2).x) * ((p1).x - (p2).x) + ((p1).y - (p2).y) * ((p1).y - (p2).y) + ((p1).z - (p2).z) * ((p1).z - (p2).z));
 
+/** Return a random float in [0,1]. */
 float as_rand_float(void)
 {
     return (float) rand() / (float) RAND_MAX;
 }
 
+/**
+ * Compute per-vertex normals for a Tri from its geometry.
+ * Uses cross products of adjacent edges and normalizes results.
+ */
 void as_tri_set_normals(Tri *tri)
 {
     Mat2D point  = mat2D_alloc(3, 1);
@@ -517,6 +582,10 @@ void as_tri_set_normals(Tri *tri)
     mat2D_free(normal);
 }
 
+/**
+ * Convert an explicit Tri_mesh into a Tri_implicit_mesh.
+ * Deduplicates identical points and stores triangle point indices.
+ */
 Tri_implicit_mesh as_tri_mesh_to_tri_implicit_mesh(Tri_mesh mesh)
 {
     Tri_implicit_mesh implicit_mesh = as_tri_implicit_mesh_init();
@@ -537,6 +606,7 @@ Tri_implicit_mesh as_tri_mesh_to_tri_implicit_mesh(Tri_mesh mesh)
     return implicit_mesh;
 }
 
+/** Copy all triangles from src into des (appending, resetting des.length first). */
 void as_tri_mesh_copy(Tri_mesh *des, Tri_mesh src)
 {
     Tri_mesh temp_des = *des;
@@ -547,6 +617,10 @@ void as_tri_mesh_copy(Tri_mesh *des, Tri_mesh src)
     *des = temp_des;
 }
 
+/**
+ * Subdivide each triangle into 4 by splitting edges at midpoints.
+ * Interpolates colors and light intensities; recomputes normals.
+ */
 void as_tri_mesh_subdivide_simple(Tri_mesh *mesh)
 {
     Tri_mesh origin_mesh = {0};
@@ -635,7 +709,7 @@ void as_tri_mesh_subdivide_simple(Tri_mesh *mesh)
     *mesh = new_mesh;
 }
 
-/* returns nan when no constant values */
+/** If all points in mesh have same x, return that constant; otherwise NAN. */
 float as_tri_mesh_const_x(Tri_mesh mesh)
 {
     float x_value;
@@ -652,7 +726,7 @@ float as_tri_mesh_const_x(Tri_mesh mesh)
     return x_value;
 }
 
-/* returns nan when no constant values */
+/** If all points in mesh have same y, return that constant; otherwise NAN. */
 float as_tri_mesh_const_y(Tri_mesh mesh)
 {
     float y_value;
@@ -669,7 +743,7 @@ float as_tri_mesh_const_y(Tri_mesh mesh)
     return y_value;
 }
 
-/* returns nan when no constant values */
+/** If all points in mesh have same z, return that constant; otherwise NAN. */
 float as_tri_mesh_const_z(Tri_mesh mesh)
 {
     float z_value;
@@ -686,6 +760,7 @@ float as_tri_mesh_const_z(Tri_mesh mesh)
     return z_value;
 }
 
+/** Convert a Tri_implicit and its points array into an explicit Tri (and set normals). */
 Tri as_tri_implicit_to_tri(Tri_implicit tri_implicit, Point *points)
 {
     Tri tri = {0};
@@ -699,6 +774,7 @@ Tri as_tri_implicit_to_tri(Tri_implicit tri_implicit, Point *points)
     return tri;
 }
 
+/** If all points in Tri_implicit_mesh have same x, return that constant; else NAN. */
 float as_tri_implicit_mesh_const_x(Tri_implicit_mesh mesh)
 {
     float value;
@@ -712,6 +788,7 @@ float as_tri_implicit_mesh_const_x(Tri_implicit_mesh mesh)
     return value;
 }
 
+/** If all points in Tri_implicit_mesh have same y, return that constant; else NAN. */
 float as_tri_implicit_mesh_const_y(Tri_implicit_mesh mesh)
 {
     float value;
@@ -724,7 +801,7 @@ float as_tri_implicit_mesh_const_y(Tri_implicit_mesh mesh)
 
     return value;
 }
-
+/** If all points in Tri_implicit_mesh have same z, return that constant; else NAN. */
 float as_tri_implicit_mesh_const_z(Tri_implicit_mesh mesh)
 {
     float value;
@@ -738,6 +815,10 @@ float as_tri_implicit_mesh_const_z(Tri_implicit_mesh mesh)
     return value;
 }
 
+/**
+ * Convert Tri_implicit_mesh to explicit Tri_mesh with uniform light/color.
+ * Copies geometry, assigns color/light per vertex, and sets normals.
+ */
 Tri_mesh as_tri_implicit_mesh_to_tri_mesh(Tri_implicit_mesh implicit_mesh, float light_intensity, uint32_t color)
 {
     Tri_mesh mesh = {0};
@@ -759,6 +840,10 @@ Tri_mesh as_tri_implicit_mesh_to_tri_mesh(Tri_implicit_mesh implicit_mesh, float
     return mesh;
 }
 
+/**
+ * Convert Tri_implicit_mesh into Tri_edge_implicit_mesh by creating edge list
+ * and referencing triangles by edge indices.
+ */
 Tri_edge_implicit_mesh as_tri_implicit_mesh_to_tri_edge_implicit_mesh(Tri_implicit_mesh ti_mesh)
 {
     Tri_edge_implicit_mesh tei_mesh = as_tri_edge_implicit_mesh_init();
@@ -795,6 +880,182 @@ Tri_edge_implicit_mesh as_tri_implicit_mesh_to_tri_edge_implicit_mesh(Tri_implic
     return tei_mesh;
 }
 
+/**
+ * Get up to two Tri_edge_implicit that share the directed/undirected edge (p1,p2).
+ * Returns number of triangles found (0..2). Outputs via tri_out1/tri_out2.
+ */
+int as_tri_edge_implicit_mesh_get_triangles_with_edge(Tri_edge_implicit_mesh mesh, Point p1, Point p2, Tri_edge_implicit *tri_out1, Tri_edge_implicit *tri_out2)
+{
+    int p1_index = as_point_in_curve_index(p1, mesh.points);
+    int p2_index = as_point_in_curve_index(p2, mesh.points);
+
+    if (p1_index == -1 || p2_index == -1) {
+        return 0;
+    }
+
+    int num_of_tri_out = 0;
+
+    for (size_t tri_index = 0; tri_index < mesh.triangles.length; tri_index++) {
+        Tri_edge_implicit current_tri = mesh.triangles.elements[tri_index];
+        bool p1_is_part_of_tri = false;
+        bool p2_is_part_of_tri = false;
+        /* check if p1 is part of tri */
+        for (size_t i = 0; i < 3; i++) {
+            if (as_points_equal(p1, as_tri_edge_implicit_mesh_get_point_of_tri(mesh, tri_index, i))) p1_is_part_of_tri = true;
+        }
+        /* check if p2 is part of tri */
+        for (size_t i = 0; i < 3; i++) {
+            if (as_points_equal(p2, as_tri_edge_implicit_mesh_get_point_of_tri(mesh, tri_index, i))) p2_is_part_of_tri = true;
+        }
+
+        if (p1_is_part_of_tri && p2_is_part_of_tri) {
+            /* tri has both points*/
+            if (num_of_tri_out == 0) {
+                *tri_out1 = current_tri;
+                num_of_tri_out++;
+            } else if (num_of_tri_out == 1) {
+                *tri_out2 = current_tri;
+                num_of_tri_out++;
+            } else if (num_of_tri_out > 2) {
+                fprintf(stderr, "%s:%d: [Warning] edge implicit mesh has an edge with more then two triangles\n", __FILE__, __LINE__);
+                exit(1);
+            }
+        }
+    }
+
+    return num_of_tri_out;
+}
+
+/**
+ * Get indices of up to two triangles in Tri_edge_implicit_mesh that share edge (p1,p2).
+ * Returns number of triangles found (0..2). Outputs indices via tri_out1_index/tri_out2_index.
+ */
+int as_tri_edge_implicit_mesh_get_triangles_indexs_with_edge(Tri_edge_implicit_mesh mesh, Point p1, Point p2, size_t *tri_out1_index, size_t *tri_out2_index)
+{
+    int p1_index = as_point_in_curve_index(p1, mesh.points);
+    int p2_index = as_point_in_curve_index(p2, mesh.points);
+
+    if (p1_index == -1 || p2_index == -1) {
+        return 0;
+    }
+
+    int num_of_tri_out = 0;
+
+    for (size_t tri_index = 0; tri_index < mesh.triangles.length; tri_index++) {
+        bool p1_is_part_of_tri = false;
+        bool p2_is_part_of_tri = false;
+        /* check if p1 is part of tri */
+        for (size_t i = 0; i < 3; i++) {
+            if (as_points_equal(p1, as_tri_edge_implicit_mesh_get_point_of_tri(mesh, tri_index, i))) p1_is_part_of_tri = true;
+        }
+        /* check if p2 is part of tri */
+        for (size_t i = 0; i < 3; i++) {
+            if (as_points_equal(p2, as_tri_edge_implicit_mesh_get_point_of_tri(mesh, tri_index, i))) p2_is_part_of_tri = true;
+        }
+
+        if (p1_is_part_of_tri && p2_is_part_of_tri) {
+            /* tri has both points*/
+            if (num_of_tri_out == 0) {
+                *tri_out1_index = tri_index;
+                num_of_tri_out++;
+            } else if (num_of_tri_out == 1) {
+                *tri_out2_index = tri_index;
+                num_of_tri_out++;
+            } else if (num_of_tri_out > 2) {
+                fprintf(stderr, "%s:%d: [Warning] edge implicit mesh has an edge with more then two triangles\n", __FILE__, __LINE__);
+                exit(1);
+            }
+        }
+    }
+
+    return num_of_tri_out;
+}
+
+/** Remove all triangles that include point p from a Tri_edge_implicit_mesh. */
+void as_tri_edge_implicit_mesh_remove_point(Tri_edge_implicit_mesh *mesh, Point p)
+{
+    Tri_edge_implicit_mesh temp_mesh = *mesh;
+
+    for (int tri_index = 0; tri_index < (int)temp_mesh.triangles.length; tri_index++) {
+        for (size_t i = 0; i < 3; i++) {
+            if (as_points_equal(p, as_tri_edge_implicit_mesh_get_point_of_tri(temp_mesh, tri_index, i))) {
+                ada_remove(Tri_edge_implicit, temp_mesh.triangles, tri_index);
+                tri_index--;
+                break;
+            }
+        }
+    }
+
+    *mesh = temp_mesh;
+}
+
+/** Remove all triangles that include edge (p1,p2) from a Tri_edge_implicit_mesh. */
+void as_tri_edge_implicit_mesh_remove_edge(Tri_edge_implicit_mesh *mesh, Point p1, Point p2)
+{
+    Tri_edge_implicit_mesh temp_mesh = *mesh;
+
+    int edge_index = as_edge_implicit_ada_get_edge_index(mesh->edges, mesh->points.elements, p1, p2);
+    int inv_edge_index = as_edge_implicit_ada_get_edge_index(mesh->edges, mesh->points.elements, p2, p1);
+
+    size_t tri_out1_index = {0};
+    size_t tri_out2_index = {0};
+    int num_of_tri = as_tri_edge_implicit_mesh_get_triangles_indexs_with_edge(temp_mesh, p1, p2, &tri_out1_index, &tri_out2_index);
+
+    if (num_of_tri == 1) {
+        as_tri_edge_implicit_mesh_remove_triangle(&temp_mesh, tri_out1_index);
+    } else if (num_of_tri == 2) {
+        as_tri_edge_implicit_mesh_remove_triangle(&temp_mesh, tri_out1_index);
+        num_of_tri = as_tri_edge_implicit_mesh_get_triangles_indexs_with_edge(temp_mesh, p1, p2, &tri_out1_index, &tri_out2_index);
+        if (num_of_tri != 1) {
+            fprintf(stderr, "%s:%d: [Warning] edge implicit mesh has an edge with more then two triangles\n", __FILE__, __LINE__);
+            exit(1);
+        }
+        as_tri_edge_implicit_mesh_remove_triangle(&temp_mesh, tri_out1_index);
+    }
+
+    // if (edge_index != -1) ada_remove(Edge_implicit, temp_mesh.edges, edge_index);
+    // if (inv_edge_index != -1) ada_remove(Edge_implicit, temp_mesh.edges, inv_edge_index);
+
+    (void)edge_index;
+    (void)inv_edge_index;
+    (void)tri_out2_index;
+
+    *mesh = temp_mesh;
+}
+
+/** Remove triangle at index tri_index from a Tri_edge_implicit_mesh. */
+void as_tri_edge_implicit_mesh_remove_triangle(Tri_edge_implicit_mesh *mesh, size_t tri_index)
+{
+    Tri_edge_implicit_mesh temp_mesh = *mesh;
+
+    ada_remove(Tri_edge_implicit, temp_mesh.triangles, tri_index);
+
+    *mesh = temp_mesh;
+}
+
+/** Convert a Tri_edge_implicit_mesh into a Tri_mesh. */
+Tri_mesh as_tri_edge_implicit_mesh_to_tri_mesh(Tri_edge_implicit_mesh tei_mesh, float light_intensity, uint32_t color)
+{
+    Tri_mesh mesh = {0};
+    ada_init_array(Tri, mesh);
+
+    for (size_t tri_index = 0; tri_index < tei_mesh.triangles.length; tri_index++) {
+        Tri tri = {0};
+        tri.to_draw = 1;
+        for (size_t i = 0; i < 3; i++) {
+            tri.colors[i] = color;
+            tri.light_intensity[i] = light_intensity;
+            Point p = (Point){as_tri_edge_implicit_mesh_expand_point_of_tri_to_xyz(tei_mesh, tri_index, i), 0};
+            tri.points[i] = p;
+        }
+        as_tri_set_normals(&tri);
+        ada_appand(Tri, mesh, tri);
+    }
+
+    return mesh;
+}
+
+/** Convert a Tri_edge_implicit_mesh into a Tri_implicit_mesh. */
 Tri_implicit_mesh as_tri_edge_implicit_mesh_to_tri_implicit_mesh(Tri_edge_implicit_mesh tei_mesh)
 {
     Tri_implicit_mesh ti_mesh = as_tri_implicit_mesh_init();
@@ -817,28 +1078,11 @@ Tri_implicit_mesh as_tri_edge_implicit_mesh_to_tri_implicit_mesh(Tri_edge_implic
     return ti_mesh;
 }
 
-Tri_mesh as_tri_edge_implicit_mesh_to_tri_mesh(Tri_edge_implicit_mesh tei_mesh, float light_intensity, uint32_t color)
-{
-    Tri_mesh mesh = {0};
-    ada_init_array(Tri, mesh);
-
-    for (size_t tri_index = 0; tri_index < tei_mesh.triangles.length; tri_index++) {
-        Tri tri = {0};
-        tri.to_draw = 1;
-        for (size_t i = 0; i < 3; i++) {
-            tri.colors[i] = color;
-            tri.light_intensity[i] = light_intensity;
-            Point p = (Point){as_tri_edge_implicit_mesh_expand_point_of_tri_to_xyz(tei_mesh, tri_index, i), 0};
-            tri.points[i] = p;
-        }
-        as_tri_set_normals(&tri);
-        ada_appand(Tri, mesh, tri);
-    }
-
-    return mesh;
-}
-
-/* expected lexicographically order */
+/**
+ * Compute the convex hull of a set of coplanar points (XY plane) using Jarvis march.
+ * Includes collinear boundary points. Writes result curve into conv.
+ * Expected lexicographically order.
+ */
 void as_points_array_convex_hull_Jarvis_march(Curve *conv, Point *points, const size_t len)
 {
     /* https://youtu.be/nBvCZi34F_o. */
@@ -933,6 +1177,7 @@ void as_points_array_convex_hull_Jarvis_march(Curve *conv, Point *points, const 
     *conv = temp_c;
 }
 
+/** Swap two points in an array by indices. */
 void as_points_array_swap_points(Point *c, const size_t index1, const size_t index2)
 {
     Point temp = c[index1];
@@ -940,7 +1185,10 @@ void as_points_array_swap_points(Point *c, const size_t index1, const size_t ind
     c[index2] = temp;
 }
 
-/* bubble sort */
+/**
+ * Sort an array of points lexicographically by x, then y, then z (ascending).
+ * Uses a simple bubble sort; stable within epsilon for comparisons.
+ */
 void as_points_array_order_lexicographically(Point *c, const size_t len)
 {
     float epsilon = 1e-5;
@@ -961,6 +1209,10 @@ void as_points_array_order_lexicographically(Point *c, const size_t len)
     }
 }
 
+/**
+ * Create a lexicographic triangulation (incremental) on XY-coplanar points.
+ * Returns a Tri_implicit_mesh with deduplicated points and implicit triangles.
+ */
 Tri_implicit_mesh as_points_array_get_lexicographic_triangulation(Point *points, const size_t len)
 {
     as_points_array_order_lexicographically(points, len);
@@ -1031,6 +1283,10 @@ Tri_implicit_mesh as_points_array_get_lexicographic_triangulation(Point *points,
     return implicit_mesh;
 }
 
+/**
+ * Compute circumcircle of triangle (p1,p2,p3) in XY plane.
+ * Outputs center and radius r. Asserts coplanarity and plane="XY".
+ */
 void as_tri_get_circumcircle(Point p1, Point p2, Point p3, const char plane[], Point *center, float *r)
 {
     AS_ASSERT((!strncmp(plane, "XY", 3) || !strncmp(plane, "xy", 3)) && "other planes are no implemented.");
@@ -1074,6 +1330,10 @@ void as_tri_get_circumcircle(Point p1, Point p2, Point p3, const char plane[], P
     *r = as_points_distance(p1, *center);
 }
 
+/**
+ * Compute incircle of triangle (p1,p2,p3) in XY plane.
+ * Outputs center and radius r. Asserts coplanarity and plane="XY".
+ */
 void as_tri_get_in_circle(Point p1, Point p2, Point p3, const char plane[], Point *center, float *r)
 {
     AS_ASSERT((!strncmp(plane, "XY", 3) || !strncmp(plane, "xy", 3)) && "other planes are no implemented.");
@@ -1093,6 +1353,10 @@ void as_tri_get_in_circle(Point p1, Point p2, Point p3, const char plane[], Poin
     *r = sqrt((s - a) * (s - b) * (s - c) / s);
 }
 
+/**
+ * Compute minimal containment circle for triangle (p1,p2,p3) in XY plane.
+ * Outputs center and radius r (either circumcircle or diameter of longest side).
+ */
 void as_tri_get_min_containment_circle(Point p1, Point p2, Point p3, const char plane[], Point *center, float *r)
 {
     AS_ASSERT((!strncmp(plane, "XY", 3) || !strncmp(plane, "xy", 3)) && "other planes are no implemented.");
@@ -1145,6 +1409,10 @@ void as_tri_get_min_containment_circle(Point p1, Point p2, Point p3, const char 
     }
 }
 
+/**
+ * Check if all interior edges in a Tri_implicit_mesh satisfy the Delaunay condition.
+ * Returns true if Delaunay; false otherwise.
+ */
 bool as_tri_implicit_mesh_check_Delaunay(Tri_implicit_mesh mesh)
 {
     for (size_t i = 0; i < mesh.points.length-1; i++) {
@@ -1159,19 +1427,19 @@ bool as_tri_implicit_mesh_check_Delaunay(Tri_implicit_mesh mesh)
     return true;
 }
 
-/* returns:
--1: not an edge
- 0: not locally Delaunay
- 1: locally Delaunay */
+/**
+ * Check if edge (p1,p2) is locally Delaunay.
+ * Returns: -1 not an edge, 0 not locally Delaunay, 1 locally Delaunay.
+ */
 int as_tri_implicit_mesh_check_edge_is_locally_Delaunay(Tri_implicit_mesh mesh, Point p1, Point p2)
 {
     int p1_index = as_point_in_curve_index(p1, mesh.points);
     int p2_index = as_point_in_curve_index(p2, mesh.points);
 
-    AS_ASSERT(p1_index != -1 || p2_index != -1);
+    AS_ASSERT(p1_index != -1 && p2_index != -1);
     
-    int tri1_index = 0;
-    int tri2_index = 0;
+    size_t tri1_index = 0;
+    size_t tri2_index = 0;
 
     int num_of_triangles = as_tri_implicit_mesh_get_triangles_indexs_with_edge(mesh, p1, p2, &tri1_index, &tri2_index);
     
@@ -1201,6 +1469,10 @@ int as_tri_implicit_mesh_check_edge_is_locally_Delaunay(Tri_implicit_mesh mesh, 
     return 0;
 }
 
+/**
+ * Flip the shared edge (p1,p2) between two adjacent triangles to the alternative diagonal.
+ * No-op with warnings if edge is not shared by exactly two triangles.
+ */
 void as_tri_implicit_mesh_flip_edge(Tri_implicit_mesh mesh, Point p1, Point p2)
 {
     int p1_index = as_point_in_curve_index(p1, mesh.points);
@@ -1208,8 +1480,8 @@ void as_tri_implicit_mesh_flip_edge(Tri_implicit_mesh mesh, Point p1, Point p2)
 
     AS_ASSERT(p1_index != -1 || p2_index != -1);
     
-    int tri1_index = 0;
-    int tri2_index = 0;
+    size_t tri1_index = 0;
+    size_t tri2_index = 0;
 
     int num_of_triangles = as_tri_implicit_mesh_get_triangles_indexs_with_edge(mesh, p1, p2, &tri1_index, &tri2_index);
     
@@ -1271,6 +1543,10 @@ void as_tri_implicit_mesh_flip_edge(Tri_implicit_mesh mesh, Point p1, Point p2)
     (void)p1_tri2_index;
 }
 
+/**
+ * Get up to two Tri_implicit that share the edge (p1,p2).
+ * Returns number of triangles found (0..2). Triangles returned via tri_out1/tri_out2.
+ */
 int as_tri_implicit_mesh_get_triangles_with_edge(Tri_implicit_mesh mesh, Point p1, Point p2, Tri_implicit *tri_out1, Tri_implicit *tri_out2)
 {
     int p1_index = as_point_in_curve_index(p1, mesh.points);
@@ -1303,7 +1579,7 @@ int as_tri_implicit_mesh_get_triangles_with_edge(Tri_implicit_mesh mesh, Point p
             } else if (num_of_tri_out == 1) {
                 *tri_out2 = current_tri;
                 num_of_tri_out++;
-            } else if (num_of_tri_out > 1) {
+            } else if (num_of_tri_out > 2) {
                 fprintf(stderr, "%s:%d: [Warning] implicit mesh has an edge with more then two triangles\n", __FILE__, __LINE__);
                 exit(1);
             }
@@ -1313,7 +1589,11 @@ int as_tri_implicit_mesh_get_triangles_with_edge(Tri_implicit_mesh mesh, Point p
     return num_of_tri_out;
 }
 
-int as_tri_implicit_mesh_get_triangles_indexs_with_edge(Tri_implicit_mesh mesh, Point p1, Point p2, int *tri_out1_index, int *tri_out2_index)
+/**
+ * Get indices of up to two Tri_implicit that share edge (p1,p2).
+ * Returns number of triangles found (0..2). Outputs via tri_out1_index/tri_out2_index.
+ */
+int as_tri_implicit_mesh_get_triangles_indexs_with_edge(Tri_implicit_mesh mesh, Point p1, Point p2, size_t*tri_out1_index, size_t*tri_out2_index)
 {
     int p1_index = as_point_in_curve_index(p1, mesh.points);
     int p2_index = as_point_in_curve_index(p2, mesh.points);
@@ -1355,8 +1635,10 @@ int as_tri_implicit_mesh_get_triangles_indexs_with_edge(Tri_implicit_mesh mesh, 
     return num_of_tri_out;
 }
 
-/* Warning: time complexity is probably n!;
-   Might want to implement the way described in the 'Delaunay Mesh Generation' book: Pg.39*/
+/**
+ * Enforce Delaunay triangulation by iterative edge flipping until stable or limit reached.
+ * Potentially high time complexity; uses repeated passes and stops when Delaunay.
+ * Might want to implement the way described in the 'Delaunay Mesh Generation' book: Pg.39 */
 void as_tri_implicit_mesh_set_Delaunay_triangulation_flip_algorithm(Tri_implicit_mesh mesh)
 {
     int hard_limit = 10;
@@ -1375,6 +1657,10 @@ void as_tri_implicit_mesh_set_Delaunay_triangulation_flip_algorithm(Tri_implicit
     }
 }
 
+/**
+ * Create a polyline approximation of a circle in the XY plane.
+ * Returns Curve with num_of_points points around center with radius r and color.
+ */
 Curve as_circle_curve_create(const Point center, const float r, const size_t num_of_points, const uint32_t color, const char plane[])
 {
     AS_ASSERT(r > 0);
@@ -1399,6 +1685,10 @@ Curve as_circle_curve_create(const Point center, const float r, const size_t num
     return c;
 }
 
+/**
+ * Create a triangle fan mesh approximating a filled circle in the XY plane.
+ * All vertices get the same color and light_intensity.
+ */
 Tri_mesh as_circle_tri_mesh_create_simple(const Point center, const float r, const size_t num_of_points, const uint32_t color, float light_intensity, const char plane[])
 {
     AS_ASSERT(r > 0);
@@ -1445,6 +1735,10 @@ Tri_mesh as_circle_tri_mesh_create_simple(const Point center, const float r, con
     return mesh;
 }
 
+/**
+ * Create a triangulated circle using lexicographic triangulation of sampled boundary points.
+ * Useful as an alternative to the simple fan; assigns uniform color/light.
+ */
 Tri_mesh as_circle_tri_mesh_create_lexicographically(const Point center, const float r, const size_t num_of_points, const uint32_t color, float light_intensity, const char plane[])
 {
     Curve temp_circle = as_circle_curve_create(center, r, num_of_points, color, plane);
@@ -1459,6 +1753,10 @@ Tri_mesh as_circle_tri_mesh_create_lexicographically(const Point center, const f
     return mesh;
 }
 
+/**
+ * Create a unit-aligned cube triangulated into 12 triangles with the given edge length.
+ * The cube spans [0,len] on x,y,z. Assigns color to all triangle vertices.
+ */
 Tri_mesh as_cube_create_tri_mesh_simple(const size_t len, const uint32_t color)
 {
     Tri_mesh cube;
@@ -1673,6 +1971,10 @@ Tri_mesh as_cube_create_tri_mesh_simple(const size_t len, const uint32_t color)
     return cube;
 }
 
+/**
+ * Create a set of latitude and partial longitude curves approximating a sphere.
+ * Returns Curve_ada where each element is a Curve of points with the given color.
+ */
 Curve_ada as_sphere_curve_ada_create(const Point center, const float r, const size_t num_of_points_horizontal, const size_t num_of_points_vertical, const uint32_t color)
 {
     AS_ASSERT(r > 0);
@@ -1722,6 +2024,10 @@ Curve_ada as_sphere_curve_ada_create(const Point center, const float r, const si
     return sphere;
 }
 
+/**
+ * Create a simple triangle mesh approximating a sphere using latitudinal rings.
+ * Assigns uniform color and light_intensity, and computes normals per triangle.
+ */
 Tri_mesh as_sphere_tri_mesh_create_simple(const Point center, const float r, const size_t num_of_points_horizontal, const size_t num_of_points_vertical, const uint32_t color, float light_intensity)
 {
     AS_ASSERT(r > 0);
