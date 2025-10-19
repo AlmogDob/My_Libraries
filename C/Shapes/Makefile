@@ -33,11 +33,12 @@ debug_build_temp: ./src/temp.c
 profile_temp: profile_build_temp
 	./build/temp
 	@echo
+	gprof ./build/temp gmon.out > profiler.txt
 	gprof ./build/temp gmon.out | /home/almog/.local/bin/gprof2dot | dot -Tpng -Gdpi=200 -o output.png
 	imview ./output.png
 	# xdg-open ./output.png
 	@echo
-	rm ./gmon.out ./output.png 
+	rm ./gmon.out ./output.png profiler.txt 
 	make clean_temp
 
 profile_build_temp: ./src/temp.c

@@ -25,14 +25,14 @@ void setup(game_state_t *game_state)
 
     Curve c = as_curve_create_random_points(10, -2, 2, -2, 2, 0, 0, 20);
 
-    Tri_implicit_mesh temp_implicit_mesh = as_points_array_get_lexicographic_triangulation(c.elements, c.length);
+    Tri_edge_implicit_mesh tei_mesh = as_tri_edge_implicit_mesh_make_Delaunay_triangulation_flip_algorithm(c.elements, c.length);
 
-    as_tri_implicit_mesh_set_Delaunay_triangulation_flip_algorithm(temp_implicit_mesh);
+    // AS_TRI_EDGE_IMPLICIT_MESH_PRINT(tei_mesh);
 
-    Tri_edge_implicit_mesh tei_mesh = as_tri_implicit_mesh_to_tri_edge_implicit_mesh(temp_implicit_mesh);
+    as_tri_edge_implicit_mesh_insert_segment(&tei_mesh, tei_mesh.points.elements[1], tei_mesh.points.elements[8]);
 
-    // as_tri_edge_implicit_mesh_remove_point(&tei_mesh, tei_mesh.points.elements[1]);
-    // as_tri_edge_implicit_mesh_remove_point(&tei_mesh, tei_mesh.points.elements[5]);
+    // AS_TRI_EDGE_IMPLICIT_MESH_PRINT(tei_mesh);
+
 
     mesh = as_tri_edge_implicit_mesh_to_tri_mesh(tei_mesh, 1, 0xffffffff);
 
