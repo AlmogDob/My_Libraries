@@ -1,6 +1,7 @@
 #define SETUP
 #define UPDATE
 #define RENDER
+#define DESTROY
 #include "./include/display.c"
 #define ALMOG_DRAW_LIBRARY_IMPLEMENTATION
 #include "./include/Almog_Draw_Library.h"
@@ -56,6 +57,8 @@ void setup(game_state_t *game_state)
     //     ada_appand(Curve, proj_circles, temp_proj_curve);
     // }
 
+    as_tri_edge_implicit_mesh_free(tei_mesh);
+    free(c.elements);
 }
 
 void update(game_state_t *game_state)
@@ -76,5 +79,16 @@ void render(game_state_t *game_state)
     for (size_t i = 0; i < proj_circles.length; i++) {
         adl_lines_loop_draw(game_state->window_pixels_mat, proj_circles.elements[i].elements, proj_circles.elements[i].length, proj_circles.elements[i].color, ADL_DEFAULT_OFFSET_ZOOM);
     }
+}
+
+void destroy(game_state_t *game_state)
+{
+    free(mesh.elements);
+    free(proj_mesh.elements);
+
+    free(circles.elements);
+    free(proj_circles.elements);
+
+    (void)game_state;
 }
 

@@ -1666,6 +1666,8 @@ Tri_implicit_mesh as_points_array_get_lexicographic_triangulation(Point *points,
         }
     }
 
+    free(convex_hull.elements);
+
     return implicit_mesh;
 }
 

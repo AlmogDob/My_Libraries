@@ -316,9 +316,11 @@ void render_window(game_state_t *game_state)
 void destroy_window(game_state_t *game_state)
 {
     mat2D_free_uint32(game_state->window_pixels_mat);
+    mat2D_free(game_state->inv_z_buffer_mat);
+    ae_scene_free(&(game_state->scene));
 
-    if (!game_state->window_surface) SDL_FreeSurface(game_state->window_surface);
-    if (!game_state->window_texture) SDL_DestroyTexture(game_state->window_texture);
+    if (game_state->window_surface) SDL_FreeSurface(game_state->window_surface);
+    if (game_state->window_texture) SDL_DestroyTexture(game_state->window_texture);
 
     SDL_DestroyRenderer(game_state->renderer);
     SDL_DestroyWindow(game_state->window);

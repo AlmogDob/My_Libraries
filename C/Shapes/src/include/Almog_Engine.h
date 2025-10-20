@@ -168,10 +168,11 @@ typedef struct {
 
 Tri         ae_tri_create(Point p1, Point p2, Point p3);
 void        ae_tri_mesh_create_copy(Tri_mesh *des, Tri *src_elements, size_t len);
-Tri_mesh    ae_cube_create_tri_mesh(const size_t len, uint32_t color);
 
 void        ae_camera_init(Scene *scene, int window_h, int window_w);
+void        ae_camera_free(Scene *scene);
 Scene       ae_scene_init(int window_h, int window_w);
+void        ae_scene_free(Scene *scene);
 void        ae_camera_reset_pos(Scene *scene);
 
 void        ae_point_to_mat2D(Point p, Mat2D m);
@@ -263,220 +264,6 @@ void ae_tri_mesh_create_copy(Tri_mesh *des, Tri *src_elements, size_t len)
     *des = temp_des;
 }
 
-Tri_mesh ae_cube_create_tri_mesh(const size_t len, uint32_t color)
-{
-    Tri_mesh cube;
-
-    ada_init_array(Tri, cube);
-
-    Tri tri1 = { /* south */
-        .points[0].x = 0,
-        .points[0].y = 0,
-        .points[0].z = 0,
-
-        .points[1].x = 0,
-        .points[1].y = len,
-        .points[1].z = 0,
-
-        .points[2].x = len,
-        .points[2].y = len,
-        .points[2].z = 0,
-        .to_draw = true,
-        .colors = {color, color, color},
-    };
-    ae_tri_set_normals(&tri1);
-    ada_appand(Tri, cube, tri1);
-    Tri tri2 = {
-        .points[0].x = len,
-        .points[0].y = len,
-        .points[0].z = 0,
-
-        .points[1].x = len,
-        .points[1].y = 0,
-        .points[1].z = 0,
-
-        .points[2].x = 0,
-        .points[2].y = 0,
-        .points[2].z = 0,
-        .to_draw = true,
-        .colors = {color, color, color},
-    };
-    ae_tri_set_normals(&tri2);
-    ada_appand(Tri, cube, tri2);
-    Tri tri3 = { /* north */
-        .points[0].x = len,
-        .points[0].y = 0,
-        .points[0].z = len,
-
-        .points[1].x = len,
-        .points[1].y = len,
-        .points[1].z = len,
-
-        .points[2].x = 0,
-        .points[2].y = len,
-        .points[2].z = len,
-        .to_draw = true,
-        .colors = {color, color, color},
-    };
-    ae_tri_set_normals(&tri3);
-    ada_appand(Tri, cube, tri3);
-    Tri tri4 = {
-        .points[0].x = len,
-        .points[0].y = 0,
-        .points[0].z = len,
-
-        .points[1].x = 0,
-        .points[1].y = len,
-        .points[1].z = len,
-
-        .points[2].x = 0,
-        .points[2].y = 0,
-        .points[2].z = len,
-        .to_draw = true,
-        .colors = {color, color, color},
-    };
-    ae_tri_set_normals(&tri4);
-    ada_appand(Tri, cube, tri4);
-    Tri tri5 = { /* east */
-        .points[0].x = len,
-        .points[0].y = 0,
-        .points[0].z = 0,
-
-        .points[1].x = len,
-        .points[1].y = len,
-        .points[1].z = 0,
-
-        .points[2].x = len,
-        .points[2].y = len,
-        .points[2].z = len,
-        .to_draw = true,
-        .colors = {color, color, color},
-    };
-    ae_tri_set_normals(&tri5);
-    ada_appand(Tri, cube, tri5);
-    Tri tri6 = {
-        .points[0].x = len,
-        .points[0].y = 0,
-        .points[0].z = 0,
-
-        .points[1].x = len,
-        .points[1].y = len,
-        .points[1].z = len,
-
-        .points[2].x = len,
-        .points[2].y = 0,
-        .points[2].z = len,
-        .to_draw = true,
-        .colors = {color, color, color},
-    };
-    ae_tri_set_normals(&tri6);
-    ada_appand(Tri, cube, tri6);
-    Tri tri7 = { /* west */
-        .points[0].x = 0,
-        .points[0].y = 0,
-        .points[0].z = len,
-
-        .points[1].x = 0,
-        .points[1].y = len,
-        .points[1].z = len,
-
-        .points[2].x = 0,
-        .points[2].y = len,
-        .points[2].z = 0,
-        .to_draw = true,
-        .colors = {color, color, color},
-    };
-    ae_tri_set_normals(&tri7);
-    ada_appand(Tri, cube, tri7);
-    Tri tri8 = {
-        .points[0].x = 0,
-        .points[0].y = 0,
-        .points[0].z = len,
-
-        .points[1].x = 0,
-        .points[1].y = len,
-        .points[1].z = 0,
-
-        .points[2].x = 0,
-        .points[2].y = 0,
-        .points[2].z = 0,
-        .to_draw = true,
-        .colors = {color, color, color},
-    };
-    ae_tri_set_normals(&tri8);
-    ada_appand(Tri, cube, tri8);
-    Tri tri9 = { /* top */
-        .points[0].x = 0,
-        .points[0].y = len,
-        .points[0].z = 0,
-
-        .points[1].x = 0,
-        .points[1].y = len,
-        .points[1].z = len,
-
-        .points[2].x = len,
-        .points[2].y = len,
-        .points[2].z = len,
-        .to_draw = true,
-        .colors = {color, color, color},
-    };
-    ae_tri_set_normals(&tri9);
-    ada_appand(Tri, cube, tri9);
-    Tri tri10 = {
-        .points[0].x = 0,
-        .points[0].y = len,
-        .points[0].z = 0,
-
-        .points[1].x = len,
-        .points[1].y = len,
-        .points[1].z = len,
-
-        .points[2].x = len,
-        .points[2].y = len,
-        .points[2].z = 0,
-        .to_draw = true,
-        .colors = {color, color, color},
-    };
-    ae_tri_set_normals(&tri10);
-    ada_appand(Tri, cube, tri10);
-    Tri tri11 = { /* bottom */
-        .points[0].x = len,
-        .points[0].y = 0,
-        .points[0].z = len,
-
-        .points[1].x = 0,
-        .points[1].y = 0,
-        .points[1].z = len,
-
-        .points[2].x = 0,
-        .points[2].y = 0,
-        .points[2].z = 0,
-        .to_draw = true,
-        .colors = {color, color, color},
-    };
-    ae_tri_set_normals(&tri11);
-    ada_appand(Tri, cube, tri11);
-    Tri tri12 = {
-        .points[0].x = len,
-        .points[0].y = 0,
-        .points[0].z = len,
-
-        .points[1].x = 0,
-        .points[1].y = 0,
-        .points[1].z = 0,
-
-        .points[2].x = len,
-        .points[2].y = 0,
-        .points[2].z = 0,
-        .to_draw = true,
-        .colors = {color, color, color},
-    };
-    ae_tri_set_normals(&tri12);
-    ada_appand(Tri, cube, tri12);
-    
-    return cube;
-}
-
 void ae_camera_init(Scene *scene, int window_h, int window_w)
 {
     scene->camera.z_near       = 0.1;
@@ -515,16 +302,27 @@ void ae_camera_init(Scene *scene, int window_h, int window_w)
     MAT2D_AT(scene->camera.camera_z, 2, 0) = 1;
 }
 
+void ae_camera_free(Scene *scene)
+{
+    mat2D_free(scene->camera.init_position);
+    mat2D_free(scene->camera.current_position);
+    mat2D_free(scene->camera.offset_position);
+    mat2D_free(scene->camera.direction);
+    mat2D_free(scene->camera.camera_x);
+    mat2D_free(scene->camera.camera_y);
+    mat2D_free(scene->camera.camera_z);
+}
+
 Scene ae_scene_init(int window_h, int window_w)
 {
-    Scene scene;
+    Scene scene = {0};
     ae_camera_init(&(scene), window_h, window_w);
 
     scene.up_direction = mat2D_alloc(3, 1);
     mat2D_fill(scene.up_direction, 0);
     MAT2D_AT(scene.up_direction, 1, 0) = 1;
 
-    scene.light_source0.light_direction_or_pos.x = 1;
+    scene.light_source0.light_direction_or_pos.x = 0.5;
     scene.light_source0.light_direction_or_pos.y = 1;
     scene.light_source0.light_direction_or_pos.z = 1;
     scene.light_source0.light_direction_or_pos.w = 0;
@@ -532,9 +330,9 @@ Scene ae_scene_init(int window_h, int window_w)
     scene.light_source0.light_intensity = 1;
 
     scene.material0.specular_power_alpha = 1;
-    scene.material0.c_ambi = 0.4;
+    scene.material0.c_ambi = 0.2;
     scene.material0.c_diff = 0.6;
-    scene.material0.c_spec = 0.0;
+    scene.material0.c_spec = 0.2;
 
     scene.proj_mat = mat2D_alloc(4, 4);
     ae_projection_mat_set(scene.proj_mat, scene.camera.aspect_ratio, scene.camera.fov_deg, scene.camera.z_near, scene.camera.z_far);
@@ -543,6 +341,40 @@ Scene ae_scene_init(int window_h, int window_w)
     ae_view_mat_set(scene.view_mat, scene.camera, scene.up_direction);
 
     return scene;
+}
+
+void ae_scene_free(Scene *scene)
+{
+    ae_camera_free(scene);
+    mat2D_free(scene->up_direction);
+    mat2D_free(scene->proj_mat);
+    mat2D_free(scene->view_mat);
+
+    for (size_t i = 0; i < scene->in_world_tri_meshes.length; i++) {
+        free(scene->in_world_tri_meshes.elements[i].elements);
+    }
+    for (size_t i = 0; i < scene->projected_tri_meshes.length; i++) {
+        free(scene->projected_tri_meshes.elements[i].elements);
+    }
+    for (size_t i = 0; i < scene->original_tri_meshes.length; i++) {
+        free(scene->original_tri_meshes.elements[i].elements);
+    }
+    if (scene->in_world_tri_meshes.elements) free(scene->in_world_tri_meshes.elements);
+    if (scene->projected_tri_meshes.elements) free(scene->projected_tri_meshes.elements);
+    if (scene->original_tri_meshes.elements) free(scene->original_tri_meshes.elements);
+
+    for (size_t i = 0; i < scene->in_world_quad_meshes.length; i++) {
+        free(scene->in_world_quad_meshes.elements[i].elements);
+    }
+    for (size_t i = 0; i < scene->projected_quad_meshes.length; i++) {
+        free(scene->projected_quad_meshes.elements[i].elements);
+    }
+    for (size_t i = 0; i < scene->original_quad_meshes.length; i++) {
+        free(scene->original_quad_meshes.elements[i].elements);
+    }
+    if (scene->in_world_quad_meshes.elements) free(scene->in_world_quad_meshes.elements);
+    if (scene->projected_quad_meshes.elements) free(scene->projected_quad_meshes.elements);
+    if (scene->original_quad_meshes.elements) free(scene->original_quad_meshes.elements);
 }
 
 void ae_camera_reset_pos(Scene *scene)
@@ -877,6 +709,7 @@ void ae_tri_mesh_appand_copy(Tri_mesh_array *mesh_array, Tri_mesh mesh)
     }
     ada_appand(Tri_mesh, temp_mesh_array, temp_mesh);
 
+
     *mesh_array = temp_mesh_array;
 }
 
@@ -1109,6 +942,7 @@ void ae_tri_mesh_rotate_Euler_xyz(Tri_mesh mesh, float phi_deg, float theta_deg,
     mat2D_free(RotY);
     mat2D_free(RotX);
     mat2D_free(DCM);
+    mat2D_free(temp);
     mat2D_free(src_point_mat);
     mat2D_free(des_point_mat);
 }
@@ -2515,6 +2349,7 @@ void ae_view_mat_set(Mat2D view_mat, Camera camera, Mat2D up)
     mat2D_free(new_right);
     mat2D_free(DCM);
     mat2D_free(DCM_trans);
+    mat2D_free(camera_direction);
 }
 
 Point ae_point_project_world2screen(Mat2D view_mat, Mat2D proj_mat, Point src, int window_w, int window_h)
@@ -3130,7 +2965,7 @@ void ae_curve_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Curve *des, C
     ae_curve_copy(des, src);
     Curve temp_des = *des;
     /* set planes */
-    int offset = 0;
+    int offset = 50;
     Mat2D top_p = mat2D_alloc(3, 1);
     Mat2D top_n = mat2D_alloc(3, 1);
     mat2D_fill(top_p, 0);

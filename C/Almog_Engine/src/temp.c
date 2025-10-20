@@ -21,7 +21,6 @@ void setup(game_state_t *game_state)
     strncpy(file_path, "./teapot.stl", MAX_LEN_LINE);
 
     Tri_mesh tri_mesh = ae_tri_mesh_get_from_file(file_path);
-    // ae_tri_mesh_flip_normals(tri_mesh);
 
     ada_appand(Tri_mesh, game_state->scene.original_tri_meshes, tri_mesh);
 

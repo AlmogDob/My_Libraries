@@ -81,13 +81,14 @@ void fix_framerate(game_state_t *game_state);
 void setup(game_state_t *game_state);
 void update(game_state_t *game_state);
 void render(game_state_t *game_state);
+void destroy(game_state_t *game_state);
 
 void check_window_mat_size(game_state_t *game_state);
 void copy_mat_to_surface_RGB(game_state_t *game_state);
 
 int main()
 {
-    game_state_t game_state = {0};
+    game_state_t game_state;
 
     game_state.game_is_running = 0;
     game_state.delta_time = 0;
@@ -315,10 +316,13 @@ void render_window(game_state_t *game_state)
 
 void destroy_window(game_state_t *game_state)
 {
+    destroy(game_state);
     mat2D_free_uint32(game_state->window_pixels_mat);
+    mat2D_free(game_state->inv_z_buffer_mat);
+    ae_scene_free(&(game_state->scene));
 
-    if (!game_state->window_surface) SDL_FreeSurface(game_state->window_surface);
-    if (!game_state->window_texture) SDL_DestroyTexture(game_state->window_texture);
+    if (game_state->window_surface) SDL_FreeSurface(game_state->window_surface);
+    if (game_state->window_texture) SDL_DestroyTexture(game_state->window_texture);
 
     SDL_DestroyRenderer(game_state->renderer);
     SDL_DestroyWindow(game_state->window);
@@ -355,6 +359,12 @@ void update(game_state_t *game_state) { (void)game_state; }
 #define RENDER
 void render(game_state_t *game_state) { (void)game_state; }
 #endif
+
+#ifndef DESTROY
+#define DESTROY
+void destroy(game_state_t *game_state) { (void)game_state; }
+#endif
+
 
 void check_window_mat_size(game_state_t *game_state)
 {
