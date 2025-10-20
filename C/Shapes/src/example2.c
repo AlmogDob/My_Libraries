@@ -1,6 +1,7 @@
 #define SETUP
 #define UPDATE
 #define RENDER
+#define DESTROY
 #include "./include/display.c"
 #define MATRIX2D_IMPLEMENTATION
 #include "./include/Matrix2D.h"
@@ -35,10 +36,6 @@ void setup(game_state_t *game_state)
     mesh = as_tri_implicit_mesh_to_tri_mesh(implicit_mesh, 1, 0xffffffff);
     ada_init_array(Tri, proj_mesh);
 
-    AS_TRI_IMPLICIT_MESH_PRINT(implicit_mesh);
-    AS_TRI_MESH_PRINT(mesh);
-
-
 
     Point circum_center = {0};
     float circum_r = 0;
@@ -58,6 +55,8 @@ void setup(game_state_t *game_state)
     min_containment_circle = as_circle_curve_create(min_containment_center, min_containment_r, 100, 0xffff0000, "XY");
     proj_min_containment_circle = as_circle_curve_create(min_containment_center, min_containment_r, 100, 0xffff0000, "XY");
 
+
+    as_tri_implicit_mesh_free(implicit_mesh);
 }
 
 void update(game_state_t *game_state)
@@ -78,4 +77,21 @@ void render(game_state_t *game_state)
     adl_lines_loop_draw(game_state->window_pixels_mat, proj_circumcircle.elements, proj_circumcircle.length, proj_circumcircle.color, ADL_DEFAULT_OFFSET_ZOOM);
     adl_lines_loop_draw(game_state->window_pixels_mat, proj_in_circle.elements, proj_in_circle.length, proj_in_circle.color, ADL_DEFAULT_OFFSET_ZOOM);
     adl_lines_loop_draw(game_state->window_pixels_mat, proj_min_containment_circle.elements, proj_min_containment_circle.length, proj_min_containment_circle.color, ADL_DEFAULT_OFFSET_ZOOM);
+}
+
+void destroy(game_state_t *game_state)
+{
+    free(mesh.elements);
+    free(proj_mesh.elements);
+
+    free(circumcircle.elements);
+    free(proj_circumcircle.elements);
+
+    free(in_circle.elements);
+    free(proj_in_circle.elements);
+
+    free(min_containment_circle.elements);
+    free(proj_min_containment_circle.elements);
+
+    (void)game_state;
 }

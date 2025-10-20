@@ -1,6 +1,7 @@
 #define SETUP
 #define UPDATE
 #define RENDER
+#define DESTROY
 #include "./include/display.c"
 #define MATRIX2D_IMPLEMENTATION
 #include "./include/Matrix2D.h"
@@ -52,4 +53,15 @@ void render(game_state_t *game_state)
         adl_lines_loop_draw(game_state->window_pixels_mat, proj_sphere.elements[i].elements, proj_sphere.elements[i].length, proj_sphere.elements[i].color, ADL_DEFAULT_OFFSET_ZOOM);
     }
 
+}
+
+void destroy(game_state_t *game_state)
+{
+    free(circle.elements);
+    free(proj_circle.elements);
+
+    as_curve_ada_free(sphere);
+    as_curve_ada_free(proj_sphere);
+
+    (void)game_state;
 }

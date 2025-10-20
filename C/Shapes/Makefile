@@ -52,6 +52,7 @@ profile_build_temp: ./src/temp.c
 
 example1: build_example1 run_example1 clean_example1  
 	@echo ./build/example1 done
+	@echo --------------------
 
 build_example1: ./src/example1.c 
 	@echo [INFO] building example1
@@ -93,6 +94,7 @@ profile_build_example1: ./src/example1.c
 #############################################################
 example2: build_example2 run_example2 clean_example2  
 	@echo ./build/example2 done
+	@echo --------------------
 
 build_example2: ./src/example2.c 
 	@echo [INFO] building example2
@@ -134,6 +136,7 @@ profile_build_example2: ./src/example2.c
 #############################################################
 example3: build_example3 run_example3 clean_example3  
 	@echo ./build/example3 done
+	@echo --------------------
 
 build_example3: ./src/example3.c 
 	@echo [INFO] building example3
@@ -175,6 +178,7 @@ profile_build_example3: ./src/example3.c
 #############################################################
 example4: build_example4 run_example4 clean_example4  
 	@echo ./build/example4 done
+	@echo --------------------
 
 build_example4: ./src/example4.c 
 	@echo [INFO] building example4

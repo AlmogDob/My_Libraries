@@ -1,41 +1,16 @@
-#define MATRIX2D_IMPLEMENTATION
-#include "./include/Matrix2D.h"
-#define ALMOG_SHAPES_IMPLEMENTATION
-#include "./include/Almog_Shapes.h"
-#if 0
-
-int main()
-{
-    Curve temp_circle = as_circle_curve_create((Point){0,0,0,0}, 1, 10, 0xff000000, "xy");
-    Curve conv = {0};
-    ada_init_array(Point, conv);
-
-    AS_CURVE_PRINT(temp_circle);
-
-    as_points_array_convex_hull(&conv, temp_circle.elements, temp_circle.length);
-
-    AS_CURVE_PRINT(conv);
-
-
-
-
-
-
-    // Tri_implicit_mesh temp_implicit_mesh = as_points_array_get_lexicographic_triangulation(temp_circle.elements, temp_circle.length);
-
-    return 0;
-}
-
-
-#else
 #define SETUP
 #define UPDATE
 #define RENDER
+#define DESTROY
 #include "./include/display.c"
 #define ALMOG_DRAW_LIBRARY_IMPLEMENTATION
 #include "./include/Almog_Draw_Library.h"
 #define ALMOG_ENGINE_IMPLEMENTATION
 #include "./include/Almog_Engine.h"
+#define MATRIX2D_IMPLEMENTATION
+#include "./include/Matrix2D.h"
+#define ALMOG_SHAPES_IMPLEMENTATION
+#include "./include/Almog_Shapes.h"
 
 Tri_mesh mesh, proj_mesh;
 Tri_mesh mesh1, proj_mesh1;
@@ -92,6 +67,8 @@ void setup(game_state_t *game_state)
         ada_appand(Curve, proj_circles, temp_proj_curve);
     }
 
+    free(c.elements);
+    as_tri_implicit_mesh_free(temp_implicit_mesh);
 }
 
 void update(game_state_t *game_state)
@@ -121,4 +98,21 @@ void render(game_state_t *game_state)
         adl_lines_loop_draw(game_state->window_pixels_mat, proj_circles.elements[i].elements, proj_circles.elements[i].length, proj_circles.elements[i].color, ADL_DEFAULT_OFFSET_ZOOM);
     }
 }
-#endif
+
+void destroy(game_state_t *game_state)
+{
+    free(mesh.elements);
+    free(proj_mesh.elements);
+
+    free(mesh1.elements);
+    free(proj_mesh1.elements);
+
+    free(mesh2.elements);
+    free(proj_mesh2.elements);
+
+    as_curve_ada_free(circles);
+    as_curve_ada_free(proj_circles);
+
+    (void)game_state;
+}
+

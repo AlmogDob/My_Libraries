@@ -1963,6 +1963,7 @@ void as_tri_implicit_mesh_set_Delaunay_triangulation_flip_algorithm(Tri_implicit
         }
         if (as_tri_implicit_mesh_check_Delaunay(mesh)) break;
     }
+    printf("\n");
 }
 
 bool as_tri_edge_implicit_mesh_check_Delaunay(Tri_edge_implicit_mesh mesh)
@@ -2175,6 +2176,18 @@ void as_tri_edge_implicit_mesh_flip_edge(Tri_edge_implicit_mesh *mesh, Point p1,
 void as_tri_edge_implicit_mesh_insert_segment(Tri_edge_implicit_mesh *mesh, Point p1, Point p2)
 {
     /* points must be part of the triangulations */
+    int p1_index = as_point_in_curve_index(p1, mesh->points);
+    int p2_index = as_point_in_curve_index(p2, mesh->points);
+
+    if (p1_index == -1) {
+        fprintf(stderr, "%s:%s:%d: [Warning] p1 is not in the mesh.\n", __FILE__, __func__, __LINE__);
+        return;
+    }
+    if (p2_index == -1) {
+        fprintf(stderr, "%s:%s:%d: [Warning] p2 is not in the mesh.\n", __FILE__, __func__, __LINE__);
+        return;
+    }
+
     Tri_edge_implicit_mesh temp_mesh = *mesh;
 
     int edge_index = as_edge_implicit_ada_get_edge_index(temp_mesh.edges, temp_mesh.points.elements, p1, p2);

@@ -88,7 +88,7 @@ void copy_mat_to_surface_RGB(game_state_t *game_state);
 
 int main()
 {
-    game_state_t game_state;
+    game_state_t game_state = {0};
 
     game_state.game_is_running = 0;
     game_state.delta_time = 0;
