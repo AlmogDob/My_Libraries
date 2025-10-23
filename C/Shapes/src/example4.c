@@ -56,7 +56,7 @@ void setup(game_state_t *game_state)
 
     Tri_implicit_mesh temp_implicit_mesh = as_points_array_get_lexicographic_triangulation(c.elements, c.length);
 
-    as_tri_implicit_mesh_set_Delaunay_triangulation_flip_algorithm(temp_implicit_mesh);
+    as_tri_implicit_mesh_set_Delaunay_triangulation_flip_algorithm_fixed_iterations(temp_implicit_mesh);
 
 
     mesh = as_tri_implicit_mesh_to_tri_mesh(temp_implicit_mesh, 1, 0xffffffff);

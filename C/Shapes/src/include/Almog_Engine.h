@@ -273,7 +273,7 @@ void ae_camera_init(Scene *scene, int window_h, int window_w)
 
     scene->camera.init_position = mat2D_alloc(3, 1);
     mat2D_fill(scene->camera.init_position, 0);
-    MAT2D_AT(scene->camera.init_position, 2, 0) = -8;
+    MAT2D_AT(scene->camera.init_position, 2, 0) = -4;
 
     scene->camera.current_position = mat2D_alloc(3, 1);
     mat2D_copy(scene->camera.current_position, scene->camera.init_position);

@@ -30,9 +30,11 @@ void setup(game_state_t *game_state)
 
     // AS_TRI_EDGE_IMPLICIT_MESH_PRINT(tei_mesh);
 
-    as_tri_edge_implicit_mesh_insert_segment(&tei_mesh, tei_mesh.points.elements[1], tei_mesh.points.elements[5]);
+    // as_tri_edge_implicit_mesh_insert_segment(&tei_mesh, tei_mesh.points.elements[1], tei_mesh.points.elements[6]);
 
     // AS_TRI_EDGE_IMPLICIT_MESH_PRINT(tei_mesh);
+
+    dprintINT(as_tri_edge_implicit_mesh_check_Delaunay(tei_mesh));
 
 
     mesh = as_tri_edge_implicit_mesh_to_tri_mesh(tei_mesh, 1, 0xffffffff);

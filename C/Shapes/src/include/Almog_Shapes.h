@@ -251,14 +251,16 @@ void                    as_tri_get_min_containment_circle(Point p1, Point p2, Po
 bool                    as_tri_implicit_mesh_check_Delaunay(Tri_implicit_mesh mesh);
 int                     as_tri_implicit_mesh_check_edge_is_locally_Delaunay(Tri_implicit_mesh mesh, Point p1, Point p2);
 void                    as_tri_implicit_mesh_flip_edge(Tri_implicit_mesh mesh, Point p1, Point p2);
-Tri_implicit_mesh       as_tri_implicit_mesh_make_Delaunay_triangulation_flip_algorithm(Point *c, const size_t len);
-void                    as_tri_implicit_mesh_set_Delaunay_triangulation_flip_algorithm(Tri_implicit_mesh mesh);
+Tri_implicit_mesh       as_tri_implicit_mesh_make_Delaunay_triangulation_flip_algorithm_fixed_iterations(Point *c, const size_t len);
+void                    as_tri_implicit_mesh_set_Delaunay_triangulation_flip_algorithm_fixed_iterations(Tri_implicit_mesh mesh);
 bool                    as_tri_edge_implicit_mesh_check_Delaunay(Tri_edge_implicit_mesh mesh);
 int                     as_tri_edge_implicit_mesh_check_edge_is_locally_Delaunay(Tri_edge_implicit_mesh mesh, Point p1, Point p2);
-void                    as_tri_edge_implicit_mesh_flip_edge(Tri_edge_implicit_mesh *mesh, Point p1, Point p2, bool debug_print);
+Edge_implicit           as_tri_edge_implicit_mesh_flip_edge(Tri_edge_implicit_mesh *mesh, Point p1, Point p2, bool debug_print);
 void                    as_tri_edge_implicit_mesh_insert_segment(Tri_edge_implicit_mesh *mesh, Point p1, Point p2);
 Tri_edge_implicit_mesh  as_tri_edge_implicit_mesh_make_Delaunay_triangulation_flip_algorithm(Point *c, const size_t len);
+Tri_edge_implicit_mesh  as_tri_edge_implicit_mesh_make_Delaunay_triangulation_flip_algorithm_fixed_iterations(Point *c, const size_t len);
 void                    as_tri_edge_implicit_mesh_set_Delaunay_triangulation_flip_algorithm(Tri_edge_implicit_mesh *mesh);
+void                    as_tri_edge_implicit_mesh_set_Delaunay_triangulation_flip_algorithm_fixed_iterations(Tri_edge_implicit_mesh *mesh);
 
 /* circle operations functions */
 
@@ -1646,7 +1648,11 @@ Tri_implicit_mesh as_points_array_get_lexicographic_triangulation(Point *points,
     /* WARNING: there might be a need to create triangles for all points that where on the same line at the start. Like in 'Delaunay Mesh Generation' Pg.32 */
 
     /* adding more points */
+    printf("[INFO] lexicographic triangulation:\n");
     for (point_index = point_index+1; point_index < len; point_index++) {
+        printf("\r       points: %zu | done: %f%%", point_index+1, 100.0f * (float)(point_index+1) / (float)(len));
+        fflush(stdout);
+
         as_points_array_convex_hull_Jarvis_march(&convex_hull, implicit_mesh.points.elements, implicit_mesh.points.length);
 
         Point current_point = points[point_index];
@@ -1665,6 +1671,7 @@ Tri_implicit_mesh as_points_array_get_lexicographic_triangulation(Point *points,
             }
         }
     }
+    printf("\n");
 
     free(convex_hull.elements);
 
@@ -1931,11 +1938,11 @@ void as_tri_implicit_mesh_flip_edge(Tri_implicit_mesh mesh, Point p1, Point p2)
     (void)p1_tri2_index;
 }
 
-Tri_implicit_mesh as_tri_implicit_mesh_make_Delaunay_triangulation_flip_algorithm(Point *c, const size_t len)
+Tri_implicit_mesh as_tri_implicit_mesh_make_Delaunay_triangulation_flip_algorithm_fixed_iterations(Point *c, const size_t len)
 {
     Tri_implicit_mesh ti_lexi_mesh = as_points_array_get_lexicographic_triangulation(c, len);
 
-    as_tri_implicit_mesh_set_Delaunay_triangulation_flip_algorithm(ti_lexi_mesh);
+    as_tri_implicit_mesh_set_Delaunay_triangulation_flip_algorithm_fixed_iterations(ti_lexi_mesh);
 
     return ti_lexi_mesh;
 }
@@ -1944,15 +1951,17 @@ Tri_implicit_mesh as_tri_implicit_mesh_make_Delaunay_triangulation_flip_algorith
  * Enforce Delaunay triangulation by iterative edge flipping until stable or limit reached.
  * Potentially high time complexity; uses repeated passes and stops when Delaunay.
  * Might want to implement the way described in the 'Delaunay Mesh Generation' book: Pg.39 */
-void as_tri_implicit_mesh_set_Delaunay_triangulation_flip_algorithm(Tri_implicit_mesh mesh)
+void as_tri_implicit_mesh_set_Delaunay_triangulation_flip_algorithm_fixed_iterations(Tri_implicit_mesh mesh)
 {
+    printf("[INFO] Delaunay triangulation:\n");
+
     int hard_limit = 10;
     size_t total_num_of_iteration_per_time = as_choose(mesh.points.length, 2) * hard_limit;
     for (int times = 0, counter = 0; times < hard_limit; times++) {
         for (size_t i = 0; i < mesh.points.length-1; i++) {
             for (size_t j = i+1; j < mesh.points.length; j++) {
                 counter++;
-                printf("\rcounter: %d | done: %f%%", counter, 100.0f * (float)counter / (float)total_num_of_iteration_per_time);
+                printf("\33[2K\r       edges checked: %d | done: %f%%", counter, 100.0f * (float)counter / (float)total_num_of_iteration_per_time);
                 fflush(stdout);
     
                 int num_of_tri_on_edge = as_tri_implicit_mesh_check_edge_is_locally_Delaunay(mesh, mesh.points.elements[i], mesh.points.elements[j]);
@@ -1968,13 +1977,11 @@ void as_tri_implicit_mesh_set_Delaunay_triangulation_flip_algorithm(Tri_implicit
 
 bool as_tri_edge_implicit_mesh_check_Delaunay(Tri_edge_implicit_mesh mesh)
 {
-    for (size_t i = 0; i < mesh.points.length-1; i++) {
-        for (size_t j = i+1; j < mesh.points.length; j++) {
-            int is_locally_Delaunay = as_tri_edge_implicit_mesh_check_edge_is_locally_Delaunay(mesh, mesh.points.elements[i], mesh.points.elements[j]);
-            if (is_locally_Delaunay == -1) continue;
-            if (is_locally_Delaunay == 1) continue;
-            if (is_locally_Delaunay == 0) return false;
-        }
+    for (size_t i = 0; i < mesh.edges.length; i++) {
+        int is_locally_Delaunay = as_tri_edge_implicit_mesh_check_edge_is_locally_Delaunay(mesh, mesh.points.elements[mesh.edges.elements[i].p1_index], mesh.points.elements[mesh.edges.elements[i].p2_index]);
+        if (is_locally_Delaunay == -1) continue;
+        if (is_locally_Delaunay == 1) continue;
+        if (is_locally_Delaunay == 0) return false;
     }
 
     return true;
@@ -2023,7 +2030,7 @@ int as_tri_edge_implicit_mesh_check_edge_is_locally_Delaunay(Tri_edge_implicit_m
     return 0;
 }
 
-void as_tri_edge_implicit_mesh_flip_edge(Tri_edge_implicit_mesh *mesh, Point p1, Point p2, bool debug_print)
+Edge_implicit as_tri_edge_implicit_mesh_flip_edge(Tri_edge_implicit_mesh *mesh, Point p1, Point p2, bool debug_print)
 {
     Tri_edge_implicit_mesh temp_mesh = *mesh;
 
@@ -2039,11 +2046,11 @@ void as_tri_edge_implicit_mesh_flip_edge(Tri_edge_implicit_mesh *mesh, Point p1,
     
     if (num_of_triangles == 0) {
         if (debug_print) fprintf(stderr, "%s:%s:%d: [Warning] one of the points is not in the tri edge implicit mesh or edge does not exists.\n", __FILE__, __func__, __LINE__);
-        return;
+        return (Edge_implicit){0};
     }
     if (num_of_triangles == 1) {
         if (debug_print) fprintf(stderr, "%s:%s:%d: [Warning] this is a locally Delaunay edge.\n", __FILE__, __func__, __LINE__);
-        return;
+        return (Edge_implicit){0};
     }
 
     /* getting the third point index and checking which triangles has the ordered edge */
@@ -2169,8 +2176,9 @@ void as_tri_edge_implicit_mesh_flip_edge(Tri_edge_implicit_mesh *mesh, Point p1,
         as_tri_edge_implicit_mesh_delete_edge(&temp_mesh, p1, p2);
     }
 
-
     *mesh = temp_mesh;
+
+    return third_edge;
 }
 
 void as_tri_edge_implicit_mesh_insert_segment(Tri_edge_implicit_mesh *mesh, Point p1, Point p2)
@@ -2287,8 +2295,22 @@ Tri_edge_implicit_mesh as_tri_edge_implicit_mesh_make_Delaunay_triangulation_fli
 {
     Tri_implicit_mesh ti_lexi_mesh = as_points_array_get_lexicographic_triangulation(c, len);
 
-    as_tri_implicit_mesh_set_Delaunay_triangulation_flip_algorithm(ti_lexi_mesh);
     Tri_edge_implicit_mesh temp_tei_mesh = as_tri_implicit_mesh_to_tri_edge_implicit_mesh(ti_lexi_mesh);
+
+    as_tri_edge_implicit_mesh_set_Delaunay_triangulation_flip_algorithm(&temp_tei_mesh);
+
+    as_tri_implicit_mesh_free(ti_lexi_mesh);
+
+    return temp_tei_mesh;
+}
+
+Tri_edge_implicit_mesh as_tri_edge_implicit_mesh_make_Delaunay_triangulation_flip_algorithm_fixed_iterations(Point *c, const size_t len)
+{
+    Tri_implicit_mesh ti_lexi_mesh = as_points_array_get_lexicographic_triangulation(c, len);
+
+    Tri_edge_implicit_mesh temp_tei_mesh = as_tri_implicit_mesh_to_tri_edge_implicit_mesh(ti_lexi_mesh);
+
+    as_tri_edge_implicit_mesh_set_Delaunay_triangulation_flip_algorithm_fixed_iterations(&temp_tei_mesh);
 
     as_tri_implicit_mesh_free(ti_lexi_mesh);
 
@@ -2297,7 +2319,7 @@ Tri_edge_implicit_mesh as_tri_edge_implicit_mesh_make_Delaunay_triangulation_fli
 
 /**
  */
-void as_tri_edge_implicit_mesh_set_Delaunay_triangulation_flip_algorithm(Tri_edge_implicit_mesh *mesh)
+void as_tri_edge_implicit_mesh_set_Delaunay_triangulation_flip_algorithm_fixed_iterations(Tri_edge_implicit_mesh *mesh)
 {
     Tri_edge_implicit_mesh tei_temp_mesh = *mesh;
 
@@ -2323,6 +2345,47 @@ void as_tri_edge_implicit_mesh_set_Delaunay_triangulation_flip_algorithm(Tri_edg
 
     *mesh = tei_temp_mesh;
 }
+
+void as_tri_edge_implicit_mesh_set_Delaunay_triangulation_flip_algorithm(Tri_edge_implicit_mesh *mesh)
+{
+    Tri_edge_implicit_mesh tei_temp_mesh = *mesh;
+    Edge_implicit_ada edge_list = {0};
+    ada_init_array(Edge_implicit, edge_list);
+    
+    for (size_t i = 0; i < tei_temp_mesh.edges.length; i++) {
+        ada_appand(Edge_implicit, edge_list, tei_temp_mesh.edges.elements[i]);
+    }
+
+    printf("[INFO] Delaunay triangulation:\n");
+    for (size_t init_len = edge_list.length; edge_list.length > 0;) {
+
+        Edge_implicit current_edge = edge_list.elements[edge_list.length-1];
+        edge_list.length -= 1;
+
+        printf("\33[2K\r       remaining edges: %zu/%zu | done: %f%%", edge_list.length, init_len, 100.0f * (float)fmaxf((int)init_len - (int)edge_list.length, 0) / (float)init_len);
+        fflush(stdout);
+
+        int num_of_tri_on_edge = as_tri_edge_implicit_mesh_check_edge_is_locally_Delaunay(tei_temp_mesh, tei_temp_mesh.points.elements[current_edge.p1_index], tei_temp_mesh.points.elements[current_edge.p2_index]);
+        if (num_of_tri_on_edge == -1) continue;
+        if (num_of_tri_on_edge == 1) continue;
+        Edge_implicit new_edge = as_tri_edge_implicit_mesh_flip_edge(&tei_temp_mesh, tei_temp_mesh.points.elements[current_edge.p1_index], tei_temp_mesh.points.elements[current_edge.p2_index], 0);
+        
+        /* adding the edges of the new triangles to the edge list */
+        Tri_edge_implicit tri1 = {0}, tri2 = {0};
+        as_tri_edge_implicit_mesh_get_triangles_with_edge(tei_temp_mesh, tei_temp_mesh.points.elements[new_edge.p1_index], tei_temp_mesh.points.elements[new_edge.p2_index], &tri1, &tri2); 
+        for (int j = 0; j < 3; j++) {
+            ada_appand(Edge_implicit, edge_list, tei_temp_mesh.edges.elements[tri1.edges_index[j]]);
+            ada_appand(Edge_implicit, edge_list, tei_temp_mesh.edges.elements[tri2.edges_index[j]]);
+        }
+    }
+
+    printf("\n");
+    
+    free(edge_list.elements);
+
+    *mesh = tei_temp_mesh;
+}
+
 
 /**
  * Create a polyline approximation of a circle in the XY plane.
