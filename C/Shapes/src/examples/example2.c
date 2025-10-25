@@ -2,15 +2,15 @@
 #define UPDATE
 #define RENDER
 #define DESTROY
-#include "./include/display.c"
+#include "../include/display.c"
 #define MATRIX2D_IMPLEMENTATION
-#include "./include/Matrix2D.h"
+#include "../include/Matrix2D.h"
 #define ALMOG_DRAW_LIBRARY_IMPLEMENTATION
-#include "./include/Almog_Draw_Library.h"
+#include "../include/Almog_Draw_Library.h"
 #define ALMOG_ENGINE_IMPLEMENTATION
-#include "./include/Almog_Engine.h"
+#include "../include/Almog_Engine.h"
 #define ALMOG_SHAPES_IMPLEMENTATION
-#include "./include/Almog_Shapes.h"
+#include "../include/Almog_Shapes.h"
 
 Tri_mesh mesh, proj_mesh;
 Curve circumcircle, proj_circumcircle;
@@ -45,7 +45,7 @@ void setup(game_state_t *game_state)
 
     Point in_center = {0};
     float in_r = 0;
-    as_tri_get_in_circle(mesh.elements[0].points[0], mesh.elements[0].points[1], mesh.elements[0].points[2], "xy", &in_center, &in_r);
+    as_tri_get_incircle(mesh.elements[0].points[0], mesh.elements[0].points[1], mesh.elements[0].points[2], "xy", &in_center, &in_r);
     in_circle = as_circle_curve_create(in_center, in_r, 100, 0xff000000, "XY");
     proj_in_circle = as_circle_curve_create(in_center, in_r, 100, 0xff000000, "XY");
 

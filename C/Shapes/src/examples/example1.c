@@ -2,15 +2,15 @@
 #define UPDATE
 #define RENDER
 #define DESTROY
-#include "./include/display.c"
+#include "../include/display.c"
 #define MATRIX2D_IMPLEMENTATION
-#include "./include/Matrix2D.h"
+#include "../include/Matrix2D.h"
 #define ALMOG_DRAW_LIBRARY_IMPLEMENTATION
-#include "./include/Almog_Draw_Library.h"
+#include "../include/Almog_Draw_Library.h"
 #define ALMOG_ENGINE_IMPLEMENTATION
-#include "./include/Almog_Engine.h"
+#include "../include/Almog_Engine.h"
 #define ALMOG_SHAPES_IMPLEMENTATION
-#include "./include/Almog_Shapes.h"
+#include "../include/Almog_Shapes.h"
 
 Curve circle;
 Curve proj_circle;
