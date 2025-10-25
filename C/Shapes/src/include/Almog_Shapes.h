@@ -127,6 +127,10 @@ typedef struct {
     Tri_edge_implicit_ada triangles;
 } Tri_edge_implicit_mesh;
 
+
+#define AS_EPSILON 1e-6
+
+
 #ifndef HexARGB_RGBA
 #define HexARGB_RGBA(x) ((x)>>(8*2)&0xFF), ((x)>>(8*1)&0xFF), ((x)>>(8*0)&0xFF), ((x)>>(8*3)&0xFF)
 #endif
@@ -163,7 +167,7 @@ typedef struct {
                             (p).z = (p1).z * (t) + (p2).z * (1 - (t));  \
                             (p).w = (p1).w * (t) + (p2).w * (1 - (t))
 #define                 as_points_equal(p1, p2) ((p1).x == (p2).x && (p1).y == (p2).y && (p1).z == (p2).z)
-#define                 as_points_equal_approx(p1, p2) (fabs((p1).x - (p2).x) < 1e-6 && fabs((p1).y - (p2).y) < 1e-6 && fabs((p1).z - (p2).z) < 1e-6)
+#define                 as_points_equal_approx(p1, p2) (fabs((p1).x - (p2).x) < AS_EPSILON && fabs((p1).y - (p2).y) < AS_EPSILON && fabs((p1).z - (p2).z) < AS_EPSILON)
 #define                 as_tri_area_xy(p1, p2, p3) 0.5 * ((p2).x-(p1).x)*((p3).y-(p1).y)- 0.5 * ((p3).x-(p1).x)*((p2).y-(p1).y)
 #define                 as_tri_equal_z(tri) ((tri.points[0].z == tri.points[1].z) && (tri.points[1].z == tri.points[2].z) && (tri.points[2].z == tri.points[0].z))
 #define                 as_tri_implicit_mesh_expand_tri_to_points(tim, t_index) (tim).points.elements[(tim).triangles.elements[t_index].points_index[0]], (tim).points.elements[(tim).triangles.elements[t_index].points_index[1]], (tim).points.elements[(tim).triangles.elements[t_index].points_index[2]]
@@ -187,16 +191,17 @@ void                    as_tri_edge_implicit_mesh_free(Tri_edge_implicit_mesh me
 
 void                    as_point_print(Point p, char *name, size_t padding);
 void                    as_curve_print(Curve c, char *name, size_t padding);
-void                    as_edge_ada_print(Edge_implicit_ada ei_ada, Point *points, char *name, size_t padding);
+void                    as_edge_implicit_print(Edge_implicit ei, Point *points, char *name, size_t padding);
+void                    as_edge_implicit_ada_print(Edge_implicit_ada ei_ada, Point *points, char *name, size_t padding);
 void                    as_tri_print(Tri tri, char *name, size_t padding);
 void                    as_tri_mesh_print(Tri_mesh mesh, char *name, size_t padding);
 void                    as_tri_implicit_print(Tri_implicit tri_imp, Point *points, char *name, size_t padding);
 void                    as_tri_implicit_mesh_print(Tri_implicit_mesh mesh, char *name, size_t padding);
 void                    as_tri_edge_implicit_print(Tri_edge_implicit_mesh mesh, size_t tri_index, char *name, size_t padding);
 void                    as_tri_edge_implicit_mesh_print(Tri_edge_implicit_mesh mesh, char *name, size_t padding);
+void                    as_tri_edge_implicit_mesh_print_segments(Tri_edge_implicit_mesh mesh, char *name, size_t padding);
 
 /* utils functions */
-
 static inline bool      as_bbox_overlap(Point a, Point b, Point c, Point d);
 size_t                  as_choose(int n, int k);
 uint32_t                as_color_interpolate(uint32_t c1, uint32_t c2, float t);
@@ -209,9 +214,11 @@ static inline float     as_orient2d(Point a, Point b, Point c);
 void                    as_point_to_mat2D(Point p, Mat2D m);
 size_t                  as_point_in_curve_occurrences(Point p, Curve c);
 int                     as_point_in_curve_index(Point p, Curve c);
+bool                    as_point_on_segment_xy(Point a, Point b, Point p, float eps);
 float                   as_points_distance(Point p1, Point p2);
 bool                    as_quad_is_convex(Point p1, Point p2, Point p3, Point p4);
 float                   as_rand_float(void);
+bool                    as_segment_hits_any_mesh_point(Tri_edge_implicit_mesh mesh, Point a, Point b, float eps, size_t *hit_index);
 void                    as_tri_set_normals(Tri *tri);
 Tri_implicit_mesh       as_tri_mesh_to_tri_implicit_mesh(Tri_mesh mesh);
 void                    as_tri_mesh_copy(Tri_mesh *des, Tri_mesh src);
@@ -284,12 +291,14 @@ Tri_mesh                as_sphere_tri_mesh_create_simple(const Point center, con
 
 #define                 AS_POINT_PRINT(c) as_point_print(c, #c, 0)
 #define                 AS_CURVE_PRINT(c) as_curve_print(c, #c, 0)
-#define                 AS_EDGE_ADA_PRINT(ei_ada, points) as_edge_ada_print(ei_ada, points, #ei_ada, 0)
+#define                 AS_EDGE_IMPLICIT_PRINT(ei, points) as_edge_implicit_print(ei, points, #ei, 0)
+#define                 AS_EDGE_IMPLICIT_ADA_PRINT(ei_ada, points) as_edge_implicit_ada_print(ei_ada, points, #ei_ada, 0)
 #define                 AS_TRI_MESH_PRINT(tm) as_tri_mesh_print(tm, #tm, 0)
 #define                 AS_TRI_IMPLICIT_PRINT(t, points) as_tri_implicit_print(t, points, #t, 0)
 #define                 AS_TRI_IMPLICIT_MESH_PRINT(tm) as_tri_implicit_mesh_print(tm, #tm, 0)
-#define                 AS_TRI_EDGE_IMPLICIT_MESH_PRINT(tm) as_tri_edge_implicit_mesh_print(tm, #tm, 0)
 #define                 AS_TRI_EDGE_IMPLICIT_PRINT(tm, tri_index) as_tri_edge_implicit_print(tm, tri_index, #tm, 0)
+#define                 AS_TRI_EDGE_IMPLICIT_MESH_PRINT(tm) as_tri_edge_implicit_mesh_print(tm, #tm, 0)
+#define                 AS_TRI_EDGE_IMPLICIT_MESH_PRINT_SEGMENTS(tm) as_tri_edge_implicit_mesh_print_segments(tm, #tm, 0)
 
 /** Free a Curve_ada by freeing each Curve’s points and the curves array. */
 void as_curve_ada_free(Curve_ada curves)
@@ -369,17 +378,23 @@ void as_curve_print(Curve c, char *name, size_t padding)
     printf("%*s    color: %X\n", (int)padding, "", c.color);
 }
 
-void as_edge_ada_print(Edge_implicit_ada ei_ada, Point *points, char *name, size_t padding)
+void as_edge_implicit_print(Edge_implicit ei, Point *points, char *name, size_t padding)
+{
+    printf("%*s%s:\n", (int) padding, "", name);
+    printf("%*s    (%f, %f, %f)\n", (int) padding+4, "", as_point_expand_to_xyz(points[ei.p1_index]));
+    printf("%*s    (%f, %f, %f)\n", (int) padding+4, "", as_point_expand_to_xyz(points[ei.p2_index]));
+    printf("%*s    (%zu -> %zu)\n", (int) padding+4, "", ei.p1_index, ei.p2_index);
+    printf("%*s    segment = %d\n", (int) padding+4, "", ei.is_segment);
+}
+
+void as_edge_implicit_ada_print(Edge_implicit_ada ei_ada, Point *points, char *name, size_t padding)
 {
     char temp_str[256];
     printf("%*s%s:\n", (int) padding, "", name);
 
     for (size_t i = 0; i < ei_ada.length; i++) {
         snprintf(temp_str, 256, "edge %zu", i);
-        printf("%*s%s:\n", (int) padding+4, "", temp_str);
-        printf("%*s    (%f, %f, %f)\n", (int) padding+4, "", as_point_expand_to_xyz(points[ei_ada.elements[i].p1_index]));
-        printf("%*s    (%f, %f, %f)\n", (int) padding+4, "", as_point_expand_to_xyz(points[ei_ada.elements[i].p2_index]));
-        printf("%*s    segment = %d\n", (int) padding+4, "", ei_ada.elements[i].is_segment);
+        as_edge_implicit_print(ei_ada.elements[i], points, temp_str, padding+4);
     }
 }
 
@@ -455,13 +470,7 @@ void as_tri_edge_implicit_mesh_print(Tri_edge_implicit_mesh mesh, char *name, si
 
     printf("%*s------------------------------\n", (int) padding+4, "");
 
-    for (size_t i = 0; i < mesh.edges.length; i++) {
-        snprintf(temp_str, 256, "edge %zu", i);
-        printf("%*s%s:\n", (int) padding+4, "", temp_str);
-        printf("%*s    (%f, %f, %f)\n", (int) padding+4, "", as_point_expand_to_xyz(mesh.points.elements[mesh.edges.elements[i].p1_index]));
-        printf("%*s    (%f, %f, %f)\n", (int) padding+4, "", as_point_expand_to_xyz(mesh.points.elements[mesh.edges.elements[i].p2_index]));
-        printf("%*s    segment = %d\n", (int) padding+4, "", mesh.edges.elements[i].is_segment);
-    }
+    as_edge_implicit_ada_print(mesh.edges, mesh.points.elements, "edges", 4);
 
     printf("%*s------------------------------\n", (int) padding+4, "");
 
@@ -471,6 +480,19 @@ void as_tri_edge_implicit_mesh_print(Tri_edge_implicit_mesh mesh, char *name, si
         printf("%*s    points:\n", (int)padding+4, "");
         for (size_t j = 0; j < 3; j++) {
             printf("%*s    (%f, %f, %f)\n", (int) padding+4, "", as_tri_edge_implicit_mesh_expand_point_of_tri_to_xyz(mesh, i, j));
+        }
+    }
+}
+
+void as_tri_edge_implicit_mesh_print_segments(Tri_edge_implicit_mesh mesh, char *name, size_t padding)
+{
+    char temp_str[256];
+    printf("%*s%s:\n", (int) padding, "", name);
+
+    for (size_t i = 0; i < mesh.edges.length; i++) {
+        if (mesh.edges.elements[i].is_segment) {
+            snprintf(temp_str, 256, "edge %zu", i);
+            as_edge_implicit_print(mesh.edges.elements[i], mesh.points.elements, temp_str, 4);
         }
     }
 }
@@ -550,6 +572,8 @@ Curve as_curve_create_random_points(size_t num_of_points, float min_x, float max
 //     return (((as_edge_cross_edge(p11, p12, p12, p22) * as_edge_cross_edge(p11, p12, p12, p21)) < 0) && ((as_edge_cross_edge(p21, p22, p22, p12) * as_edge_cross_edge(p21, p22, p21, p11)) < 0));
 // }
 
+/* Robust segment intersection test (proper intersection, excluding touching
+   at endpoints). Uses orientation predicates with an epsilon and bbox check. */
 bool as_edge_intersect_edge(Point p11, Point p12, Point p21, Point p22)
 {
     /* Exclude shared endpoints (do not treat as intersecting) */
@@ -558,7 +582,7 @@ bool as_edge_intersect_edge(Point p11, Point p12, Point p21, Point p22)
         return false;
     }
     if (!as_bbox_overlap(p11, p12, p21, p22)) return false;
-    const float eps = 1e-7f;
+    const float eps = AS_EPSILON;
     float o1 = as_orient2d(p11, p12, p21);
     float o2 = as_orient2d(p11, p12, p22);
     float o3 = as_orient2d(p21, p22, p11);
@@ -604,8 +628,6 @@ Point as_mat2D_to_point(Mat2D m)
     return res;
 }
 
-/* Robust segment intersection test (proper intersection, excluding touching
-   at endpoints). Uses orientation predicates with an epsilon and bbox check. */
 static inline float as_orient2d(Point a, Point b, Point c)
 {
     return (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x);
@@ -652,6 +674,45 @@ int as_point_in_curve_index(Point p, Curve c)
     return index;
 }
 
+/**
+ * Returns true if point p lies on segment ab in the XY plane (excluding
+ * endpoints) within a tolerance eps. Uses orientation+projection tests.
+ * eps is in world units. */
+bool as_point_on_segment_xy(Point a, Point b, Point p, float eps)
+{
+    /* Quick bbox reject */
+    if (!as_bbox_overlap(a, b, p, p)) return false;
+
+    /* Vector ab */
+    float abx = b.x - a.x;
+    float aby = b.y - a.y;
+
+    /* If segment is degenerate, nothing to do */
+    float ab_len2 = abx * abx + aby * aby;
+    if (ab_len2 <= 0.0f) return false;
+
+    /* Signed area (twice triangle area) -> collinearity check */
+    float area = as_orient2d(a, b, p); /* = cross(ab, ap) */
+    if (fabsf(area) > eps * sqrtf(ab_len2)) {
+        return false;
+    }
+
+    /* Parametric projection t of p on segment ab: a + t*(ab) */
+    float apx = p.x - a.x;
+    float apy = p.y - a.y;
+    float t = (apx * abx + apy * aby) / ab_len2;
+
+    /* Exclude endpoints: require t strictly inside (0,1) with margin */
+    if (t <= eps || t >= 1.0f - eps) return false;
+
+    /* Also check perpendicular distance explicitly vs eps (optional, but
+       helps when ab is long and area test alone is too permissive) */
+    float dist_perp = fabsf(area) / sqrtf(ab_len2);
+    if (dist_perp > eps) return false;
+
+    return true;
+}
+
 /** Compute Euclidean distance between two Points (uses x,y,z). */
 float as_points_distance(Point p1, Point p2)
 {
@@ -680,6 +741,28 @@ bool as_quad_is_convex(Point p1, Point p2, Point p3, Point p4)
 float as_rand_float(void)
 {
     return (float) rand() / (float) RAND_MAX;
+}
+
+/**
+ * Returns true if segment (a,b) hits any existing mesh point (other than a/b)
+ * in the XY plane within eps. If hit_index != NULL, writes the index of the
+ * first offending point found. */
+bool as_segment_hits_any_mesh_point(Tri_edge_implicit_mesh mesh, Point a, Point b, float eps, size_t *hit_index)
+{
+    for (size_t i = 0; i < mesh.points.length; i++) {
+        Point q = mesh.points.elements[i];
+
+        /* Skip endpoints (treat equal within eps) */
+        if (as_points_equal_approx(q, a) || as_points_equal_approx(q, b)) {
+            continue;
+        }
+
+        if (as_point_on_segment_xy(a, b, q, eps)) {
+            if (hit_index) *hit_index = i;
+            return true;
+        }
+    }
+    return false;
 }
 
 /**
@@ -848,7 +931,7 @@ void as_tri_mesh_subdivide_simple(Tri_mesh *mesh)
 /** If all points in mesh have same x, return that constant; otherwise NAN. */
 float as_tri_mesh_const_x(Tri_mesh mesh)
 {
-    float x_value;
+    float x_value = 0;
 
     for (size_t tri_index = 0; tri_index < mesh.length; tri_index++) {
         Tri current_tri = mesh.elements[tri_index];
@@ -865,7 +948,7 @@ float as_tri_mesh_const_x(Tri_mesh mesh)
 /** If all points in mesh have same y, return that constant; otherwise NAN. */
 float as_tri_mesh_const_y(Tri_mesh mesh)
 {
-    float y_value;
+    float y_value = 0;
 
     for (size_t tri_index = 0; tri_index < mesh.length; tri_index++) {
         Tri current_tri = mesh.elements[tri_index];
@@ -882,7 +965,7 @@ float as_tri_mesh_const_y(Tri_mesh mesh)
 /** If all points in mesh have same z, return that constant; otherwise NAN. */
 float as_tri_mesh_const_z(Tri_mesh mesh)
 {
-    float z_value;
+    float z_value = 0;
 
     for (size_t tri_index = 0; tri_index < mesh.length; tri_index++) {
         Tri current_tri = mesh.elements[tri_index];
@@ -913,7 +996,7 @@ Tri as_tri_implicit_to_tri(Tri_implicit tri_implicit, Point *points)
 /** If all points in Tri_implicit_mesh have same x, return that constant; else NAN. */
 float as_tri_implicit_mesh_const_x(Tri_implicit_mesh mesh)
 {
-    float value;
+    float value = 0;
 
     for (size_t p_index = 0; p_index < mesh.points.length; p_index++) {
         if (p_index == 0) value = mesh.points.elements[p_index].x;
@@ -927,7 +1010,7 @@ float as_tri_implicit_mesh_const_x(Tri_implicit_mesh mesh)
 /** If all points in Tri_implicit_mesh have same y, return that constant; else NAN. */
 float as_tri_implicit_mesh_const_y(Tri_implicit_mesh mesh)
 {
-    float value;
+    float value = 0;
 
     for (size_t p_index = 0; p_index < mesh.points.length; p_index++) {
         if (p_index == 0) value = mesh.points.elements[p_index].y;
@@ -940,7 +1023,7 @@ float as_tri_implicit_mesh_const_y(Tri_implicit_mesh mesh)
 /** If all points in Tri_implicit_mesh have same z, return that constant; else NAN. */
 float as_tri_implicit_mesh_const_z(Tri_implicit_mesh mesh)
 {
-    float value;
+    float value = 0;
 
     for (size_t p_index = 0; p_index < mesh.points.length; p_index++) {
         if (p_index == 0) value = mesh.points.elements[p_index].z;
@@ -1201,12 +1284,16 @@ int as_tri_edge_implicit_mesh_get_triangles_indexs_with_edge(Tri_edge_implicit_m
     for (size_t tri_index = 0; tri_index < mesh.triangles.length; tri_index++) {
         bool p1_is_part_of_tri = false;
         bool p2_is_part_of_tri = false;
-        /* check if p1 is part of tri */
+        // /* check if p1 is part of tri */
+        // for (size_t i = 0; i < 3; i++) {
+        //     if (as_points_equal(p1, as_tri_edge_implicit_mesh_get_point_of_tri(mesh, tri_index, i))) p1_is_part_of_tri = true;
+        // }
+        // /* check if p2 is part of tri */
+        // for (size_t i = 0; i < 3; i++) {
+        //     if (as_points_equal(p2, as_tri_edge_implicit_mesh_get_point_of_tri(mesh, tri_index, i))) p2_is_part_of_tri = true;
+        // }
         for (size_t i = 0; i < 3; i++) {
             if (as_points_equal(p1, as_tri_edge_implicit_mesh_get_point_of_tri(mesh, tri_index, i))) p1_is_part_of_tri = true;
-        }
-        /* check if p2 is part of tri */
-        for (size_t i = 0; i < 3; i++) {
             if (as_points_equal(p2, as_tri_edge_implicit_mesh_get_point_of_tri(mesh, tri_index, i))) p2_is_part_of_tri = true;
         }
 
@@ -1218,6 +1305,8 @@ int as_tri_edge_implicit_mesh_get_triangles_indexs_with_edge(Tri_edge_implicit_m
             } else if (num_of_tri_out == 1) {
                 *tri_out2_index = tri_index;
                 num_of_tri_out++;
+                /* if this line will be uncommented, then the check will never be reached */
+                // return num_of_tri_out;
             } else if (num_of_tri_out > 2) {
                 fprintf(stderr, "%s:%d: [Warning] edge implicit mesh has an edge with more then two triangles\n", __FILE__, __LINE__);
                 exit(1);
@@ -1261,6 +1350,8 @@ int as_tri_edge_implicit_mesh_get_third_points_from_edge(Tri_edge_implicit_mesh 
             } else if (num_of_tri_out == 1) {
                 *tri2_third_point = as_tri_edge_implicit_mesh_get_point_of_tri(mesh, tri_index, p3_local_index);
                 num_of_tri_out++;
+                /* if this line will be uncommented, then the check will never be reached */
+                // return num_of_tri_out;
             } else if (num_of_tri_out > 2) {
                 fprintf(stderr, "%s:%d: [Warning] edge implicit mesh has an edge with more then two triangles\n", __FILE__, __LINE__);
                 exit(1);
@@ -1496,7 +1587,7 @@ void as_points_array_convex_hull_Jarvis_march(Curve *conv, Point *points, const 
         return;
     }
 
-    float eps = 1e-7;
+    float eps = AS_EPSILON;
 
     /* guess next point on convex hull*/
     for (size_t i = 0; i < len; i++) {
@@ -1579,7 +1670,7 @@ void as_points_array_swap_points(Point *c, const size_t index1, const size_t ind
  */
 void as_points_array_order_lexicographically(Point *c, const size_t len)
 {
-    float epsilon = 1e-5;
+    float epsilon = AS_EPSILON;
     for (size_t i = 0; i < len-1; i++) {
         for (size_t j = i+1; j < len; j++) {
             if (c[i].x > c[j].x) {
@@ -2172,7 +2263,7 @@ Edge_implicit as_tri_edge_implicit_mesh_flip_edge(Tri_edge_implicit_mesh *mesh, 
         }
         ada_appand(Tri_edge_implicit, temp_mesh.triangles, temp_tri2);
 
-        as_tri_edge_implicit_mesh_remove_edge(&temp_mesh, p1, p2);
+        // as_tri_edge_implicit_mesh_remove_edge(&temp_mesh, p1, p2);
         as_tri_edge_implicit_mesh_delete_edge(&temp_mesh, p1, p2);
     }
 
@@ -2198,6 +2289,11 @@ void as_tri_edge_implicit_mesh_insert_segment(Tri_edge_implicit_mesh *mesh, Poin
 
     Tri_edge_implicit_mesh temp_mesh = *mesh;
 
+    if (as_segment_hits_any_mesh_point(temp_mesh, p1, p2, AS_EPSILON, NULL)) {
+        fprintf(stderr, "%s:%s:%d: [ERROR] segment intersects a point of the mesh.\n", __FILE__, __func__, __LINE__);
+        return;
+    }
+
     int edge_index = as_edge_implicit_ada_get_edge_index(temp_mesh.edges, temp_mesh.points.elements, p1, p2);
     if (-1 < edge_index) {
         temp_mesh.edges.elements[edge_index].is_segment = true;
@@ -2222,17 +2318,19 @@ void as_tri_edge_implicit_mesh_insert_segment(Tri_edge_implicit_mesh *mesh, Poin
         }
     }
 
+    // AS_EDGE_ADA_PRINT(intersecting_edges_list, temp_mesh.points.elements);
+
     size_t safety = 0, safety_limit = temp_mesh.edges.length * 10 + 1000;
-    while (intersecting_edges_list.length > 0) {
+    for (;intersecting_edges_list.length > 0;) {
         if (++safety > safety_limit) {
             fprintf(stderr, "%s:%s:%d: [Warning] segment insertion safety limit reached; aborting loop.\n", __FILE__, __func__, __LINE__);
             break;
         }
+
         size_t index = intersecting_edges_list.length - 1;
         Edge_implicit current_edge = intersecting_edges_list.elements[index];
         /* pop current */
-        // ada_remove_unordered(Edge_implicit, intersecting_edges_list, index);
-        intersecting_edges_list.length -= 1;
+        ada_remove_unordered(Edge_implicit, intersecting_edges_list, index);
 
         Point p3_tri1 = {0};
         Point p3_tri2 = {0};
@@ -2243,37 +2341,25 @@ void as_tri_edge_implicit_mesh_insert_segment(Tri_edge_implicit_mesh *mesh, Poin
         }
 
         if (!as_quad_is_convex(temp_mesh.points.elements[current_edge.p1_index], p3_tri1, temp_mesh.points.elements[current_edge.p2_index], p3_tri2)) {
-
-        } else if ((as_points_equal(p1, p3_tri1) && as_points_equal(p2, p3_tri2)) || (as_points_equal(p1, p3_tri2) && as_points_equal(p2, p3_tri1))) {
-            /* the flipped edge is the wanted segment */
-            as_tri_edge_implicit_mesh_flip_edge(&temp_mesh, temp_mesh.points.elements[current_edge.p1_index], temp_mesh.points.elements[current_edge.p2_index], 0);
-            break;
+            ada_insert(Edge_implicit, intersecting_edges_list, current_edge, 0);
         } else if (!as_edge_intersect_edge(p1, p2, p3_tri1, p3_tri2)) {
-            as_tri_edge_implicit_mesh_flip_edge(&temp_mesh, temp_mesh.points.elements[current_edge.p1_index], temp_mesh.points.elements[current_edge.p2_index], 0);
-            Edge_implicit new_edge = {0};
-            new_edge.p1_index = as_point_in_curve_index(p3_tri1, temp_mesh.points);
-            new_edge.p2_index = as_point_in_curve_index(p3_tri2, temp_mesh.points);
-            ada_appand(Edge_implicit, new_edges_list, new_edge);
-        } else if (as_edge_intersect_edge(p1, p2, p3_tri1, p3_tri2)) {
-            as_tri_edge_implicit_mesh_flip_edge(&temp_mesh, temp_mesh.points.elements[current_edge.p1_index], temp_mesh.points.elements[current_edge.p2_index], 0);
-            Edge_implicit new_edge = {0};
-            new_edge.p1_index = as_point_in_curve_index(p3_tri1, temp_mesh.points);
-            new_edge.p2_index = as_point_in_curve_index(p3_tri2, temp_mesh.points);
-            ada_insert_unordered(Edge_implicit, intersecting_edges_list, new_edge, 0);
-        }
-    }
-
-    // AS_EDGE_ADA_PRINT(new_edges_list, temp_mesh.points.elements);
-    for (int times = 0; times < 10; times++) {
-        for (size_t i = 0; i < new_edges_list.length; i++) {
-            int is_delaunay = as_tri_edge_implicit_mesh_check_edge_is_locally_Delaunay(temp_mesh, temp_mesh.points.elements[new_edges_list.elements[i].p1_index], temp_mesh.points.elements[new_edges_list.elements[i].p2_index]);
-            if (is_delaunay == 0) {
-                as_tri_edge_implicit_mesh_flip_edge(&temp_mesh, temp_mesh.points.elements[new_edges_list.elements[i].p1_index], temp_mesh.points.elements[new_edges_list.elements[i].p2_index], 0);
+            Edge_implicit new_edge = as_tri_edge_implicit_mesh_flip_edge(&temp_mesh, temp_mesh.points.elements[current_edge.p1_index], temp_mesh.points.elements[current_edge.p2_index], 1);
+            Tri_edge_implicit tri1 = {0}, tri2 = {0};
+            as_tri_edge_implicit_mesh_get_triangles_with_edge(temp_mesh, temp_mesh.points.elements[new_edge.p1_index], temp_mesh.points.elements[new_edge.p2_index], &tri1, &tri2); 
+            for (int j = 0; j < 3; j++) {
+                ada_appand(Edge_implicit, new_edges_list, temp_mesh.edges.elements[tri1.edges_index[j]]);
+                ada_appand(Edge_implicit, new_edges_list, temp_mesh.edges.elements[tri2.edges_index[j]]);
             }
+        } else if (as_edge_intersect_edge(p1, p2, p3_tri1, p3_tri2)) {
+            as_tri_edge_implicit_mesh_flip_edge(&temp_mesh, temp_mesh.points.elements[current_edge.p1_index], temp_mesh.points.elements[current_edge.p2_index], 1);
+            Edge_implicit new_edge = {0};
+            new_edge.p1_index = as_point_in_curve_index(p3_tri1, temp_mesh.points);
+            new_edge.p2_index = as_point_in_curve_index(p3_tri2, temp_mesh.points);
+            ada_insert(Edge_implicit, intersecting_edges_list, new_edge, intersecting_edges_list.length/2);
         }
+
     }
-
-
+    
     int segment_index = as_edge_implicit_ada_get_edge_index(temp_mesh.edges, temp_mesh.points.elements, p1, p2);
     if (segment_index == -1) {
         fprintf(stderr, "%s:%d: [Warning] failed to insert segment.\n", __FILE__, __LINE__);
@@ -2283,6 +2369,22 @@ void as_tri_edge_implicit_mesh_insert_segment(Tri_edge_implicit_mesh *mesh, Poin
     int inv_segment_index = as_edge_implicit_ada_get_edge_index(temp_mesh.edges, temp_mesh.points.elements, p2, p1);
     if (inv_segment_index > -1) {
         temp_mesh.edges.elements[inv_segment_index].is_segment = true;
+    }
+
+    for (;new_edges_list.length > 0;) {
+        Edge_implicit current_edge = new_edges_list.elements[0];
+        ada_remove_unordered(Edge_implicit, new_edges_list, 0);
+        int is_delaunay = as_tri_edge_implicit_mesh_check_edge_is_locally_Delaunay(temp_mesh, temp_mesh.points.elements[current_edge.p1_index], temp_mesh.points.elements[current_edge.p2_index]);
+        if (is_delaunay == 0) {
+            Edge_implicit new_edge = as_tri_edge_implicit_mesh_flip_edge(&temp_mesh, temp_mesh.points.elements[current_edge.p1_index], temp_mesh.points.elements[current_edge.p2_index], 1);
+            /* adding the edges of the new triangles to the edge list */
+            Tri_edge_implicit tri1 = {0}, tri2 = {0};
+            as_tri_edge_implicit_mesh_get_triangles_with_edge(temp_mesh, temp_mesh.points.elements[new_edge.p1_index], temp_mesh.points.elements[new_edge.p2_index], &tri1, &tri2); 
+            for (int j = 0; j < 3; j++) {
+                ada_appand(Edge_implicit, new_edges_list, temp_mesh.edges.elements[tri1.edges_index[j]]);
+                ada_appand(Edge_implicit, new_edges_list, temp_mesh.edges.elements[tri2.edges_index[j]]);
+            }
+        }
     }
 
     free(new_edges_list.elements);
@@ -2323,13 +2425,14 @@ void as_tri_edge_implicit_mesh_set_Delaunay_triangulation_flip_algorithm_fixed_i
 {
     Tri_edge_implicit_mesh tei_temp_mesh = *mesh;
 
+    printf("[INFO] Delaunay triangulation:\n");
     int hard_limit = 10;
     size_t total_num_of_iteration_per_time = as_choose(tei_temp_mesh.points.length, 2) * hard_limit;
     for (int times = 0, counter = 0; times < hard_limit; times++) {
         for (size_t i = 0; i < tei_temp_mesh.points.length-1; i++) {
             for (size_t j = i+1; j < tei_temp_mesh.points.length; j++) {
                 counter++;
-                printf("\rcounter: %d | done: %f%%", counter, 100.0f * (float)counter / (float)total_num_of_iteration_per_time);
+                printf("\33[2K\r       checked edges: %d | done: %f%%", counter, 100.0f * (float)counter / (float)total_num_of_iteration_per_time);
                 fflush(stdout);
 
                 int num_of_tri_on_edge = as_tri_edge_implicit_mesh_check_edge_is_locally_Delaunay(tei_temp_mesh, tei_temp_mesh.points.elements[i], tei_temp_mesh.points.elements[j]);
@@ -2379,7 +2482,7 @@ void as_tri_edge_implicit_mesh_set_Delaunay_triangulation_flip_algorithm(Tri_edg
         }
     }
 
-    printf("\n");
+    printf("\n\n");
     
     free(edge_list.elements);
 

@@ -24,15 +24,17 @@ void setup(game_state_t *game_state)
 
     ada_init_array(Tri, proj_mesh);
 
-    Curve c = as_curve_create_random_points(7, -2, 2, -2, 2, 0, 0, 20);
+    // Curve c = as_curve_create_random_points(70, -2, 2, -2, 2, 0, 0, 20);
+    Curve c = as_curve_create_random_points(4000, -4, 4, -4, 4, 0, 0, time(NULL));
 
     Tri_edge_implicit_mesh tei_mesh = as_tri_edge_implicit_mesh_make_Delaunay_triangulation_flip_algorithm(c.elements, c.length);
+    as_tri_edge_implicit_mesh_set_Delaunay_triangulation_flip_algorithm(&tei_mesh);
 
-    // AS_TRI_EDGE_IMPLICIT_MESH_PRINT(tei_mesh);
+    size_t p1_index = 10;
+    size_t p2_index = 100;
+    as_tri_edge_implicit_mesh_insert_segment(&tei_mesh, tei_mesh.points.elements[p1_index], tei_mesh.points.elements[p2_index]);
 
-    // as_tri_edge_implicit_mesh_insert_segment(&tei_mesh, tei_mesh.points.elements[1], tei_mesh.points.elements[6]);
-
-    // AS_TRI_EDGE_IMPLICIT_MESH_PRINT(tei_mesh);
+    AS_TRI_EDGE_IMPLICIT_MESH_PRINT_SEGMENTS(tei_mesh);
 
     dprintINT(as_tri_edge_implicit_mesh_check_Delaunay(tei_mesh));
 
@@ -45,6 +47,15 @@ void setup(game_state_t *game_state)
 
     ada_init_array(Curve, circles);
     ada_init_array(Curve, proj_circles);
+
+    // size_t temp_indexes[] = {p1_index, p2_index, 19, 20};
+    // for (int i = 0; i < sizeof(temp_indexes) / sizeof(temp_indexes[0]); i++) {
+    //     Curve temp_curve = as_circle_curve_create(tei_mesh.points.elements[temp_indexes[i]], 0.04, 100, 0xffff0000, "xy");
+    //     Curve temp_proj_curve = as_circle_curve_create(tei_mesh.points.elements[temp_indexes[i]], 0.02, 100, 0xffff0000, "xy");
+    //     ada_appand(Curve, circles, temp_curve);
+    //     ada_appand(Curve, proj_circles, temp_proj_curve);
+    // }
+
     // for (size_t i = 0; i < mesh.length; i++) {
     //     float t = (float)i / ((float)mesh.length - 1);
     //     float t1 = t < 0.5 ? t * 2 : 1;

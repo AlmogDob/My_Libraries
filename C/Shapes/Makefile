@@ -1,6 +1,6 @@
 CCHECKS = -fsanitize=address
 CWARNINGS = -Wall -Wextra -Wuninitialized 
-CFLAGS = $(CWARNINGS) -lm -lSDL2 -lSDL2_ttf $(CCHECKS)
+CFLAGS = $(CWARNINGS) -lm -lSDL2 -lSDL2_ttf -O3
 
 #############################################################
 
