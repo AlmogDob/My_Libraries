@@ -244,6 +244,15 @@ void        ae_z_buffer_copy_to_screen(Mat2D_uint32 screen_mat, Mat2D inv_z_buff
 #define AE_PRINT_TRI(tri) ae_print_tri(tri, #tri, 0)
 #define AE_PRINT_MESH(mesh) ae_print_tri_mesh(mesh, #mesh, 0)
 
+/**
+ * @brief Create a triangle from three points.
+ *
+ * @param p1 First vertex (world space).
+ * @param p2 Second vertex (world space).
+ * @param p3 Third vertex (world space).
+ * @return Tri The created triangle with vertices set. Other fields are left
+ *         uninitialized.
+ */
 Tri ae_tri_create(Point p1, Point p2, Point p3)
 {
     Tri tri;
@@ -255,15 +264,37 @@ Tri ae_tri_create(Point p1, Point p2, Point p3)
     return tri;
 }
 
+/**
+ * @brief Append copies of triangles to a destination Tri_mesh (resets destination length first).
+ *
+ * Appends len triangles from src_elements into the destination ADA array
+ * pointed by des.
+ *
+ * @param des Destination triangle mesh (ADA array). Will grow as needed.
+ * @param src_elements Source array of triangles to copy from.
+ * @param len Number of triangles to copy from src_elements.
+ */
 void ae_tri_mesh_create_copy(Tri_mesh *des, Tri *src_elements, size_t len)
 {
     Tri_mesh temp_des = *des;
+    temp_des.length = 0;
     for (size_t i = 0; i < len; i++) {
         ada_appand(Tri, temp_des, src_elements[i]);
     }
     *des = temp_des;
 }
 
+/**
+ * @brief Initialize the camera part of a Scene.
+ *
+ * Sets perspective parameters (z_near, z_far, fov, aspect_ratio), allocates
+ * camera matrices/vectors, and sets initial position and orientation. The
+ * aspect ratio is computed as window_h / window_w.
+ *
+ * @param scene Scene whose camera will be initialized.
+ * @param window_h Window height in pixels.
+ * @param window_w Window width in pixels.
+ */
 void ae_camera_init(Scene *scene, int window_h, int window_w)
 {
     scene->camera.z_near       = 0.1;
@@ -302,6 +333,14 @@ void ae_camera_init(Scene *scene, int window_h, int window_w)
     MAT2D_AT(scene->camera.camera_z, 2, 0) = 1;
 }
 
+/**
+ * @brief Free camera-related allocations in a Scene.
+ *
+ * Frees all Mat2D objects owned by scene->camera (init_position,
+ * current_position, offset_position, direction, camera_x/y/z).
+ *
+ * @param scene Scene whose camera resources will be freed.
+ */
 void ae_camera_free(Scene *scene)
 {
     mat2D_free(scene->camera.init_position);
@@ -313,6 +352,17 @@ void ae_camera_free(Scene *scene)
     mat2D_free(scene->camera.camera_z);
 }
 
+/**
+ * @brief Create and initialize a Scene.
+ *
+ * Initializes camera, up direction, default light and material, and allocates
+ * projection and view matrices. Caller must release resources with
+ * ae_scene_free.
+ *
+ * @param window_h Window height in pixels.
+ * @param window_w Window width in pixels.
+ * @return Scene An initialized scene object.
+ */
 Scene ae_scene_init(int window_h, int window_w)
 {
     Scene scene = {0};
@@ -343,6 +393,17 @@ Scene ae_scene_init(int window_h, int window_w)
     return scene;
 }
 
+/**
+ * @brief Free all resources owned by a Scene.
+ *
+ * Frees camera, matrices, and any allocated meshes in the in_world,
+ * projected, and original mesh arrays (triangles and quads). Does not free
+ * the Scene struct itself when passed by pointer.
+ *
+ * @param scene Scene to free.
+ * 
+ * @note Assumes the game_state was initialized with zeros.
+ */
 void ae_scene_free(Scene *scene)
 {
     ae_camera_free(scene);
@@ -377,6 +438,15 @@ void ae_scene_free(Scene *scene)
     if (scene->original_quad_meshes.elements) free(scene->original_quad_meshes.elements);
 }
 
+/**
+ * @brief Reset camera orientation and position to initial state.
+ *
+ * Resets roll/pitch/yaw to zero, clears offset_position, restores camera
+ * basis vectors to identity, and copies current_position from
+ * init_position.
+ *
+ * @param scene Scene containing the camera to reset.
+ */
 void ae_camera_reset_pos(Scene *scene)
 {
     scene->camera.roll_offset_deg = 0;
@@ -395,7 +465,14 @@ void ae_camera_reset_pos(Scene *scene)
     mat2D_copy(scene->camera.current_position, scene->camera.init_position);
 }
 
-
+/**
+ * @brief Write a Point into a Mat2D vector.
+ *
+ * Writes p into m. m must be either 3x1 or 1x3. Only x, y, z are written.
+ *
+ * @param p Source point (x, y, z used; w ignored).
+ * @param m Destination matrix (3x1 or 1x3).
+ */
 void ae_point_to_mat2D(Point p, Mat2D m)
 {
     MATRIX2D_ASSERT((3 == m.rows && 1 == m.cols) || (1 == m.rows && 3 == m.cols));
@@ -412,12 +489,32 @@ void ae_point_to_mat2D(Point p, Mat2D m)
     }
 }
 
+/**
+ * @brief Read a 3x1 Mat2D vector into a Point.
+ *
+ * Reads x, y, z from m(0..2,0) and returns a Point with w=1.
+ *
+ * @param m Source matrix (3x1).
+ * @return Point The corresponding point with w=1.
+ */
 Point ae_mat2D_to_point(Mat2D m)
 {
     Point res = {.x = MAT2D_AT(m, 0, 0), .y = MAT2D_AT(m, 1, 0), .z = MAT2D_AT(m, 2, 0), .w = 1};
     return res;
 }
 
+/**
+ * @brief Load a triangle mesh from a Wavefront OBJ file.
+ *
+ * Supports vertex positions (v). Face lines (f) with 3 or 4 vertices are
+ * parsed. Texture coordinates and normals in the file are ignored (a warning
+ * is printed once if present). Quads are triangulated as (0,1,2) and
+ * (2,3,0). Colors are set to white and to_draw is set to true.
+ *
+ * @param file_path Path to the OBJ file.
+ * @return Tri_mesh The loaded triangle mesh. Caller must free
+ *         mesh.elements when done.
+ */
 Tri_mesh ae_tri_mesh_get_from_obj_file(char *file_path)
 {
     char current_line[MAX_LEN_LINE], current_word[MAX_LEN_LINE], current_num_str[MAX_LEN_LINE];
@@ -610,6 +707,17 @@ Tri_mesh ae_tri_mesh_get_from_obj_file(char *file_path)
     return mesh;
 }
 
+/**
+ * @brief Load a triangle mesh from a binary STL file.
+ *
+ * Reads binary STL (little-endian). Per-triangle normals from the file are
+ * negated to match the engine's convention and copied to each vertex normal.
+ * Colors are set to white and to_draw is set to true.
+ *
+ * @param file_path Path to the binary STL file.
+ * @return Tri_mesh The loaded triangle mesh. Caller must free
+ *         mesh.elements when done.
+ */
 Tri_mesh ae_tri_mesh_get_from_stl_file(char *file_path)
 {
     FILE *file;
@@ -673,6 +781,16 @@ Tri_mesh ae_tri_mesh_get_from_stl_file(char *file_path)
     return mesh;
 }
 
+/**
+ * @brief Load a triangle mesh from a file (OBJ or STL).
+ *
+ * Dispatches to ae_tri_mesh_get_from_obj_file or
+ * ae_tri_mesh_get_from_stl_file based on file extension.
+ *
+ * @param file_path Path to the file (.obj, .stl, .STL).
+ * @return Tri_mesh The loaded triangle mesh. Caller must free
+ *         mesh.elements when done.
+ */
 Tri_mesh ae_tri_mesh_get_from_file(char *file_path)
 {
     char file_extention[MAX_LEN_LINE], temp_word[MAX_LEN_LINE];
@@ -699,6 +817,15 @@ Tri_mesh ae_tri_mesh_get_from_file(char *file_path)
     return null_mesh;
 }
 
+/**
+ * @brief Append a copy of a Tri_mesh into a Tri_mesh_array.
+ *
+ * Creates a deep copy of mesh (triangles by value) and appends it to
+ * mesh_array (ADA array of meshes).
+ *
+ * @param mesh_array Destination mesh array to append into.
+ * @param mesh Source triangle mesh to copy.
+ */
 void ae_tri_mesh_appand_copy(Tri_mesh_array *mesh_array, Tri_mesh mesh)
 {
     Tri_mesh_array temp_mesh_array = *mesh_array;
@@ -713,6 +840,16 @@ void ae_tri_mesh_appand_copy(Tri_mesh_array *mesh_array, Tri_mesh mesh)
     *mesh_array = temp_mesh_array;
 }
 
+/**
+ * @brief Convert a Quad_mesh into a Tri_mesh.
+ *
+ * Splits each quad into two triangles: (0,1,2) and (2,3,0), copying
+ * per-vertex attributes (points, colors, normals, light intensities).
+ *
+ * @param q_mesh Input quad mesh.
+ * @return Tri_mesh Resulting triangle mesh. Caller must free
+ *         mesh.elements when done.
+ */
 Tri_mesh ae_tri_mesh_get_from_quad_mesh(Quad_mesh q_mesh)
 {
     Tri_mesh t_mesh;
@@ -756,6 +893,13 @@ Tri_mesh ae_tri_mesh_get_from_quad_mesh(Quad_mesh q_mesh)
     return t_mesh;
 }
 
+/**
+ * @brief Print a list of points to stdout.
+ *
+ * Each point is printed as: "point i: (x, y, z)".
+ *
+ * @param p Curve of points to print.
+ */
 void ae_print_points(Curve p)
 {
     for (size_t i = 0; i < p.length; i++) {
@@ -763,6 +907,16 @@ void ae_print_points(Curve p)
     }
 }
 
+/**
+ * @brief Print a triangle to stdout.
+ *
+ * Prints the triangle's vertices and draw flag, with an optional name and
+ * indentation padding (spaces).
+ *
+ * @param tri Triangle to print.
+ * @param name Label to print before the triangle.
+ * @param padding Number of leading spaces for indentation.
+ */
 void ae_print_tri(Tri tri, char *name, size_t padding)
 {
     printf("%*s%s:\n", (int) padding, "", name);
@@ -770,6 +924,15 @@ void ae_print_tri(Tri tri, char *name, size_t padding)
     printf("%*s    draw? %d\n", (int)padding, "", tri.to_draw);
 }
 
+/**
+ * @brief Print all triangles in a mesh to stdout.
+ *
+ * Each triangle is printed via ae_print_tri with the given padding.
+ *
+ * @param mesh Triangle mesh to print.
+ * @param name Label for the mesh.
+ * @param padding Number of leading spaces for indentation.
+ */
 void ae_print_tri_mesh(Tri_mesh mesh, char *name, size_t padding)
 {
     char tri_name[256];
@@ -780,6 +943,14 @@ void ae_print_tri_mesh(Tri_mesh mesh, char *name, size_t padding)
     }
 }
 
+/**
+ * @brief Normalize a point's xyz to unit length.
+ *
+ * Divides x, y, z by their Euclidean norm. w is preserved unchanged.
+ *
+ * @param p Input point.
+ * @return Point Unit-length point (xyz), with original w.
+ */
 Point ae_point_normalize_xyz(Point p)
 {
     Point res = {0};
@@ -794,6 +965,14 @@ Point ae_point_normalize_xyz(Point p)
     return res;
 }
 
+/**
+ * @brief Compute and set per-vertex normals for a triangle.
+ *
+ * For each vertex, computes the cross product of the adjacent edges around
+ * that vertex and normalizes it. Results are stored in tri->normals[i].
+ *
+ * @param tri Triangle whose normals will be computed and written.
+ */
 void ae_tri_set_normals(Tri *tri)
 {
     ae_assert_tri_is_valid(*tri);
@@ -829,6 +1008,14 @@ void ae_tri_set_normals(Tri *tri)
     mat2D_free(normal);
 }
 
+/**
+ * @brief Compute the average of the three vertex normals of a triangle.
+ *
+ * Averages the three vertex normals and normalizes the result.
+ *
+ * @param tri Input triangle.
+ * @return Point The averaged, normalized normal (w averaged but unused).
+ */
 Point ae_tri_get_average_normal(Tri tri)
 {
     Point normal0 = tri.normals[0];
@@ -844,6 +1031,12 @@ Point ae_tri_get_average_normal(Tri tri)
     return ae_point_normalize_xyz(res);
 }
 
+/**
+ * @brief Compute the average of the three vertices of a triangle.
+ *
+ * @param tri Input triangle.
+ * @return Point The average point (x, y, z, w are simple averages).
+ */
 Point ae_tri_get_average_point(Tri tri)
 {
     Point point0 = tri.points[0];
@@ -859,6 +1052,15 @@ Point ae_tri_get_average_point(Tri tri)
     return res;
 }
 
+/**
+ * @brief Compute the face normal of a triangle.
+ *
+ * normal must be a 3x1 vector. The function writes the normalized cross
+ * product of (p1 - p0) x (p2 - p0) into normal.
+ *
+ * @param normal Output 3x1 vector for the face normal.
+ * @param tri Input triangle.
+ */
 void ae_tri_calc_normal(Mat2D normal, Tri tri)
 {
     AE_ASSERT(3 == normal.rows && 1 == normal.cols);
@@ -884,6 +1086,16 @@ void ae_tri_calc_normal(Mat2D normal, Tri tri)
     mat2D_free(c);
 }
 
+/**
+ * @brief Translate a triangle mesh by (x, y, z).
+ *
+ * Adds the given offsets to each vertex in the mesh.
+ *
+ * @param mesh Triangle mesh to translate (modified in place).
+ * @param x X-axis offset.
+ * @param y Y-axis offset.
+ * @param z Z-axis offset.
+ */
 void ae_tri_mesh_translate(Tri_mesh mesh, float x, float y, float z)
 {
     for (size_t i = 0; i < mesh.length; i++) {
@@ -895,8 +1107,17 @@ void ae_tri_mesh_translate(Tri_mesh mesh, float x, float y, float z)
     }
 }
 
-/* phi around x, theta around y, psi around z.
-DCM = Cz*Cy*Cx */
+/**
+ * @brief Rotate a triangle mesh using XYZ Euler angles (degrees).
+ *
+ * Applies DCM = Cz(psi_deg) * Cy(theta_deg) * Cx(phi_deg) to each vertex.
+ * Recomputes per-vertex normals afterward.
+ *
+ * @param mesh Triangle mesh to rotate (modified in place).
+ * @param phi_deg Rotation about X axis, degrees.
+ * @param theta_deg Rotation about Y axis, degrees.
+ * @param psi_deg Rotation about Z axis, degrees.
+ */
 void ae_tri_mesh_rotate_Euler_xyz(Tri_mesh mesh, float phi_deg, float theta_deg, float psi_deg)
 {
     Mat2D RotZ = mat2D_alloc(3,3);
@@ -947,6 +1168,19 @@ void ae_tri_mesh_rotate_Euler_xyz(Tri_mesh mesh, float phi_deg, float theta_deg,
     mat2D_free(des_point_mat);
 }
 
+/**
+ * @brief Compute the axis-aligned bounding box of a triangle mesh.
+ *
+ * Writes min/max for x, y, z across all vertices in the mesh.
+ *
+ * @param mesh Input triangle mesh.
+ * @param x_min Output minimum x.
+ * @param x_max Output maximum x.
+ * @param y_min Output minimum y.
+ * @param y_max Output maximum y.
+ * @param z_min Output minimum z.
+ * @param z_max Output maximum z.
+ */
 void ae_tri_mesh_set_bounding_box(Tri_mesh mesh, float *x_min, float *x_max, float *y_min, float *y_max, float *z_min, float *z_max)
 {
     float xmin = FLT_MAX, xmax = FLT_MIN;
@@ -976,7 +1210,15 @@ void ae_tri_mesh_set_bounding_box(Tri_mesh mesh, float *x_min, float *x_max, flo
     *z_max = zmax;
 }
 
-/* normalize all the points in between -1 and 1. the origin is in the center of the body. */
+/**
+ * @brief Normalize mesh coordinates to [-1, 1], centered at origin.
+ *
+ * Uniformly scales and recenters the mesh so that the largest axis fits
+ * exactly into [-1, 1]. Other axes are scaled proportionally. Updates all
+ * vertices in place.
+ *
+ * @param mesh Triangle mesh to normalize (modified in place).
+ */
 void ae_tri_mesh_normalize(Tri_mesh mesh)
 {
     float xmax, xmin, ymax, ymin, zmax, zmin;
@@ -1001,8 +1243,6 @@ void ae_tri_mesh_normalize(Tri_mesh mesh)
             y = (((y - ymin) / (ydiff)) * 2 - 1) * yfactor;
             z = (((z - zmin) / (zdiff)) * 2 - 1) * zfactor;
 
-            // ae_set_tri_center_zmin_zmax(&(mesh.elements[t]));
-
             mesh.elements[t].points[p].x = x;
             mesh.elements[t].points[p].y = y;
             mesh.elements[t].points[p].z = z;
@@ -1010,6 +1250,14 @@ void ae_tri_mesh_normalize(Tri_mesh mesh)
     }
 }
 
+/**
+ * @brief Flip triangle winding and recompute per-vertex normals.
+ *
+ * Swaps vertex order to invert winding, copies attributes accordingly, and
+ * recomputes normals.
+ *
+ * @param mesh Mesh to flip (modified in place).
+ */
 void ae_tri_mesh_flip_normals(Tri_mesh mesh)
 {
     for (size_t i = 0; i < mesh.length; i++) {
@@ -1041,6 +1289,13 @@ void ae_tri_mesh_flip_normals(Tri_mesh mesh)
     }
 }
 
+/**
+ * @brief Recompute per-vertex normals for all triangles in a mesh.
+ *
+ * Calls ae_tri_set_normals on each triangle.
+ *
+ * @param mesh Mesh to update (modified in place).
+ */
 void ae_tri_mesh_set_normals(Tri_mesh mesh)
 {
     for (size_t i = 0; i < mesh.length; i++) {
@@ -1048,6 +1303,14 @@ void ae_tri_mesh_set_normals(Tri_mesh mesh)
     }
 }
 
+/**
+ * @brief Compute and set per-vertex normals for a quad.
+ *
+ * For each vertex, computes the cross product of adjacent edges and
+ * normalizes the result. Results are stored in quad->normals[i].
+ *
+ * @param quad Quad whose normals will be computed and written.
+ */
 void ae_quad_set_normals(Quad *quad)
 {
     ae_assert_quad_is_valid(*quad);
@@ -1083,6 +1346,14 @@ void ae_quad_set_normals(Quad *quad)
 
 }
 
+/**
+ * @brief Compute the average of the four vertex normals of a quad.
+ *
+ * Averages the four vertex normals and normalizes the result.
+ *
+ * @param quad Input quad.
+ * @return Point The averaged, normalized normal.
+ */
 Point ae_quad_get_average_normal(Quad quad)
 {
     Point normal0 = quad.normals[0];
@@ -1101,6 +1372,12 @@ Point ae_quad_get_average_normal(Quad quad)
     return res;
 }
 
+/**
+ * @brief Compute the average of the four vertices of a quad.
+ *
+ * @param quad Input quad.
+ * @return Point The average point (x, y, z, w are simple averages).
+ */
 Point ae_quad_get_average_point(Quad quad)
 {
     Point point0 = quad.points[0];
@@ -1117,6 +1394,15 @@ Point ae_quad_get_average_point(Quad quad)
     return res;
 }
 
+/**
+ * @brief Compute the face normal of a quad using the first three vertices.
+ *
+ * normal must be a 3x1 vector. The function writes the normalized cross
+ * product of (p1 - p0) x (p2 - p0) into normal.
+ *
+ * @param normal Output 3x1 vector for the face normal.
+ * @param quad Input quad.
+ */
 void ae_quad_calc_normal(Mat2D normal, Quad quad)
 {
     AE_ASSERT(3 == normal.rows && 1 == normal.cols);
@@ -1142,6 +1428,14 @@ void ae_quad_calc_normal(Mat2D normal, Quad quad)
     mat2D_free(c);
 }
 
+/**
+ * @brief Copy a Curve (ADA array of points).
+ *
+ * Clears destination length and appends all points from src.
+ *
+ * @param des Destination curve (modified/grown as needed).
+ * @param src Source curve.
+ */
 void ae_curve_copy(Curve *des, Curve src)
 {
     Curve temp_des = *des;
@@ -1154,6 +1448,20 @@ void ae_curve_copy(Curve *des, Curve src)
     *des = temp_des;
 }
 
+/**
+ * @brief Compute per-vertex lighting intensity for a triangle.
+ *
+ * Implements a Phong-like model with ambient, diffuse, and specular terms,
+ * using material0 and light_source0 from the scene. When lighting_mode is
+ * AE_LIGHTING_FLAT, the average normal and triangle centroid are used for
+ * all vertices; when AE_LIGHTING_SMOOTH, each vertex normal and position is
+ * used. For directional light, light_direction_or_pos.w == 0; for point
+ * light, w != 0. Results are clamped to [0, 1].
+ *
+ * @param tri Triangle to update (tri->light_intensity[i] is written).
+ * @param scene Scene providing light and material parameters.
+ * @param lighting_mode Flat or smooth lighting mode.
+ */
 void ae_tri_calc_light_intensity(Tri *tri, Scene *scene, Lighting_mode lighting_mode)
 {
     /* based on the lighting model described in: 'Alexandru C. Telea-Data Visualization_ Principles and Practice-A K Peters_CRC Press (2014)' Pg.29 */
@@ -1237,6 +1545,16 @@ void ae_tri_calc_light_intensity(Tri *tri, Scene *scene, Lighting_mode lighting_
     }
 }
 
+/**
+ * @brief Compute per-vertex lighting intensity for a quad.
+ *
+ * Same model as ae_tri_calc_light_intensity, applied to four vertices.
+ * Results are clamped to [0, 1].
+ *
+ * @param quad Quad to update (quad->light_intensity[i] is written).
+ * @param scene Scene providing light and material parameters.
+ * @param lighting_mode Flat or smooth lighting mode.
+ */
 void ae_quad_calc_light_intensity(Quad *quad, Scene *scene, Lighting_mode lighting_mode)
 {
     /* based on the lighting model described in: 'Alexandru C. Telea-Data Visualization_ Principles and Practice-A K Peters_CRC Press (2014)' Pg.29 */
@@ -1320,6 +1638,23 @@ void ae_quad_calc_light_intensity(Quad *quad, Scene *scene, Lighting_mode lighti
     }
 }
 
+/**
+ * @brief Intersect a line segment with a plane.
+ *
+ * Computes intersection of segment [line_start, line_end] with the plane
+ * defined by point plane_p and normal plane_n. plane_n is normalized inside
+ * the function. The parameter t in [0, 1] is returned via out-parameter.
+ *
+ * @note The Mat2D objects line_start and line_end are temporarily modified
+ * internally; pass copies if you must preserve their values.
+ *
+ * @param plane_p Plane reference point (3x1).
+ * @param plane_n Plane normal (3x1).
+ * @param line_start Segment start point (3x1).
+ * @param line_end Segment end point (3x1).
+ * @param t Output parametric distance along the segment (0=start, 1=end).
+ * @return Point Intersection point in 3D.
+ */
 Point ae_line_itersect_plane(Mat2D plane_p, Mat2D plane_n, Mat2D line_start, Mat2D line_end, float *t)
 {
     mat2D_normalize(plane_n);
@@ -1344,24 +1679,22 @@ Point ae_line_itersect_plane(Mat2D plane_p, Mat2D plane_n, Mat2D line_start, Mat
     return ans_p;
 }
 
-/* signed distance from point to plane */
-float ae_signed_dist_point_and_plane(Point p, Mat2D plane_p, Mat2D plane_n)
-{
-    ae_assert_point_is_valid(p);
-
-    // mat2D_normalize(plane_n);
-    // Mat2D p_mat2D = mat2D_alloc(3, 1);
-    // ae_point_to_mat2D(p, p_mat2D);
-
-    // float res = mat2D_dot_product(plane_n, p_mat2D) - mat2D_dot_product(plane_n, plane_p); 
-
-    float res = MAT2D_AT(plane_n, 0, 0) * p.x + MAT2D_AT(plane_n, 1, 0) * p.y + MAT2D_AT(plane_n, 2, 0) * p.z - (MAT2D_AT(plane_n, 0, 0) * MAT2D_AT(plane_p, 0, 0) + MAT2D_AT(plane_n, 1, 0) * MAT2D_AT(plane_p, 1, 0) + MAT2D_AT(plane_n, 2, 0) * MAT2D_AT(plane_p, 2, 0)); 
-
-    // mat2D_free(p_mat2D);
-
-    return res;
-}
-
+/**
+ * @brief Clip a line segment against a plane.
+ *
+ * Returns the portion of the line segment [start_in, end_in] that lies on
+ * or inside the plane (signed distance >= 0). plane_n is normalized inside
+ * the function.
+ *
+ * @param start_in Input start point (world or view space).
+ * @param end_in Input end point.
+ * @param plane_p Plane reference point (3x1).
+ * @param plane_n Plane normal (3x1).
+ * @param start_out Output clipped start point (if visible).
+ * @param end_out Output clipped end point (if visible).
+ * @return int 0 if fully outside, 1 if fully or partially inside (outputs
+ *         are valid), -1 on error.
+ */
 int ae_line_clip_with_plane(Point start_in, Point end_in, Mat2D plane_p, Mat2D plane_n, Point *start_out, Point *end_out)
 {
     ae_assert_point_is_valid(start_in);
@@ -1438,8 +1771,48 @@ int ae_line_clip_with_plane(Point start_in, Point end_in, Mat2D plane_p, Mat2D p
     return -1;
 }
 
-/* returns number of inside triangles
-return -1 on error */
+/**
+ * @brief Signed distance from a point to a plane.
+ *
+ * Computes dot(n, p) - dot(n, plane_p). The normal is not normalized
+ * internally; pass a normalized plane_n for distances in consistent units.
+ *
+ * @param p Point to evaluate.
+ * @param plane_p Plane reference point (3x1).
+ * @param plane_n Plane normal (3x1).
+ * @return float Signed distance (>=0 is on the "inside" of the plane).
+ */
+float ae_signed_dist_point_and_plane(Point p, Mat2D plane_p, Mat2D plane_n)
+{
+    ae_assert_point_is_valid(p);
+
+    // mat2D_normalize(plane_n);
+    // Mat2D p_mat2D = mat2D_alloc(3, 1);
+    // ae_point_to_mat2D(p, p_mat2D);
+
+    // float res = mat2D_dot_product(plane_n, p_mat2D) - mat2D_dot_product(plane_n, plane_p); 
+
+    float res = MAT2D_AT(plane_n, 0, 0) * p.x + MAT2D_AT(plane_n, 1, 0) * p.y + MAT2D_AT(plane_n, 2, 0) * p.z - (MAT2D_AT(plane_n, 0, 0) * MAT2D_AT(plane_p, 0, 0) + MAT2D_AT(plane_n, 1, 0) * MAT2D_AT(plane_p, 1, 0) + MAT2D_AT(plane_n, 2, 0) * MAT2D_AT(plane_p, 2, 0)); 
+
+    // mat2D_free(p_mat2D);
+
+    return res;
+}
+
+/**
+ * @brief Clip a triangle against a plane.
+ *
+ * Splits or discards the triangle tri_in against the plane defined by
+ * (plane_p, plane_n). plane_n is normalized inside the function.
+ *
+ * @param tri_in Input triangle.
+ * @param plane_p Plane reference point (3x1).
+ * @param plane_n Plane normal (3x1).
+ * @param tri_out1 First output triangle (if any).
+ * @param tri_out2 Second output triangle (if split).
+ * @return int Number of output triangles: 0 (culled), 1, or 2. Returns -1
+ *         on error.
+ */
 int ae_tri_clip_with_plane(Tri tri_in, Mat2D plane_p, Mat2D plane_n, Tri *tri_out1, Tri *tri_out2)
 {
     ae_assert_tri_is_valid(tri_in);
@@ -1767,8 +2140,22 @@ int ae_tri_clip_with_plane(Tri tri_in, Mat2D plane_p, Mat2D plane_n, Tri *tri_ou
     return -1;
 }
 
-/* returns number of inside quads
-return -1 on error */
+/**
+ * @brief Clip a quad against a plane.
+ *
+ * Splits or discards the quad quad_in against the plane defined by
+ * (plane_p, plane_n). plane_n is normalized inside the function.
+ *
+ * @param quad_in Input quad.
+ * @param plane_p Plane reference point (3x1).
+ * @param plane_n Plane normal (3x1).
+ * @param quad_out1 First output quad (if any). When output count is 2,
+ *        this holds one of the resulting polygons (possibly as a quad
+ *        composed from intersections).
+ * @param quad_out2 Second output quad (if split).
+ * @return int Number of output polygons: 0 (culled), 1, or 2. Returns -1
+ *         on error.
+ */
 int ae_quad_clip_with_plane(Quad quad_in, Mat2D plane_p, Mat2D plane_n, Quad *quad_out1, Quad *quad_out2)
 {
     ae_assert_quad_is_valid(quad_in);
@@ -2257,6 +2644,19 @@ int ae_quad_clip_with_plane(Quad quad_in, Mat2D plane_p, Mat2D plane_n, Quad *qu
     return -1;
 }
 
+/**
+ * @brief Build a perspective projection matrix.
+ *
+ * proj_mat must be 4x4. FOV is in degrees. The matrix maps view-space to
+ * clip space consistent with the engine's pipeline; z is mapped using
+ * z_far/(z_far - z_near).
+ *
+ * @param proj_mat Output 4x4 projection matrix.
+ * @param aspect_ratio aspect = window_h / window_w.
+ * @param FOV_deg Vertical field of view in degrees (must be > 0).
+ * @param z_near Near clipping plane distance (> 0).
+ * @param z_far Far clipping plane distance (> z_near).
+ */
 void ae_projection_mat_set(Mat2D proj_mat,float aspect_ratio, float FOV_deg, float z_near, float z_far)
 {
     AE_ASSERT(4 == proj_mat.cols); 
@@ -2275,6 +2675,22 @@ void ae_projection_mat_set(Mat2D proj_mat,float aspect_ratio, float FOV_deg, flo
     MAT2D_AT(proj_mat, 3, 2) = - z_normalization * z_near;
 }
 
+/**
+ * @brief Build a right-handed view matrix from a Camera and up vector.
+ *
+ * Computes camera basis (right, up, forward) from yaw/pitch/roll offsets
+ * and direction, applies offset_position along those axes to update
+ * current_position, then zeroes offset_position. Writes the resulting 4x4
+ * view matrix.
+ *
+ * @note Although camera is passed by value, its Mat2D members (e.g.
+ * current_position, offset_position, camera_x/y/z) are modified in place
+ * due to internal pointer semantics of Mat2D.
+ *
+ * @param view_mat Output 4x4 view matrix.
+ * @param camera Camera state (basis vectors and positions updated).
+ * @param up World up direction (3x1).
+ */
 void ae_view_mat_set(Mat2D view_mat, Camera camera, Mat2D up)
 {
     Mat2D DCM = mat2D_alloc(3,3);
@@ -2352,6 +2768,19 @@ void ae_view_mat_set(Mat2D view_mat, Camera camera, Mat2D up)
     mat2D_free(camera_direction);
 }
 
+/**
+ * @brief Project a point from world space directly to screen space.
+ *
+ * Combines ae_point_project_world2view and ae_point_project_view2screen.
+ *
+ * @param view_mat View matrix (4x4).
+ * @param proj_mat Projection matrix (4x4).
+ * @param src World-space point.
+ * @param window_w Screen width in pixels.
+ * @param window_h Screen height in pixels.
+ * @return Point Screen-space point (x,y in pixels). z is post-projection
+ *         z/w, w is clip-space w.
+ */
 Point ae_point_project_world2screen(Mat2D view_mat, Mat2D proj_mat, Point src, int window_w, int window_h)
 {
     Point view_point = ae_point_project_world2view(view_mat, src);
@@ -2360,6 +2789,16 @@ Point ae_point_project_world2screen(Mat2D view_mat, Mat2D proj_mat, Point src, i
     return screen_point;
 }
 
+/**
+ * @brief Transform a point from world space to view space.
+ *
+ * Multiplies [x y z 1] by view_mat (row-vector convention in this code).
+ * Returns the resulting view-space point; w should be 1.
+ *
+ * @param view_mat View matrix (4x4).
+ * @param src World-space point.
+ * @return Point View-space point (w=1).
+ */
 Point ae_point_project_world2view(Mat2D view_mat, Point src)
 {
     ae_assert_point_is_valid(src);
@@ -2390,6 +2829,22 @@ Point ae_point_project_world2view(Mat2D view_mat, Point src)
 
 }
 
+/**
+ * @brief Project a view-space point to screen space.
+ *
+ * Applies the projection matrix, performs perspective divide if |w| > 1e-3,
+ * maps normalized device coords to pixel coordinates:
+ *   x_screen = (x_ndc + 1) * 0.5 * window_w
+ *   y_screen = (y_ndc + 1) * 0.5 * window_h
+ *
+ * z is z_ndc, w is the clip-space w (or 1 if the original w ~ 0).
+ *
+ * @param proj_mat Projection matrix (4x4).
+ * @param src View-space point.
+ * @param window_w Screen width in pixels.
+ * @param window_h Screen height in pixels.
+ * @return Point Screen-space point.
+ */
 Point ae_point_project_view2screen(Mat2D proj_mat, Point src, int window_w, int window_h)
 {
     ae_assert_point_is_valid(src);
@@ -2426,7 +2881,6 @@ Point ae_point_project_view2screen(Mat2D proj_mat, Point src, int window_w, int 
     mat2D_free(src_point_mat);
     mat2D_free(des_point_mat);
 
-
     /* scale into view */
     des.x += 1;
     des.y += 1;
@@ -2437,6 +2891,23 @@ Point ae_point_project_view2screen(Mat2D proj_mat, Point src, int window_w, int 
     return des;
 }
 
+/**
+ * @brief Project and near-clip a world-space line segment to screen space.
+ *
+ * Transforms the segment to view space, clips it against the near plane at
+ * z = z_near + 0.01, then projects to screen space. If fully clipped, both
+ * outputs are set to the sentinel (-1, -1, 1, 1).
+ *
+ * @param view_mat View matrix (4x4).
+ * @param proj_mat Projection matrix (4x4).
+ * @param start_src World-space start point.
+ * @param end_src World-space end point.
+ * @param window_w Screen width in pixels.
+ * @param window_h Screen height in pixels.
+ * @param start_des Output screen-space start point (or sentinel).
+ * @param end_des Output screen-space end point (or sentinel).
+ * @param scene Scene (used for near plane distance).
+ */
 void ae_line_project_world2screen(Mat2D view_mat, Mat2D proj_mat, Point start_src, Point end_src, int window_w, int window_h, Point *start_des, Point *end_des, Scene *scene)
 {
     Point start_view_point = ae_point_project_world2view(view_mat, start_src);
@@ -2482,6 +2953,16 @@ void ae_line_project_world2screen(Mat2D view_mat, Mat2D proj_mat, Point start_sr
 
 }
 
+/**
+ * @brief Transform a triangle from world space to view space.
+ *
+ * Applies view_mat to each vertex (homogeneous multiply with w=1). Returns
+ * the transformed triangle; normals are not changed.
+ *
+ * @param view_mat View matrix (4x4).
+ * @param tri World-space triangle.
+ * @return Tri View-space triangle.
+ */
 Tri ae_tri_transform_to_view(Mat2D view_mat, Tri tri)
 {
     ae_assert_tri_is_valid(tri);
@@ -2515,6 +2996,23 @@ Tri ae_tri_transform_to_view(Mat2D view_mat, Tri tri)
     return des_tri;
 }
 
+/**
+ * @brief Project a single world-space triangle to screen space with clipping.
+ *
+ * Computes lighting, back-face visibility, transforms to view space, clips
+ * against near plane, and projects to screen space. If clipping splits the
+ * triangle, multiple triangles may be returned.
+ *
+ * @param proj_mat Projection matrix (4x4).
+ * @param view_mat View matrix (4x4).
+ * @param tri World-space triangle.
+ * @param window_w Screen width in pixels.
+ * @param window_h Screen height in pixels.
+ * @param scene Scene (camera for near plane, light/material for lighting).
+ * @param lighting_mode Flat or smooth lighting mode.
+ * @return Tri_mesh An ADA array of resulting screen-space triangles. Caller
+ *         must free result.elements.
+ */
 Tri_mesh ae_tri_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Tri tri, int window_w, int window_h, Scene *scene, Lighting_mode lighting_mode)
 {
     ae_assert_tri_is_valid(tri);
@@ -2612,6 +3110,22 @@ Tri_mesh ae_tri_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Tri tri, in
     return temp_tri_array;
 }
 
+/**
+ * @brief Project a triangle mesh from world to screen space with clipping.
+ *
+ * Iterates over all triangles, applies near-plane and screen-edge clipping
+ * (top/right/bottom/left), and writes results into des. Triangles can be
+ * split by clipping, so des may end up with more elements than src.
+ *
+ * @param proj_mat Projection matrix (4x4).
+ * @param view_mat View matrix (4x4).
+ * @param des Output mesh (cleared and filled; ADA array grown as needed).
+ * @param src Input world-space triangle mesh.
+ * @param window_w Screen width in pixels.
+ * @param window_h Screen height in pixels.
+ * @param scene Scene (camera/light/material).
+ * @param lighting_mode Flat or smooth lighting mode.
+ */
 void ae_tri_mesh_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Tri_mesh *des, Tri_mesh src, int window_w, int window_h, Scene *scene, Lighting_mode lighting_mode)
 {
     Tri_mesh temp_des = *des;
@@ -2722,6 +3236,16 @@ void ae_tri_mesh_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Tri_mesh *
     *des = temp_des;
 }
 
+/**
+ * @brief Transform a quad from world space to view space.
+ *
+ * Applies view_mat to each vertex (homogeneous multiply with w=1). Returns
+ * the transformed quad; normals are not changed.
+ *
+ * @param view_mat View matrix (4x4).
+ * @param quad World-space quad.
+ * @return Quad View-space quad.
+ */
 Quad ae_quad_transform_to_view(Mat2D view_mat, Quad quad)
 {
     ae_assert_quad_is_valid(quad);
@@ -2755,6 +3279,23 @@ Quad ae_quad_transform_to_view(Mat2D view_mat, Quad quad)
     return des_quad;
 }
 
+/**
+ * @brief Project a single world-space quad to screen space with clipping.
+ *
+ * Computes lighting and visibility, transforms to view space, clips against
+ * near plane, and projects to screen space. A quad may produce one or two
+ * quads after clipping.
+ *
+ * @param proj_mat Projection matrix (4x4).
+ * @param view_mat View matrix (4x4).
+ * @param quad World-space quad.
+ * @param window_w Screen width in pixels.
+ * @param window_h Screen height in pixels.
+ * @param scene Scene (camera/light/material).
+ * @param lighting_mode Flat or smooth lighting mode.
+ * @return Quad_mesh An ADA array of resulting screen-space quads. Caller
+ *         must free result.elements.
+ */
 Quad_mesh ae_quad_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Quad quad, int window_w, int window_h, Scene *scene, Lighting_mode lighting_mode)
 {
     ae_assert_quad_is_valid(quad);
@@ -2852,6 +3393,22 @@ Quad_mesh ae_quad_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Quad quad
     return temp_quad_array;
 }
 
+/**
+ * @brief Project a quad mesh from world to screen space with clipping.
+ *
+ * Iterates over all quads, applies near-plane and screen-edge clipping, and
+ * writes results into des. Quads can be split by clipping, so des may end
+ * up with more elements than src.
+ *
+ * @param proj_mat Projection matrix (4x4).
+ * @param view_mat View matrix (4x4).
+ * @param des Output mesh (cleared and filled; ADA array grown as needed).
+ * @param src Input world-space quad mesh.
+ * @param window_w Screen width in pixels.
+ * @param window_h Screen height in pixels.
+ * @param scene Scene (camera/light/material).
+ * @param lighting_mode Flat or smooth lighting mode.
+ */
 void ae_quad_mesh_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Quad_mesh *des, Quad_mesh src, int window_w, int window_h, Scene *scene, Lighting_mode lighting_mode)
 {
     Quad_mesh temp_des = *des;
@@ -2959,7 +3516,23 @@ void ae_quad_mesh_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Quad_mesh
     *des = temp_des;
 }
 
-/* This solution is not prefect. It sometimes delete one more edge then necessary, but I think that it won't brake */
+
+/**
+ * @brief Project and clip a polyline (Curve) from world to screen space.
+ *
+ * Projects each segment with near-plane clipping and screen-edge clipping.
+ * Segments fully outside are removed. The destination curve is overwritten.
+ * 
+ * @note This solution is not prefect. It sometimes delete one more edge then necessary, but I think that it won't brake.
+ *
+ * @param proj_mat Projection matrix (4x4).
+ * @param view_mat View matrix (4x4).
+ * @param des Output curve (overwritten; ADA array grown as needed).
+ * @param src Input world-space curve.
+ * @param window_w Screen width in pixels.
+ * @param window_h Screen height in pixels.
+ * @param scene Scene (camera for near plane).
+ */
 void ae_curve_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Curve *des, Curve src, int window_w, int window_h, Scene *scene)
 {
     ae_curve_copy(des, src);
@@ -3058,6 +3631,20 @@ void ae_curve_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Curve *des, C
     mat2D_free(right_n);
 }
 
+/**
+ * @brief Project and clip an array of polylines from world to screen space.
+ *
+ * Applies ae_curve_project_world2screen to each element in src and writes
+ * into the corresponding element in des. Arrays must be the same length.
+ *
+ * @param proj_mat Projection matrix (4x4).
+ * @param view_mat View matrix (4x4).
+ * @param des Output array of curves (each overwritten).
+ * @param src Input array of world-space curves.
+ * @param window_w Screen width in pixels.
+ * @param window_h Screen height in pixels.
+ * @param scene Scene (camera for near plane).
+ */
 void ae_curve_ada_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Curve_ada *des, Curve_ada src, int window_w, int window_h, Scene *scene)
 {
     if (src.length == 0) return;
@@ -3066,6 +3653,19 @@ void ae_curve_ada_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Curve_ada
     }
 }
 
+/**
+ * @brief Project and clip all polylines in a Grid from world to screen.
+ *
+ * Applies ae_curve_project_world2screen to each curve in the grid.
+ *
+ * @param proj_mat Projection matrix (4x4).
+ * @param view_mat View matrix (4x4).
+ * @param des Output grid (curves overwritten).
+ * @param src Input world-space grid.
+ * @param window_w Screen width in pixels.
+ * @param window_h Screen height in pixels.
+ * @param scene Scene (camera for near plane).
+ */
 void ae_grid_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Grid des, Grid src, int window_w, int window_h, Scene *scene)
 {
     if (src.curves.length == 0) return;
@@ -3074,7 +3674,13 @@ void ae_grid_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Grid des, Grid
     }
 }
 
-/* swap: interchange v[i] and v[j] */
+/**
+ * @brief Swap two triangles in an array.
+ *
+ * @param v Array of triangles.
+ * @param i Index of first element.
+ * @param j Index of second element.
+ */
 void ae_tri_swap(Tri *v, int i, int j)
 {
     Tri temp;
@@ -3084,29 +3690,33 @@ void ae_tri_swap(Tri *v, int i, int j)
     v[j] = temp;
 }
 
+/**
+ * @brief Compare two triangles for sorting by depth.
+ *
+ * Returns true if t1 should come before t2 when sorting by the maximum z of
+ * their vertices (descending order).
+ *
+ * @param t1 First triangle.
+ * @param t2 Second triangle.
+ * @return bool true if t1 precedes t2, false otherwise.
+ */
 bool ae_tri_compare(Tri t1, Tri t2)
 {
-    // int z_min_1 = fmin(t1.points[0].z, fmin(t1.points[1].z, t1.points[2].z));
-    // int z_min_2 = fmin(t2.points[0].z, fmin(t2.points[1].z, t2.points[2].z));
-
-    // return z_min_1 > z_min_2;
-
-    // int z_ave_1 = t1.points[0].z + t1.points[1].z + t1.points[2].z;
-    // int z_ave_2 = t2.points[0].z + t2.points[1].z + t2.points[2].z;
-
-    // return z_ave_1 > z_ave_2;
-
-    // return t1.center.z > t2.center.z;
-
-    // return t1.z_min > t2.z_min;
-
     float t1_z_max = fmaxf(t1.points[0].z, fmaxf(t1.points[1].z, t1.points[2].z));
     float t2_z_max = fmaxf(t2.points[0].z, fmaxf(t2.points[1].z, t2.points[2].z));
 
     return t1_z_max > t2_z_max;
 }
 
-/* qsort: sort v[left]...v[right] int increasing order */
+/**
+ * @brief Quicksort an array of triangles by depth.
+ *
+ * Sorts v[left..right] using ae_tri_compare (descending by max z).
+ *
+ * @param v Array of triangles to sort.
+ * @param left Left index (inclusive).
+ * @param right Right index (inclusive).
+ */
 void ae_tri_qsort(Tri *v, int left, int right)
 {
     int i, last;
@@ -3123,11 +3733,33 @@ void ae_tri_qsort(Tri *v, int left, int right)
     ae_tri_qsort(v, last + 1, right);
 }
 
+/**
+ * @brief Linearly map a scalar from one range to another.
+ *
+ * Computes min_out + (s - min_in) * (max_out - min_out) / (max_in - min_in).
+ *
+ * @param s Input scalar.
+ * @param min_in Input range minimum.
+ * @param max_in Input range maximum.
+ * @param min_out Output range minimum.
+ * @param max_out Output range maximum.
+ * @return double Mapped scalar.
+ */
 double ae_linear_map(double s, double min_in, double max_in, double min_out, double max_out)
 {
     return (min_out + ((s-min_in)*(max_out-min_out))/(max_in-min_in));
 }
 
+/**
+ * @brief Visualize an inverse-z buffer by writing a grayscale image.
+ *
+ * Finds the min positive and max inverse-z in inv_z_buffer, maps the range
+ * to [0.1, 1.0], and writes an RGB grayscale value into screen_mat at each
+ * pixel. Values <= 0 are clamped to the minimum positive.
+ *
+ * @param screen_mat Output RGB image (Mat2D_uint32) 0xRRGGBB per pixel.
+ * @param inv_z_buffer Input inverse-z values (Mat2D of doubles).
+ */
 void ae_z_buffer_copy_to_screen(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer)
 {
     double max_inv_z = 0;
