@@ -1,3 +1,25 @@
+/**
+ * @file
+ * @brief Immediate-mode 2D/3D raster helpers for drawing onto
+ *        Mat2D_uint32 pixel buffers.
+ *
+ * Conventions
+ * - Pixel buffer: Mat2D_uint32 with elements encoded as ARGB 0xAARRGGBB.
+ * - Coordinates: x grows to the right, y grows downward; origin is the
+ *   top-left corner of the destination buffer.
+ * - Depth: Functions that accept inv_z_buffer perform a depth test using
+ *   inverse-Z (larger values are closer). The buffer stores doubles.
+ * - Transform: Most drawing functions accept an Offset_zoom_param
+ *   describing a pan/zoom transform that is applied about the screen
+ *   center. Use ADL_DEFAULT_OFFSET_ZOOM for identity.
+ * - Colors: Unless noted otherwise, colors are ARGB in 0xAARRGGBB format.
+ * - Alpha: adl_point_draw alpha-blends source over destination and writes
+ *   an opaque result (A = 255) to the pixel buffer.
+ *
+ * This header contains function declarations and optional implementations
+ * (guarded by ALMOG_DRAW_LIBRARY_IMPLEMENTATION).
+ */
+
 #ifndef ALMOG_DRAW_LIBRARY_H_
 #define ALMOG_DRAW_LIBRARY_H_
 
@@ -244,10 +266,20 @@ void    adl_grid_draw(Mat2D_uint32 screen_mat, Grid grid, uint32_t color, Offset
     (p).x = ((p).x - (window_w)/2 + offset_zoom_param.offset_x) * offset_zoom_param.zoom_multiplier + (window_w)/2; \
     (p).y = ((p).y - (window_h)/2 + offset_zoom_param.offset_y) * offset_zoom_param.zoom_multiplier + (window_h)/2
 
-/* default values should be: 
-zoom_multiplier = 1;
-offset_x = 0;
-offset_y = 0; */
+/**
+ * @brief Draw a single pixel with alpha blending.
+ *
+ * Applies the pan/zoom transform and writes the pixel if it falls inside
+ * the destination bounds. The source color is blended over the existing
+ * pixel using the source alpha; the stored alpha is set to 255.
+ *
+ * @param screen_mat Destination ARGB pixel buffer.
+ * @param x X coordinate in pixels (before pan/zoom).
+ * @param y Y coordinate in pixels (before pan/zoom).
+ * @param color Source color (0xAARRGGBB).
+ * @param offset_zoom_param Pan/zoom transform. Use ADL_DEFAULT_OFFSET_ZOOM
+ *        for identity.
+ */
 void adl_point_draw(Mat2D_uint32 screen_mat, int x, int y, uint32_t color, Offset_zoom_param offset_zoom_param)
 {
     float window_w = (float)screen_mat.cols;
@@ -266,6 +298,21 @@ void adl_point_draw(Mat2D_uint32 screen_mat, int x, int y, uint32_t color, Offse
     }
 }
 
+/**
+ * @brief Draw an anti-aliased-like line by vertical spans (integer grid).
+ *
+ * The line is rasterized with a simple integer-span approach. Pan/zoom is
+ * applied about the screen center prior to rasterization.
+ *
+ * @param screen_mat Destination ARGB pixel buffer.
+ * @param x1_input Line start X (before pan/zoom).
+ * @param y1_input Line start Y (before pan/zoom).
+ * @param x2_input Line end X (before pan/zoom).
+ * @param y2_input Line end Y (before pan/zoom).
+ * @param color Line color (0xAARRGGBB).
+ * @param offset_zoom_param Pan/zoom transform. Use ADL_DEFAULT_OFFSET_ZOOM
+ *        for identity.
+ */
 void adl_line_draw(Mat2D_uint32 screen_mat, const float x1_input, const float y1_input, const float x2_input, const float y2_input, uint32_t color, Offset_zoom_param offset_zoom_param)
 {
     /* This function is inspired by the Olive.c function developed by 'Tsoding' on his YouTube channel. You can fined the video in this link: https://youtu.be/LmQKZmQh1ZQ?list=PLpM-Dvs8t0Va-Gb0Dp4d9t8yvNFHaKH6N&t=4683. */
@@ -342,6 +389,17 @@ void adl_line_draw(Mat2D_uint32 screen_mat, const float x1_input, const float y1
 
 }
 
+/**
+ * @brief Draw a polyline connecting an array of points.
+ *
+ * Draws segments between consecutive points: p[0]-p[1]-...-p[len-1].
+ *
+ * @param screen_mat Destination ARGB pixel buffer.
+ * @param points Array of points in pixel space (before pan/zoom).
+ * @param len Number of points in the array (>= 1).
+ * @param color Line color (0xAARRGGBB).
+ * @param offset_zoom_param Pan/zoom transform. Use ADL_DEFAULT_OFFSET_ZOOM for identity.
+ */
 void adl_lines_draw(const Mat2D_uint32 screen_mat, const Point *points, const size_t len, const uint32_t color, Offset_zoom_param offset_zoom_param)
 {
     if (len == 0) return;
@@ -350,6 +408,18 @@ void adl_lines_draw(const Mat2D_uint32 screen_mat, const Point *points, const si
     }
 }
 
+/**
+ * @brief Draw a closed polyline (loop).
+ *
+ * Same as adl_lines_draw, plus an extra segment from the last point back
+ * to the first point.
+ *
+ * @param screen_mat Destination ARGB pixel buffer.
+ * @param points Array of points in pixel space (before pan/zoom).
+ * @param len Number of points in the array (>= 1).
+ * @param color Line color (0xAARRGGBB).
+ * @param offset_zoom_param Pan/zoom transform. Use ADL_DEFAULT_OFFSET_ZOOM for identity.
+ */
 void adl_lines_loop_draw(const Mat2D_uint32 screen_mat, const Point *points, const size_t len, const uint32_t color, Offset_zoom_param offset_zoom_param)
 {
     if (len == 0) return;
@@ -359,7 +429,25 @@ void adl_lines_loop_draw(const Mat2D_uint32 screen_mat, const Point *points, con
     adl_line_draw(screen_mat, points[len-1].x, points[len-1].y, points[0].x, points[0].y, color, offset_zoom_param);
 }
 
-/* This function is a bit complicated and expansive but this is what I could come up with */
+
+/**
+ * @brief Draw an arrow from start to end with a triangular head.
+ *
+ * The head is constructed by rotating around the arrow tip by
+ * +/- angle_deg and using head_size as a fraction of the shaft length.
+
+ * @note: This function is a bit complicated and expansive but this is what I could come up with
+ *
+ * @param screen_mat Destination ARGB pixel buffer.
+ * @param xs Start X (before pan/zoom).
+ * @param ys Start Y (before pan/zoom).
+ * @param xe End X (before pan/zoom), i.e., the arrow tip.
+ * @param ye End Y (before pan/zoom), i.e., the arrow tip.
+ * @param head_size Head size as a fraction of total length in [0,1].
+ * @param angle_deg Head wing rotation angle in degrees.
+ * @param color Arrow color (0xAARRGGBB).
+ * @param offset_zoom_param Pan/zoom transform. Use ADL_DEFAULT_OFFSET_ZOOM for identity.
+ */
 void adl_arrow_draw(Mat2D_uint32 screen_mat, int xs, int ys, int xe, int ye, float head_size, float angle_deg, uint32_t color, Offset_zoom_param offset_zoom_param)
 {
     Mat2D pe = mat2D_alloc(3, 1);
@@ -412,6 +500,22 @@ void adl_arrow_draw(Mat2D_uint32 screen_mat, int xs, int ys, int xe, int ye, flo
     mat2D_free(DCM_m);
 }
 
+/**
+ * @brief Draw a vector glyph for a single ASCII character.
+ *
+ * Only a limited set of characters is supported (A–Z, a–z, 0–9, space,
+ * '.', ':', '-', '+'). Unsupported characters are rendered as a framed
+ * box with an 'X'. Coordinates are for the character's top-left corner.
+ *
+ * @param screen_mat Destination ARGB pixel buffer.
+ * @param c The character to draw.
+ * @param width_pixel Character box width in pixels.
+ * @param hight_pixel Character box height in pixels (spelled as in API).
+ * @param x_top_left X of top-left corner (before pan/zoom).
+ * @param y_top_left Y of top-left corner (before pan/zoom).
+ * @param color Stroke color (0xAARRGGBB).
+ * @param offset_zoom_param Pan/zoom transform. Use ADL_DEFAULT_OFFSET_ZOOM for identity.
+ */
 void adl_character_draw(Mat2D_uint32 screen_mat, char c, int width_pixel, int hight_pixel, int x_top_left, int y_top_left, uint32_t color, Offset_zoom_param offset_zoom_param)
 {
     switch (c)
@@ -760,6 +864,21 @@ void adl_character_draw(Mat2D_uint32 screen_mat, char c, int width_pixel, int hi
     }
 }
 
+/**
+ * @brief Draw a horizontal sentence using vector glyphs.
+ *
+ * Characters are laid out left-to-right with a spacing derived from the
+ * character height. All characters share the same height.
+ *
+ * @param screen_mat Destination ARGB pixel buffer.
+ * @param sentence ASCII string buffer.
+ * @param len Number of characters to draw from sentence.
+ * @param x_top_left X of top-left of the first character (before transform).
+ * @param y_top_left Y of top-left of the first character (before transform).
+ * @param hight_pixel Character height in pixels (spelled as in API).
+ * @param color Stroke color (0xAARRGGBB).
+ * @param offset_zoom_param Pan/zoom transform. Use ADL_DEFAULT_OFFSET_ZOOM for identity.
+ */
 void adl_sentence_draw(Mat2D_uint32 screen_mat, const char sentence[], size_t len, const int x_top_left, const int y_top_left, const int hight_pixel, const uint32_t color, Offset_zoom_param offset_zoom_param)
 {
     int character_width_pixel = hight_pixel/2;
@@ -773,6 +892,17 @@ void adl_sentence_draw(Mat2D_uint32 screen_mat, const char sentence[], size_t le
 
 }
 
+/**
+ * @brief Draw a rectangle outline defined by min/max corners (inclusive).
+ *
+ * @param screen_mat Destination ARGB pixel buffer.
+ * @param min_x Minimum X (before pan/zoom).
+ * @param max_x Maximum X (before pan/zoom).
+ * @param min_y Minimum Y (before pan/zoom).
+ * @param max_y Maximum Y (before pan/zoom).
+ * @param color Stroke color (0xAARRGGBB).
+ * @param offset_zoom_param Pan/zoom transform. Use ADL_DEFAULT_OFFSET_ZOOM for identity.
+ */
 void adl_rectangle_draw_min_max(Mat2D_uint32 screen_mat, int min_x, int max_x, int min_y, int max_y, uint32_t color, Offset_zoom_param offset_zoom_param)
 {
     adl_line_draw(screen_mat, min_x, min_y, max_x, min_y, color, offset_zoom_param);
@@ -781,6 +911,17 @@ void adl_rectangle_draw_min_max(Mat2D_uint32 screen_mat, int min_x, int max_x, i
     adl_line_draw(screen_mat, max_x, min_y, max_x, max_y, color, offset_zoom_param);
 }
 
+/**
+ * @brief Fill a rectangle defined by min/max corners (inclusive).
+ *
+ * @param screen_mat Destination ARGB pixel buffer.
+ * @param min_x Minimum X (before pan/zoom).
+ * @param max_x Maximum X (before pan/zoom).
+ * @param min_y Minimum Y (before pan/zoom).
+ * @param max_y Maximum Y (before pan/zoom).
+ * @param color Fill color (0xAARRGGBB).
+ * @param offset_zoom_param Pan/zoom transform. Use ADL_DEFAULT_OFFSET_ZOOM for identity.
+ */
 void adl_rectangle_fill_min_max(Mat2D_uint32 screen_mat, int min_x, int max_x, int min_y, int max_y, uint32_t color, Offset_zoom_param offset_zoom_param)
 {
     for (int y = min_y; y <= max_y; y++) {
@@ -788,12 +929,35 @@ void adl_rectangle_fill_min_max(Mat2D_uint32 screen_mat, int min_x, int max_x, i
     }
 }
 
+/**
+ * @brief Draw the outline of a quad (four points, looped).
+ *
+ * Depth buffer is not used in this outline variant.
+ *
+ * @param screen_mat Destination ARGB pixel buffer.
+ * @param inv_z_buffer Unused for outline; safe to pass a dummy Mat2D.
+ * @param quad Quad to draw in pixel space (before transform).
+ * @param color Stroke color (0xAARRGGBB).
+ * @param offset_zoom_param Pan/zoom transform. Use ADL_DEFAULT_OFFSET_ZOOM for identity.
+ */
 void adl_quad_draw(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer, Quad quad, uint32_t color, Offset_zoom_param offset_zoom_param)
 {
     (void)inv_z_buffer;
     adl_lines_loop_draw(screen_mat, quad.points, 4, color, offset_zoom_param);
 }
 
+/**
+ * @brief Fill a quad using mean-value (Barycentric) coordinates and flat base color.
+ *
+ * Performs a depth test against inv_z_buffer and modulates the base color
+ * with the average light_intensity of the quad's vertices.
+ *
+ * @param screen_mat Destination ARGB pixel buffer.
+ * @param inv_z_buffer Inverse-Z buffer (larger is closer).
+ * @param quad Quad in pixel space; points carry z and w for depth.
+ * @param color Base color (0xAARRGGBB).
+ * @param offset_zoom_param Pan/zoom transform. Use ADL_DEFAULT_OFFSET_ZOOM for identity.
+ */
 void adl_quad_fill(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer, Quad quad, uint32_t color, Offset_zoom_param offset_zoom_param)
 {
     Point p0 = quad.points[0];
@@ -876,6 +1040,18 @@ void adl_quad_fill(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer, Quad quad, uint3
     }
 }
 
+/**
+ * @brief Fill a quad with per-pixel light interpolation (mean value coords).
+ *
+ * Interpolates light_intensity across the quad using mean-value
+ * coordinates and modulates a uniform base color. Depth-tested.
+ *
+ * @param screen_mat Destination ARGB pixel buffer.
+ * @param inv_z_buffer Inverse-Z buffer (larger is closer).
+ * @param quad Quad in pixel space; points carry z and w for depth.
+ * @param color Base color (0xAARRGGBB).
+ * @param offset_zoom_param Pan/zoom transform. Use ADL_DEFAULT_OFFSET_ZOOM for identity.
+ */
 void adl_quad_fill_interpolate_normal_mean_value(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer, Quad quad, uint32_t color, Offset_zoom_param offset_zoom_param)
 {
     Point p0 = quad.points[0];
@@ -959,6 +1135,17 @@ void adl_quad_fill_interpolate_normal_mean_value(Mat2D_uint32 screen_mat, Mat2D 
     }
 }
 
+/**
+ * @brief Fill a quad with per-vertex colors (mean value coords).
+ *
+ * Interpolates ARGB vertex colors using mean-value coordinates, optionally
+ * modulated by the average light_intensity. Depth-tested.
+ *
+ * @param screen_mat Destination ARGB pixel buffer.
+ * @param inv_z_buffer Inverse-Z buffer (larger is closer).
+ * @param quad Quad in pixel space with quad.colors[] set.
+ * @param offset_zoom_param Pan/zoom transform. Use ADL_DEFAULT_OFFSET_ZOOM for identity.
+ */
 void adl_quad_fill_interpolate_color_mean_value(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer, Quad quad, Offset_zoom_param offset_zoom_param)
 {
     Point p0 = quad.points[0];
@@ -1052,6 +1239,17 @@ void adl_quad_fill_interpolate_color_mean_value(Mat2D_uint32 screen_mat, Mat2D i
     }
 }
 
+/**
+ * @brief Draw outlines for all quads in a mesh.
+ *
+ * Skips elements with to_draw == false. Depth buffer is not used.
+ *
+ * @param screen_mat Destination ARGB pixel buffer.
+ * @param inv_z_buffer_mat Unused for outline; safe to pass a dummy Mat2D.
+ * @param mesh Quad mesh (array + length).
+ * @param color Stroke color (0xAARRGGBB).
+ * @param offset_zoom_param Pan/zoom transform. Use ADL_DEFAULT_OFFSET_ZOOM for identity.
+ */
 void adl_quad_mesh_draw(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer_mat, Quad_mesh mesh, uint32_t color, Offset_zoom_param offset_zoom_param)
 {
     for (size_t i = 0; i < mesh.length; i++) {
@@ -1065,6 +1263,17 @@ void adl_quad_mesh_draw(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer_mat, Quad_me
     }
 }
 
+/**
+ * @brief Fill all quads in a mesh with a uniform base color.
+ *
+ * Applies per-quad average light_intensity. Depth-tested.
+ *
+ * @param screen_mat Destination ARGB pixel buffer.
+ * @param inv_z_buffer_mat Inverse-Z buffer (larger is closer).
+ * @param mesh Quad mesh (array + length).
+ * @param color Base color (0xAARRGGBB).
+ * @param offset_zoom_param Pan/zoom transform. Use ADL_DEFAULT_OFFSET_ZOOM for identity.
+ */
 void adl_quad_mesh_fill(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer_mat, Quad_mesh mesh, uint32_t color, Offset_zoom_param offset_zoom_param)
 {
     for (size_t i = 0; i < mesh.length; i++) {
@@ -1074,10 +1283,24 @@ void adl_quad_mesh_fill(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer_mat, Quad_me
 
         if (!quad.to_draw) continue;
 
+        // color = rand_double() * 0xFFFFFFFF;
+
         adl_quad_fill(screen_mat, inv_z_buffer_mat, quad, color, offset_zoom_param);
     }
 }
 
+/**
+ * @brief Fill all quads in a mesh using interpolated lighting.
+ *
+ * Interpolates light_intensity across quads and modulates a uniform base
+ * color. Depth-tested.
+ *
+ * @param screen_mat Destination ARGB pixel buffer.
+ * @param inv_z_buffer_mat Inverse-Z buffer (larger is closer).
+ * @param mesh Quad mesh (array + length).
+ * @param color Base color (0xAARRGGBB).
+ * @param offset_zoom_param Pan/zoom transform. Use ADL_DEFAULT_OFFSET_ZOOM for identity.
+ */
 void adl_quad_mesh_fill_interpolate_normal(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer_mat, Quad_mesh mesh, uint32_t color, Offset_zoom_param offset_zoom_param)
 {
     for (size_t i = 0; i < mesh.length; i++) {
@@ -1097,6 +1320,17 @@ void adl_quad_mesh_fill_interpolate_normal(Mat2D_uint32 screen_mat, Mat2D inv_z_
     }
 }
 
+/**
+ * @brief Fill all quads in a mesh using per-vertex colors.
+ *
+ * Interpolates quad.colors[] across each quad with mean-value coordinates.
+ * Depth-tested.
+ *
+ * @param screen_mat Destination ARGB pixel buffer.
+ * @param inv_z_buffer_mat Inverse-Z buffer (larger is closer).
+ * @param mesh Quad mesh (array + length).
+ * @param offset_zoom_param Pan/zoom transform. Use ADL_DEFAULT_OFFSET_ZOOM for identity.
+ */
 void adl_quad_mesh_fill_interpolate_color(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer_mat, Quad_mesh mesh, Offset_zoom_param offset_zoom_param)
 {
     for (size_t i = 0; i < mesh.length; i++) {
@@ -1110,6 +1344,19 @@ void adl_quad_mesh_fill_interpolate_color(Mat2D_uint32 screen_mat, Mat2D inv_z_b
     }
 }
 
+/**
+ * @brief Draw an approximate circle outline (1px thickness).
+ *
+ * The outline is approximated on the integer grid by sampling a band
+ * around radius r.
+ *
+ * @param screen_mat Destination ARGB pixel buffer.
+ * @param center_x Circle center X (before pan/zoom).
+ * @param center_y Circle center Y (before pan/zoom).
+ * @param r Circle radius in pixels.
+ * @param color Stroke color (0xAARRGGBB).
+ * @param offset_zoom_param Pan/zoom transform. Use ADL_DEFAULT_OFFSET_ZOOM for identity.
+ */
 void adl_circle_draw(Mat2D_uint32 screen_mat, float center_x, float center_y, float r, uint32_t color, Offset_zoom_param offset_zoom_param)
 {
     for (int dy = -r; dy <= r; dy++) {
@@ -1122,6 +1369,16 @@ void adl_circle_draw(Mat2D_uint32 screen_mat, float center_x, float center_y, fl
     }
 }
 
+/**
+ * @brief Fill a circle.
+ *
+ * @param screen_mat Destination ARGB pixel buffer.
+ * @param center_x Circle center X (before pan/zoom).
+ * @param center_y Circle center Y (before pan/zoom).
+ * @param r Circle radius in pixels.
+ * @param color Fill color (0xAARRGGBB).
+ * @param offset_zoom_param Pan/zoom transform. Use ADL_DEFAULT_OFFSET_ZOOM for identity.
+ */
 void adl_circle_fill(Mat2D_uint32 screen_mat, float center_x, float center_y, float r, uint32_t color, Offset_zoom_param offset_zoom_param)
 {
     for (int dy = -r; dy <= r; dy++) {
@@ -1134,6 +1391,14 @@ void adl_circle_fill(Mat2D_uint32 screen_mat, float center_x, float center_y, fl
     }
 }
 
+/**
+ * @brief Draw the outline of a triangle.
+ *
+ * @param screen_mat Destination ARGB pixel buffer.
+ * @param tri Triangle in pixel space (before transform).
+ * @param color Stroke color (0xAARRGGBB).
+ * @param offset_zoom_param Pan/zoom transform. Use ADL_DEFAULT_OFFSET_ZOOM for identity.
+ */
 void adl_tri_draw(Mat2D_uint32 screen_mat, Tri tri, uint32_t color, Offset_zoom_param offset_zoom_param)
 {
     adl_line_draw(screen_mat, tri.points[0].x, tri.points[0].y, tri.points[1].x, tri.points[1].y, color, offset_zoom_param);
@@ -1145,7 +1410,18 @@ void adl_tri_draw(Mat2D_uint32 screen_mat, Tri tri, uint32_t color, Offset_zoom_
     // adl_draw_arrow(screen_mat, tri.points[2].x, tri.points[2].y, tri.points[0].x, tri.points[0].y, 0.3, 22, color);
 }
 
-/* This function is the function for rasterization */
+/**
+ * @brief Fill a triangle using Pineda's rasterizer with flat base color.
+ *
+ * Uses the top-left fill convention and performs a depth test using
+ * inverse-Z computed from per-vertex z and w.
+ *
+ * @param screen_mat Destination ARGB pixel buffer.
+ * @param inv_z_buffer Inverse-Z buffer (larger is closer).
+ * @param tri Triangle in pixel space; points carry z and w for depth.
+ * @param color Base color (0xAARRGGBB).
+ * @param offset_zoom_param Pan/zoom transform. Use ADL_DEFAULT_OFFSET_ZOOM for identity.
+ */
 void adl_tri_fill_Pinedas_rasterizer(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer, Tri tri, uint32_t color, Offset_zoom_param offset_zoom_param)
 {
     /* This function follows the rasterizer of 'Pikuma' shown in his YouTube video. You can fine the video in this link: https://youtu.be/k5wtuKWmV48. */
@@ -1216,6 +1492,17 @@ void adl_tri_fill_Pinedas_rasterizer(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer
     }
 }
 
+/**
+ * @brief Fill a triangle using Pineda's rasterizer with per-vertex colors.
+ *
+ * Interpolates tri.colors[] and optionally modulates by average
+ * light_intensity. Depth-tested.
+ *
+ * @param screen_mat Destination ARGB pixel buffer.
+ * @param inv_z_buffer Inverse-Z buffer (larger is closer).
+ * @param tri Triangle in pixel space with colors set.
+ * @param offset_zoom_param Pan/zoom transform. Use ADL_DEFAULT_OFFSET_ZOOM for identity.
+ */
 void adl_tri_fill_Pinedas_rasterizer_interpolate_color(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer, Tri tri, Offset_zoom_param offset_zoom_param)
 {
     /* This function follows the rasterizer of 'Pikuma' shown in his YouTube video. You can fine the video in this link: https://youtu.be/k5wtuKWmV48. */
@@ -1295,6 +1582,18 @@ void adl_tri_fill_Pinedas_rasterizer_interpolate_color(Mat2D_uint32 screen_mat, 
     }
 }
 
+/**
+ * @brief Fill a triangle with interpolated lighting over a uniform color.
+ *
+ * Interpolates light_intensity across the triangle and modulates a
+ * uniform base color. Depth-tested.
+ *
+ * @param screen_mat Destination ARGB pixel buffer.
+ * @param inv_z_buffer Inverse-Z buffer (larger is closer).
+ * @param tri Triangle in pixel space; points carry z and w for depth.
+ * @param color Base color (0xAARRGGBB).
+ * @param offset_zoom_param Pan/zoom transform. Use ADL_DEFAULT_OFFSET_ZOOM for identity.
+ */
 void adl_tri_fill_Pinedas_rasterizer_interpolate_normal(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer, Tri tri, uint32_t color, Offset_zoom_param offset_zoom_param)
 {
     /* This function follows the rasterizer of 'Pikuma' shown in his YouTube video. You can fine the video in this link: https://youtu.be/k5wtuKWmV48. */
@@ -1367,18 +1666,38 @@ void adl_tri_fill_Pinedas_rasterizer_interpolate_normal(Mat2D_uint32 screen_mat,
     }
 }
 
+/**
+ * @brief Draw outlines for all triangles in a mesh.
+ *
+ * Skips elements with to_draw == false.
+ *
+ * @param screen_mat Destination ARGB pixel buffer.
+ * @param mesh Triangle mesh (array + length).
+ * @param color Stroke color (0xAARRGGBB).
+ * @param offset_zoom_param Pan/zoom transform. Use ADL_DEFAULT_OFFSET_ZOOM for identity.
+ */
 void adl_tri_mesh_draw(Mat2D_uint32 screen_mat, Tri_mesh mesh, uint32_t color, Offset_zoom_param offset_zoom_param)
 {
     for (size_t i = 0; i < mesh.length; i++) {
         Tri tri = mesh.elements[i];
-
-        if (!tri.to_draw) continue;
-
-        // color = rand_double() * 0xFFFFFFFF;
-        adl_tri_draw(screen_mat, tri, color, offset_zoom_param);
+        if (tri.to_draw) {
+            // color = rand_double() * 0xFFFFFFFF;
+            adl_tri_draw(screen_mat, tri, color, offset_zoom_param);
+        }
     }
 }
 
+/**
+ * @brief Fill all triangles in a mesh with a uniform base color.
+ *
+ * Applies average light_intensity per triangle. Depth-tested.
+ *
+ * @param screen_mat Destination ARGB pixel buffer.
+ * @param inv_z_buffer_mat Inverse-Z buffer (larger is closer).
+ * @param mesh Triangle mesh (array + length).
+ * @param color Base color (0xAARRGGBB).
+ * @param offset_zoom_param Pan/zoom transform. Use ADL_DEFAULT_OFFSET_ZOOM for identity.
+ */
 void adl_tri_mesh_fill_Pinedas_rasterizer(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer_mat, Tri_mesh mesh, uint32_t color, Offset_zoom_param offset_zoom_param)
 {
     for (size_t i = 0; i < mesh.length; i++) {
@@ -1387,12 +1706,22 @@ void adl_tri_mesh_fill_Pinedas_rasterizer(Mat2D_uint32 screen_mat, Mat2D inv_z_b
         adl_assert_tri_is_valid(tri);
 
         if (!tri.to_draw) continue;
-        // color = rand_double() * 0xFFFFFFFF;
 
         adl_tri_fill_Pinedas_rasterizer(screen_mat, inv_z_buffer_mat, tri, color, offset_zoom_param);
     }
 }
 
+/**
+ * @brief Fill all triangles in a mesh with a uniform base color.
+ *
+ * Applies average light_intensity per triangle. Depth-tested.
+ *
+ * @param screen_mat Destination ARGB pixel buffer.
+ * @param inv_z_buffer_mat Inverse-Z buffer (larger is closer).
+ * @param mesh Triangle mesh (array + length).
+ * @param color Base color (0xAARRGGBB).
+ * @param offset_zoom_param Pan/zoom transform. Use ADL_DEFAULT_OFFSET_ZOOM for identity.
+ */
 void adl_tri_mesh_fill_Pinedas_rasterizer_interpolate_color(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer_mat, Tri_mesh mesh, Offset_zoom_param offset_zoom_param)
 {
     for (size_t i = 0; i < mesh.length; i++) {
@@ -1406,6 +1735,18 @@ void adl_tri_mesh_fill_Pinedas_rasterizer_interpolate_color(Mat2D_uint32 screen_
     }
 }
 
+/**
+ * @brief Fill all triangles in a mesh with interpolated lighting.
+ *
+ * Interpolates light_intensity across each triangle and modulates a
+ * uniform base color. Depth-tested.
+ *
+ * @param screen_mat Destination ARGB pixel buffer.
+ * @param inv_z_buffer_mat Inverse-Z buffer (larger is closer).
+ * @param mesh Triangle mesh (array + length).
+ * @param color Base color (0xAARRGGBB).
+ * @param offset_zoom_param Pan/zoom transform. Use ADL_DEFAULT_OFFSET_ZOOM for identity.
+ */
 void adl_tri_mesh_fill_Pinedas_rasterizer_interpolate_normal(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer_mat, Tri_mesh mesh, uint32_t color, Offset_zoom_param offset_zoom_param)
 {
     for (size_t i = 0; i < mesh.length; i++) {
@@ -1419,6 +1760,21 @@ void adl_tri_mesh_fill_Pinedas_rasterizer_interpolate_normal(Mat2D_uint32 screen
     }
 }
 
+/**
+ * @brief Compute tan(α/2) for the angle at point p between segments p->vi
+ *        and p->vj.
+ *
+ * Uses the identity tan(α/2) = |a×b| / (|a||b| + a·b), where a = vi - p
+ * and b = vj - p. The lengths li = |a| and lj = |b| are passed in to
+ * avoid recomputation.
+ *
+ * @param vi Vertex i.
+ * @param vj Vertex j.
+ * @param p Pivot point.
+ * @param li Precomputed |vi - p|.
+ * @param lj Precomputed |vj - p|.
+ * @return tan(α/2) (non-negative).
+ */
 float adl_tan_half_angle(Point vi, Point vj, Point p, float li, float lj)
 {
     float ax = vi.x - p.x, ay = vi.y - p.y;
@@ -1429,11 +1785,36 @@ float adl_tan_half_angle(Point vi, Point vj, Point p, float li, float lj)
     return fabsf(cross) / fmaxf(1e-20f, denom);    // tan(α/2)
 }
 
+/**
+ * @brief Affine map from one scalar range to another (no clamping).
+ *
+ * @param s Input value.
+ * @param min_in Input range minimum.
+ * @param max_in Input range maximum.
+ * @param min_out Output range minimum.
+ * @param max_out Output range maximum.
+ * @return Mapped value in the output range (may exceed if s is out-of-range).
+ */
 float adl_linear_map(float s, float min_in, float max_in, float min_out, float max_out)
 {
     return (min_out + ((s-min_in)*(max_out-min_out))/(max_in-min_in));
 }
 
+/**
+ * @brief Split a quad into two triangles along a chosen diagonal.
+ *
+ * The split is controlled by split_line:
+ * - "02" splits along diagonal from vertex 0 to vertex 2.
+ * - "13" splits along diagonal from vertex 1 to vertex 3.
+ *
+ * The function copies positions, per-vertex colors, light_intensity, and
+ * the to_draw flag into the output triangles.
+ *
+ * @param quad Input quad.
+ * @param tri1 [out] First output triangle.
+ * @param tri2 [out] Second output triangle.
+ * @param split_line Null-terminated code: "02" or "13".
+ */
 void adl_quad2tris(Quad quad, Tri *tri1, Tri *tri2, char split_line[])
 {
     if (!strncmp(split_line, "02", 2)) {
@@ -1483,9 +1864,17 @@ void adl_quad2tris(Quad quad, Tri *tri1, Tri *tri2, char split_line[])
     }
 }
 
-/* L:   0  -> 1
-   a: -0.5 -> 0.5
-   b: -0.5 -> 0.5 */
+/**
+ * @brief Convert a linear sRGB color (ARGB) to Oklab components.
+ *
+ * Oklab components are returned in ranges: L∈[0,1], a∈[-0.5,0.5],
+ * b∈[-0.5,0.5] (typical). Input is assumed to be linear sRGB.
+ *
+ * @param hex_ARGB Input color (0xAARRGGBB). Alpha is ignored.
+ * @param L [out] Perceptual lightness.
+ * @param a [out] First opponent axis.
+ * @param b [out] Second opponent axis.
+ */
 void adl_linear_sRGB_to_okLab(uint32_t hex_ARGB, float *L, float *a, float *b)
 {
     /* https://bottosson.github.io/posts/oklab/
@@ -1511,9 +1900,16 @@ void adl_linear_sRGB_to_okLab(uint32_t hex_ARGB, float *L, float *a, float *b)
 
 }
 
-/* L:   0  -> 1
-   a: -0.5 -> 0.5
-   b: -0.5 -> 0.5 */
+/**
+ * @brief Convert Oklab components to a linear sRGB ARGB color.
+ *
+ * Output RGB components are clamped to [0,255], alpha is set to 255.
+ *
+ * @param L Oklab lightness.
+ * @param a Oklab a component.
+ * @param b Oklab b component.
+ * @param hex_ARGB [out] Output color (0xAARRGGBB, A=255).
+ */
 void adl_okLab_to_linear_sRGB(float L, float a, float b, uint32_t *hex_ARGB)
 {
     /* https://bottosson.github.io/posts/oklab/
@@ -1538,6 +1934,14 @@ void adl_okLab_to_linear_sRGB(float L, float a, float b, uint32_t *hex_ARGB)
     *hex_ARGB = RGBA_hexARGB(R, G, B, 0xFF);
 }
 
+/**
+ * @brief Convert a linear sRGB color (ARGB) to OkLch components.
+ *
+ * @param hex_ARGB Input color (0xAARRGGBB). Alpha is ignored.
+ * @param L [out] Lightness ∈ [0,1].
+ * @param c [out] Chroma (non-negative).
+ * @param h_deg [out] Hue angle in degrees [-180,180] from atan2.
+ */
 void adl_linear_sRGB_to_okLch(uint32_t hex_ARGB, float *L, float *c, float *h_deg)
 {
     float a, b;
@@ -1547,6 +1951,16 @@ void adl_linear_sRGB_to_okLch(uint32_t hex_ARGB, float *L, float *c, float *h_de
     *h_deg = atan2f(b, a) * 180 / PI;
 }
 
+/**
+ * @brief Convert OkLch components to a linear sRGB ARGB color.
+ *
+ * Hue is wrapped to [0,360). Output RGB is clamped to [0,255], alpha=255.
+ *
+ * @param L Lightness.
+ * @param c Chroma.
+ * @param h_deg Hue angle in degrees.
+ * @param hex_ARGB [out] Output color (0xAARRGGBB, A=255).
+ */
 void adl_okLch_to_linear_sRGB(float L, float c, float h_deg, uint32_t *hex_ARGB)
 {
     h_deg = fmodf((h_deg + 360), 360);
@@ -1555,6 +1969,20 @@ void adl_okLch_to_linear_sRGB(float L, float c, float h_deg, uint32_t *hex_ARGB)
     adl_okLab_to_linear_sRGB(L, a, b, hex_ARGB);
 }
 
+/**
+ * @brief Interpolate between two ARGB colors in OkLch space.
+ *
+ * Lightness and chroma are interpolated linearly. Hue is interpolated in
+ * degrees after adding 360*num_of_rotations to the second hue, allowing
+ * control over the winding direction.
+ *
+ * @param color1 Start color (0xAARRGGBB).
+ * @param color2 End color (0xAARRGGBB).
+ * @param t Interpolation factor in [0,1].
+ * @param num_of_rotations Number of hue turns to add to color2 (can be
+ *        fractional/negative).
+ * @param color_out [out] Interpolated ARGB color (A=255).
+ */
 void adl_interpolate_ARGBcolor_on_okLch(uint32_t color1, uint32_t color2, float t, float num_of_rotations, uint32_t *color_out)
 {
     float L_1, c_1, h_1;
@@ -1570,6 +1998,19 @@ void adl_interpolate_ARGBcolor_on_okLch(uint32_t color1, uint32_t color2, float 
     adl_okLch_to_linear_sRGB(L, c, h, color_out);
 }
 
+/**
+ * @brief Allocate and initialize a Figure with an internal pixel buffer.
+ *
+ * Initializes the pixel buffer (rows x cols), an inverse-Z buffer (zeroed),
+ * an empty source curve array, and default padding/axes bounds. The
+ * background_color, to_draw_axis, and to_draw_max_min_values should be
+ * set by the caller before rendering.
+ *
+ * @param rows Height of the figure in pixels.
+ * @param cols Width of the figure in pixels.
+ * @param top_left_position Target position when copying to a screen.
+ * @return A new Figure with allocated buffers.
+ */
 Figure adl_figure_alloc(size_t rows, size_t cols, Point top_left_position)
 {
     ADL_ASSERT(rows && cols);
@@ -1603,6 +2044,16 @@ Figure adl_figure_alloc(size_t rows, size_t cols, Point top_left_position)
     return figure;
 }
 
+/**
+ * @brief Blit a Figure's pixels onto a destination screen buffer.
+ *
+ * Performs per-pixel blending using adl_point_draw and the identity
+ * transform. The figure's top_left_position is used as the destination
+ * offset.
+ *
+ * @param screen_mat Destination ARGB pixel buffer.
+ * @param figure Source figure to copy from.
+ */
 void adl_figure_copy_to_screen(Mat2D_uint32 screen_mat, Figure figure)
 {
     for (size_t i = 0; i < figure.pixels_mat.rows; i++) {
@@ -1615,6 +2066,14 @@ void adl_figure_copy_to_screen(Mat2D_uint32 screen_mat, Figure figure)
     }
 }
 
+/**
+ * @brief Draw X/Y axes with arrowheads into a Figure.
+ *
+ * Uses the current figure's pixel extents and padding to place axes, and
+ * stores the computed head sizes for later label layout.
+ *
+ * @param figure [in,out] Figure to draw onto.
+ */
 void adl_axis_draw_on_figure(Figure *figure)
 {
     int max_i    = (int)(figure->pixels_mat.rows);
@@ -1633,6 +2092,14 @@ void adl_axis_draw_on_figure(Figure *figure)
     figure->y_axis_head_size = arrow_head_size_y;
 }
 
+/**
+ * @brief Draw min/max numeric labels for the current data range.
+ *
+ * Renders textual min/max values for both axes inside the figure area.
+ * Assumes figure.min_x/max_x/min_y/max_y have been populated.
+ *
+ * @param figure Figure whose labels are drawn into its own pixel buffer.
+ */
 void adl_max_min_values_draw_on_figure(Figure figure)
 {
     char x_min_sentence[256];
@@ -1682,7 +2149,17 @@ void adl_max_min_values_draw_on_figure(Figure figure)
     adl_sentence_draw(figure.pixels_mat, y_min_sentence, strlen(y_min_sentence), ADL_MAX_CHARACTER_OFFSET/2, figure.max_y_pixel-y_min_sentence_hight_pixel, y_min_sentence_hight_pixel, ADL_FIGURE_AXIS_COLOR, figure.offset_zoom_param);
 }
 
-
+/**
+ * @brief Add a curve (polyline) to a Figure and update its data bounds.
+ *
+ * The input points are copied into the figure's source curve array with
+ * the given color. Figure min/max bounds are updated to include them.
+ *
+ * @param figure [in,out] Target figure.
+ * @param src_points Array of source points (in data space).
+ * @param src_len Number of points.
+ * @param color Curve color (0xAARRGGBB).
+ */
 void adl_curve_add_to_figure(Figure *figure, Point *src_points, size_t src_len, uint32_t color)
 {
     Curve src_points_ada;
@@ -1709,6 +2186,15 @@ void adl_curve_add_to_figure(Figure *figure, Point *src_points, size_t src_len, 
     ada_appand(Curve, figure->src_curve_array, src_points_ada);
 }
 
+/**
+ * @brief Render all added curves into a Figure's pixel buffer.
+ *
+ * Clears the pixel buffer to background_color, draws axes if enabled, maps
+ * data-space points to pixel-space using current min/max bounds, draws the
+ * polylines, and optionally draws min/max labels.
+ *
+ * @param figure Figure to render into (uses its own pixel buffer).
+ */
 void adl_curves_plot_on_figure(Figure figure)
 {
     mat2D_fill_uint32(figure.pixels_mat, figure.background_color);
@@ -1739,6 +2225,25 @@ void adl_curves_plot_on_figure(Figure figure)
 
 /* check offset2D. might convert it to a Mat2D */
 #define adl_offset2d(i, j, ni) (j) * (ni) + (i)
+/**
+ * @brief Visualize a scalar field on a Figure by colored quads.
+ *
+ * Treats x_2Dmat and y_2Dmat as a structured 2D grid of positions
+ * (column-major with stride ni) and colors each cell using scalar_2Dmat
+ * mapped through a two-color OkLch gradient. Also updates figure bounds
+ * from the provided data. Depth-tested inside the figure's buffers.
+ *
+ * @param figure Figure to render into (uses its own pixel buffers).
+ * @param x_2Dmat Grid X coordinates, size ni*nj.
+ * @param y_2Dmat Grid Y coordinates, size ni*nj.
+ * @param scalar_2Dmat Scalar values per grid node, size ni*nj.
+ * @param ni Number of samples along the first index (rows).
+ * @param nj Number of samples along the second index (cols).
+ * @param color_scale Two-letter code of endpoints ("b-c","b-g","b-r",
+ *        "b-y","g-y","g-p","g-r","r-y").
+ * @param num_of_rotations Hue turns for the OkLch interpolation (can be
+ *        fractional/negative).
+ */
 void adl_2Dscalar_interp_on_figure(Figure figure, double *x_2Dmat, double *y_2Dmat, double *scalar_2Dmat, int ni, int nj, char color_scale[], float num_of_rotations)
 {
     mat2D_fill_uint32(figure.pixels_mat, figure.background_color);
@@ -1911,7 +2416,6 @@ void adl_2Dscalar_interp_on_figure(Figure figure, double *x_2Dmat, double *y_2Dm
                 quad.colors[3] = color;
             }
 
-
             adl_quad_fill_interpolate_color_mean_value(figure.pixels_mat, figure.inv_z_buffer_mat, quad, ADL_DEFAULT_OFFSET_ZOOM); 
         }
     }
@@ -1922,6 +2426,23 @@ void adl_2Dscalar_interp_on_figure(Figure figure, double *x_2Dmat, double *y_2Dm
 
 }
 
+/**
+ * @brief Create a Cartesian grid (as curves) on one of the principal planes.
+ *
+ * Supported planes (case-insensitive): "XY","xy","XZ","xz","YX","yx","YZ","yz","ZX","zx","ZY","zy".
+ * The third_direction_position places the grid along the axis normal to
+ * the plane (e.g., Z for "XY").
+ *
+ * @param min_e1 Minimum coordinate along the first axis of the plane.
+ * @param max_e1 Maximum coordinate along the first axis of the plane.
+ * @param min_e2 Minimum coordinate along the second axis of the plane.
+ * @param max_e2 Maximum coordinate along the second axis of the plane.
+ * @param num_samples_e1 Number of segments along first axis.
+ * @param num_samples_e2 Number of segments along second axis.
+ * @param plane Plane code string ("XY","xy","XZ","xz","YX","yx","YZ","yz","ZX","zx","ZY","zy").
+ * @param third_direction_position Position along the axis normal to plane.
+ * @return Grid structure containing the generated curves and spacing.
+ */
 Grid adl_cartesian_grid_create(float min_e1, float max_e1, float min_e2, float max_e2, int num_samples_e1, int num_samples_e2, char plane[], float third_direction_position)
 {
     Grid grid;
@@ -1941,7 +2462,7 @@ Grid adl_cartesian_grid_create(float min_e1, float max_e1, float min_e2, float m
     grid.de1 = del_e1;
     grid.de2 = del_e2;
 
-    if (!strncmp(plane, "XY", 3)) {
+    if (!strncmp(plane, "XY", 3) || !strncmp(plane, "xy", 3)) {
         for (int e1_index = 0; e1_index <= num_samples_e1; e1_index++) {
             Curve curve;
             ada_init_array(Point, curve);
@@ -1982,7 +2503,7 @@ Grid adl_cartesian_grid_create(float min_e1, float max_e1, float min_e2, float m
 
             ada_appand(Curve, grid.curves, curve);
         }
-    } else if (!strncmp(plane, "XZ", 3)) {
+    } else if (!strncmp(plane, "XZ", 3) || !strncmp(plane, "xz", 3)) {
         for (int e1_index = 0; e1_index <= num_samples_e1; e1_index++) {
             Curve curve;
             ada_init_array(Point, curve);
@@ -2023,7 +2544,7 @@ Grid adl_cartesian_grid_create(float min_e1, float max_e1, float min_e2, float m
 
             ada_appand(Curve, grid.curves, curve);
         }
-    } else if (!strncmp(plane, "YX", 3)) {
+    } else if (!strncmp(plane, "YX", 3) || !strncmp(plane, "yx", 3)) {
         for (int e1_index = 0; e1_index <= num_samples_e1; e1_index++) {
             Curve curve;
             ada_init_array(Point, curve);
@@ -2064,7 +2585,7 @@ Grid adl_cartesian_grid_create(float min_e1, float max_e1, float min_e2, float m
 
             ada_appand(Curve, grid.curves, curve);
         }
-    } else if (!strncmp(plane, "YZ", 3)) {
+    } else if (!strncmp(plane, "YZ", 3) || !strncmp(plane, "yz", 3)) {
         for (int e1_index = 0; e1_index <= num_samples_e1; e1_index++) {
             Curve curve;
             ada_init_array(Point, curve);
@@ -2105,7 +2626,7 @@ Grid adl_cartesian_grid_create(float min_e1, float max_e1, float min_e2, float m
 
             ada_appand(Curve, grid.curves, curve);
         }
-    } else if (!strncmp(plane, "ZX", 3)) {
+    } else if (!strncmp(plane, "ZX", 3) || !strncmp(plane, "zx", 3)) {
         for (int e1_index = 0; e1_index <= num_samples_e1; e1_index++) {
             Curve curve;
             ada_init_array(Point, curve);
@@ -2146,7 +2667,7 @@ Grid adl_cartesian_grid_create(float min_e1, float max_e1, float min_e2, float m
 
             ada_appand(Curve, grid.curves, curve);
         }
-    } else if (!strncmp(plane, "ZY", 3)) {
+    } else if (!strncmp(plane, "ZY", 3) || !strncmp(plane, "zy", 3)) {
         for (int e1_index = 0; e1_index <= num_samples_e1; e1_index++) {
             Curve curve;
             ada_init_array(Point, curve);
@@ -2192,6 +2713,14 @@ Grid adl_cartesian_grid_create(float min_e1, float max_e1, float min_e2, float m
     return grid;
 }
 
+/**
+ * @brief Draw a previously created Grid as line segments.
+ *
+ * @param screen_mat Destination ARGB pixel buffer.
+ * @param grid Grid to draw (curves are 2-point polylines).
+ * @param color Line color (0xAARRGGBB).
+ * @param offset_zoom_param Pan/zoom transform. Use ADL_DEFAULT_OFFSET_ZOOM for identity.
+ */
 void adl_grid_draw(Mat2D_uint32 screen_mat, Grid grid, uint32_t color, Offset_zoom_param offset_zoom_param)
 {
     for (size_t curve_index = 0; curve_index < grid.curves.length; curve_index++) {
