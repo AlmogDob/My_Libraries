@@ -1,9 +1,31 @@
-/* This code is heavily inspired by the 3D engine of 'OneLoneCoder' in C++.
-you can find the source code in:
-https://github.com/OneLoneCoder/Javidx9/tree/master/ConsoleGameEngine/BiggerProjects/Engine3D .
-featured in this video of his:
-https://youtu.be/ih20l3pJoeU?si=CzQ8rjk5ZEOlqEHN. */ 
-
+/**
+ * @file 
+ * @brief Software 3D rendering and scene utilities for meshes, camera, and
+ *        projection.
+ *
+ * A small, header-driven 3D engine providing:
+ * - Scene and camera setup (projection/view matrices, Euler navigation).
+ * - Triangle and quad mesh loading (OBJ/ASCII+binary STL), normalization,
+ *   transforms, and per-vertex/face normals.
+ * - Back-face culling, near-plane and screen-space polygon clipping.
+ * - Perspective projection (world->view->screen) and line/grid helpers.
+ * - Basic Phong-like lighting (ambient, diffuse, specular) with flat/smooth
+ *   modes.
+ * - Simple z-buffer visualization utility.
+ *
+ * Inspiration
+ * This code is heavily inspired by the 3D engine of 'OneLoneCoder' in C++.
+ * You can find the source code in:
+ * https://github.com/OneLoneCoder/Javidx9/tree/master/ConsoleGameEngine/BiggerProjects/Engine3D .
+ * featured in this video of his:
+ * https://youtu.be/ih20l3pJoeU?si=CzQ8rjk5ZEOlqEHN.
+ *
+ * @note - Depends on Almog_Dynamic_Array.h, Matrix2D.h, Almog_Draw_Library.h, and
+ *         Almog_String_Manipulation.h for math, containers, and I/O utilities.
+ * @note - All public functions are prefixed with 'ae_'.
+ * @note - Define ALMOG_ENGINE_IMPLEMENTATION in exactly one translation unit to
+ *         compile the function bodies.
+ */
 
 #ifndef ALMOG_ENGINE_H_
 #define ALMOG_ENGINE_H_

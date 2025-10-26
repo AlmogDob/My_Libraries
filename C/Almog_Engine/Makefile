@@ -124,3 +124,8 @@ profile_build_teapot_example: ./src/teapot_example.c
 
 # valgrind -s --leak-check=full ./teapot_example
 # cloc --exclude-lang=JSON,make .
+
+################################################################
+
+strip_comments_Engine: src/include/Almog_Engine.h
+	gcc -fpreprocessed -dD -E -P src/include/Almog_Engine.h > striped_Almog_Engine.h
