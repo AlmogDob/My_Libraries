@@ -1,0 +1,182 @@
+\hypertarget{Almog__String__Manipulation_8h}{}\doxysection{src/include/\+Almog\+\_\+\+String\+\_\+\+Manipulation.h File Reference}
+\label{Almog__String__Manipulation_8h}\index{src/include/Almog\_String\_Manipulation.h@{src/include/Almog\_String\_Manipulation.h}}
+{\ttfamily \#include $<$stdio.\+h$>$}\newline
+{\ttfamily \#include $<$ctype.\+h$>$}\newline
+{\ttfamily \#include $<$stdlib.\+h$>$}\newline
+{\ttfamily \#include $<$assert.\+h$>$}\newline
+Include dependency graph for Almog\+\_\+\+String\+\_\+\+Manipulation.\+h\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=347pt]{Almog__String__Manipulation_8h__incl}
+\end{center}
+\end{figure}
+This graph shows which files directly or indirectly include this file\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{Almog__String__Manipulation_8h__dep__incl}
+\end{center}
+\end{figure}
+\doxysubsection*{Macros}
+\begin{DoxyCompactItemize}
+\item 
+\#define \mbox{\hyperlink{Almog__String__Manipulation_8h_a18dca71f9c1cfae749d91ee885e5d0b3}{MAXDIR}}~100
+\item 
+\#define \mbox{\hyperlink{Almog__String__Manipulation_8h_a076fd3c5ba5ac7c6bbedb64c188565f3}{MAX\+\_\+\+LEN\+\_\+\+LINE}}~(int)1e3
+\item 
+\#define \mbox{\hyperlink{Almog__String__Manipulation_8h_a8a10eb1b51de8ec7f32760fc42a499d3}{dprint\+STRING}}(expr)~printf(\#expr \char`\"{} = \%s\textbackslash{}n\char`\"{}, expr)
+\item 
+\#define \mbox{\hyperlink{Almog__String__Manipulation_8h_a8b63874b09e98605eddc71b18323ceaf}{dprint\+CHAR}}(expr)~printf(\#expr \char`\"{} = \%c\textbackslash{}n\char`\"{}, expr)
+\item 
+\#define \mbox{\hyperlink{Almog__String__Manipulation_8h_ad6ee5604ae166c2578fb919ba8047d32}{dprint\+INT}}(expr)~printf(\#expr \char`\"{} = \%d\textbackslash{}n\char`\"{}, expr)
+\item 
+\#define \mbox{\hyperlink{Almog__String__Manipulation_8h_a44ef8de62cc4802e6e2d52716d9ea342}{dprint\+SIZE\+\_\+T}}(expr)~printf(\#expr \char`\"{} = \%zu\textbackslash{}n\char`\"{}, expr)
+\end{DoxyCompactItemize}
+\doxysubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+int \mbox{\hyperlink{Almog__String__Manipulation_8h_a8f808979502627a0266c0e374f6e1641}{asm\+\_\+get\+\_\+line}} (FILE $\ast$fp, char $\ast$dst)
+\item 
+int \mbox{\hyperlink{Almog__String__Manipulation_8h_a8cd7d02540e05c2a9b7457500b3de50f}{asm\+\_\+length}} (char $\ast$str)
+\item 
+int \mbox{\hyperlink{Almog__String__Manipulation_8h_a63ffe09b30c257a91c9b48a55837dbe0}{asm\+\_\+get\+\_\+next\+\_\+word\+\_\+from\+\_\+line}} (char $\ast$dst, char $\ast$src, char seperator)
+\item 
+void \mbox{\hyperlink{Almog__String__Manipulation_8h_ab9b15c7b736606880f1545ef527748ce}{asm\+\_\+copy\+\_\+arry\+\_\+by\+\_\+indesies}} (char $\ast$target, int start, int end, char $\ast$src)
+\item 
+int \mbox{\hyperlink{Almog__String__Manipulation_8h_a1eed5e458a06330f12a09ed0c8b9d77d}{asm\+\_\+get\+\_\+word\+\_\+and\+\_\+cut}} (char $\ast$dst, char $\ast$src, char seperator)
+\item 
+int \mbox{\hyperlink{Almog__String__Manipulation_8h_a929b5505a3cdb1796f2865b25b3bc92a}{asm\+\_\+str\+\_\+in\+\_\+str}} (char $\ast$src, char $\ast$word2search)
+\item 
+int \mbox{\hyperlink{Almog__String__Manipulation_8h_afb4ca51d675f386a8f5325f4481314a9}{asm\+\_\+strncmp}} (const char $\ast$s1, const char $\ast$s2, const int N)
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Macro Definition Documentation}
+\mbox{\Hypertarget{Almog__String__Manipulation_8h_a8b63874b09e98605eddc71b18323ceaf}\label{Almog__String__Manipulation_8h_a8b63874b09e98605eddc71b18323ceaf}} 
+\index{Almog\_String\_Manipulation.h@{Almog\_String\_Manipulation.h}!dprintCHAR@{dprintCHAR}}
+\index{dprintCHAR@{dprintCHAR}!Almog\_String\_Manipulation.h@{Almog\_String\_Manipulation.h}}
+\doxysubsubsection{\texorpdfstring{dprintCHAR}{dprintCHAR}}
+{\footnotesize\ttfamily \#define dprint\+CHAR(\begin{DoxyParamCaption}\item[{}]{expr }\end{DoxyParamCaption})~printf(\#expr \char`\"{} = \%c\textbackslash{}n\char`\"{}, expr)}
+
+
+
+Definition at line \mbox{\hyperlink{Almog__String__Manipulation_8h_source_l00012}{12}} of file \mbox{\hyperlink{Almog__String__Manipulation_8h_source}{Almog\+\_\+\+String\+\_\+\+Manipulation.\+h}}.
+
+\mbox{\Hypertarget{Almog__String__Manipulation_8h_ad6ee5604ae166c2578fb919ba8047d32}\label{Almog__String__Manipulation_8h_ad6ee5604ae166c2578fb919ba8047d32}} 
+\index{Almog\_String\_Manipulation.h@{Almog\_String\_Manipulation.h}!dprintINT@{dprintINT}}
+\index{dprintINT@{dprintINT}!Almog\_String\_Manipulation.h@{Almog\_String\_Manipulation.h}}
+\doxysubsubsection{\texorpdfstring{dprintINT}{dprintINT}}
+{\footnotesize\ttfamily \#define dprint\+INT(\begin{DoxyParamCaption}\item[{}]{expr }\end{DoxyParamCaption})~printf(\#expr \char`\"{} = \%d\textbackslash{}n\char`\"{}, expr)}
+
+
+
+Definition at line \mbox{\hyperlink{Almog__String__Manipulation_8h_source_l00013}{13}} of file \mbox{\hyperlink{Almog__String__Manipulation_8h_source}{Almog\+\_\+\+String\+\_\+\+Manipulation.\+h}}.
+
+\mbox{\Hypertarget{Almog__String__Manipulation_8h_a44ef8de62cc4802e6e2d52716d9ea342}\label{Almog__String__Manipulation_8h_a44ef8de62cc4802e6e2d52716d9ea342}} 
+\index{Almog\_String\_Manipulation.h@{Almog\_String\_Manipulation.h}!dprintSIZE\_T@{dprintSIZE\_T}}
+\index{dprintSIZE\_T@{dprintSIZE\_T}!Almog\_String\_Manipulation.h@{Almog\_String\_Manipulation.h}}
+\doxysubsubsection{\texorpdfstring{dprintSIZE\_T}{dprintSIZE\_T}}
+{\footnotesize\ttfamily \#define dprint\+SIZE\+\_\+T(\begin{DoxyParamCaption}\item[{}]{expr }\end{DoxyParamCaption})~printf(\#expr \char`\"{} = \%zu\textbackslash{}n\char`\"{}, expr)}
+
+
+
+Definition at line \mbox{\hyperlink{Almog__String__Manipulation_8h_source_l00014}{14}} of file \mbox{\hyperlink{Almog__String__Manipulation_8h_source}{Almog\+\_\+\+String\+\_\+\+Manipulation.\+h}}.
+
+\mbox{\Hypertarget{Almog__String__Manipulation_8h_a8a10eb1b51de8ec7f32760fc42a499d3}\label{Almog__String__Manipulation_8h_a8a10eb1b51de8ec7f32760fc42a499d3}} 
+\index{Almog\_String\_Manipulation.h@{Almog\_String\_Manipulation.h}!dprintSTRING@{dprintSTRING}}
+\index{dprintSTRING@{dprintSTRING}!Almog\_String\_Manipulation.h@{Almog\_String\_Manipulation.h}}
+\doxysubsubsection{\texorpdfstring{dprintSTRING}{dprintSTRING}}
+{\footnotesize\ttfamily \#define dprint\+STRING(\begin{DoxyParamCaption}\item[{}]{expr }\end{DoxyParamCaption})~printf(\#expr \char`\"{} = \%s\textbackslash{}n\char`\"{}, expr)}
+
+
+
+Definition at line \mbox{\hyperlink{Almog__String__Manipulation_8h_source_l00011}{11}} of file \mbox{\hyperlink{Almog__String__Manipulation_8h_source}{Almog\+\_\+\+String\+\_\+\+Manipulation.\+h}}.
+
+\mbox{\Hypertarget{Almog__String__Manipulation_8h_a076fd3c5ba5ac7c6bbedb64c188565f3}\label{Almog__String__Manipulation_8h_a076fd3c5ba5ac7c6bbedb64c188565f3}} 
+\index{Almog\_String\_Manipulation.h@{Almog\_String\_Manipulation.h}!MAX\_LEN\_LINE@{MAX\_LEN\_LINE}}
+\index{MAX\_LEN\_LINE@{MAX\_LEN\_LINE}!Almog\_String\_Manipulation.h@{Almog\_String\_Manipulation.h}}
+\doxysubsubsection{\texorpdfstring{MAX\_LEN\_LINE}{MAX\_LEN\_LINE}}
+{\footnotesize\ttfamily \#define MAX\+\_\+\+LEN\+\_\+\+LINE~(int)1e3}
+
+
+
+Definition at line \mbox{\hyperlink{Almog__String__Manipulation_8h_source_l00010}{10}} of file \mbox{\hyperlink{Almog__String__Manipulation_8h_source}{Almog\+\_\+\+String\+\_\+\+Manipulation.\+h}}.
+
+\mbox{\Hypertarget{Almog__String__Manipulation_8h_a18dca71f9c1cfae749d91ee885e5d0b3}\label{Almog__String__Manipulation_8h_a18dca71f9c1cfae749d91ee885e5d0b3}} 
+\index{Almog\_String\_Manipulation.h@{Almog\_String\_Manipulation.h}!MAXDIR@{MAXDIR}}
+\index{MAXDIR@{MAXDIR}!Almog\_String\_Manipulation.h@{Almog\_String\_Manipulation.h}}
+\doxysubsubsection{\texorpdfstring{MAXDIR}{MAXDIR}}
+{\footnotesize\ttfamily \#define MAXDIR~100}
+
+
+
+Definition at line \mbox{\hyperlink{Almog__String__Manipulation_8h_source_l00009}{9}} of file \mbox{\hyperlink{Almog__String__Manipulation_8h_source}{Almog\+\_\+\+String\+\_\+\+Manipulation.\+h}}.
+
+
+
+\doxysubsection{Function Documentation}
+\mbox{\Hypertarget{Almog__String__Manipulation_8h_ab9b15c7b736606880f1545ef527748ce}\label{Almog__String__Manipulation_8h_ab9b15c7b736606880f1545ef527748ce}} 
+\index{Almog\_String\_Manipulation.h@{Almog\_String\_Manipulation.h}!asm\_copy\_arry\_by\_indesies@{asm\_copy\_arry\_by\_indesies}}
+\index{asm\_copy\_arry\_by\_indesies@{asm\_copy\_arry\_by\_indesies}!Almog\_String\_Manipulation.h@{Almog\_String\_Manipulation.h}}
+\doxysubsubsection{\texorpdfstring{asm\_copy\_arry\_by\_indesies()}{asm\_copy\_arry\_by\_indesies()}}
+{\footnotesize\ttfamily void asm\+\_\+copy\+\_\+arry\+\_\+by\+\_\+indesies (\begin{DoxyParamCaption}\item[{char $\ast$}]{target,  }\item[{int}]{start,  }\item[{int}]{end,  }\item[{char $\ast$}]{src }\end{DoxyParamCaption})}
+
+\mbox{\Hypertarget{Almog__String__Manipulation_8h_a8f808979502627a0266c0e374f6e1641}\label{Almog__String__Manipulation_8h_a8f808979502627a0266c0e374f6e1641}} 
+\index{Almog\_String\_Manipulation.h@{Almog\_String\_Manipulation.h}!asm\_get\_line@{asm\_get\_line}}
+\index{asm\_get\_line@{asm\_get\_line}!Almog\_String\_Manipulation.h@{Almog\_String\_Manipulation.h}}
+\doxysubsubsection{\texorpdfstring{asm\_get\_line()}{asm\_get\_line()}}
+{\footnotesize\ttfamily int asm\+\_\+get\+\_\+line (\begin{DoxyParamCaption}\item[{FILE $\ast$}]{fp,  }\item[{char $\ast$}]{dst }\end{DoxyParamCaption})}
+
+
+
+Referenced by \mbox{\hyperlink{Almog__Engine_8h_source_l00540}{ae\+\_\+tri\+\_\+mesh\+\_\+get\+\_\+from\+\_\+obj\+\_\+file()}}.
+
+\mbox{\Hypertarget{Almog__String__Manipulation_8h_a63ffe09b30c257a91c9b48a55837dbe0}\label{Almog__String__Manipulation_8h_a63ffe09b30c257a91c9b48a55837dbe0}} 
+\index{Almog\_String\_Manipulation.h@{Almog\_String\_Manipulation.h}!asm\_get\_next\_word\_from\_line@{asm\_get\_next\_word\_from\_line}}
+\index{asm\_get\_next\_word\_from\_line@{asm\_get\_next\_word\_from\_line}!Almog\_String\_Manipulation.h@{Almog\_String\_Manipulation.h}}
+\doxysubsubsection{\texorpdfstring{asm\_get\_next\_word\_from\_line()}{asm\_get\_next\_word\_from\_line()}}
+{\footnotesize\ttfamily int asm\+\_\+get\+\_\+next\+\_\+word\+\_\+from\+\_\+line (\begin{DoxyParamCaption}\item[{char $\ast$}]{dst,  }\item[{char $\ast$}]{src,  }\item[{char}]{seperator }\end{DoxyParamCaption})}
+
+
+
+Referenced by \mbox{\hyperlink{Almog__Engine_8h_source_l00540}{ae\+\_\+tri\+\_\+mesh\+\_\+get\+\_\+from\+\_\+obj\+\_\+file()}}.
+
+\mbox{\Hypertarget{Almog__String__Manipulation_8h_a1eed5e458a06330f12a09ed0c8b9d77d}\label{Almog__String__Manipulation_8h_a1eed5e458a06330f12a09ed0c8b9d77d}} 
+\index{Almog\_String\_Manipulation.h@{Almog\_String\_Manipulation.h}!asm\_get\_word\_and\_cut@{asm\_get\_word\_and\_cut}}
+\index{asm\_get\_word\_and\_cut@{asm\_get\_word\_and\_cut}!Almog\_String\_Manipulation.h@{Almog\_String\_Manipulation.h}}
+\doxysubsubsection{\texorpdfstring{asm\_get\_word\_and\_cut()}{asm\_get\_word\_and\_cut()}}
+{\footnotesize\ttfamily int asm\+\_\+get\+\_\+word\+\_\+and\+\_\+cut (\begin{DoxyParamCaption}\item[{char $\ast$}]{dst,  }\item[{char $\ast$}]{src,  }\item[{char}]{seperator }\end{DoxyParamCaption})}
+
+
+
+Referenced by \mbox{\hyperlink{Almog__Engine_8h_source_l00816}{ae\+\_\+tri\+\_\+mesh\+\_\+get\+\_\+from\+\_\+file()}}, and \mbox{\hyperlink{Almog__Engine_8h_source_l00540}{ae\+\_\+tri\+\_\+mesh\+\_\+get\+\_\+from\+\_\+obj\+\_\+file()}}.
+
+\mbox{\Hypertarget{Almog__String__Manipulation_8h_a8cd7d02540e05c2a9b7457500b3de50f}\label{Almog__String__Manipulation_8h_a8cd7d02540e05c2a9b7457500b3de50f}} 
+\index{Almog\_String\_Manipulation.h@{Almog\_String\_Manipulation.h}!asm\_length@{asm\_length}}
+\index{asm\_length@{asm\_length}!Almog\_String\_Manipulation.h@{Almog\_String\_Manipulation.h}}
+\doxysubsubsection{\texorpdfstring{asm\_length()}{asm\_length()}}
+{\footnotesize\ttfamily int asm\+\_\+length (\begin{DoxyParamCaption}\item[{char $\ast$}]{str }\end{DoxyParamCaption})}
+
+
+
+Referenced by \mbox{\hyperlink{Almog__Engine_8h_source_l00540}{ae\+\_\+tri\+\_\+mesh\+\_\+get\+\_\+from\+\_\+obj\+\_\+file()}}.
+
+\mbox{\Hypertarget{Almog__String__Manipulation_8h_a929b5505a3cdb1796f2865b25b3bc92a}\label{Almog__String__Manipulation_8h_a929b5505a3cdb1796f2865b25b3bc92a}} 
+\index{Almog\_String\_Manipulation.h@{Almog\_String\_Manipulation.h}!asm\_str\_in\_str@{asm\_str\_in\_str}}
+\index{asm\_str\_in\_str@{asm\_str\_in\_str}!Almog\_String\_Manipulation.h@{Almog\_String\_Manipulation.h}}
+\doxysubsubsection{\texorpdfstring{asm\_str\_in\_str()}{asm\_str\_in\_str()}}
+{\footnotesize\ttfamily int asm\+\_\+str\+\_\+in\+\_\+str (\begin{DoxyParamCaption}\item[{char $\ast$}]{src,  }\item[{char $\ast$}]{word2search }\end{DoxyParamCaption})}
+
+
+
+Referenced by \mbox{\hyperlink{Almog__Engine_8h_source_l00816}{ae\+\_\+tri\+\_\+mesh\+\_\+get\+\_\+from\+\_\+file()}}, and \mbox{\hyperlink{Almog__Engine_8h_source_l00540}{ae\+\_\+tri\+\_\+mesh\+\_\+get\+\_\+from\+\_\+obj\+\_\+file()}}.
+
+\mbox{\Hypertarget{Almog__String__Manipulation_8h_afb4ca51d675f386a8f5325f4481314a9}\label{Almog__String__Manipulation_8h_afb4ca51d675f386a8f5325f4481314a9}} 
+\index{Almog\_String\_Manipulation.h@{Almog\_String\_Manipulation.h}!asm\_strncmp@{asm\_strncmp}}
+\index{asm\_strncmp@{asm\_strncmp}!Almog\_String\_Manipulation.h@{Almog\_String\_Manipulation.h}}
+\doxysubsubsection{\texorpdfstring{asm\_strncmp()}{asm\_strncmp()}}
+{\footnotesize\ttfamily int asm\+\_\+strncmp (\begin{DoxyParamCaption}\item[{const char $\ast$}]{s1,  }\item[{const char $\ast$}]{s2,  }\item[{const int}]{N }\end{DoxyParamCaption})}
+

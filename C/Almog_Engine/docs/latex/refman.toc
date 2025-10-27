@@ -1,0 +1,555 @@
+\@ifundefined {etoctocstyle}{\let \etoc@startlocaltoc \@gobble \let \etoc@settocdepth \@gobble \let \etoc@depthtag \@gobble \let \etoc@setlocaltop \@gobble }{}
+\contentsline {chapter}{\numberline {1}Class Index}{1}{chapter.1}%
+\contentsline {section}{\numberline {1.1}Class List}{1}{section.1.1}%
+\contentsline {chapter}{\numberline {2}File Index}{3}{chapter.2}%
+\contentsline {section}{\numberline {2.1}File List}{3}{section.2.1}%
+\contentsline {chapter}{\numberline {3}Class Documentation}{5}{chapter.3}%
+\contentsline {section}{\numberline {3.1}Camera Struct Reference}{5}{section.3.1}%
+\contentsline {subsection}{\numberline {3.1.1}Detailed Description}{6}{subsection.3.1.1}%
+\contentsline {subsection}{\numberline {3.1.2}Member Data Documentation}{6}{subsection.3.1.2}%
+\contentsline {subsubsection}{\numberline {3.1.2.1}aspect\_ratio}{6}{subsubsection.3.1.2.1}%
+\contentsline {subsubsection}{\numberline {3.1.2.2}camera\_x}{6}{subsubsection.3.1.2.2}%
+\contentsline {subsubsection}{\numberline {3.1.2.3}camera\_y}{6}{subsubsection.3.1.2.3}%
+\contentsline {subsubsection}{\numberline {3.1.2.4}camera\_z}{7}{subsubsection.3.1.2.4}%
+\contentsline {subsubsection}{\numberline {3.1.2.5}current\_position}{7}{subsubsection.3.1.2.5}%
+\contentsline {subsubsection}{\numberline {3.1.2.6}direction}{7}{subsubsection.3.1.2.6}%
+\contentsline {subsubsection}{\numberline {3.1.2.7}fov\_deg}{7}{subsubsection.3.1.2.7}%
+\contentsline {subsubsection}{\numberline {3.1.2.8}init\_position}{7}{subsubsection.3.1.2.8}%
+\contentsline {subsubsection}{\numberline {3.1.2.9}offset\_position}{8}{subsubsection.3.1.2.9}%
+\contentsline {subsubsection}{\numberline {3.1.2.10}pitch\_offset\_deg}{8}{subsubsection.3.1.2.10}%
+\contentsline {subsubsection}{\numberline {3.1.2.11}roll\_offset\_deg}{8}{subsubsection.3.1.2.11}%
+\contentsline {subsubsection}{\numberline {3.1.2.12}yaw\_offset\_deg}{8}{subsubsection.3.1.2.12}%
+\contentsline {subsubsection}{\numberline {3.1.2.13}z\_far}{8}{subsubsection.3.1.2.13}%
+\contentsline {subsubsection}{\numberline {3.1.2.14}z\_near}{9}{subsubsection.3.1.2.14}%
+\contentsline {section}{\numberline {3.2}Curve Struct Reference}{9}{section.3.2}%
+\contentsline {subsection}{\numberline {3.2.1}Detailed Description}{9}{subsection.3.2.1}%
+\contentsline {subsection}{\numberline {3.2.2}Member Data Documentation}{9}{subsection.3.2.2}%
+\contentsline {subsubsection}{\numberline {3.2.2.1}capacity}{10}{subsubsection.3.2.2.1}%
+\contentsline {subsubsection}{\numberline {3.2.2.2}color}{10}{subsubsection.3.2.2.2}%
+\contentsline {subsubsection}{\numberline {3.2.2.3}elements}{10}{subsubsection.3.2.2.3}%
+\contentsline {subsubsection}{\numberline {3.2.2.4}length}{10}{subsubsection.3.2.2.4}%
+\contentsline {section}{\numberline {3.3}Curve\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}\_\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}ada Struct Reference}{11}{section.3.3}%
+\contentsline {subsection}{\numberline {3.3.1}Detailed Description}{11}{subsection.3.3.1}%
+\contentsline {subsection}{\numberline {3.3.2}Member Data Documentation}{11}{subsection.3.3.2}%
+\contentsline {subsubsection}{\numberline {3.3.2.1}capacity}{11}{subsubsection.3.3.2.1}%
+\contentsline {subsubsection}{\numberline {3.3.2.2}elements}{12}{subsubsection.3.3.2.2}%
+\contentsline {subsubsection}{\numberline {3.3.2.3}length}{12}{subsubsection.3.3.2.3}%
+\contentsline {section}{\numberline {3.4}Figure Struct Reference}{12}{section.3.4}%
+\contentsline {subsection}{\numberline {3.4.1}Detailed Description}{13}{subsection.3.4.1}%
+\contentsline {subsection}{\numberline {3.4.2}Member Data Documentation}{13}{subsection.3.4.2}%
+\contentsline {subsubsection}{\numberline {3.4.2.1}background\_color}{13}{subsubsection.3.4.2.1}%
+\contentsline {subsubsection}{\numberline {3.4.2.2}inv\_z\_buffer\_mat}{13}{subsubsection.3.4.2.2}%
+\contentsline {subsubsection}{\numberline {3.4.2.3}max\_x}{14}{subsubsection.3.4.2.3}%
+\contentsline {subsubsection}{\numberline {3.4.2.4}max\_x\_pixel}{14}{subsubsection.3.4.2.4}%
+\contentsline {subsubsection}{\numberline {3.4.2.5}max\_y}{14}{subsubsection.3.4.2.5}%
+\contentsline {subsubsection}{\numberline {3.4.2.6}max\_y\_pixel}{14}{subsubsection.3.4.2.6}%
+\contentsline {subsubsection}{\numberline {3.4.2.7}min\_x}{14}{subsubsection.3.4.2.7}%
+\contentsline {subsubsection}{\numberline {3.4.2.8}min\_x\_pixel}{15}{subsubsection.3.4.2.8}%
+\contentsline {subsubsection}{\numberline {3.4.2.9}min\_y}{15}{subsubsection.3.4.2.9}%
+\contentsline {subsubsection}{\numberline {3.4.2.10}min\_y\_pixel}{15}{subsubsection.3.4.2.10}%
+\contentsline {subsubsection}{\numberline {3.4.2.11}offset\_zoom\_param}{15}{subsubsection.3.4.2.11}%
+\contentsline {subsubsection}{\numberline {3.4.2.12}pixels\_mat}{15}{subsubsection.3.4.2.12}%
+\contentsline {subsubsection}{\numberline {3.4.2.13}src\_curve\_array}{16}{subsubsection.3.4.2.13}%
+\contentsline {subsubsection}{\numberline {3.4.2.14}to\_draw\_axis}{16}{subsubsection.3.4.2.14}%
+\contentsline {subsubsection}{\numberline {3.4.2.15}to\_draw\_max\_min\_values}{16}{subsubsection.3.4.2.15}%
+\contentsline {subsubsection}{\numberline {3.4.2.16}top\_left\_position}{16}{subsubsection.3.4.2.16}%
+\contentsline {subsubsection}{\numberline {3.4.2.17}x\_axis\_head\_size}{16}{subsubsection.3.4.2.17}%
+\contentsline {subsubsection}{\numberline {3.4.2.18}y\_axis\_head\_size}{17}{subsubsection.3.4.2.18}%
+\contentsline {section}{\numberline {3.5}game\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}\_\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}state\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}\_\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}t Struct Reference}{17}{section.3.5}%
+\contentsline {subsection}{\numberline {3.5.1}Detailed Description}{18}{subsection.3.5.1}%
+\contentsline {subsection}{\numberline {3.5.2}Member Data Documentation}{18}{subsection.3.5.2}%
+\contentsline {subsubsection}{\numberline {3.5.2.1}a\_was\_pressed}{18}{subsubsection.3.5.2.1}%
+\contentsline {subsubsection}{\numberline {3.5.2.2}const\_fps}{18}{subsubsection.3.5.2.2}%
+\contentsline {subsubsection}{\numberline {3.5.2.3}d\_was\_pressed}{19}{subsubsection.3.5.2.3}%
+\contentsline {subsubsection}{\numberline {3.5.2.4}delta\_time}{19}{subsubsection.3.5.2.4}%
+\contentsline {subsubsection}{\numberline {3.5.2.5}e\_was\_pressed}{19}{subsubsection.3.5.2.5}%
+\contentsline {subsubsection}{\numberline {3.5.2.6}elapsed\_time}{19}{subsubsection.3.5.2.6}%
+\contentsline {subsubsection}{\numberline {3.5.2.7}fps}{19}{subsubsection.3.5.2.7}%
+\contentsline {subsubsection}{\numberline {3.5.2.8}frame\_target\_time}{20}{subsubsection.3.5.2.8}%
+\contentsline {subsubsection}{\numberline {3.5.2.9}game\_is\_running}{20}{subsubsection.3.5.2.9}%
+\contentsline {subsubsection}{\numberline {3.5.2.10}inv\_z\_buffer\_mat}{20}{subsubsection.3.5.2.10}%
+\contentsline {subsubsection}{\numberline {3.5.2.11}left\_button\_pressed}{20}{subsubsection.3.5.2.11}%
+\contentsline {subsubsection}{\numberline {3.5.2.12}previous\_frame\_time}{20}{subsubsection.3.5.2.12}%
+\contentsline {subsubsection}{\numberline {3.5.2.13}q\_was\_pressed}{21}{subsubsection.3.5.2.13}%
+\contentsline {subsubsection}{\numberline {3.5.2.14}renderer}{21}{subsubsection.3.5.2.14}%
+\contentsline {subsubsection}{\numberline {3.5.2.15}s\_was\_pressed}{21}{subsubsection.3.5.2.15}%
+\contentsline {subsubsection}{\numberline {3.5.2.16}scene}{21}{subsubsection.3.5.2.16}%
+\contentsline {subsubsection}{\numberline {3.5.2.17}space\_bar\_was\_pressed}{21}{subsubsection.3.5.2.17}%
+\contentsline {subsubsection}{\numberline {3.5.2.18}to\_clear\_renderer}{22}{subsubsection.3.5.2.18}%
+\contentsline {subsubsection}{\numberline {3.5.2.19}to\_limit\_fps}{22}{subsubsection.3.5.2.19}%
+\contentsline {subsubsection}{\numberline {3.5.2.20}to\_render}{22}{subsubsection.3.5.2.20}%
+\contentsline {subsubsection}{\numberline {3.5.2.21}to\_update}{22}{subsubsection.3.5.2.21}%
+\contentsline {subsubsection}{\numberline {3.5.2.22}w\_was\_pressed}{22}{subsubsection.3.5.2.22}%
+\contentsline {subsubsection}{\numberline {3.5.2.23}window}{23}{subsubsection.3.5.2.23}%
+\contentsline {subsubsection}{\numberline {3.5.2.24}window\_h}{23}{subsubsection.3.5.2.24}%
+\contentsline {subsubsection}{\numberline {3.5.2.25}window\_pixels\_mat}{23}{subsubsection.3.5.2.25}%
+\contentsline {subsubsection}{\numberline {3.5.2.26}window\_surface}{23}{subsubsection.3.5.2.26}%
+\contentsline {subsubsection}{\numberline {3.5.2.27}window\_texture}{23}{subsubsection.3.5.2.27}%
+\contentsline {subsubsection}{\numberline {3.5.2.28}window\_w}{24}{subsubsection.3.5.2.28}%
+\contentsline {section}{\numberline {3.6}Grid Struct Reference}{24}{section.3.6}%
+\contentsline {subsection}{\numberline {3.6.1}Detailed Description}{25}{subsection.3.6.1}%
+\contentsline {subsection}{\numberline {3.6.2}Member Data Documentation}{25}{subsection.3.6.2}%
+\contentsline {subsubsection}{\numberline {3.6.2.1}curves}{25}{subsubsection.3.6.2.1}%
+\contentsline {subsubsection}{\numberline {3.6.2.2}de1}{25}{subsubsection.3.6.2.2}%
+\contentsline {subsubsection}{\numberline {3.6.2.3}de2}{25}{subsubsection.3.6.2.3}%
+\contentsline {subsubsection}{\numberline {3.6.2.4}max\_e1}{25}{subsubsection.3.6.2.4}%
+\contentsline {subsubsection}{\numberline {3.6.2.5}max\_e2}{26}{subsubsection.3.6.2.5}%
+\contentsline {subsubsection}{\numberline {3.6.2.6}min\_e1}{26}{subsubsection.3.6.2.6}%
+\contentsline {subsubsection}{\numberline {3.6.2.7}min\_e2}{26}{subsubsection.3.6.2.7}%
+\contentsline {subsubsection}{\numberline {3.6.2.8}num\_samples\_e1}{26}{subsubsection.3.6.2.8}%
+\contentsline {subsubsection}{\numberline {3.6.2.9}num\_samples\_e2}{26}{subsubsection.3.6.2.9}%
+\contentsline {subsubsection}{\numberline {3.6.2.10}plane}{27}{subsubsection.3.6.2.10}%
+\contentsline {section}{\numberline {3.7}Light\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}\_\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}source Struct Reference}{27}{section.3.7}%
+\contentsline {subsection}{\numberline {3.7.1}Detailed Description}{27}{subsection.3.7.1}%
+\contentsline {subsection}{\numberline {3.7.2}Member Data Documentation}{27}{subsection.3.7.2}%
+\contentsline {subsubsection}{\numberline {3.7.2.1}light\_direction\_or\_pos}{28}{subsubsection.3.7.2.1}%
+\contentsline {subsubsection}{\numberline {3.7.2.2}light\_intensity}{28}{subsubsection.3.7.2.2}%
+\contentsline {section}{\numberline {3.8}Mat2D Struct Reference}{28}{section.3.8}%
+\contentsline {subsection}{\numberline {3.8.1}Detailed Description}{28}{subsection.3.8.1}%
+\contentsline {subsection}{\numberline {3.8.2}Member Data Documentation}{28}{subsection.3.8.2}%
+\contentsline {subsubsection}{\numberline {3.8.2.1}cols}{29}{subsubsection.3.8.2.1}%
+\contentsline {subsubsection}{\numberline {3.8.2.2}elements}{29}{subsubsection.3.8.2.2}%
+\contentsline {subsubsection}{\numberline {3.8.2.3}rows}{29}{subsubsection.3.8.2.3}%
+\contentsline {subsubsection}{\numberline {3.8.2.4}stride\_r}{30}{subsubsection.3.8.2.4}%
+\contentsline {section}{\numberline {3.9}Mat2\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}D\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}\_\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}Minor Struct Reference}{30}{section.3.9}%
+\contentsline {subsection}{\numberline {3.9.1}Detailed Description}{30}{subsection.3.9.1}%
+\contentsline {subsection}{\numberline {3.9.2}Member Data Documentation}{30}{subsection.3.9.2}%
+\contentsline {subsubsection}{\numberline {3.9.2.1}cols}{31}{subsubsection.3.9.2.1}%
+\contentsline {subsubsection}{\numberline {3.9.2.2}cols\_list}{31}{subsubsection.3.9.2.2}%
+\contentsline {subsubsection}{\numberline {3.9.2.3}ref\_mat}{31}{subsubsection.3.9.2.3}%
+\contentsline {subsubsection}{\numberline {3.9.2.4}rows}{31}{subsubsection.3.9.2.4}%
+\contentsline {subsubsection}{\numberline {3.9.2.5}rows\_list}{31}{subsubsection.3.9.2.5}%
+\contentsline {subsubsection}{\numberline {3.9.2.6}stride\_r}{32}{subsubsection.3.9.2.6}%
+\contentsline {section}{\numberline {3.10}Mat2\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}D\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}\_\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}uint32 Struct Reference}{32}{section.3.10}%
+\contentsline {subsection}{\numberline {3.10.1}Detailed Description}{32}{subsection.3.10.1}%
+\contentsline {subsection}{\numberline {3.10.2}Member Data Documentation}{32}{subsection.3.10.2}%
+\contentsline {subsubsection}{\numberline {3.10.2.1}cols}{32}{subsubsection.3.10.2.1}%
+\contentsline {subsubsection}{\numberline {3.10.2.2}elements}{33}{subsubsection.3.10.2.2}%
+\contentsline {subsubsection}{\numberline {3.10.2.3}rows}{33}{subsubsection.3.10.2.3}%
+\contentsline {subsubsection}{\numberline {3.10.2.4}stride\_r}{33}{subsubsection.3.10.2.4}%
+\contentsline {section}{\numberline {3.11}Material Struct Reference}{33}{section.3.11}%
+\contentsline {subsection}{\numberline {3.11.1}Detailed Description}{34}{subsection.3.11.1}%
+\contentsline {subsection}{\numberline {3.11.2}Member Data Documentation}{34}{subsection.3.11.2}%
+\contentsline {subsubsection}{\numberline {3.11.2.1}c\_ambi}{34}{subsubsection.3.11.2.1}%
+\contentsline {subsubsection}{\numberline {3.11.2.2}c\_diff}{34}{subsubsection.3.11.2.2}%
+\contentsline {subsubsection}{\numberline {3.11.2.3}c\_spec}{34}{subsubsection.3.11.2.3}%
+\contentsline {subsubsection}{\numberline {3.11.2.4}specular\_power\_alpha}{34}{subsubsection.3.11.2.4}%
+\contentsline {section}{\numberline {3.12}Offset\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}\_\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}zoom\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}\_\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}param Struct Reference}{35}{section.3.12}%
+\contentsline {subsection}{\numberline {3.12.1}Detailed Description}{35}{subsection.3.12.1}%
+\contentsline {subsection}{\numberline {3.12.2}Member Data Documentation}{35}{subsection.3.12.2}%
+\contentsline {subsubsection}{\numberline {3.12.2.1}mouse\_x}{35}{subsubsection.3.12.2.1}%
+\contentsline {subsubsection}{\numberline {3.12.2.2}mouse\_y}{35}{subsubsection.3.12.2.2}%
+\contentsline {subsubsection}{\numberline {3.12.2.3}offset\_x}{35}{subsubsection.3.12.2.3}%
+\contentsline {subsubsection}{\numberline {3.12.2.4}offset\_y}{36}{subsubsection.3.12.2.4}%
+\contentsline {subsubsection}{\numberline {3.12.2.5}zoom\_multiplier}{36}{subsubsection.3.12.2.5}%
+\contentsline {section}{\numberline {3.13}Point Struct Reference}{36}{section.3.13}%
+\contentsline {subsection}{\numberline {3.13.1}Detailed Description}{36}{subsection.3.13.1}%
+\contentsline {subsection}{\numberline {3.13.2}Member Data Documentation}{36}{subsection.3.13.2}%
+\contentsline {subsubsection}{\numberline {3.13.2.1}w}{37}{subsubsection.3.13.2.1}%
+\contentsline {subsubsection}{\numberline {3.13.2.2}x}{37}{subsubsection.3.13.2.2}%
+\contentsline {subsubsection}{\numberline {3.13.2.3}y}{37}{subsubsection.3.13.2.3}%
+\contentsline {subsubsection}{\numberline {3.13.2.4}z}{38}{subsubsection.3.13.2.4}%
+\contentsline {section}{\numberline {3.14}Quad Struct Reference}{38}{section.3.14}%
+\contentsline {subsection}{\numberline {3.14.1}Detailed Description}{38}{subsection.3.14.1}%
+\contentsline {subsection}{\numberline {3.14.2}Member Data Documentation}{39}{subsection.3.14.2}%
+\contentsline {subsubsection}{\numberline {3.14.2.1}colors}{39}{subsubsection.3.14.2.1}%
+\contentsline {subsubsection}{\numberline {3.14.2.2}light\_intensity}{39}{subsubsection.3.14.2.2}%
+\contentsline {subsubsection}{\numberline {3.14.2.3}normals}{39}{subsubsection.3.14.2.3}%
+\contentsline {subsubsection}{\numberline {3.14.2.4}points}{39}{subsubsection.3.14.2.4}%
+\contentsline {subsubsection}{\numberline {3.14.2.5}to\_draw}{40}{subsubsection.3.14.2.5}%
+\contentsline {section}{\numberline {3.15}Quad\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}\_\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}mesh Struct Reference}{40}{section.3.15}%
+\contentsline {subsection}{\numberline {3.15.1}Detailed Description}{40}{subsection.3.15.1}%
+\contentsline {subsection}{\numberline {3.15.2}Member Data Documentation}{41}{subsection.3.15.2}%
+\contentsline {subsubsection}{\numberline {3.15.2.1}capacity}{41}{subsubsection.3.15.2.1}%
+\contentsline {subsubsection}{\numberline {3.15.2.2}elements}{41}{subsubsection.3.15.2.2}%
+\contentsline {subsubsection}{\numberline {3.15.2.3}length}{41}{subsubsection.3.15.2.3}%
+\contentsline {section}{\numberline {3.16}Quad\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}\_\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}mesh\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}\_\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}array Struct Reference}{42}{section.3.16}%
+\contentsline {subsection}{\numberline {3.16.1}Detailed Description}{42}{subsection.3.16.1}%
+\contentsline {subsection}{\numberline {3.16.2}Member Data Documentation}{42}{subsection.3.16.2}%
+\contentsline {subsubsection}{\numberline {3.16.2.1}capacity}{43}{subsubsection.3.16.2.1}%
+\contentsline {subsubsection}{\numberline {3.16.2.2}elements}{43}{subsubsection.3.16.2.2}%
+\contentsline {subsubsection}{\numberline {3.16.2.3}length}{43}{subsubsection.3.16.2.3}%
+\contentsline {section}{\numberline {3.17}Scene Struct Reference}{43}{section.3.17}%
+\contentsline {subsection}{\numberline {3.17.1}Detailed Description}{44}{subsection.3.17.1}%
+\contentsline {subsection}{\numberline {3.17.2}Member Data Documentation}{44}{subsection.3.17.2}%
+\contentsline {subsubsection}{\numberline {3.17.2.1}camera}{44}{subsubsection.3.17.2.1}%
+\contentsline {subsubsection}{\numberline {3.17.2.2}in\_world\_quad\_meshes}{44}{subsubsection.3.17.2.2}%
+\contentsline {subsubsection}{\numberline {3.17.2.3}in\_world\_tri\_meshes}{45}{subsubsection.3.17.2.3}%
+\contentsline {subsubsection}{\numberline {3.17.2.4}light\_source0}{45}{subsubsection.3.17.2.4}%
+\contentsline {subsubsection}{\numberline {3.17.2.5}material0}{45}{subsubsection.3.17.2.5}%
+\contentsline {subsubsection}{\numberline {3.17.2.6}original\_quad\_meshes}{45}{subsubsection.3.17.2.6}%
+\contentsline {subsubsection}{\numberline {3.17.2.7}original\_tri\_meshes}{45}{subsubsection.3.17.2.7}%
+\contentsline {subsubsection}{\numberline {3.17.2.8}proj\_mat}{46}{subsubsection.3.17.2.8}%
+\contentsline {subsubsection}{\numberline {3.17.2.9}projected\_quad\_meshes}{46}{subsubsection.3.17.2.9}%
+\contentsline {subsubsection}{\numberline {3.17.2.10}projected\_tri\_meshes}{46}{subsubsection.3.17.2.10}%
+\contentsline {subsubsection}{\numberline {3.17.2.11}up\_direction}{46}{subsubsection.3.17.2.11}%
+\contentsline {subsubsection}{\numberline {3.17.2.12}view\_mat}{46}{subsubsection.3.17.2.12}%
+\contentsline {section}{\numberline {3.18}Tri Struct Reference}{47}{section.3.18}%
+\contentsline {subsection}{\numberline {3.18.1}Detailed Description}{47}{subsection.3.18.1}%
+\contentsline {subsection}{\numberline {3.18.2}Member Data Documentation}{47}{subsection.3.18.2}%
+\contentsline {subsubsection}{\numberline {3.18.2.1}colors}{47}{subsubsection.3.18.2.1}%
+\contentsline {subsubsection}{\numberline {3.18.2.2}light\_intensity}{48}{subsubsection.3.18.2.2}%
+\contentsline {subsubsection}{\numberline {3.18.2.3}normals}{48}{subsubsection.3.18.2.3}%
+\contentsline {subsubsection}{\numberline {3.18.2.4}points}{48}{subsubsection.3.18.2.4}%
+\contentsline {subsubsection}{\numberline {3.18.2.5}tex\_points}{48}{subsubsection.3.18.2.5}%
+\contentsline {subsubsection}{\numberline {3.18.2.6}to\_draw}{49}{subsubsection.3.18.2.6}%
+\contentsline {section}{\numberline {3.19}Tri\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}\_\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}mesh Struct Reference}{49}{section.3.19}%
+\contentsline {subsection}{\numberline {3.19.1}Detailed Description}{49}{subsection.3.19.1}%
+\contentsline {subsection}{\numberline {3.19.2}Member Data Documentation}{50}{subsection.3.19.2}%
+\contentsline {subsubsection}{\numberline {3.19.2.1}capacity}{50}{subsubsection.3.19.2.1}%
+\contentsline {subsubsection}{\numberline {3.19.2.2}elements}{50}{subsubsection.3.19.2.2}%
+\contentsline {subsubsection}{\numberline {3.19.2.3}length}{50}{subsubsection.3.19.2.3}%
+\contentsline {section}{\numberline {3.20}Tri\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}\_\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}mesh\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}\_\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}array Struct Reference}{51}{section.3.20}%
+\contentsline {subsection}{\numberline {3.20.1}Detailed Description}{51}{subsection.3.20.1}%
+\contentsline {subsection}{\numberline {3.20.2}Member Data Documentation}{51}{subsection.3.20.2}%
+\contentsline {subsubsection}{\numberline {3.20.2.1}capacity}{52}{subsubsection.3.20.2.1}%
+\contentsline {subsubsection}{\numberline {3.20.2.2}elements}{52}{subsubsection.3.20.2.2}%
+\contentsline {subsubsection}{\numberline {3.20.2.3}length}{52}{subsubsection.3.20.2.3}%
+\contentsline {chapter}{\numberline {4}File Documentation}{53}{chapter.4}%
+\contentsline {section}{\numberline {4.1}src/grid\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}\_\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}example.c File Reference}{53}{section.4.1}%
+\contentsline {subsection}{\numberline {4.1.1}Macro Definition Documentation}{54}{subsection.4.1.1}%
+\contentsline {subsubsection}{\numberline {4.1.1.1}ALMOG\_DRAW\_LIBRARY\_IMPLEMENTATION}{54}{subsubsection.4.1.1.1}%
+\contentsline {subsubsection}{\numberline {4.1.1.2}ALMOG\_ENGINE\_IMPLEMENTATION}{54}{subsubsection.4.1.1.2}%
+\contentsline {subsubsection}{\numberline {4.1.1.3}MATRIX2D\_IMPLEMENTATION}{54}{subsubsection.4.1.1.3}%
+\contentsline {subsubsection}{\numberline {4.1.1.4}RENDER}{54}{subsubsection.4.1.1.4}%
+\contentsline {subsubsection}{\numberline {4.1.1.5}SETUP}{54}{subsubsection.4.1.1.5}%
+\contentsline {subsubsection}{\numberline {4.1.1.6}UPDATE}{55}{subsubsection.4.1.1.6}%
+\contentsline {subsection}{\numberline {4.1.2}Function Documentation}{55}{subsection.4.1.2}%
+\contentsline {subsubsection}{\numberline {4.1.2.1}render()}{55}{subsubsection.4.1.2.1}%
+\contentsline {subsubsection}{\numberline {4.1.2.2}setup()}{55}{subsubsection.4.1.2.2}%
+\contentsline {subsubsection}{\numberline {4.1.2.3}update()}{55}{subsubsection.4.1.2.3}%
+\contentsline {subsection}{\numberline {4.1.3}Variable Documentation}{55}{subsection.4.1.3}%
+\contentsline {subsubsection}{\numberline {4.1.3.1}grid}{56}{subsubsection.4.1.3.1}%
+\contentsline {subsubsection}{\numberline {4.1.3.2}grid\_proj}{56}{subsubsection.4.1.3.2}%
+\contentsline {section}{\numberline {4.2}grid\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}\_\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}example.\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}c}{56}{section.4.2}%
+\contentsline {section}{\numberline {4.3}src/include/\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}Almog\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}\_\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}Draw\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}\_\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}Library.h File Reference}{57}{section.4.3}%
+\contentsline {subsection}{\numberline {4.3.1}Detailed Description}{61}{subsection.4.3.1}%
+\contentsline {subsection}{\numberline {4.3.2}Macro Definition Documentation}{61}{subsection.4.3.2}%
+\contentsline {subsubsection}{\numberline {4.3.2.1}ADL\_ASSERT}{61}{subsubsection.4.3.2.1}%
+\contentsline {subsubsection}{\numberline {4.3.2.2}adl\_assert\_point\_is\_valid}{62}{subsubsection.4.3.2.2}%
+\contentsline {subsubsection}{\numberline {4.3.2.3}adl\_assert\_quad\_is\_valid}{62}{subsubsection.4.3.2.3}%
+\contentsline {subsubsection}{\numberline {4.3.2.4}adl\_assert\_tri\_is\_valid}{62}{subsubsection.4.3.2.4}%
+\contentsline {subsubsection}{\numberline {4.3.2.5}ADL\_DEFAULT\_OFFSET\_ZOOM}{62}{subsubsection.4.3.2.5}%
+\contentsline {subsubsection}{\numberline {4.3.2.6}ADL\_FIGURE\_AXIS\_COLOR}{62}{subsubsection.4.3.2.6}%
+\contentsline {subsubsection}{\numberline {4.3.2.7}ADL\_FIGURE\_HEAD\_ANGLE\_DEG}{63}{subsubsection.4.3.2.7}%
+\contentsline {subsubsection}{\numberline {4.3.2.8}ADL\_FIGURE\_PADDING\_PRECENTAGE}{63}{subsubsection.4.3.2.8}%
+\contentsline {subsubsection}{\numberline {4.3.2.9}ADL\_MAX\_CHARACTER\_OFFSET}{63}{subsubsection.4.3.2.9}%
+\contentsline {subsubsection}{\numberline {4.3.2.10}ADL\_MAX\_FIGURE\_PADDING}{63}{subsubsection.4.3.2.10}%
+\contentsline {subsubsection}{\numberline {4.3.2.11}ADL\_MAX\_HEAD\_SIZE}{63}{subsubsection.4.3.2.11}%
+\contentsline {subsubsection}{\numberline {4.3.2.12}ADL\_MAX\_POINT\_VAL}{63}{subsubsection.4.3.2.12}%
+\contentsline {subsubsection}{\numberline {4.3.2.13}ADL\_MAX\_SENTENCE\_LEN}{64}{subsubsection.4.3.2.13}%
+\contentsline {subsubsection}{\numberline {4.3.2.14}ADL\_MAX\_ZOOM}{64}{subsubsection.4.3.2.14}%
+\contentsline {subsubsection}{\numberline {4.3.2.15}ADL\_MIN\_CHARACTER\_OFFSET}{64}{subsubsection.4.3.2.15}%
+\contentsline {subsubsection}{\numberline {4.3.2.16}ADL\_MIN\_FIGURE\_PADDING}{64}{subsubsection.4.3.2.16}%
+\contentsline {subsubsection}{\numberline {4.3.2.17}adl\_offset2d}{64}{subsubsection.4.3.2.17}%
+\contentsline {subsubsection}{\numberline {4.3.2.18}adl\_offset\_zoom\_point}{65}{subsubsection.4.3.2.18}%
+\contentsline {subsubsection}{\numberline {4.3.2.19}BLUE\_hexARGB}{65}{subsubsection.4.3.2.19}%
+\contentsline {subsubsection}{\numberline {4.3.2.20}CURVE}{65}{subsubsection.4.3.2.20}%
+\contentsline {subsubsection}{\numberline {4.3.2.21}CURVE\_ADA}{65}{subsubsection.4.3.2.21}%
+\contentsline {subsubsection}{\numberline {4.3.2.22}CYAN\_hexARGB}{65}{subsubsection.4.3.2.22}%
+\contentsline {subsubsection}{\numberline {4.3.2.23}edge\_cross\_point}{66}{subsubsection.4.3.2.23}%
+\contentsline {subsubsection}{\numberline {4.3.2.24}GREEN\_hexARGB}{66}{subsubsection.4.3.2.24}%
+\contentsline {subsubsection}{\numberline {4.3.2.25}HexARGB\_RGB\_VAR}{66}{subsubsection.4.3.2.25}%
+\contentsline {subsubsection}{\numberline {4.3.2.26}HexARGB\_RGBA}{66}{subsubsection.4.3.2.26}%
+\contentsline {subsubsection}{\numberline {4.3.2.27}HexARGB\_RGBA\_VAR}{66}{subsubsection.4.3.2.27}%
+\contentsline {subsubsection}{\numberline {4.3.2.28}is\_left\_edge}{67}{subsubsection.4.3.2.28}%
+\contentsline {subsubsection}{\numberline {4.3.2.29}is\_top\_edge}{67}{subsubsection.4.3.2.29}%
+\contentsline {subsubsection}{\numberline {4.3.2.30}is\_top\_left}{67}{subsubsection.4.3.2.30}%
+\contentsline {subsubsection}{\numberline {4.3.2.31}POINT}{67}{subsubsection.4.3.2.31}%
+\contentsline {subsubsection}{\numberline {4.3.2.32}PURPLE\_hexARGB}{67}{subsubsection.4.3.2.32}%
+\contentsline {subsubsection}{\numberline {4.3.2.33}QUAD}{68}{subsubsection.4.3.2.33}%
+\contentsline {subsubsection}{\numberline {4.3.2.34}QUAD\_MESH}{68}{subsubsection.4.3.2.34}%
+\contentsline {subsubsection}{\numberline {4.3.2.35}RED\_hexARGB}{68}{subsubsection.4.3.2.35}%
+\contentsline {subsubsection}{\numberline {4.3.2.36}RGB\_hexRGB}{68}{subsubsection.4.3.2.36}%
+\contentsline {subsubsection}{\numberline {4.3.2.37}RGBA\_hexARGB}{68}{subsubsection.4.3.2.37}%
+\contentsline {subsubsection}{\numberline {4.3.2.38}TRI}{69}{subsubsection.4.3.2.38}%
+\contentsline {subsubsection}{\numberline {4.3.2.39}TRI\_MESH}{69}{subsubsection.4.3.2.39}%
+\contentsline {subsubsection}{\numberline {4.3.2.40}YELLOW\_hexARGB}{69}{subsubsection.4.3.2.40}%
+\contentsline {subsection}{\numberline {4.3.3}Function Documentation}{69}{subsection.4.3.3}%
+\contentsline {subsubsection}{\numberline {4.3.3.1}adl\_2Dscalar\_interp\_on\_figure()}{69}{subsubsection.4.3.3.1}%
+\contentsline {subsubsection}{\numberline {4.3.3.2}adl\_arrow\_draw()}{70}{subsubsection.4.3.3.2}%
+\contentsline {subsubsection}{\numberline {4.3.3.3}adl\_axis\_draw\_on\_figure()}{71}{subsubsection.4.3.3.3}%
+\contentsline {subsubsection}{\numberline {4.3.3.4}adl\_cartesian\_grid\_create()}{71}{subsubsection.4.3.3.4}%
+\contentsline {subsubsection}{\numberline {4.3.3.5}adl\_character\_draw()}{72}{subsubsection.4.3.3.5}%
+\contentsline {subsubsection}{\numberline {4.3.3.6}adl\_circle\_draw()}{73}{subsubsection.4.3.3.6}%
+\contentsline {subsubsection}{\numberline {4.3.3.7}adl\_circle\_fill()}{73}{subsubsection.4.3.3.7}%
+\contentsline {subsubsection}{\numberline {4.3.3.8}adl\_curve\_add\_to\_figure()}{74}{subsubsection.4.3.3.8}%
+\contentsline {subsubsection}{\numberline {4.3.3.9}adl\_curves\_plot\_on\_figure()}{74}{subsubsection.4.3.3.9}%
+\contentsline {subsubsection}{\numberline {4.3.3.10}adl\_figure\_alloc()}{75}{subsubsection.4.3.3.10}%
+\contentsline {subsubsection}{\numberline {4.3.3.11}adl\_figure\_copy\_to\_screen()}{75}{subsubsection.4.3.3.11}%
+\contentsline {subsubsection}{\numberline {4.3.3.12}adl\_grid\_draw()}{76}{subsubsection.4.3.3.12}%
+\contentsline {subsubsection}{\numberline {4.3.3.13}adl\_interpolate\_ARGBcolor\_on\_okLch()}{76}{subsubsection.4.3.3.13}%
+\contentsline {subsubsection}{\numberline {4.3.3.14}adl\_line\_draw()}{77}{subsubsection.4.3.3.14}%
+\contentsline {subsubsection}{\numberline {4.3.3.15}adl\_linear\_map()}{78}{subsubsection.4.3.3.15}%
+\contentsline {subsubsection}{\numberline {4.3.3.16}adl\_linear\_sRGB\_to\_okLab()}{78}{subsubsection.4.3.3.16}%
+\contentsline {subsubsection}{\numberline {4.3.3.17}adl\_linear\_sRGB\_to\_okLch()}{79}{subsubsection.4.3.3.17}%
+\contentsline {subsubsection}{\numberline {4.3.3.18}adl\_lines\_draw()}{79}{subsubsection.4.3.3.18}%
+\contentsline {subsubsection}{\numberline {4.3.3.19}adl\_lines\_loop\_draw()}{80}{subsubsection.4.3.3.19}%
+\contentsline {subsubsection}{\numberline {4.3.3.20}adl\_max\_min\_values\_draw\_on\_figure()}{80}{subsubsection.4.3.3.20}%
+\contentsline {subsubsection}{\numberline {4.3.3.21}adl\_okLab\_to\_linear\_sRGB()}{81}{subsubsection.4.3.3.21}%
+\contentsline {subsubsection}{\numberline {4.3.3.22}adl\_okLch\_to\_linear\_sRGB()}{81}{subsubsection.4.3.3.22}%
+\contentsline {subsubsection}{\numberline {4.3.3.23}adl\_point\_draw()}{82}{subsubsection.4.3.3.23}%
+\contentsline {subsubsection}{\numberline {4.3.3.24}adl\_quad2tris()}{82}{subsubsection.4.3.3.24}%
+\contentsline {subsubsection}{\numberline {4.3.3.25}adl\_quad\_draw()}{83}{subsubsection.4.3.3.25}%
+\contentsline {subsubsection}{\numberline {4.3.3.26}adl\_quad\_fill()}{84}{subsubsection.4.3.3.26}%
+\contentsline {subsubsection}{\numberline {4.3.3.27}adl\_quad\_fill\_interpolate\_color\_mean\_value()}{84}{subsubsection.4.3.3.27}%
+\contentsline {subsubsection}{\numberline {4.3.3.28}adl\_quad\_fill\_interpolate\_normal\_mean\_value()}{85}{subsubsection.4.3.3.28}%
+\contentsline {subsubsection}{\numberline {4.3.3.29}adl\_quad\_mesh\_draw()}{86}{subsubsection.4.3.3.29}%
+\contentsline {subsubsection}{\numberline {4.3.3.30}adl\_quad\_mesh\_fill()}{86}{subsubsection.4.3.3.30}%
+\contentsline {subsubsection}{\numberline {4.3.3.31}adl\_quad\_mesh\_fill\_interpolate\_color()}{87}{subsubsection.4.3.3.31}%
+\contentsline {subsubsection}{\numberline {4.3.3.32}adl\_quad\_mesh\_fill\_interpolate\_normal()}{87}{subsubsection.4.3.3.32}%
+\contentsline {subsubsection}{\numberline {4.3.3.33}adl\_rectangle\_draw\_min\_max()}{88}{subsubsection.4.3.3.33}%
+\contentsline {subsubsection}{\numberline {4.3.3.34}adl\_rectangle\_fill\_min\_max()}{88}{subsubsection.4.3.3.34}%
+\contentsline {subsubsection}{\numberline {4.3.3.35}adl\_sentence\_draw()}{89}{subsubsection.4.3.3.35}%
+\contentsline {subsubsection}{\numberline {4.3.3.36}adl\_tan\_half\_angle()}{90}{subsubsection.4.3.3.36}%
+\contentsline {subsubsection}{\numberline {4.3.3.37}adl\_tri\_draw()}{90}{subsubsection.4.3.3.37}%
+\contentsline {subsubsection}{\numberline {4.3.3.38}adl\_tri\_fill\_Pinedas\_rasterizer()}{91}{subsubsection.4.3.3.38}%
+\contentsline {subsubsection}{\numberline {4.3.3.39}adl\_tri\_fill\_Pinedas\_rasterizer\_interpolate\_color()}{91}{subsubsection.4.3.3.39}%
+\contentsline {subsubsection}{\numberline {4.3.3.40}adl\_tri\_fill\_Pinedas\_rasterizer\_interpolate\_normal()}{92}{subsubsection.4.3.3.40}%
+\contentsline {subsubsection}{\numberline {4.3.3.41}adl\_tri\_mesh\_draw()}{93}{subsubsection.4.3.3.41}%
+\contentsline {subsubsection}{\numberline {4.3.3.42}adl\_tri\_mesh\_fill\_Pinedas\_rasterizer()}{93}{subsubsection.4.3.3.42}%
+\contentsline {subsubsection}{\numberline {4.3.3.43}adl\_tri\_mesh\_fill\_Pinedas\_rasterizer\_interpolate\_color()}{94}{subsubsection.4.3.3.43}%
+\contentsline {subsubsection}{\numberline {4.3.3.44}adl\_tri\_mesh\_fill\_Pinedas\_rasterizer\_interpolate\_normal()}{94}{subsubsection.4.3.3.44}%
+\contentsline {section}{\numberline {4.4}Almog\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}\_\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}Draw\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}\_\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}Library.\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}h}{95}{section.4.4}%
+\contentsline {section}{\numberline {4.5}src/include/\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}Almog\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}\_\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}Dynamic\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}\_\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}Array.h File Reference}{124}{section.4.5}%
+\contentsline {subsection}{\numberline {4.5.1}Macro Definition Documentation}{126}{subsection.4.5.1}%
+\contentsline {subsubsection}{\numberline {4.5.1.1}ada\_appand}{126}{subsubsection.4.5.1.1}%
+\contentsline {subsubsection}{\numberline {4.5.1.2}ADA\_ASSERT}{126}{subsubsection.4.5.1.2}%
+\contentsline {subsubsection}{\numberline {4.5.1.3}ada\_init\_array}{126}{subsubsection.4.5.1.3}%
+\contentsline {subsubsection}{\numberline {4.5.1.4}ada\_insert}{127}{subsubsection.4.5.1.4}%
+\contentsline {subsubsection}{\numberline {4.5.1.5}ada\_insert\_unordered}{127}{subsubsection.4.5.1.5}%
+\contentsline {subsubsection}{\numberline {4.5.1.6}ADA\_MALLOC}{127}{subsubsection.4.5.1.6}%
+\contentsline {subsubsection}{\numberline {4.5.1.7}ADA\_REALLOC}{128}{subsubsection.4.5.1.7}%
+\contentsline {subsubsection}{\numberline {4.5.1.8}ada\_remove}{128}{subsubsection.4.5.1.8}%
+\contentsline {subsubsection}{\numberline {4.5.1.9}ada\_remove\_unordered}{128}{subsubsection.4.5.1.9}%
+\contentsline {subsubsection}{\numberline {4.5.1.10}ada\_resize}{129}{subsubsection.4.5.1.10}%
+\contentsline {subsubsection}{\numberline {4.5.1.11}INIT\_CAPACITY}{129}{subsubsection.4.5.1.11}%
+\contentsline {section}{\numberline {4.6}Almog\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}\_\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}Dynamic\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}\_\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}Array.\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}h}{129}{section.4.6}%
+\contentsline {section}{\numberline {4.7}src/include/\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}Almog\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}\_\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}Engine.h File Reference}{131}{section.4.7}%
+\contentsline {subsection}{\numberline {4.7.1}Detailed Description}{135}{subsection.4.7.1}%
+\contentsline {subsection}{\numberline {4.7.2}Macro Definition Documentation}{135}{subsection.4.7.2}%
+\contentsline {subsubsection}{\numberline {4.7.2.1}AE\_ASSERT}{136}{subsubsection.4.7.2.1}%
+\contentsline {subsubsection}{\numberline {4.7.2.2}ae\_assert\_point\_is\_valid}{136}{subsubsection.4.7.2.2}%
+\contentsline {subsubsection}{\numberline {4.7.2.3}ae\_assert\_quad\_is\_valid}{136}{subsubsection.4.7.2.3}%
+\contentsline {subsubsection}{\numberline {4.7.2.4}ae\_assert\_tri\_is\_valid}{136}{subsubsection.4.7.2.4}%
+\contentsline {subsubsection}{\numberline {4.7.2.5}AE\_MAX\_POINT\_VAL}{137}{subsubsection.4.7.2.5}%
+\contentsline {subsubsection}{\numberline {4.7.2.6}ae\_point\_add\_point}{137}{subsubsection.4.7.2.6}%
+\contentsline {subsubsection}{\numberline {4.7.2.7}ae\_point\_calc\_norma}{137}{subsubsection.4.7.2.7}%
+\contentsline {subsubsection}{\numberline {4.7.2.8}ae\_point\_dot\_point}{137}{subsubsection.4.7.2.8}%
+\contentsline {subsubsection}{\numberline {4.7.2.9}ae\_point\_mult}{137}{subsubsection.4.7.2.9}%
+\contentsline {subsubsection}{\numberline {4.7.2.10}ae\_point\_normalize\_xyz\_norma}{138}{subsubsection.4.7.2.10}%
+\contentsline {subsubsection}{\numberline {4.7.2.11}ae\_point\_sub\_point}{138}{subsubsection.4.7.2.11}%
+\contentsline {subsubsection}{\numberline {4.7.2.12}ae\_points\_equal}{138}{subsubsection.4.7.2.12}%
+\contentsline {subsubsection}{\numberline {4.7.2.13}AE\_PRINT\_MESH}{138}{subsubsection.4.7.2.13}%
+\contentsline {subsubsection}{\numberline {4.7.2.14}AE\_PRINT\_TRI}{139}{subsubsection.4.7.2.14}%
+\contentsline {subsubsection}{\numberline {4.7.2.15}ALMOG\_STRING\_MANIPULATION\_IMPLEMENTATION}{139}{subsubsection.4.7.2.15}%
+\contentsline {subsubsection}{\numberline {4.7.2.16}ARGB\_hexARGB}{139}{subsubsection.4.7.2.16}%
+\contentsline {subsubsection}{\numberline {4.7.2.17}QUAD\_MESH\_ARRAY}{139}{subsubsection.4.7.2.17}%
+\contentsline {subsubsection}{\numberline {4.7.2.18}STL\_ATTRIBUTE\_BITS\_SIZE}{139}{subsubsection.4.7.2.18}%
+\contentsline {subsubsection}{\numberline {4.7.2.19}STL\_HEADER\_SIZE}{140}{subsubsection.4.7.2.19}%
+\contentsline {subsubsection}{\numberline {4.7.2.20}STL\_NUM\_SIZE}{140}{subsubsection.4.7.2.20}%
+\contentsline {subsubsection}{\numberline {4.7.2.21}STL\_SIZE\_FOREACH\_TRI}{140}{subsubsection.4.7.2.21}%
+\contentsline {subsubsection}{\numberline {4.7.2.22}TRI\_MESH\_ARRAY}{140}{subsubsection.4.7.2.22}%
+\contentsline {subsection}{\numberline {4.7.3}Enumeration Type Documentation}{140}{subsection.4.7.3}%
+\contentsline {subsubsection}{\numberline {4.7.3.1}Lighting\_mode}{140}{subsubsection.4.7.3.1}%
+\contentsline {subsection}{\numberline {4.7.4}Function Documentation}{141}{subsection.4.7.4}%
+\contentsline {subsubsection}{\numberline {4.7.4.1}ae\_camera\_free()}{141}{subsubsection.4.7.4.1}%
+\contentsline {subsubsection}{\numberline {4.7.4.2}ae\_camera\_init()}{141}{subsubsection.4.7.4.2}%
+\contentsline {subsubsection}{\numberline {4.7.4.3}ae\_camera\_reset\_pos()}{142}{subsubsection.4.7.4.3}%
+\contentsline {subsubsection}{\numberline {4.7.4.4}ae\_curve\_ada\_project\_world2screen()}{142}{subsubsection.4.7.4.4}%
+\contentsline {subsubsection}{\numberline {4.7.4.5}ae\_curve\_copy()}{143}{subsubsection.4.7.4.5}%
+\contentsline {subsubsection}{\numberline {4.7.4.6}ae\_curve\_project\_world2screen()}{143}{subsubsection.4.7.4.6}%
+\contentsline {subsubsection}{\numberline {4.7.4.7}ae\_grid\_project\_world2screen()}{144}{subsubsection.4.7.4.7}%
+\contentsline {subsubsection}{\numberline {4.7.4.8}ae\_line\_clip\_with\_plane()}{145}{subsubsection.4.7.4.8}%
+\contentsline {subsubsection}{\numberline {4.7.4.9}ae\_line\_itersect\_plane()}{145}{subsubsection.4.7.4.9}%
+\contentsline {subsubsection}{\numberline {4.7.4.10}ae\_line\_project\_world2screen()}{146}{subsubsection.4.7.4.10}%
+\contentsline {subsubsection}{\numberline {4.7.4.11}ae\_linear\_map()}{147}{subsubsection.4.7.4.11}%
+\contentsline {subsubsection}{\numberline {4.7.4.12}ae\_mat2D\_to\_point()}{147}{subsubsection.4.7.4.12}%
+\contentsline {subsubsection}{\numberline {4.7.4.13}ae\_point\_normalize\_xyz()}{148}{subsubsection.4.7.4.13}%
+\contentsline {subsubsection}{\numberline {4.7.4.14}ae\_point\_project\_view2screen()}{148}{subsubsection.4.7.4.14}%
+\contentsline {subsubsection}{\numberline {4.7.4.15}ae\_point\_project\_world2screen()}{150}{subsubsection.4.7.4.15}%
+\contentsline {subsubsection}{\numberline {4.7.4.16}ae\_point\_project\_world2view()}{151}{subsubsection.4.7.4.16}%
+\contentsline {subsubsection}{\numberline {4.7.4.17}ae\_point\_to\_mat2D()}{151}{subsubsection.4.7.4.17}%
+\contentsline {subsubsection}{\numberline {4.7.4.18}ae\_print\_points()}{152}{subsubsection.4.7.4.18}%
+\contentsline {subsubsection}{\numberline {4.7.4.19}ae\_print\_tri()}{152}{subsubsection.4.7.4.19}%
+\contentsline {subsubsection}{\numberline {4.7.4.20}ae\_print\_tri\_mesh()}{153}{subsubsection.4.7.4.20}%
+\contentsline {subsubsection}{\numberline {4.7.4.21}ae\_projection\_mat\_set()}{153}{subsubsection.4.7.4.21}%
+\contentsline {subsubsection}{\numberline {4.7.4.22}ae\_quad\_calc\_light\_intensity()}{154}{subsubsection.4.7.4.22}%
+\contentsline {subsubsection}{\numberline {4.7.4.23}ae\_quad\_calc\_normal()}{154}{subsubsection.4.7.4.23}%
+\contentsline {subsubsection}{\numberline {4.7.4.24}ae\_quad\_clip\_with\_plane()}{155}{subsubsection.4.7.4.24}%
+\contentsline {subsubsection}{\numberline {4.7.4.25}ae\_quad\_get\_average\_normal()}{155}{subsubsection.4.7.4.25}%
+\contentsline {subsubsection}{\numberline {4.7.4.26}ae\_quad\_get\_average\_point()}{156}{subsubsection.4.7.4.26}%
+\contentsline {subsubsection}{\numberline {4.7.4.27}ae\_quad\_mesh\_project\_world2screen()}{156}{subsubsection.4.7.4.27}%
+\contentsline {subsubsection}{\numberline {4.7.4.28}ae\_quad\_project\_world2screen()}{157}{subsubsection.4.7.4.28}%
+\contentsline {subsubsection}{\numberline {4.7.4.29}ae\_quad\_set\_normals()}{158}{subsubsection.4.7.4.29}%
+\contentsline {subsubsection}{\numberline {4.7.4.30}ae\_quad\_transform\_to\_view()}{158}{subsubsection.4.7.4.30}%
+\contentsline {subsubsection}{\numberline {4.7.4.31}ae\_scene\_free()}{159}{subsubsection.4.7.4.31}%
+\contentsline {subsubsection}{\numberline {4.7.4.32}ae\_scene\_init()}{159}{subsubsection.4.7.4.32}%
+\contentsline {subsubsection}{\numberline {4.7.4.33}ae\_signed\_dist\_point\_and\_plane()}{160}{subsubsection.4.7.4.33}%
+\contentsline {subsubsection}{\numberline {4.7.4.34}ae\_tri\_calc\_light\_intensity()}{161}{subsubsection.4.7.4.34}%
+\contentsline {subsubsection}{\numberline {4.7.4.35}ae\_tri\_calc\_normal()}{161}{subsubsection.4.7.4.35}%
+\contentsline {subsubsection}{\numberline {4.7.4.36}ae\_tri\_clip\_with\_plane()}{162}{subsubsection.4.7.4.36}%
+\contentsline {subsubsection}{\numberline {4.7.4.37}ae\_tri\_compare()}{162}{subsubsection.4.7.4.37}%
+\contentsline {subsubsection}{\numberline {4.7.4.38}ae\_tri\_create()}{163}{subsubsection.4.7.4.38}%
+\contentsline {subsubsection}{\numberline {4.7.4.39}ae\_tri\_get\_average\_normal()}{163}{subsubsection.4.7.4.39}%
+\contentsline {subsubsection}{\numberline {4.7.4.40}ae\_tri\_get\_average\_point()}{164}{subsubsection.4.7.4.40}%
+\contentsline {subsubsection}{\numberline {4.7.4.41}ae\_tri\_mesh\_appand\_copy()}{164}{subsubsection.4.7.4.41}%
+\contentsline {subsubsection}{\numberline {4.7.4.42}ae\_tri\_mesh\_create\_copy()}{165}{subsubsection.4.7.4.42}%
+\contentsline {subsubsection}{\numberline {4.7.4.43}ae\_tri\_mesh\_flip\_normals()}{165}{subsubsection.4.7.4.43}%
+\contentsline {subsubsection}{\numberline {4.7.4.44}ae\_tri\_mesh\_get\_from\_file()}{166}{subsubsection.4.7.4.44}%
+\contentsline {subsubsection}{\numberline {4.7.4.45}ae\_tri\_mesh\_get\_from\_obj\_file()}{166}{subsubsection.4.7.4.45}%
+\contentsline {subsubsection}{\numberline {4.7.4.46}ae\_tri\_mesh\_get\_from\_quad\_mesh()}{167}{subsubsection.4.7.4.46}%
+\contentsline {subsubsection}{\numberline {4.7.4.47}ae\_tri\_mesh\_get\_from\_stl\_file()}{167}{subsubsection.4.7.4.47}%
+\contentsline {subsubsection}{\numberline {4.7.4.48}ae\_tri\_mesh\_normalize()}{168}{subsubsection.4.7.4.48}%
+\contentsline {subsubsection}{\numberline {4.7.4.49}ae\_tri\_mesh\_project\_world2screen()}{168}{subsubsection.4.7.4.49}%
+\contentsline {subsubsection}{\numberline {4.7.4.50}ae\_tri\_mesh\_rotate\_Euler\_xyz()}{169}{subsubsection.4.7.4.50}%
+\contentsline {subsubsection}{\numberline {4.7.4.51}ae\_tri\_mesh\_set\_bounding\_box()}{170}{subsubsection.4.7.4.51}%
+\contentsline {subsubsection}{\numberline {4.7.4.52}ae\_tri\_mesh\_set\_normals()}{170}{subsubsection.4.7.4.52}%
+\contentsline {subsubsection}{\numberline {4.7.4.53}ae\_tri\_mesh\_translate()}{171}{subsubsection.4.7.4.53}%
+\contentsline {subsubsection}{\numberline {4.7.4.54}ae\_tri\_project\_world2screen()}{171}{subsubsection.4.7.4.54}%
+\contentsline {subsubsection}{\numberline {4.7.4.55}ae\_tri\_qsort()}{172}{subsubsection.4.7.4.55}%
+\contentsline {subsubsection}{\numberline {4.7.4.56}ae\_tri\_set\_normals()}{172}{subsubsection.4.7.4.56}%
+\contentsline {subsubsection}{\numberline {4.7.4.57}ae\_tri\_swap()}{173}{subsubsection.4.7.4.57}%
+\contentsline {subsubsection}{\numberline {4.7.4.58}ae\_tri\_transform\_to\_view()}{173}{subsubsection.4.7.4.58}%
+\contentsline {subsubsection}{\numberline {4.7.4.59}ae\_view\_mat\_set()}{174}{subsubsection.4.7.4.59}%
+\contentsline {subsubsection}{\numberline {4.7.4.60}ae\_z\_buffer\_copy\_to\_screen()}{174}{subsubsection.4.7.4.60}%
+\contentsline {section}{\numberline {4.8}Almog\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}\_\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}Engine.\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}h}{175}{section.4.8}%
+\contentsline {section}{\numberline {4.9}src/include/\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}Almog\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}\_\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}String\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}\_\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}Manipulation.h File Reference}{213}{section.4.9}%
+\contentsline {subsection}{\numberline {4.9.1}Macro Definition Documentation}{214}{subsection.4.9.1}%
+\contentsline {subsubsection}{\numberline {4.9.1.1}dprintCHAR}{214}{subsubsection.4.9.1.1}%
+\contentsline {subsubsection}{\numberline {4.9.1.2}dprintINT}{214}{subsubsection.4.9.1.2}%
+\contentsline {subsubsection}{\numberline {4.9.1.3}dprintSIZE\_T}{214}{subsubsection.4.9.1.3}%
+\contentsline {subsubsection}{\numberline {4.9.1.4}dprintSTRING}{215}{subsubsection.4.9.1.4}%
+\contentsline {subsubsection}{\numberline {4.9.1.5}MAX\_LEN\_LINE}{215}{subsubsection.4.9.1.5}%
+\contentsline {subsubsection}{\numberline {4.9.1.6}MAXDIR}{215}{subsubsection.4.9.1.6}%
+\contentsline {subsection}{\numberline {4.9.2}Function Documentation}{215}{subsection.4.9.2}%
+\contentsline {subsubsection}{\numberline {4.9.2.1}asm\_copy\_arry\_by\_indesies()}{215}{subsubsection.4.9.2.1}%
+\contentsline {subsubsection}{\numberline {4.9.2.2}asm\_get\_line()}{215}{subsubsection.4.9.2.2}%
+\contentsline {subsubsection}{\numberline {4.9.2.3}asm\_get\_next\_word\_from\_line()}{216}{subsubsection.4.9.2.3}%
+\contentsline {subsubsection}{\numberline {4.9.2.4}asm\_get\_word\_and\_cut()}{216}{subsubsection.4.9.2.4}%
+\contentsline {subsubsection}{\numberline {4.9.2.5}asm\_length()}{216}{subsubsection.4.9.2.5}%
+\contentsline {subsubsection}{\numberline {4.9.2.6}asm\_str\_in\_str()}{216}{subsubsection.4.9.2.6}%
+\contentsline {subsubsection}{\numberline {4.9.2.7}asm\_strncmp()}{216}{subsubsection.4.9.2.7}%
+\contentsline {section}{\numberline {4.10}Almog\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}\_\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}String\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}\_\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}Manipulation.\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}h}{217}{section.4.10}%
+\contentsline {section}{\numberline {4.11}src/include/display.c File Reference}{218}{section.4.11}%
+\contentsline {subsection}{\numberline {4.11.1}Macro Definition Documentation}{220}{subsection.4.11.1}%
+\contentsline {subsubsection}{\numberline {4.11.1.1}dprintCHAR}{220}{subsubsection.4.11.1.1}%
+\contentsline {subsubsection}{\numberline {4.11.1.2}dprintD}{220}{subsubsection.4.11.1.2}%
+\contentsline {subsubsection}{\numberline {4.11.1.3}dprintINT}{220}{subsubsection.4.11.1.3}%
+\contentsline {subsubsection}{\numberline {4.11.1.4}dprintSIZE\_T}{220}{subsubsection.4.11.1.4}%
+\contentsline {subsubsection}{\numberline {4.11.1.5}dprintSTRING}{220}{subsubsection.4.11.1.5}%
+\contentsline {subsubsection}{\numberline {4.11.1.6}FPS}{221}{subsubsection.4.11.1.6}%
+\contentsline {subsubsection}{\numberline {4.11.1.7}FRAME\_TARGET\_TIME}{221}{subsubsection.4.11.1.7}%
+\contentsline {subsubsection}{\numberline {4.11.1.8}WINDOW\_HEIGHT}{221}{subsubsection.4.11.1.8}%
+\contentsline {subsubsection}{\numberline {4.11.1.9}WINDOW\_WIDTH}{221}{subsubsection.4.11.1.9}%
+\contentsline {subsection}{\numberline {4.11.2}Function Documentation}{221}{subsection.4.11.2}%
+\contentsline {subsubsection}{\numberline {4.11.2.1}check\_window\_mat\_size()}{221}{subsubsection.4.11.2.1}%
+\contentsline {subsubsection}{\numberline {4.11.2.2}copy\_mat\_to\_surface\_RGB()}{222}{subsubsection.4.11.2.2}%
+\contentsline {subsubsection}{\numberline {4.11.2.3}destroy\_window()}{222}{subsubsection.4.11.2.3}%
+\contentsline {subsubsection}{\numberline {4.11.2.4}fix\_framerate()}{222}{subsubsection.4.11.2.4}%
+\contentsline {subsubsection}{\numberline {4.11.2.5}initialize\_window()}{222}{subsubsection.4.11.2.5}%
+\contentsline {subsubsection}{\numberline {4.11.2.6}main()}{223}{subsubsection.4.11.2.6}%
+\contentsline {subsubsection}{\numberline {4.11.2.7}process\_input\_window()}{223}{subsubsection.4.11.2.7}%
+\contentsline {subsubsection}{\numberline {4.11.2.8}render()}{223}{subsubsection.4.11.2.8}%
+\contentsline {subsubsection}{\numberline {4.11.2.9}render\_window()}{224}{subsubsection.4.11.2.9}%
+\contentsline {subsubsection}{\numberline {4.11.2.10}setup()}{224}{subsubsection.4.11.2.10}%
+\contentsline {subsubsection}{\numberline {4.11.2.11}setup\_window()}{224}{subsubsection.4.11.2.11}%
+\contentsline {subsubsection}{\numberline {4.11.2.12}update()}{225}{subsubsection.4.11.2.12}%
+\contentsline {subsubsection}{\numberline {4.11.2.13}update\_window()}{225}{subsubsection.4.11.2.13}%
+\contentsline {section}{\numberline {4.12}display.\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}c}{225}{section.4.12}%
+\contentsline {section}{\numberline {4.13}src/include/\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}Matrix2D.h File Reference}{230}{section.4.13}%
+\contentsline {subsection}{\numberline {4.13.1}Macro Definition Documentation}{232}{subsection.4.13.1}%
+\contentsline {subsubsection}{\numberline {4.13.1.1}\_\_USE\_MISC}{232}{subsubsection.4.13.1.1}%
+\contentsline {subsubsection}{\numberline {4.13.1.2}MAT2D\_AT}{232}{subsubsection.4.13.1.2}%
+\contentsline {subsubsection}{\numberline {4.13.1.3}MAT2D\_AT\_UINT32}{232}{subsubsection.4.13.1.3}%
+\contentsline {subsubsection}{\numberline {4.13.1.4}MAT2D\_MINOR\_AT}{233}{subsubsection.4.13.1.4}%
+\contentsline {subsubsection}{\numberline {4.13.1.5}MAT2D\_MINOR\_PRINT}{233}{subsubsection.4.13.1.5}%
+\contentsline {subsubsection}{\numberline {4.13.1.6}mat2D\_normalize}{233}{subsubsection.4.13.1.6}%
+\contentsline {subsubsection}{\numberline {4.13.1.7}MAT2D\_PRINT}{233}{subsubsection.4.13.1.7}%
+\contentsline {subsubsection}{\numberline {4.13.1.8}MAT2D\_PRINT\_AS\_COL}{233}{subsubsection.4.13.1.8}%
+\contentsline {subsubsection}{\numberline {4.13.1.9}MATRIX2D\_ASSERT}{234}{subsubsection.4.13.1.9}%
+\contentsline {subsubsection}{\numberline {4.13.1.10}MATRIX2D\_MALLOC}{234}{subsubsection.4.13.1.10}%
+\contentsline {subsubsection}{\numberline {4.13.1.11}PI}{234}{subsubsection.4.13.1.11}%
+\contentsline {subsection}{\numberline {4.13.2}Function Documentation}{234}{subsection.4.13.2}%
+\contentsline {subsubsection}{\numberline {4.13.2.1}mat2D\_add()}{234}{subsubsection.4.13.2.1}%
+\contentsline {subsubsection}{\numberline {4.13.2.2}mat2D\_add\_col\_to\_col()}{234}{subsubsection.4.13.2.2}%
+\contentsline {subsubsection}{\numberline {4.13.2.3}mat2D\_add\_row\_time\_factor\_to\_row()}{235}{subsubsection.4.13.2.3}%
+\contentsline {subsubsection}{\numberline {4.13.2.4}mat2D\_add\_row\_to\_row()}{235}{subsubsection.4.13.2.4}%
+\contentsline {subsubsection}{\numberline {4.13.2.5}mat2D\_alloc()}{235}{subsubsection.4.13.2.5}%
+\contentsline {subsubsection}{\numberline {4.13.2.6}mat2D\_alloc\_uint32()}{236}{subsubsection.4.13.2.6}%
+\contentsline {subsubsection}{\numberline {4.13.2.7}mat2D\_calc\_norma()}{236}{subsubsection.4.13.2.7}%
+\contentsline {subsubsection}{\numberline {4.13.2.8}mat2D\_col\_is\_all\_digit()}{236}{subsubsection.4.13.2.8}%
+\contentsline {subsubsection}{\numberline {4.13.2.9}mat2D\_copy()}{236}{subsubsection.4.13.2.9}%
+\contentsline {subsubsection}{\numberline {4.13.2.10}mat2D\_copy\_mat\_to\_mat\_at\_window()}{237}{subsubsection.4.13.2.10}%
+\contentsline {subsubsection}{\numberline {4.13.2.11}mat2D\_cross()}{237}{subsubsection.4.13.2.11}%
+\contentsline {subsubsection}{\numberline {4.13.2.12}mat2D\_det()}{237}{subsubsection.4.13.2.12}%
+\contentsline {subsubsection}{\numberline {4.13.2.13}mat2D\_det\_2x2\_mat()}{237}{subsubsection.4.13.2.13}%
+\contentsline {subsubsection}{\numberline {4.13.2.14}mat2D\_det\_2x2\_mat\_minor()}{238}{subsubsection.4.13.2.14}%
+\contentsline {subsubsection}{\numberline {4.13.2.15}mat2D\_dot()}{238}{subsubsection.4.13.2.15}%
+\contentsline {subsubsection}{\numberline {4.13.2.16}mat2D\_dot\_product()}{238}{subsubsection.4.13.2.16}%
+\contentsline {subsubsection}{\numberline {4.13.2.17}mat2D\_fill()}{238}{subsubsection.4.13.2.17}%
+\contentsline {subsubsection}{\numberline {4.13.2.18}mat2D\_fill\_sequence()}{239}{subsubsection.4.13.2.18}%
+\contentsline {subsubsection}{\numberline {4.13.2.19}mat2D\_fill\_uint32()}{239}{subsubsection.4.13.2.19}%
+\contentsline {subsubsection}{\numberline {4.13.2.20}mat2D\_free()}{239}{subsubsection.4.13.2.20}%
+\contentsline {subsubsection}{\numberline {4.13.2.21}mat2D\_free\_uint32()}{239}{subsubsection.4.13.2.21}%
+\contentsline {subsubsection}{\numberline {4.13.2.22}mat2D\_get\_col()}{240}{subsubsection.4.13.2.22}%
+\contentsline {subsubsection}{\numberline {4.13.2.23}mat2D\_get\_row()}{240}{subsubsection.4.13.2.23}%
+\contentsline {subsubsection}{\numberline {4.13.2.24}mat2D\_invert()}{240}{subsubsection.4.13.2.24}%
+\contentsline {subsubsection}{\numberline {4.13.2.25}mat2D\_LUP\_decomposition\_with\_swap()}{240}{subsubsection.4.13.2.25}%
+\contentsline {subsubsection}{\numberline {4.13.2.26}mat2D\_make\_identity()}{241}{subsubsection.4.13.2.26}%
+\contentsline {subsubsection}{\numberline {4.13.2.27}mat2D\_mat\_is\_all\_digit()}{241}{subsubsection.4.13.2.27}%
+\contentsline {subsubsection}{\numberline {4.13.2.28}mat2D\_minor\_alloc\_fill\_from\_mat()}{241}{subsubsection.4.13.2.28}%
+\contentsline {subsubsection}{\numberline {4.13.2.29}mat2D\_minor\_alloc\_fill\_from\_mat\_minor()}{241}{subsubsection.4.13.2.29}%
+\contentsline {subsubsection}{\numberline {4.13.2.30}mat2D\_minor\_det()}{242}{subsubsection.4.13.2.30}%
+\contentsline {subsubsection}{\numberline {4.13.2.31}mat2D\_minor\_free()}{242}{subsubsection.4.13.2.31}%
+\contentsline {subsubsection}{\numberline {4.13.2.32}mat2D\_minor\_print()}{242}{subsubsection.4.13.2.32}%
+\contentsline {subsubsection}{\numberline {4.13.2.33}mat2D\_mult()}{242}{subsubsection.4.13.2.33}%
+\contentsline {subsubsection}{\numberline {4.13.2.34}mat2D\_mult\_row()}{243}{subsubsection.4.13.2.34}%
+\contentsline {subsubsection}{\numberline {4.13.2.35}mat2D\_offset2d()}{243}{subsubsection.4.13.2.35}%
+\contentsline {subsubsection}{\numberline {4.13.2.36}mat2D\_offset2d\_uint32()}{243}{subsubsection.4.13.2.36}%
+\contentsline {subsubsection}{\numberline {4.13.2.37}mat2D\_print()}{243}{subsubsection.4.13.2.37}%
+\contentsline {subsubsection}{\numberline {4.13.2.38}mat2D\_print\_as\_col()}{244}{subsubsection.4.13.2.38}%
+\contentsline {subsubsection}{\numberline {4.13.2.39}mat2D\_rand()}{244}{subsubsection.4.13.2.39}%
+\contentsline {subsubsection}{\numberline {4.13.2.40}mat2D\_row\_is\_all\_digit()}{244}{subsubsection.4.13.2.40}%
+\contentsline {subsubsection}{\numberline {4.13.2.41}mat2D\_set\_DCM\_zyx()}{244}{subsubsection.4.13.2.41}%
+\contentsline {subsubsection}{\numberline {4.13.2.42}mat2D\_set\_identity()}{245}{subsubsection.4.13.2.42}%
+\contentsline {subsubsection}{\numberline {4.13.2.43}mat2D\_set\_rot\_mat\_x()}{245}{subsubsection.4.13.2.43}%
+\contentsline {subsubsection}{\numberline {4.13.2.44}mat2D\_set\_rot\_mat\_y()}{245}{subsubsection.4.13.2.44}%
+\contentsline {subsubsection}{\numberline {4.13.2.45}mat2D\_set\_rot\_mat\_z()}{245}{subsubsection.4.13.2.45}%
+\contentsline {subsubsection}{\numberline {4.13.2.46}mat2D\_solve\_linear\_sys\_LUP\_decomposition()}{246}{subsubsection.4.13.2.46}%
+\contentsline {subsubsection}{\numberline {4.13.2.47}mat2D\_sub()}{246}{subsubsection.4.13.2.47}%
+\contentsline {subsubsection}{\numberline {4.13.2.48}mat2D\_sub\_col\_to\_col()}{246}{subsubsection.4.13.2.48}%
+\contentsline {subsubsection}{\numberline {4.13.2.49}mat2D\_sub\_row\_time\_factor\_to\_row()}{246}{subsubsection.4.13.2.49}%
+\contentsline {subsubsection}{\numberline {4.13.2.50}mat2D\_sub\_row\_to\_row()}{247}{subsubsection.4.13.2.50}%
+\contentsline {subsubsection}{\numberline {4.13.2.51}mat2D\_swap\_rows()}{247}{subsubsection.4.13.2.51}%
+\contentsline {subsubsection}{\numberline {4.13.2.52}mat2D\_transpose()}{247}{subsubsection.4.13.2.52}%
+\contentsline {subsubsection}{\numberline {4.13.2.53}mat2D\_triangulate()}{247}{subsubsection.4.13.2.53}%
+\contentsline {subsubsection}{\numberline {4.13.2.54}rand\_double()}{248}{subsubsection.4.13.2.54}%
+\contentsline {section}{\numberline {4.14}Matrix2\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}D.\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}h}{248}{section.4.14}%
+\contentsline {section}{\numberline {4.15}src/teapot\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}\_\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}example.c File Reference}{259}{section.4.15}%
+\contentsline {subsection}{\numberline {4.15.1}Macro Definition Documentation}{260}{subsection.4.15.1}%
+\contentsline {subsubsection}{\numberline {4.15.1.1}ALMOG\_DRAW\_LIBRARY\_IMPLEMENTATION}{260}{subsubsection.4.15.1.1}%
+\contentsline {subsubsection}{\numberline {4.15.1.2}ALMOG\_ENGINE\_IMPLEMENTATION}{260}{subsubsection.4.15.1.2}%
+\contentsline {subsubsection}{\numberline {4.15.1.3}MATRIX2D\_IMPLEMENTATION}{260}{subsubsection.4.15.1.3}%
+\contentsline {subsubsection}{\numberline {4.15.1.4}RENDER}{260}{subsubsection.4.15.1.4}%
+\contentsline {subsubsection}{\numberline {4.15.1.5}SETUP}{260}{subsubsection.4.15.1.5}%
+\contentsline {subsubsection}{\numberline {4.15.1.6}UPDATE}{261}{subsubsection.4.15.1.6}%
+\contentsline {subsection}{\numberline {4.15.2}Function Documentation}{261}{subsection.4.15.2}%
+\contentsline {subsubsection}{\numberline {4.15.2.1}render()}{261}{subsubsection.4.15.2.1}%
+\contentsline {subsubsection}{\numberline {4.15.2.2}setup()}{261}{subsubsection.4.15.2.2}%
+\contentsline {subsubsection}{\numberline {4.15.2.3}update()}{261}{subsubsection.4.15.2.3}%
+\contentsline {section}{\numberline {4.16}teapot\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}\_\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}example.\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}c}{262}{section.4.16}%
+\contentsline {section}{\numberline {4.17}src/temp.c File Reference}{263}{section.4.17}%
+\contentsline {subsection}{\numberline {4.17.1}Macro Definition Documentation}{263}{subsection.4.17.1}%
+\contentsline {subsubsection}{\numberline {4.17.1.1}ALMOG\_DRAW\_LIBRARY\_IMPLEMENTATION}{263}{subsubsection.4.17.1.1}%
+\contentsline {subsubsection}{\numberline {4.17.1.2}ALMOG\_ENGINE\_IMPLEMENTATION}{264}{subsubsection.4.17.1.2}%
+\contentsline {subsubsection}{\numberline {4.17.1.3}MATRIX2D\_IMPLEMENTATION}{264}{subsubsection.4.17.1.3}%
+\contentsline {subsubsection}{\numberline {4.17.1.4}RENDER}{264}{subsubsection.4.17.1.4}%
+\contentsline {subsubsection}{\numberline {4.17.1.5}SETUP}{264}{subsubsection.4.17.1.5}%
+\contentsline {subsubsection}{\numberline {4.17.1.6}UPDATE}{264}{subsubsection.4.17.1.6}%
+\contentsline {subsection}{\numberline {4.17.2}Function Documentation}{264}{subsection.4.17.2}%
+\contentsline {subsubsection}{\numberline {4.17.2.1}render()}{265}{subsubsection.4.17.2.1}%
+\contentsline {subsubsection}{\numberline {4.17.2.2}setup()}{265}{subsubsection.4.17.2.2}%
+\contentsline {subsubsection}{\numberline {4.17.2.3}update()}{265}{subsubsection.4.17.2.3}%
+\contentsline {section}{\numberline {4.18}temp.\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}c}{266}{section.4.18}%
+\contentsline {chapter}{Index}{267}{section*.74}%

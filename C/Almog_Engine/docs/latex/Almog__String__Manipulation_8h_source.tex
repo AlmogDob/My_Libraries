@@ -1,0 +1,155 @@
+\hypertarget{Almog__String__Manipulation_8h_source}{}\doxysection{Almog\+\_\+\+String\+\_\+\+Manipulation.\+h}
+\label{Almog__String__Manipulation_8h_source}\index{src/include/Almog\_String\_Manipulation.h@{src/include/Almog\_String\_Manipulation.h}}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001 \textcolor{preprocessor}{\#ifndef ALMOG\_STRING\_MANIPULATION\_H\_}}
+\DoxyCodeLine{00002 \textcolor{preprocessor}{\#define ALMOG\_STRING\_MANIPULATION\_H\_}}
+\DoxyCodeLine{00003 }
+\DoxyCodeLine{00004 \textcolor{preprocessor}{\#include <stdio.h>}}
+\DoxyCodeLine{00005 \textcolor{preprocessor}{\#include <ctype.h>}}
+\DoxyCodeLine{00006 \textcolor{preprocessor}{\#include <stdlib.h>}}
+\DoxyCodeLine{00007 \textcolor{preprocessor}{\#include <assert.h>}}
+\DoxyCodeLine{00008 }
+\DoxyCodeLine{\Hypertarget{Almog__String__Manipulation_8h_source_l00009}\mbox{\hyperlink{Almog__String__Manipulation_8h_a18dca71f9c1cfae749d91ee885e5d0b3}{00009}} \textcolor{preprocessor}{\#define MAXDIR 100}}
+\DoxyCodeLine{\Hypertarget{Almog__String__Manipulation_8h_source_l00010}\mbox{\hyperlink{Almog__String__Manipulation_8h_a076fd3c5ba5ac7c6bbedb64c188565f3}{00010}} \textcolor{preprocessor}{\#define MAX\_LEN\_LINE (int)1e3}}
+\DoxyCodeLine{\Hypertarget{Almog__String__Manipulation_8h_source_l00011}\mbox{\hyperlink{Almog__String__Manipulation_8h_a8a10eb1b51de8ec7f32760fc42a499d3}{00011}} \textcolor{preprocessor}{\#define dprintSTRING(expr) printf(\#expr "{} = \%s\(\backslash\)n"{}}, expr)}
+\DoxyCodeLine{\Hypertarget{Almog__String__Manipulation_8h_source_l00012}\mbox{\hyperlink{Almog__String__Manipulation_8h_a8b63874b09e98605eddc71b18323ceaf}{00012}} \textcolor{preprocessor}{\#define dprintCHAR(expr) printf(\#expr "{} = \%c\(\backslash\)n"{}}, expr)}
+\DoxyCodeLine{\Hypertarget{Almog__String__Manipulation_8h_source_l00013}\mbox{\hyperlink{Almog__String__Manipulation_8h_ad6ee5604ae166c2578fb919ba8047d32}{00013}} \textcolor{preprocessor}{\#define dprintINT(expr) printf(\#expr "{} = \%d\(\backslash\)n"{}}, expr)}
+\DoxyCodeLine{\Hypertarget{Almog__String__Manipulation_8h_source_l00014}\mbox{\hyperlink{Almog__String__Manipulation_8h_a44ef8de62cc4802e6e2d52716d9ea342}{00014}} \textcolor{preprocessor}{\#define dprintSIZE\_T(expr) printf(\#expr "{} = \%zu\(\backslash\)n"{}}, expr)}
+\DoxyCodeLine{00015 }
+\DoxyCodeLine{00016 }
+\DoxyCodeLine{\Hypertarget{Almog__String__Manipulation_8h_source_l00017}\mbox{\hyperlink{Almog__String__Manipulation_8h_a8f808979502627a0266c0e374f6e1641}{00017}} \textcolor{keywordtype}{int} \mbox{\hyperlink{Almog__String__Manipulation_8h_a8f808979502627a0266c0e374f6e1641}{asm\_get\_line}}(FILE *fp, \textcolor{keywordtype}{char} *dst);}
+\DoxyCodeLine{\Hypertarget{Almog__String__Manipulation_8h_source_l00018}\mbox{\hyperlink{Almog__String__Manipulation_8h_a8cd7d02540e05c2a9b7457500b3de50f}{00018}} \textcolor{keywordtype}{int} \mbox{\hyperlink{Almog__String__Manipulation_8h_a8cd7d02540e05c2a9b7457500b3de50f}{asm\_length}}(\textcolor{keywordtype}{char} *str);}
+\DoxyCodeLine{\Hypertarget{Almog__String__Manipulation_8h_source_l00019}\mbox{\hyperlink{Almog__String__Manipulation_8h_a63ffe09b30c257a91c9b48a55837dbe0}{00019}} \textcolor{keywordtype}{int} \mbox{\hyperlink{Almog__String__Manipulation_8h_a63ffe09b30c257a91c9b48a55837dbe0}{asm\_get\_next\_word\_from\_line}}(\textcolor{keywordtype}{char} *dst, \textcolor{keywordtype}{char} *src, \textcolor{keywordtype}{char} seperator);}
+\DoxyCodeLine{\Hypertarget{Almog__String__Manipulation_8h_source_l00020}\mbox{\hyperlink{Almog__String__Manipulation_8h_ab9b15c7b736606880f1545ef527748ce}{00020}} \textcolor{keywordtype}{void} \mbox{\hyperlink{Almog__String__Manipulation_8h_ab9b15c7b736606880f1545ef527748ce}{asm\_copy\_arry\_by\_indesies}}(\textcolor{keywordtype}{char} *target, \textcolor{keywordtype}{int} start, \textcolor{keywordtype}{int} end, \textcolor{keywordtype}{char} *src);}
+\DoxyCodeLine{\Hypertarget{Almog__String__Manipulation_8h_source_l00021}\mbox{\hyperlink{Almog__String__Manipulation_8h_a1eed5e458a06330f12a09ed0c8b9d77d}{00021}} \textcolor{keywordtype}{int} \mbox{\hyperlink{Almog__String__Manipulation_8h_a1eed5e458a06330f12a09ed0c8b9d77d}{asm\_get\_word\_and\_cut}}(\textcolor{keywordtype}{char} *dst, \textcolor{keywordtype}{char} *src, \textcolor{keywordtype}{char} seperator);}
+\DoxyCodeLine{\Hypertarget{Almog__String__Manipulation_8h_source_l00022}\mbox{\hyperlink{Almog__String__Manipulation_8h_a929b5505a3cdb1796f2865b25b3bc92a}{00022}} \textcolor{keywordtype}{int} \mbox{\hyperlink{Almog__String__Manipulation_8h_a929b5505a3cdb1796f2865b25b3bc92a}{asm\_str\_in\_str}}(\textcolor{keywordtype}{char} *src, \textcolor{keywordtype}{char} *word2search);}
+\DoxyCodeLine{\Hypertarget{Almog__String__Manipulation_8h_source_l00023}\mbox{\hyperlink{Almog__String__Manipulation_8h_afb4ca51d675f386a8f5325f4481314a9}{00023}} \textcolor{keywordtype}{int} \mbox{\hyperlink{Almog__String__Manipulation_8h_afb4ca51d675f386a8f5325f4481314a9}{asm\_strncmp}}(\textcolor{keyword}{const} \textcolor{keywordtype}{char} *s1, \textcolor{keyword}{const} \textcolor{keywordtype}{char} *s2, \textcolor{keyword}{const} \textcolor{keywordtype}{int} N);}
+\DoxyCodeLine{00024 }
+\DoxyCodeLine{00025 \textcolor{preprocessor}{\#endif }\textcolor{comment}{/*ALMOG\_STRING\_MANIPULATION\_H\_*/}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00026 }
+\DoxyCodeLine{00027 \textcolor{preprocessor}{\#ifdef ALMOG\_STRING\_MANIPULATION\_IMPLEMENTATION}}
+\DoxyCodeLine{00028 \textcolor{preprocessor}{\#undef ALMOG\_STRING\_MANIPULATION\_IMPLEMENTATION}}
+\DoxyCodeLine{00029 }
+\DoxyCodeLine{00030 \textcolor{keywordtype}{int} \mbox{\hyperlink{Almog__String__Manipulation_8h_a8f808979502627a0266c0e374f6e1641}{asm\_get\_line}}(FILE *fp, \textcolor{keywordtype}{char} *dst)}
+\DoxyCodeLine{00031 \{}
+\DoxyCodeLine{00032     \textcolor{keywordtype}{int} i = 0;}
+\DoxyCodeLine{00033     \textcolor{keywordtype}{char} c;}
+\DoxyCodeLine{00034 }
+\DoxyCodeLine{00035     \textcolor{keywordflow}{while} ((c = fgetc(fp)) != \textcolor{charliteral}{'\(\backslash\)n'} \&\& c != EOF) \{}
+\DoxyCodeLine{00036         dst[i] = c;}
+\DoxyCodeLine{00037         i++;}
+\DoxyCodeLine{00038         \textcolor{keywordflow}{if} (i >= \mbox{\hyperlink{Almog__String__Manipulation_8h_a076fd3c5ba5ac7c6bbedb64c188565f3}{MAX\_LEN\_LINE}}) \{}
+\DoxyCodeLine{00039             fprintf(stderr, \textcolor{stringliteral}{"{}ERROR: line too long\(\backslash\)n"{}});}
+\DoxyCodeLine{00040             exit(1);}
+\DoxyCodeLine{00041         \}}
+\DoxyCodeLine{00042     \}}
+\DoxyCodeLine{00043     dst[i] = \textcolor{charliteral}{'\(\backslash\)0'};}
+\DoxyCodeLine{00044     \textcolor{keywordflow}{if} (c == EOF \&\& i == 0) \{}
+\DoxyCodeLine{00045         \textcolor{keywordflow}{return} -\/1;}
+\DoxyCodeLine{00046     \}}
+\DoxyCodeLine{00047     \textcolor{keywordflow}{return} i;}
+\DoxyCodeLine{00048 \}}
+\DoxyCodeLine{00049 }
+\DoxyCodeLine{00050 \textcolor{keywordtype}{int} \mbox{\hyperlink{Almog__String__Manipulation_8h_a8cd7d02540e05c2a9b7457500b3de50f}{asm\_length}}(\textcolor{keywordtype}{char} *str)}
+\DoxyCodeLine{00051 \{}
+\DoxyCodeLine{00052     \textcolor{keywordtype}{char} c;}
+\DoxyCodeLine{00053     \textcolor{keywordtype}{int} i = 0;}
+\DoxyCodeLine{00054 }
+\DoxyCodeLine{00055     \textcolor{keywordflow}{while} ((c = str[i]) != \textcolor{charliteral}{'\(\backslash\)0'}) \{}
+\DoxyCodeLine{00056         i++;}
+\DoxyCodeLine{00057     \}}
+\DoxyCodeLine{00058     \textcolor{keywordflow}{return} i++;}
+\DoxyCodeLine{00059 \}}
+\DoxyCodeLine{00060 }
+\DoxyCodeLine{00061 \textcolor{keywordtype}{int} \mbox{\hyperlink{Almog__String__Manipulation_8h_a63ffe09b30c257a91c9b48a55837dbe0}{asm\_get\_next\_word\_from\_line}}(\textcolor{keywordtype}{char} *dst, \textcolor{keywordtype}{char} *src, \textcolor{keywordtype}{char} seperator)}
+\DoxyCodeLine{00062 \{}
+\DoxyCodeLine{00063     \textcolor{keywordtype}{int} i = 0, j = 0;}
+\DoxyCodeLine{00064     \textcolor{keywordtype}{char} c;}
+\DoxyCodeLine{00065 }
+\DoxyCodeLine{00066     \textcolor{keywordflow}{while} (isspace((c = src[i]))) \{}
+\DoxyCodeLine{00067         i++;}
+\DoxyCodeLine{00068     \}}
+\DoxyCodeLine{00069 }
+\DoxyCodeLine{00070     \textcolor{keywordflow}{while} ((c = src[i]) != seperator \&\&}
+\DoxyCodeLine{00071                       c != \textcolor{charliteral}{'\(\backslash\)n'}\&\&}
+\DoxyCodeLine{00072                       c != \textcolor{charliteral}{'\(\backslash\)0'}) \{}
+\DoxyCodeLine{00073                         dst[j] = src[i];}
+\DoxyCodeLine{00074                         i++;}
+\DoxyCodeLine{00075                         j++;}
+\DoxyCodeLine{00076     \}}
+\DoxyCodeLine{00077 }
+\DoxyCodeLine{00078     \textcolor{keywordflow}{if} ((c == seperator || }
+\DoxyCodeLine{00079          c == \textcolor{charliteral}{'\(\backslash\)n'}||}
+\DoxyCodeLine{00080          c == \textcolor{charliteral}{'\(\backslash\)0'}) \&\& i == 0) \{}
+\DoxyCodeLine{00081             dst[j++] = c;}
+\DoxyCodeLine{00082             i++;}
+\DoxyCodeLine{00083     \}}
+\DoxyCodeLine{00084 }
+\DoxyCodeLine{00085     dst[j] = \textcolor{charliteral}{'\(\backslash\)0'};}
+\DoxyCodeLine{00086 }
+\DoxyCodeLine{00087     \textcolor{keywordflow}{if} (j == 0) \{}
+\DoxyCodeLine{00088         \textcolor{keywordflow}{return} -\/1;}
+\DoxyCodeLine{00089     \}}
+\DoxyCodeLine{00090     \textcolor{keywordflow}{return} i;}
+\DoxyCodeLine{00091 }
+\DoxyCodeLine{00092 \}}
+\DoxyCodeLine{00093 }
+\DoxyCodeLine{00094 \textcolor{keywordtype}{void} \mbox{\hyperlink{Almog__String__Manipulation_8h_ab9b15c7b736606880f1545ef527748ce}{asm\_copy\_arry\_by\_indesies}}(\textcolor{keywordtype}{char} *target, \textcolor{keywordtype}{int} start, \textcolor{keywordtype}{int} end, \textcolor{keywordtype}{char} *src)}
+\DoxyCodeLine{00095 \{}
+\DoxyCodeLine{00096     \textcolor{keywordtype}{int} j = 0;}
+\DoxyCodeLine{00097     \textcolor{keywordflow}{for} (\textcolor{keywordtype}{int} i = start; i < end; i++) \{}
+\DoxyCodeLine{00098         target[j] = src[i];}
+\DoxyCodeLine{00099         j++;}
+\DoxyCodeLine{00100     \}}
+\DoxyCodeLine{00101     target[j] = \textcolor{charliteral}{'\(\backslash\)0'};}
+\DoxyCodeLine{00102 \}}
+\DoxyCodeLine{00103 }
+\DoxyCodeLine{00104 \textcolor{keywordtype}{int} \mbox{\hyperlink{Almog__String__Manipulation_8h_a1eed5e458a06330f12a09ed0c8b9d77d}{asm\_get\_word\_and\_cut}}(\textcolor{keywordtype}{char} *dst, \textcolor{keywordtype}{char} *src, \textcolor{keywordtype}{char} seperator)}
+\DoxyCodeLine{00105 \{}
+\DoxyCodeLine{00106     \textcolor{keywordtype}{int} last\_pos;}
+\DoxyCodeLine{00107 }
+\DoxyCodeLine{00108     \textcolor{keywordflow}{if} (src[0] == \textcolor{charliteral}{'\(\backslash\)0'}) \{}
+\DoxyCodeLine{00109         \textcolor{keywordflow}{return} 0;}
+\DoxyCodeLine{00110     \}}
+\DoxyCodeLine{00111     last\_pos = \mbox{\hyperlink{Almog__String__Manipulation_8h_a63ffe09b30c257a91c9b48a55837dbe0}{asm\_get\_next\_word\_from\_line}}(dst, src, seperator);}
+\DoxyCodeLine{00112     \textcolor{keywordflow}{if} (last\_pos == -\/1) \{}
+\DoxyCodeLine{00113         \textcolor{keywordflow}{return} 0;}
+\DoxyCodeLine{00114     \}}
+\DoxyCodeLine{00115     \mbox{\hyperlink{Almog__String__Manipulation_8h_ab9b15c7b736606880f1545ef527748ce}{asm\_copy\_arry\_by\_indesies}}(src, last\_pos, \mbox{\hyperlink{Almog__String__Manipulation_8h_a8cd7d02540e05c2a9b7457500b3de50f}{asm\_length}}(src), src);}
+\DoxyCodeLine{00116     \textcolor{keywordflow}{return} 1;}
+\DoxyCodeLine{00117 \}}
+\DoxyCodeLine{00118 }
+\DoxyCodeLine{00119 \textcolor{keywordtype}{int} \mbox{\hyperlink{Almog__String__Manipulation_8h_a929b5505a3cdb1796f2865b25b3bc92a}{asm\_str\_in\_str}}(\textcolor{keywordtype}{char} *src, \textcolor{keywordtype}{char} *word2search)}
+\DoxyCodeLine{00120 \{}
+\DoxyCodeLine{00121     \textcolor{keywordtype}{int} i = 0, num\_of\_accur = 0;}
+\DoxyCodeLine{00122     \textcolor{keywordflow}{while} (src[i] != \textcolor{charliteral}{'\(\backslash\)0'}) \{}
+\DoxyCodeLine{00123         \textcolor{keywordflow}{if} (\mbox{\hyperlink{Almog__String__Manipulation_8h_afb4ca51d675f386a8f5325f4481314a9}{asm\_strncmp}}(src+i, word2search, \mbox{\hyperlink{Almog__String__Manipulation_8h_a8cd7d02540e05c2a9b7457500b3de50f}{asm\_length}}(word2search))) \{}
+\DoxyCodeLine{00124             num\_of\_accur++;}
+\DoxyCodeLine{00125         \}}
+\DoxyCodeLine{00126         i++;}
+\DoxyCodeLine{00127     \}}
+\DoxyCodeLine{00128     \textcolor{keywordflow}{return} num\_of\_accur;}
+\DoxyCodeLine{00129 \}}
+\DoxyCodeLine{00130 }
+\DoxyCodeLine{00131 \textcolor{comment}{/* return 1 if equal, 0 if different */}}
+\DoxyCodeLine{00132 \textcolor{keywordtype}{int} \mbox{\hyperlink{Almog__String__Manipulation_8h_afb4ca51d675f386a8f5325f4481314a9}{asm\_strncmp}}(\textcolor{keyword}{const} \textcolor{keywordtype}{char} *s1, \textcolor{keyword}{const} \textcolor{keywordtype}{char} *s2, \textcolor{keyword}{const} \textcolor{keywordtype}{int} N)}
+\DoxyCodeLine{00133 \{}
+\DoxyCodeLine{00134     \textcolor{keywordtype}{int} i = 0;}
+\DoxyCodeLine{00135     \textcolor{keywordflow}{while} (i < N) \{}
+\DoxyCodeLine{00136         \textcolor{keywordflow}{if} (s1[i] == \textcolor{charliteral}{'\(\backslash\)0'} \&\& s2[i] == \textcolor{charliteral}{'\(\backslash\)0'}) \{}
+\DoxyCodeLine{00137             \textcolor{keywordflow}{break};}
+\DoxyCodeLine{00138         \}}
+\DoxyCodeLine{00139         \textcolor{keywordflow}{if} (s1[i] != s2[i] || (s1[i] == \textcolor{charliteral}{'\(\backslash\)0'}) || (s2[i] == \textcolor{charliteral}{'\(\backslash\)0'})) \{}
+\DoxyCodeLine{00140             \textcolor{keywordflow}{return} 0;}
+\DoxyCodeLine{00141         \}}
+\DoxyCodeLine{00142         i++;}
+\DoxyCodeLine{00143     \}}
+\DoxyCodeLine{00144     \textcolor{keywordflow}{return} 1;}
+\DoxyCodeLine{00145 \}}
+\DoxyCodeLine{00146 }
+\DoxyCodeLine{00147 }
+\DoxyCodeLine{00148 \textcolor{preprocessor}{\#endif }\textcolor{comment}{/*ALMOG\_STRING\_MANIPULATION\_IMPLEMENTATION*/}\textcolor{preprocessor}{}}
+\DoxyCodeLine{00149 }
+
+\end{DoxyCode}

@@ -1761,10 +1761,10 @@ void adl_tri_mesh_fill_Pinedas_rasterizer_interpolate_normal(Mat2D_uint32 screen
 }
 
 /**
- * @brief Compute tan(α/2) for the angle at point p between segments p->vi
+ * @brief Compute tan(alpha/2) for the angle at point p between segments p->vi
  *        and p->vj.
  *
- * Uses the identity tan(α/2) = |a×b| / (|a||b| + a·b), where a = vi - p
+ * Uses the identity tan(alpha/2) = |a×b| / (|a||b| + a·b), where a = vi - p
  * and b = vj - p. The lengths li = |a| and lj = |b| are passed in to
  * avoid recomputation.
  *
@@ -1773,7 +1773,7 @@ void adl_tri_mesh_fill_Pinedas_rasterizer_interpolate_normal(Mat2D_uint32 screen
  * @param p Pivot point.
  * @param li Precomputed |vi - p|.
  * @param lj Precomputed |vj - p|.
- * @return tan(α/2) (non-negative).
+ * @return tan(alpha/2) (non-negative).
  */
 float adl_tan_half_angle(Point vi, Point vj, Point p, float li, float lj)
 {
@@ -1781,8 +1781,8 @@ float adl_tan_half_angle(Point vi, Point vj, Point p, float li, float lj)
     float bx = vj.x - p.x, by = vj.y - p.y;
     float dot = ax * bx + ay * by;
     float cross = ax * by - ay * bx;              // signed 2D cross (scalar)
-    float denom = dot + li * lj;                   // = |a||b|(1 + cos α)
-    return fabsf(cross) / fmaxf(1e-20f, denom);    // tan(α/2)
+    float denom = dot + li * lj;                   // = |a||b|(1 + cos(alpha))
+    return fabsf(cross) / fmaxf(1e-20f, denom);    // tan(alpha/2)
 }
 
 /**
@@ -1867,8 +1867,8 @@ void adl_quad2tris(Quad quad, Tri *tri1, Tri *tri2, char split_line[])
 /**
  * @brief Convert a linear sRGB color (ARGB) to Oklab components.
  *
- * Oklab components are returned in ranges: L∈[0,1], a∈[-0.5,0.5],
- * b∈[-0.5,0.5] (typical). Input is assumed to be linear sRGB.
+ * Oklab components are returned in ranges: L in [0,1], a in [-0.5,0.5],
+ * b in [-0.5,0.5] (typical). Input is assumed to be linear sRGB.
  *
  * @param hex_ARGB Input color (0xAARRGGBB). Alpha is ignored.
  * @param L [out] Perceptual lightness.
@@ -1938,7 +1938,7 @@ void adl_okLab_to_linear_sRGB(float L, float a, float b, uint32_t *hex_ARGB)
  * @brief Convert a linear sRGB color (ARGB) to OkLch components.
  *
  * @param hex_ARGB Input color (0xAARRGGBB). Alpha is ignored.
- * @param L [out] Lightness ∈ [0,1].
+ * @param L [out] Lightness in [0,1].
  * @param c [out] Chroma (non-negative).
  * @param h_deg [out] Hue angle in degrees [-180,180] from atan2.
  */

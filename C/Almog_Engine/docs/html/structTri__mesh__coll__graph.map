@@ -1,0 +1,5 @@
+<map id="Tri_mesh" name="Tri_mesh">
+<area shape="rect" id="node1" title=" " alt="" coords="5,213,85,240"/>
+<area shape="rect" id="node2" href="$structTri.html" title=" " alt="" coords="26,124,65,151"/>
+<area shape="rect" id="node3" href="$structPoint.html" title=" " alt="" coords="18,5,73,32"/>
+</map>
