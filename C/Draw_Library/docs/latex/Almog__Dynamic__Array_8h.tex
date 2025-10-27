@@ -1,0 +1,239 @@
+\hypertarget{Almog__Dynamic__Array_8h}{}\doxysection{Almog\+\_\+\+Dynamic\+\_\+\+Array.\+h File Reference}
+\label{Almog__Dynamic__Array_8h}\index{Almog\_Dynamic\_Array.h@{Almog\_Dynamic\_Array.h}}
+{\ttfamily \#include $<$stdlib.\+h$>$}\newline
+{\ttfamily \#include $<$assert.\+h$>$}\newline
+Include dependency graph for Almog\+\_\+\+Dynamic\+\_\+\+Array.\+h\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=216pt]{Almog__Dynamic__Array_8h__incl}
+\end{center}
+\end{figure}
+This graph shows which files directly or indirectly include this file\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=231pt]{Almog__Dynamic__Array_8h__dep__incl}
+\end{center}
+\end{figure}
+\doxysubsection*{Macros}
+\begin{DoxyCompactItemize}
+\item 
+\#define \mbox{\hyperlink{Almog__Dynamic__Array_8h_a1c2454dbbfd298b8e2cd09eb93b6a8f6}{INIT\+\_\+\+CAPACITY}}~10
+\item 
+\#define \mbox{\hyperlink{Almog__Dynamic__Array_8h_a541b1d9f14d48a8f62a9540f1ea48f9c}{ADA\+\_\+\+MALLOC}}~malloc
+\item 
+\#define \mbox{\hyperlink{Almog__Dynamic__Array_8h_acca05f482336fb7da06934aa3ae4b861}{ADA\+\_\+\+REALLOC}}~realloc
+\item 
+\#define \mbox{\hyperlink{Almog__Dynamic__Array_8h_a724ae18b9292332bc5ba1e889e8244f3}{ADA\+\_\+\+ASSERT}}~assert
+\item 
+\#define \mbox{\hyperlink{Almog__Dynamic__Array_8h_aac157302e0837f301f0c915360cfb182}{ada\+\_\+init\+\_\+array}}(type,  header)
+\item 
+\#define \mbox{\hyperlink{Almog__Dynamic__Array_8h_acecbe7b4a020f5312def063d2a5079cb}{ada\+\_\+resize}}(type,  header,  new\+\_\+capacity)
+\item 
+\#define \mbox{\hyperlink{Almog__Dynamic__Array_8h_a61680400e419e2d55c2e3cb9fe96dad7}{ada\+\_\+appand}}(type,  header,  value)
+\item 
+\#define \mbox{\hyperlink{Almog__Dynamic__Array_8h_aeaca809f410cc095f257c1caf9e647a2}{ada\+\_\+insert}}(type,  header,  value,  index)
+\item 
+\#define \mbox{\hyperlink{Almog__Dynamic__Array_8h_a0c20741fa11196eb7394b8e05b8e0b48}{ada\+\_\+insert\+\_\+unordered}}(type,  header,  value,  index)
+\item 
+\#define \mbox{\hyperlink{Almog__Dynamic__Array_8h_a7dd2b8250e6b1be7d5a44ed761c35971}{ada\+\_\+remove}}(type,  header,  index)
+\item 
+\#define \mbox{\hyperlink{Almog__Dynamic__Array_8h_a0df1461ea637ae0948bd6dd43b5f08ed}{ada\+\_\+remove\+\_\+unordered}}(type,  header,  index)
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Macro Definition Documentation}
+\mbox{\Hypertarget{Almog__Dynamic__Array_8h_a61680400e419e2d55c2e3cb9fe96dad7}\label{Almog__Dynamic__Array_8h_a61680400e419e2d55c2e3cb9fe96dad7}} 
+\index{Almog\_Dynamic\_Array.h@{Almog\_Dynamic\_Array.h}!ada\_appand@{ada\_appand}}
+\index{ada\_appand@{ada\_appand}!Almog\_Dynamic\_Array.h@{Almog\_Dynamic\_Array.h}}
+\doxysubsubsection{\texorpdfstring{ada\_appand}{ada\_appand}}
+{\footnotesize\ttfamily \#define ada\+\_\+appand(\begin{DoxyParamCaption}\item[{}]{type,  }\item[{}]{header,  }\item[{}]{value }\end{DoxyParamCaption})}
+
+{\bfseries Value\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{        \textcolor{keywordflow}{do} \{                        \(\backslash\)}
+\DoxyCodeLine{        if (header.length >= header.capacity) \{                     \(\backslash\)}
+\DoxyCodeLine{            ada\_resize(type, header, (\textcolor{keywordtype}{int})(header.capacity*1.5));   \(\backslash\)}
+\DoxyCodeLine{        \}                                                           \(\backslash\)}
+\DoxyCodeLine{        header.elements[header.length] = value;                     \(\backslash\)}
+\DoxyCodeLine{        header.length++;                                            \(\backslash\)}
+\DoxyCodeLine{    \} \textcolor{keywordflow}{while} (0)                                                     \(\backslash\)}
+
+\end{DoxyCode}
+
+
+Definition at line \mbox{\hyperlink{Almog__Dynamic__Array_8h_source_l00044}{44}} of file \mbox{\hyperlink{Almog__Dynamic__Array_8h_source}{Almog\+\_\+\+Dynamic\+\_\+\+Array.\+h}}.
+
+\mbox{\Hypertarget{Almog__Dynamic__Array_8h_a724ae18b9292332bc5ba1e889e8244f3}\label{Almog__Dynamic__Array_8h_a724ae18b9292332bc5ba1e889e8244f3}} 
+\index{Almog\_Dynamic\_Array.h@{Almog\_Dynamic\_Array.h}!ADA\_ASSERT@{ADA\_ASSERT}}
+\index{ADA\_ASSERT@{ADA\_ASSERT}!Almog\_Dynamic\_Array.h@{Almog\_Dynamic\_Array.h}}
+\doxysubsubsection{\texorpdfstring{ADA\_ASSERT}{ADA\_ASSERT}}
+{\footnotesize\ttfamily \#define ADA\+\_\+\+ASSERT~assert}
+
+
+
+Definition at line \mbox{\hyperlink{Almog__Dynamic__Array_8h_source_l00018}{18}} of file \mbox{\hyperlink{Almog__Dynamic__Array_8h_source}{Almog\+\_\+\+Dynamic\+\_\+\+Array.\+h}}.
+
+\mbox{\Hypertarget{Almog__Dynamic__Array_8h_aac157302e0837f301f0c915360cfb182}\label{Almog__Dynamic__Array_8h_aac157302e0837f301f0c915360cfb182}} 
+\index{Almog\_Dynamic\_Array.h@{Almog\_Dynamic\_Array.h}!ada\_init\_array@{ada\_init\_array}}
+\index{ada\_init\_array@{ada\_init\_array}!Almog\_Dynamic\_Array.h@{Almog\_Dynamic\_Array.h}}
+\doxysubsubsection{\texorpdfstring{ada\_init\_array}{ada\_init\_array}}
+{\footnotesize\ttfamily \#define ada\+\_\+init\+\_\+array(\begin{DoxyParamCaption}\item[{}]{type,  }\item[{}]{header }\end{DoxyParamCaption})}
+
+{\bfseries Value\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{        \textcolor{keywordflow}{do} \{                                       \(\backslash\)}
+\DoxyCodeLine{        header.capacity = \mbox{\hyperlink{Almog__Dynamic__Array_8h_a1c2454dbbfd298b8e2cd09eb93b6a8f6}{INIT\_CAPACITY}};                                        \(\backslash\)}
+\DoxyCodeLine{        header.length = 0;                                                      \(\backslash\)}
+\DoxyCodeLine{        header.elements = (type *)\mbox{\hyperlink{Almog__Dynamic__Array_8h_a541b1d9f14d48a8f62a9540f1ea48f9c}{ADA\_MALLOC}}(\textcolor{keyword}{sizeof}(type) * header.capacity);   \(\backslash\)}
+\DoxyCodeLine{        ADA\_ASSERT(header.elements != NULL);                                    \(\backslash\)}
+\DoxyCodeLine{    \} \textcolor{keywordflow}{while} (0)                                                                 \(\backslash\)}
+
+\end{DoxyCode}
+
+
+Definition at line \mbox{\hyperlink{Almog__Dynamic__Array_8h_source_l00027}{27}} of file \mbox{\hyperlink{Almog__Dynamic__Array_8h_source}{Almog\+\_\+\+Dynamic\+\_\+\+Array.\+h}}.
+
+\mbox{\Hypertarget{Almog__Dynamic__Array_8h_aeaca809f410cc095f257c1caf9e647a2}\label{Almog__Dynamic__Array_8h_aeaca809f410cc095f257c1caf9e647a2}} 
+\index{Almog\_Dynamic\_Array.h@{Almog\_Dynamic\_Array.h}!ada\_insert@{ada\_insert}}
+\index{ada\_insert@{ada\_insert}!Almog\_Dynamic\_Array.h@{Almog\_Dynamic\_Array.h}}
+\doxysubsubsection{\texorpdfstring{ada\_insert}{ada\_insert}}
+{\footnotesize\ttfamily \#define ada\+\_\+insert(\begin{DoxyParamCaption}\item[{}]{type,  }\item[{}]{header,  }\item[{}]{value,  }\item[{}]{index }\end{DoxyParamCaption})}
+
+{\bfseries Value\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{    \textcolor{keywordflow}{do} \{                                                         \(\backslash\)}
+\DoxyCodeLine{    ADA\_ASSERT((\textcolor{keywordtype}{int})(index) >= 0);                                                                          \(\backslash\)}
+\DoxyCodeLine{    ADA\_ASSERT((\textcolor{keywordtype}{float})(index) -\/ (\textcolor{keywordtype}{int})(index) == 0);                                                         \(\backslash\)}
+\DoxyCodeLine{    ada\_appand(type, header, header.elements[header.length-\/1]);                                             \(\backslash\)}
+\DoxyCodeLine{    for (\textcolor{keywordtype}{size\_t} ada\_for\_loop\_index = header.length-\/2; ada\_for\_loop\_index > (index); ada\_for\_loop\_index-\/-\/) \{ \(\backslash\)}
+\DoxyCodeLine{        header.elements[ada\_for\_loop\_index] = header.elements [ada\_for\_loop\_index-\/1];                       \(\backslash\)}
+\DoxyCodeLine{    \}                                                                                                       \(\backslash\)}
+\DoxyCodeLine{    header.elements[(index)] = value;                                                                       \(\backslash\)}
+\DoxyCodeLine{\} \textcolor{keywordflow}{while} (0)                                                                                                 \(\backslash\)}
+
+\end{DoxyCode}
+
+
+Definition at line \mbox{\hyperlink{Almog__Dynamic__Array_8h_source_l00052}{52}} of file \mbox{\hyperlink{Almog__Dynamic__Array_8h_source}{Almog\+\_\+\+Dynamic\+\_\+\+Array.\+h}}.
+
+\mbox{\Hypertarget{Almog__Dynamic__Array_8h_a0c20741fa11196eb7394b8e05b8e0b48}\label{Almog__Dynamic__Array_8h_a0c20741fa11196eb7394b8e05b8e0b48}} 
+\index{Almog\_Dynamic\_Array.h@{Almog\_Dynamic\_Array.h}!ada\_insert\_unordered@{ada\_insert\_unordered}}
+\index{ada\_insert\_unordered@{ada\_insert\_unordered}!Almog\_Dynamic\_Array.h@{Almog\_Dynamic\_Array.h}}
+\doxysubsubsection{\texorpdfstring{ada\_insert\_unordered}{ada\_insert\_unordered}}
+{\footnotesize\ttfamily \#define ada\+\_\+insert\+\_\+unordered(\begin{DoxyParamCaption}\item[{}]{type,  }\item[{}]{header,  }\item[{}]{value,  }\item[{}]{index }\end{DoxyParamCaption})}
+
+{\bfseries Value\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{    \textcolor{keywordflow}{do} \{   \(\backslash\)}
+\DoxyCodeLine{    ADA\_ASSERT((\textcolor{keywordtype}{int})(index) >= 0);                              \(\backslash\)}
+\DoxyCodeLine{    ADA\_ASSERT((\textcolor{keywordtype}{float})(index) -\/ (\textcolor{keywordtype}{int})(index) == 0);             \(\backslash\)}
+\DoxyCodeLine{    if ((\textcolor{keywordtype}{size\_t})(index) == header.length) \{                     \(\backslash\)}
+\DoxyCodeLine{        ada\_appand(type, header, value);                        \(\backslash\)}
+\DoxyCodeLine{    \} \textcolor{keywordflow}{else} \{                                                    \(\backslash\)}
+\DoxyCodeLine{        ada\_appand(type, header, header.elements[(index)]);     \(\backslash\)}
+\DoxyCodeLine{        header.elements[(index)] = value;                       \(\backslash\)}
+\DoxyCodeLine{    \}                                                           \(\backslash\)}
+\DoxyCodeLine{\} \textcolor{keywordflow}{while} (0)}
+
+\end{DoxyCode}
+
+
+Definition at line \mbox{\hyperlink{Almog__Dynamic__Array_8h_source_l00062}{62}} of file \mbox{\hyperlink{Almog__Dynamic__Array_8h_source}{Almog\+\_\+\+Dynamic\+\_\+\+Array.\+h}}.
+
+\mbox{\Hypertarget{Almog__Dynamic__Array_8h_a541b1d9f14d48a8f62a9540f1ea48f9c}\label{Almog__Dynamic__Array_8h_a541b1d9f14d48a8f62a9540f1ea48f9c}} 
+\index{Almog\_Dynamic\_Array.h@{Almog\_Dynamic\_Array.h}!ADA\_MALLOC@{ADA\_MALLOC}}
+\index{ADA\_MALLOC@{ADA\_MALLOC}!Almog\_Dynamic\_Array.h@{Almog\_Dynamic\_Array.h}}
+\doxysubsubsection{\texorpdfstring{ADA\_MALLOC}{ADA\_MALLOC}}
+{\footnotesize\ttfamily \#define ADA\+\_\+\+MALLOC~malloc}
+
+
+
+Definition at line \mbox{\hyperlink{Almog__Dynamic__Array_8h_source_l00010}{10}} of file \mbox{\hyperlink{Almog__Dynamic__Array_8h_source}{Almog\+\_\+\+Dynamic\+\_\+\+Array.\+h}}.
+
+\mbox{\Hypertarget{Almog__Dynamic__Array_8h_acca05f482336fb7da06934aa3ae4b861}\label{Almog__Dynamic__Array_8h_acca05f482336fb7da06934aa3ae4b861}} 
+\index{Almog\_Dynamic\_Array.h@{Almog\_Dynamic\_Array.h}!ADA\_REALLOC@{ADA\_REALLOC}}
+\index{ADA\_REALLOC@{ADA\_REALLOC}!Almog\_Dynamic\_Array.h@{Almog\_Dynamic\_Array.h}}
+\doxysubsubsection{\texorpdfstring{ADA\_REALLOC}{ADA\_REALLOC}}
+{\footnotesize\ttfamily \#define ADA\+\_\+\+REALLOC~realloc}
+
+
+
+Definition at line \mbox{\hyperlink{Almog__Dynamic__Array_8h_source_l00014}{14}} of file \mbox{\hyperlink{Almog__Dynamic__Array_8h_source}{Almog\+\_\+\+Dynamic\+\_\+\+Array.\+h}}.
+
+\mbox{\Hypertarget{Almog__Dynamic__Array_8h_a7dd2b8250e6b1be7d5a44ed761c35971}\label{Almog__Dynamic__Array_8h_a7dd2b8250e6b1be7d5a44ed761c35971}} 
+\index{Almog\_Dynamic\_Array.h@{Almog\_Dynamic\_Array.h}!ada\_remove@{ada\_remove}}
+\index{ada\_remove@{ada\_remove}!Almog\_Dynamic\_Array.h@{Almog\_Dynamic\_Array.h}}
+\doxysubsubsection{\texorpdfstring{ada\_remove}{ada\_remove}}
+{\footnotesize\ttfamily \#define ada\+\_\+remove(\begin{DoxyParamCaption}\item[{}]{type,  }\item[{}]{header,  }\item[{}]{index }\end{DoxyParamCaption})}
+
+{\bfseries Value\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{    \textcolor{keywordflow}{do} \{                                                                \(\backslash\)}
+\DoxyCodeLine{    ADA\_ASSERT((\textcolor{keywordtype}{int})(index) >= 0);                                                                          \(\backslash\)}
+\DoxyCodeLine{    ADA\_ASSERT((\textcolor{keywordtype}{float})(index) -\/ (\textcolor{keywordtype}{int})(index) == 0);                                                         \(\backslash\)}
+\DoxyCodeLine{    for (\textcolor{keywordtype}{size\_t} ada\_for\_loop\_index = (index); ada\_for\_loop\_index < header.length-\/1; ada\_for\_loop\_index++) \{ \(\backslash\)}
+\DoxyCodeLine{        header.elements[ada\_for\_loop\_index] = header.elements[ada\_for\_loop\_index+1];                        \(\backslash\)}
+\DoxyCodeLine{    \}                                                                                                       \(\backslash\)}
+\DoxyCodeLine{    header.length-\/-\/;                                                                                        \(\backslash\)}
+\DoxyCodeLine{\} \textcolor{keywordflow}{while} (0)}
+
+\end{DoxyCode}
+
+
+Definition at line \mbox{\hyperlink{Almog__Dynamic__Array_8h_source_l00073}{73}} of file \mbox{\hyperlink{Almog__Dynamic__Array_8h_source}{Almog\+\_\+\+Dynamic\+\_\+\+Array.\+h}}.
+
+\mbox{\Hypertarget{Almog__Dynamic__Array_8h_a0df1461ea637ae0948bd6dd43b5f08ed}\label{Almog__Dynamic__Array_8h_a0df1461ea637ae0948bd6dd43b5f08ed}} 
+\index{Almog\_Dynamic\_Array.h@{Almog\_Dynamic\_Array.h}!ada\_remove\_unordered@{ada\_remove\_unordered}}
+\index{ada\_remove\_unordered@{ada\_remove\_unordered}!Almog\_Dynamic\_Array.h@{Almog\_Dynamic\_Array.h}}
+\doxysubsubsection{\texorpdfstring{ada\_remove\_unordered}{ada\_remove\_unordered}}
+{\footnotesize\ttfamily \#define ada\+\_\+remove\+\_\+unordered(\begin{DoxyParamCaption}\item[{}]{type,  }\item[{}]{header,  }\item[{}]{index }\end{DoxyParamCaption})}
+
+{\bfseries Value\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{    \textcolor{keywordflow}{do} \{          \(\backslash\)}
+\DoxyCodeLine{    ADA\_ASSERT((\textcolor{keywordtype}{int})(index) >= 0);                              \(\backslash\)}
+\DoxyCodeLine{    ADA\_ASSERT((\textcolor{keywordtype}{float})(index) -\/ (\textcolor{keywordtype}{int})(index) == 0);             \(\backslash\)}
+\DoxyCodeLine{    header.elements[index] = header.elements[header.length-\/1];  \(\backslash\)}
+\DoxyCodeLine{    header.length-\/-\/;                                            \(\backslash\)}
+\DoxyCodeLine{\} \textcolor{keywordflow}{while} (0)}
+
+\end{DoxyCode}
+
+
+Definition at line \mbox{\hyperlink{Almog__Dynamic__Array_8h_source_l00082}{82}} of file \mbox{\hyperlink{Almog__Dynamic__Array_8h_source}{Almog\+\_\+\+Dynamic\+\_\+\+Array.\+h}}.
+
+\mbox{\Hypertarget{Almog__Dynamic__Array_8h_acecbe7b4a020f5312def063d2a5079cb}\label{Almog__Dynamic__Array_8h_acecbe7b4a020f5312def063d2a5079cb}} 
+\index{Almog\_Dynamic\_Array.h@{Almog\_Dynamic\_Array.h}!ada\_resize@{ada\_resize}}
+\index{ada\_resize@{ada\_resize}!Almog\_Dynamic\_Array.h@{Almog\_Dynamic\_Array.h}}
+\doxysubsubsection{\texorpdfstring{ada\_resize}{ada\_resize}}
+{\footnotesize\ttfamily \#define ada\+\_\+resize(\begin{DoxyParamCaption}\item[{}]{type,  }\item[{}]{header,  }\item[{}]{new\+\_\+capacity }\end{DoxyParamCaption})}
+
+{\bfseries Value\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{        \textcolor{keywordflow}{do} \{                                                         \(\backslash\)}
+\DoxyCodeLine{        type *ada\_temp\_pointer = (type *)\mbox{\hyperlink{Almog__Dynamic__Array_8h_acca05f482336fb7da06934aa3ae4b861}{ADA\_REALLOC}}((\textcolor{keywordtype}{void} *)(header.elements), new\_capacity*\textcolor{keyword}{sizeof}(type)); \(\backslash\)}
+\DoxyCodeLine{        if (ada\_temp\_pointer == NULL) \{                                                                     \(\backslash\)}
+\DoxyCodeLine{            exit(1);                                                                                        \(\backslash\)}
+\DoxyCodeLine{        \}                                                                                                   \(\backslash\)}
+\DoxyCodeLine{        header.elements = ada\_temp\_pointer;                                                                 \(\backslash\)}
+\DoxyCodeLine{        ADA\_ASSERT(header.elements != NULL);                                                                \(\backslash\)}
+\DoxyCodeLine{        header.capacity = new\_capacity;                                                                     \(\backslash\)}
+\DoxyCodeLine{    \} \textcolor{keywordflow}{while} (0)                                                                                             \(\backslash\)}
+
+\end{DoxyCode}
+
+
+Definition at line \mbox{\hyperlink{Almog__Dynamic__Array_8h_source_l00034}{34}} of file \mbox{\hyperlink{Almog__Dynamic__Array_8h_source}{Almog\+\_\+\+Dynamic\+\_\+\+Array.\+h}}.
+
+\mbox{\Hypertarget{Almog__Dynamic__Array_8h_a1c2454dbbfd298b8e2cd09eb93b6a8f6}\label{Almog__Dynamic__Array_8h_a1c2454dbbfd298b8e2cd09eb93b6a8f6}} 
+\index{Almog\_Dynamic\_Array.h@{Almog\_Dynamic\_Array.h}!INIT\_CAPACITY@{INIT\_CAPACITY}}
+\index{INIT\_CAPACITY@{INIT\_CAPACITY}!Almog\_Dynamic\_Array.h@{Almog\_Dynamic\_Array.h}}
+\doxysubsubsection{\texorpdfstring{INIT\_CAPACITY}{INIT\_CAPACITY}}
+{\footnotesize\ttfamily \#define INIT\+\_\+\+CAPACITY~10}
+
+
+
+Definition at line \mbox{\hyperlink{Almog__Dynamic__Array_8h_source_l00007}{7}} of file \mbox{\hyperlink{Almog__Dynamic__Array_8h_source}{Almog\+\_\+\+Dynamic\+\_\+\+Array.\+h}}.
+

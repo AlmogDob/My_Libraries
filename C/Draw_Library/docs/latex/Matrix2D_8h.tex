@@ -1,0 +1,1112 @@
+\hypertarget{Matrix2D_8h}{}\doxysection{Matrix2\+D.\+h File Reference}
+\label{Matrix2D_8h}\index{Matrix2D.h@{Matrix2D.h}}
+{\ttfamily \#include $<$stddef.\+h$>$}\newline
+{\ttfamily \#include $<$stdio.\+h$>$}\newline
+{\ttfamily \#include $<$stdlib.\+h$>$}\newline
+{\ttfamily \#include $<$stdint.\+h$>$}\newline
+{\ttfamily \#include $<$math.\+h$>$}\newline
+{\ttfamily \#include $<$stdbool.\+h$>$}\newline
+{\ttfamily \#include $<$assert.\+h$>$}\newline
+Include dependency graph for Matrix2\+D.\+h\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{Matrix2D_8h__incl}
+\end{center}
+\end{figure}
+This graph shows which files directly or indirectly include this file\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=266pt]{Matrix2D_8h__dep__incl}
+\end{center}
+\end{figure}
+\doxysubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+struct \mbox{\hyperlink{structMat2D}{Mat2D}}
+\item 
+struct \mbox{\hyperlink{structMat2D__uint32}{Mat2\+D\+\_\+uint32}}
+\item 
+struct \mbox{\hyperlink{structMat2D__Minor}{Mat2\+D\+\_\+\+Minor}}
+\end{DoxyCompactItemize}
+\doxysubsection*{Macros}
+\begin{DoxyCompactItemize}
+\item 
+\#define \mbox{\hyperlink{Matrix2D_8h_abafa689bce24e7a987e033fe1557f1bc}{MATRIX2\+D\+\_\+\+MALLOC}}~malloc
+\item 
+\#define \mbox{\hyperlink{Matrix2D_8h_a8d1087dbe390c9bf0f913390c3240639}{MATRIX2\+D\+\_\+\+ASSERT}}~assert
+\item 
+\#define \mbox{\hyperlink{Matrix2D_8h_abdffe058c709b68f7d491ac9bf23f52e}{MAT2\+D\+\_\+\+AT}}(m,  i,  j)~(m).elements\mbox{[}\mbox{\hyperlink{Matrix2D_8h_a5de871b70b3fb41ec18a9188778b6013}{mat2\+D\+\_\+offset2d}}((m), (i), (j))\mbox{]}
+\item 
+\#define \mbox{\hyperlink{Matrix2D_8h_aa1863fe86a08bbc48ddaa1137dbb82c2}{MAT2\+D\+\_\+\+AT\+\_\+\+UINT32}}(m,  i,  j)~(m).elements\mbox{[}\mbox{\hyperlink{Matrix2D_8h_a9fd601ff83505e155beb7929f1acbffa}{mat2\+D\+\_\+offset2d\+\_\+uint32}}((m), (i), (j))\mbox{]}
+\item 
+\#define \mbox{\hyperlink{Matrix2D_8h_a598a3330b3c21701223ee0ca14316eca}{PI}}~M\+\_\+\+PI
+\item 
+\#define \mbox{\hyperlink{Matrix2D_8h_a2e8f5d497116d911d476064b647cf04d}{MAT2\+D\+\_\+\+MINOR\+\_\+\+AT}}(mm,  i,  j)~\mbox{\hyperlink{Matrix2D_8h_abdffe058c709b68f7d491ac9bf23f52e}{MAT2\+D\+\_\+\+AT}}(mm.\+ref\+\_\+mat, mm.\+rows\+\_\+list\mbox{[}i\mbox{]}, mm.\+cols\+\_\+list\mbox{[}j\mbox{]})
+\item 
+\#define \mbox{\hyperlink{Matrix2D_8h_af942a81c35d5c350130180adb694cf16}{MAT2\+D\+\_\+\+PRINT}}(m)~\mbox{\hyperlink{Matrix2D_8h_a2259aafa1dad6d102143d9fd4a760f74}{mat2\+D\+\_\+print}}(m, \#m, 0)
+\item 
+\#define \mbox{\hyperlink{Matrix2D_8h_a742188f3e7f64bbed46f94f465a3a573}{MAT2\+D\+\_\+\+UINT32\+\_\+\+PRINT}}(m)~\mbox{\hyperlink{Matrix2D_8h_a297912d62f26a66aa3e71947116380bb}{mat2\+D\+\_\+uint32\+\_\+print}}(m, \#m, 0)
+\item 
+\#define \mbox{\hyperlink{Matrix2D_8h_ae6619814831ec2f936c071e7dc7d81a3}{MAT2\+D\+\_\+\+PRINT\+\_\+\+AS\+\_\+\+COL}}(m)~\mbox{\hyperlink{Matrix2D_8h_a9f58c68361c1cb6532ae5936caef8869}{mat2\+D\+\_\+print\+\_\+as\+\_\+col}}(m, \#m, 0)
+\item 
+\#define \mbox{\hyperlink{Matrix2D_8h_ab283467b75cb3f2007a3f63fd1d627e5}{MAT2\+D\+\_\+\+MINOR\+\_\+\+PRINT}}(mm)~\mbox{\hyperlink{Matrix2D_8h_afa42796a16a92b05af6f6de0ef2cb3f9}{mat2\+D\+\_\+minor\+\_\+print}}(mm, \#mm, 0)
+\end{DoxyCompactItemize}
+\doxysubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+double \mbox{\hyperlink{Matrix2D_8h_affdba9e27c79692b1660fa94ec70bfe3}{rand\+\_\+double}} (void)
+\item 
+\mbox{\hyperlink{structMat2D}{Mat2D}} \mbox{\hyperlink{Matrix2D_8h_aea533ae4263119e0abba26e2d87182dd}{mat2\+D\+\_\+alloc}} (size\+\_\+t rows, size\+\_\+t cols)
+\item 
+\mbox{\hyperlink{structMat2D__uint32}{Mat2\+D\+\_\+uint32}} \mbox{\hyperlink{Matrix2D_8h_adac1c1ab9a90014bf3c1cd0bb8381a90}{mat2\+D\+\_\+alloc\+\_\+uint32}} (size\+\_\+t rows, size\+\_\+t cols)
+\item 
+void \mbox{\hyperlink{Matrix2D_8h_a4d2d183b2cb18394e8c7e1e11f97b3ef}{mat2\+D\+\_\+free}} (\mbox{\hyperlink{structMat2D}{Mat2D}} m)
+\item 
+void \mbox{\hyperlink{Matrix2D_8h_a84aaa6e232bb1c89b613d70b3367acb0}{mat2\+D\+\_\+free\+\_\+uint32}} (\mbox{\hyperlink{structMat2D__uint32}{Mat2\+D\+\_\+uint32}} m)
+\item 
+size\+\_\+t \mbox{\hyperlink{Matrix2D_8h_a5de871b70b3fb41ec18a9188778b6013}{mat2\+D\+\_\+offset2d}} (\mbox{\hyperlink{structMat2D}{Mat2D}} m, size\+\_\+t i, size\+\_\+t j)
+\item 
+size\+\_\+t \mbox{\hyperlink{Matrix2D_8h_a9fd601ff83505e155beb7929f1acbffa}{mat2\+D\+\_\+offset2d\+\_\+uint32}} (\mbox{\hyperlink{structMat2D__uint32}{Mat2\+D\+\_\+uint32}} m, size\+\_\+t i, size\+\_\+t j)
+\item 
+void \mbox{\hyperlink{Matrix2D_8h_a4277c771e5ccfc6b6192f6a5e662a7b4}{mat2\+D\+\_\+fill}} (\mbox{\hyperlink{structMat2D}{Mat2D}} m, double x)
+\item 
+void \mbox{\hyperlink{Matrix2D_8h_a2a491f6686760e59ad4aaa6856f5efac}{mat2\+D\+\_\+fill\+\_\+uint32}} (\mbox{\hyperlink{structMat2D__uint32}{Mat2\+D\+\_\+uint32}} m, uint32\+\_\+t x)
+\item 
+void \mbox{\hyperlink{Matrix2D_8h_a1f08179655e7c57ca839636aa5a057e4}{mat2\+D\+\_\+fill\+\_\+sequence}} (\mbox{\hyperlink{structMat2D}{Mat2D}} m, double start, double step)
+\item 
+void \mbox{\hyperlink{Matrix2D_8h_ac1c669a88bb0d49fd1844b19e7e35d39}{mat2\+D\+\_\+rand}} (\mbox{\hyperlink{structMat2D}{Mat2D}} m, double low, double high)
+\item 
+void \mbox{\hyperlink{Matrix2D_8h_a54befe38bb85e4e8d07030cf3c4f9e16}{mat2\+D\+\_\+dot}} (\mbox{\hyperlink{structMat2D}{Mat2D}} dst, \mbox{\hyperlink{structMat2D}{Mat2D}} a, \mbox{\hyperlink{structMat2D}{Mat2D}} b)
+\item 
+void \mbox{\hyperlink{Matrix2D_8h_a195a44f3fe41a5c25f431b9a0c43ea48}{mat2\+D\+\_\+cross}} (\mbox{\hyperlink{structMat2D}{Mat2D}} dst, \mbox{\hyperlink{structMat2D}{Mat2D}} a, \mbox{\hyperlink{structMat2D}{Mat2D}} b)
+\item 
+void \mbox{\hyperlink{Matrix2D_8h_aed7c0d494d147d19864b273f91c39423}{mat2\+D\+\_\+add}} (\mbox{\hyperlink{structMat2D}{Mat2D}} dst, \mbox{\hyperlink{structMat2D}{Mat2D}} a)
+\item 
+void \mbox{\hyperlink{Matrix2D_8h_a305c4231df12b37653aa7fe59fea7fa2}{mat2\+D\+\_\+add\+\_\+row\+\_\+time\+\_\+factor\+\_\+to\+\_\+row}} (\mbox{\hyperlink{structMat2D}{Mat2D}} m, size\+\_\+t des\+\_\+r, size\+\_\+t src\+\_\+r, double factor)
+\item 
+void \mbox{\hyperlink{Matrix2D_8h_a96b3b954a60d4f9dd6ac9954945bc749}{mat2\+D\+\_\+sub}} (\mbox{\hyperlink{structMat2D}{Mat2D}} dst, \mbox{\hyperlink{structMat2D}{Mat2D}} a)
+\item 
+void \mbox{\hyperlink{Matrix2D_8h_abff2de8510578beb574dad66ce1785b2}{mat2\+D\+\_\+sub\+\_\+row\+\_\+time\+\_\+factor\+\_\+to\+\_\+row}} (\mbox{\hyperlink{structMat2D}{Mat2D}} m, size\+\_\+t des\+\_\+r, size\+\_\+t src\+\_\+r, double factor)
+\item 
+void \mbox{\hyperlink{Matrix2D_8h_ab053dbc6d1eba395817707c410b227e0}{mat2\+D\+\_\+mult}} (\mbox{\hyperlink{structMat2D}{Mat2D}} m, double factor)
+\item 
+void \mbox{\hyperlink{Matrix2D_8h_ab3dc13931aa9de3b4bf25fcf35de6313}{mat2\+D\+\_\+mult\+\_\+row}} (\mbox{\hyperlink{structMat2D}{Mat2D}} m, size\+\_\+t r, double factor)
+\item 
+void \mbox{\hyperlink{Matrix2D_8h_a2259aafa1dad6d102143d9fd4a760f74}{mat2\+D\+\_\+print}} (\mbox{\hyperlink{structMat2D}{Mat2D}} m, const char $\ast$name, size\+\_\+t padding)
+\item 
+void \mbox{\hyperlink{Matrix2D_8h_a297912d62f26a66aa3e71947116380bb}{mat2\+D\+\_\+uint32\+\_\+print}} (\mbox{\hyperlink{structMat2D__uint32}{Mat2\+D\+\_\+uint32}} m, const char $\ast$name, size\+\_\+t padding)
+\item 
+void \mbox{\hyperlink{Matrix2D_8h_a9f58c68361c1cb6532ae5936caef8869}{mat2\+D\+\_\+print\+\_\+as\+\_\+col}} (\mbox{\hyperlink{structMat2D}{Mat2D}} m, const char $\ast$name, size\+\_\+t padding)
+\item 
+void \mbox{\hyperlink{Matrix2D_8h_a67a8ec9129b92e0ad62a578daf7b797b}{mat2\+D\+\_\+set\+\_\+identity}} (\mbox{\hyperlink{structMat2D}{Mat2D}} m)
+\item 
+double \mbox{\hyperlink{Matrix2D_8h_aa32e2ed8bbfcab17633e232790bfe7c6}{mat2\+D\+\_\+make\+\_\+identity}} (\mbox{\hyperlink{structMat2D}{Mat2D}} m)
+\item 
+void \mbox{\hyperlink{Matrix2D_8h_aa65d8e2a4d3609149bb9a73f2839e174}{mat2\+D\+\_\+set\+\_\+rot\+\_\+mat\+\_\+x}} (\mbox{\hyperlink{structMat2D}{Mat2D}} m, float angle\+\_\+deg)
+\item 
+void \mbox{\hyperlink{Matrix2D_8h_ab4db0c7ac08c4e94284e4748f5c63fda}{mat2\+D\+\_\+set\+\_\+rot\+\_\+mat\+\_\+y}} (\mbox{\hyperlink{structMat2D}{Mat2D}} m, float angle\+\_\+deg)
+\item 
+void \mbox{\hyperlink{Matrix2D_8h_a7cf78b0a4151b30bbc97f86bb8617cb3}{mat2\+D\+\_\+set\+\_\+rot\+\_\+mat\+\_\+z}} (\mbox{\hyperlink{structMat2D}{Mat2D}} m, float angle\+\_\+deg)
+\item 
+void \mbox{\hyperlink{Matrix2D_8h_a5349f2b49eb72fa91c4824b0d08f4a83}{mat2\+D\+\_\+copy}} (\mbox{\hyperlink{structMat2D}{Mat2D}} des, \mbox{\hyperlink{structMat2D}{Mat2D}} src)
+\item 
+void \mbox{\hyperlink{Matrix2D_8h_ae935510a8c4d391b73a954a6d37d02ae}{mat2\+D\+\_\+copy\+\_\+mat\+\_\+to\+\_\+mat\+\_\+at\+\_\+window}} (\mbox{\hyperlink{structMat2D}{Mat2D}} des, \mbox{\hyperlink{structMat2D}{Mat2D}} src, size\+\_\+t is, size\+\_\+t js, size\+\_\+t ie, size\+\_\+t je)
+\item 
+void \mbox{\hyperlink{Matrix2D_8h_a948b8a466add0925958cf875c19312cc}{mat2\+D\+\_\+get\+\_\+col}} (\mbox{\hyperlink{structMat2D}{Mat2D}} des, size\+\_\+t des\+\_\+col, \mbox{\hyperlink{structMat2D}{Mat2D}} src, size\+\_\+t src\+\_\+col)
+\item 
+void \mbox{\hyperlink{Matrix2D_8h_a5cbb061d84d2c806fead4b9208328351}{mat2\+D\+\_\+add\+\_\+col\+\_\+to\+\_\+col}} (\mbox{\hyperlink{structMat2D}{Mat2D}} des, size\+\_\+t des\+\_\+col, \mbox{\hyperlink{structMat2D}{Mat2D}} src, size\+\_\+t src\+\_\+col)
+\item 
+void \mbox{\hyperlink{Matrix2D_8h_a300a05e18ba239b6170e0a4a12863508}{mat2\+D\+\_\+sub\+\_\+col\+\_\+to\+\_\+col}} (\mbox{\hyperlink{structMat2D}{Mat2D}} des, size\+\_\+t des\+\_\+col, \mbox{\hyperlink{structMat2D}{Mat2D}} src, size\+\_\+t src\+\_\+col)
+\item 
+void \mbox{\hyperlink{Matrix2D_8h_ab6ff4f83b4ba30ac9abbe561eb5f211e}{mat2\+D\+\_\+swap\+\_\+rows}} (\mbox{\hyperlink{structMat2D}{Mat2D}} m, size\+\_\+t r1, size\+\_\+t r2)
+\item 
+void \mbox{\hyperlink{Matrix2D_8h_a8c922d40f23f1b9c852971bdd7698ac1}{mat2\+D\+\_\+get\+\_\+row}} (\mbox{\hyperlink{structMat2D}{Mat2D}} des, size\+\_\+t des\+\_\+row, \mbox{\hyperlink{structMat2D}{Mat2D}} src, size\+\_\+t src\+\_\+row)
+\item 
+void \mbox{\hyperlink{Matrix2D_8h_a56ad741b13f711b033f7a29f0526bb51}{mat2\+D\+\_\+add\+\_\+row\+\_\+to\+\_\+row}} (\mbox{\hyperlink{structMat2D}{Mat2D}} des, size\+\_\+t des\+\_\+row, \mbox{\hyperlink{structMat2D}{Mat2D}} src, size\+\_\+t src\+\_\+row)
+\item 
+void \mbox{\hyperlink{Matrix2D_8h_a2e3905602c600a3a2552325f8c35eebd}{mat2\+D\+\_\+sub\+\_\+row\+\_\+to\+\_\+row}} (\mbox{\hyperlink{structMat2D}{Mat2D}} des, size\+\_\+t des\+\_\+row, \mbox{\hyperlink{structMat2D}{Mat2D}} src, size\+\_\+t src\+\_\+row)
+\item 
+double \mbox{\hyperlink{Matrix2D_8h_abda90a369811f8c2693911008994f6ec}{mat2\+D\+\_\+calc\+\_\+norma}} (\mbox{\hyperlink{structMat2D}{Mat2D}} m)
+\item 
+bool \mbox{\hyperlink{Matrix2D_8h_acb12a1d20afc3dcc569d819488c53c51}{mat2\+D\+\_\+mat\+\_\+is\+\_\+all\+\_\+digit}} (\mbox{\hyperlink{structMat2D}{Mat2D}} m, double digit)
+\item 
+bool \mbox{\hyperlink{Matrix2D_8h_a8591bb4b2ed5a9aa2b92f4c081848ee2}{mat2\+D\+\_\+row\+\_\+is\+\_\+all\+\_\+digit}} (\mbox{\hyperlink{structMat2D}{Mat2D}} m, double digit, size\+\_\+t r)
+\item 
+bool \mbox{\hyperlink{Matrix2D_8h_a28bf5a661ce1df3d74ba7094fb2ecd24}{mat2\+D\+\_\+col\+\_\+is\+\_\+all\+\_\+digit}} (\mbox{\hyperlink{structMat2D}{Mat2D}} m, double digit, size\+\_\+t c)
+\item 
+double \mbox{\hyperlink{Matrix2D_8h_aa48d35c5b01b174bf27db465c2f76e13}{mat2\+D\+\_\+det\+\_\+2x2\+\_\+mat}} (\mbox{\hyperlink{structMat2D}{Mat2D}} m)
+\item 
+double \mbox{\hyperlink{Matrix2D_8h_a9f78068de09b891e4e44633783d90bae}{mat2\+D\+\_\+triangulate}} (\mbox{\hyperlink{structMat2D}{Mat2D}} m)
+\item 
+double \mbox{\hyperlink{Matrix2D_8h_add98cfd72b7f2862809724a2933144b0}{mat2\+D\+\_\+det}} (\mbox{\hyperlink{structMat2D}{Mat2D}} m)
+\item 
+void \mbox{\hyperlink{Matrix2D_8h_a672b9f8e012459a3486c9f980d4723e4}{mat2\+D\+\_\+\+LUP\+\_\+decomposition\+\_\+with\+\_\+swap}} (\mbox{\hyperlink{structMat2D}{Mat2D}} src, \mbox{\hyperlink{structMat2D}{Mat2D}} l, \mbox{\hyperlink{structMat2D}{Mat2D}} p, \mbox{\hyperlink{structMat2D}{Mat2D}} u)
+\item 
+void \mbox{\hyperlink{Matrix2D_8h_a18bd1d4bbab4a1fdef11f735cb3fbf5d}{mat2\+D\+\_\+transpose}} (\mbox{\hyperlink{structMat2D}{Mat2D}} des, \mbox{\hyperlink{structMat2D}{Mat2D}} src)
+\item 
+void \mbox{\hyperlink{Matrix2D_8h_a0daf72b975daa37e24afa208e399f85e}{mat2\+D\+\_\+invert}} (\mbox{\hyperlink{structMat2D}{Mat2D}} des, \mbox{\hyperlink{structMat2D}{Mat2D}} src)
+\item 
+void \mbox{\hyperlink{Matrix2D_8h_a7e86b66e4a2fa4395433ec3806d69878}{mat2\+D\+\_\+solve\+\_\+linear\+\_\+sys\+\_\+\+LUP\+\_\+decomposition}} (\mbox{\hyperlink{structMat2D}{Mat2D}} A, \mbox{\hyperlink{structMat2D}{Mat2D}} x, \mbox{\hyperlink{structMat2D}{Mat2D}} B)
+\item 
+\mbox{\hyperlink{structMat2D__Minor}{Mat2\+D\+\_\+\+Minor}} \mbox{\hyperlink{Matrix2D_8h_a7e83ff7368f80735336e4f872b02d3cf}{mat2\+D\+\_\+minor\+\_\+alloc\+\_\+fill\+\_\+from\+\_\+mat}} (\mbox{\hyperlink{structMat2D}{Mat2D}} ref\+\_\+mat, size\+\_\+t i, size\+\_\+t j)
+\item 
+\mbox{\hyperlink{structMat2D__Minor}{Mat2\+D\+\_\+\+Minor}} \mbox{\hyperlink{Matrix2D_8h_ac53223569c7ba558b10a0d2ad0287d32}{mat2\+D\+\_\+minor\+\_\+alloc\+\_\+fill\+\_\+from\+\_\+mat\+\_\+minor}} (\mbox{\hyperlink{structMat2D__Minor}{Mat2\+D\+\_\+\+Minor}} ref\+\_\+mm, size\+\_\+t i, size\+\_\+t j)
+\item 
+void \mbox{\hyperlink{Matrix2D_8h_afe36aba7dc74ecd4ac750c327f3d613d}{mat2\+D\+\_\+minor\+\_\+free}} (\mbox{\hyperlink{structMat2D__Minor}{Mat2\+D\+\_\+\+Minor}} mm)
+\item 
+void \mbox{\hyperlink{Matrix2D_8h_afa42796a16a92b05af6f6de0ef2cb3f9}{mat2\+D\+\_\+minor\+\_\+print}} (\mbox{\hyperlink{structMat2D__Minor}{Mat2\+D\+\_\+\+Minor}} mm, const char $\ast$name, size\+\_\+t padding)
+\item 
+double \mbox{\hyperlink{Matrix2D_8h_afe3caf9b98714a590aa79313bbbca616}{mat2\+D\+\_\+det\+\_\+2x2\+\_\+mat\+\_\+minor}} (\mbox{\hyperlink{structMat2D__Minor}{Mat2\+D\+\_\+\+Minor}} mm)
+\item 
+double \mbox{\hyperlink{Matrix2D_8h_a7d5f0d7c8a402b96d04efd9e7e4e899b}{mat2\+D\+\_\+minor\+\_\+det}} (\mbox{\hyperlink{structMat2D__Minor}{Mat2\+D\+\_\+\+Minor}} mm)
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Macro Definition Documentation}
+\mbox{\Hypertarget{Matrix2D_8h_abdffe058c709b68f7d491ac9bf23f52e}\label{Matrix2D_8h_abdffe058c709b68f7d491ac9bf23f52e}} 
+\index{Matrix2D.h@{Matrix2D.h}!MAT2D\_AT@{MAT2D\_AT}}
+\index{MAT2D\_AT@{MAT2D\_AT}!Matrix2D.h@{Matrix2D.h}}
+\doxysubsubsection{\texorpdfstring{MAT2D\_AT}{MAT2D\_AT}}
+{\footnotesize\ttfamily \#define MAT2\+D\+\_\+\+AT(\begin{DoxyParamCaption}\item[{}]{m,  }\item[{}]{i,  }\item[{}]{j }\end{DoxyParamCaption})~(m).elements\mbox{[}\mbox{\hyperlink{Matrix2D_8h_a5de871b70b3fb41ec18a9188778b6013}{mat2\+D\+\_\+offset2d}}((m), (i), (j))\mbox{]}}
+
+
+
+Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00054}{54}} of file \mbox{\hyperlink{Matrix2D_8h_source}{Matrix2\+D.\+h}}.
+
+\mbox{\Hypertarget{Matrix2D_8h_aa1863fe86a08bbc48ddaa1137dbb82c2}\label{Matrix2D_8h_aa1863fe86a08bbc48ddaa1137dbb82c2}} 
+\index{Matrix2D.h@{Matrix2D.h}!MAT2D\_AT\_UINT32@{MAT2D\_AT\_UINT32}}
+\index{MAT2D\_AT\_UINT32@{MAT2D\_AT\_UINT32}!Matrix2D.h@{Matrix2D.h}}
+\doxysubsubsection{\texorpdfstring{MAT2D\_AT\_UINT32}{MAT2D\_AT\_UINT32}}
+{\footnotesize\ttfamily \#define MAT2\+D\+\_\+\+AT\+\_\+\+UINT32(\begin{DoxyParamCaption}\item[{}]{m,  }\item[{}]{i,  }\item[{}]{j }\end{DoxyParamCaption})~(m).elements\mbox{[}\mbox{\hyperlink{Matrix2D_8h_a9fd601ff83505e155beb7929f1acbffa}{mat2\+D\+\_\+offset2d\+\_\+uint32}}((m), (i), (j))\mbox{]}}
+
+
+
+Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00055}{55}} of file \mbox{\hyperlink{Matrix2D_8h_source}{Matrix2\+D.\+h}}.
+
+\mbox{\Hypertarget{Matrix2D_8h_a2e8f5d497116d911d476064b647cf04d}\label{Matrix2D_8h_a2e8f5d497116d911d476064b647cf04d}} 
+\index{Matrix2D.h@{Matrix2D.h}!MAT2D\_MINOR\_AT@{MAT2D\_MINOR\_AT}}
+\index{MAT2D\_MINOR\_AT@{MAT2D\_MINOR\_AT}!Matrix2D.h@{Matrix2D.h}}
+\doxysubsubsection{\texorpdfstring{MAT2D\_MINOR\_AT}{MAT2D\_MINOR\_AT}}
+{\footnotesize\ttfamily \#define MAT2\+D\+\_\+\+MINOR\+\_\+\+AT(\begin{DoxyParamCaption}\item[{}]{mm,  }\item[{}]{i,  }\item[{}]{j }\end{DoxyParamCaption})~\mbox{\hyperlink{Matrix2D_8h_abdffe058c709b68f7d491ac9bf23f52e}{MAT2\+D\+\_\+\+AT}}(mm.\+ref\+\_\+mat, mm.\+rows\+\_\+list\mbox{[}i\mbox{]}, mm.\+cols\+\_\+list\mbox{[}j\mbox{]})}
+
+
+
+Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00065}{65}} of file \mbox{\hyperlink{Matrix2D_8h_source}{Matrix2\+D.\+h}}.
+
+\mbox{\Hypertarget{Matrix2D_8h_ab283467b75cb3f2007a3f63fd1d627e5}\label{Matrix2D_8h_ab283467b75cb3f2007a3f63fd1d627e5}} 
+\index{Matrix2D.h@{Matrix2D.h}!MAT2D\_MINOR\_PRINT@{MAT2D\_MINOR\_PRINT}}
+\index{MAT2D\_MINOR\_PRINT@{MAT2D\_MINOR\_PRINT}!Matrix2D.h@{Matrix2D.h}}
+\doxysubsubsection{\texorpdfstring{MAT2D\_MINOR\_PRINT}{MAT2D\_MINOR\_PRINT}}
+{\footnotesize\ttfamily \#define MAT2\+D\+\_\+\+MINOR\+\_\+\+PRINT(\begin{DoxyParamCaption}\item[{}]{mm }\end{DoxyParamCaption})~\mbox{\hyperlink{Matrix2D_8h_afa42796a16a92b05af6f6de0ef2cb3f9}{mat2\+D\+\_\+minor\+\_\+print}}(mm, \#mm, 0)}
+
+
+
+Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00069}{69}} of file \mbox{\hyperlink{Matrix2D_8h_source}{Matrix2\+D.\+h}}.
+
+\mbox{\Hypertarget{Matrix2D_8h_af942a81c35d5c350130180adb694cf16}\label{Matrix2D_8h_af942a81c35d5c350130180adb694cf16}} 
+\index{Matrix2D.h@{Matrix2D.h}!MAT2D\_PRINT@{MAT2D\_PRINT}}
+\index{MAT2D\_PRINT@{MAT2D\_PRINT}!Matrix2D.h@{Matrix2D.h}}
+\doxysubsubsection{\texorpdfstring{MAT2D\_PRINT}{MAT2D\_PRINT}}
+{\footnotesize\ttfamily \#define MAT2\+D\+\_\+\+PRINT(\begin{DoxyParamCaption}\item[{}]{m }\end{DoxyParamCaption})~\mbox{\hyperlink{Matrix2D_8h_a2259aafa1dad6d102143d9fd4a760f74}{mat2\+D\+\_\+print}}(m, \#m, 0)}
+
+
+
+Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00066}{66}} of file \mbox{\hyperlink{Matrix2D_8h_source}{Matrix2\+D.\+h}}.
+
+\mbox{\Hypertarget{Matrix2D_8h_ae6619814831ec2f936c071e7dc7d81a3}\label{Matrix2D_8h_ae6619814831ec2f936c071e7dc7d81a3}} 
+\index{Matrix2D.h@{Matrix2D.h}!MAT2D\_PRINT\_AS\_COL@{MAT2D\_PRINT\_AS\_COL}}
+\index{MAT2D\_PRINT\_AS\_COL@{MAT2D\_PRINT\_AS\_COL}!Matrix2D.h@{Matrix2D.h}}
+\doxysubsubsection{\texorpdfstring{MAT2D\_PRINT\_AS\_COL}{MAT2D\_PRINT\_AS\_COL}}
+{\footnotesize\ttfamily \#define MAT2\+D\+\_\+\+PRINT\+\_\+\+AS\+\_\+\+COL(\begin{DoxyParamCaption}\item[{}]{m }\end{DoxyParamCaption})~\mbox{\hyperlink{Matrix2D_8h_a9f58c68361c1cb6532ae5936caef8869}{mat2\+D\+\_\+print\+\_\+as\+\_\+col}}(m, \#m, 0)}
+
+
+
+Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00068}{68}} of file \mbox{\hyperlink{Matrix2D_8h_source}{Matrix2\+D.\+h}}.
+
+\mbox{\Hypertarget{Matrix2D_8h_a742188f3e7f64bbed46f94f465a3a573}\label{Matrix2D_8h_a742188f3e7f64bbed46f94f465a3a573}} 
+\index{Matrix2D.h@{Matrix2D.h}!MAT2D\_UINT32\_PRINT@{MAT2D\_UINT32\_PRINT}}
+\index{MAT2D\_UINT32\_PRINT@{MAT2D\_UINT32\_PRINT}!Matrix2D.h@{Matrix2D.h}}
+\doxysubsubsection{\texorpdfstring{MAT2D\_UINT32\_PRINT}{MAT2D\_UINT32\_PRINT}}
+{\footnotesize\ttfamily \#define MAT2\+D\+\_\+\+UINT32\+\_\+\+PRINT(\begin{DoxyParamCaption}\item[{}]{m }\end{DoxyParamCaption})~\mbox{\hyperlink{Matrix2D_8h_a297912d62f26a66aa3e71947116380bb}{mat2\+D\+\_\+uint32\+\_\+print}}(m, \#m, 0)}
+
+
+
+Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00067}{67}} of file \mbox{\hyperlink{Matrix2D_8h_source}{Matrix2\+D.\+h}}.
+
+\mbox{\Hypertarget{Matrix2D_8h_a8d1087dbe390c9bf0f913390c3240639}\label{Matrix2D_8h_a8d1087dbe390c9bf0f913390c3240639}} 
+\index{Matrix2D.h@{Matrix2D.h}!MATRIX2D\_ASSERT@{MATRIX2D\_ASSERT}}
+\index{MATRIX2D\_ASSERT@{MATRIX2D\_ASSERT}!Matrix2D.h@{Matrix2D.h}}
+\doxysubsubsection{\texorpdfstring{MATRIX2D\_ASSERT}{MATRIX2D\_ASSERT}}
+{\footnotesize\ttfamily \#define MATRIX2\+D\+\_\+\+ASSERT~assert}
+
+
+
+Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00027}{27}} of file \mbox{\hyperlink{Matrix2D_8h_source}{Matrix2\+D.\+h}}.
+
+\mbox{\Hypertarget{Matrix2D_8h_abafa689bce24e7a987e033fe1557f1bc}\label{Matrix2D_8h_abafa689bce24e7a987e033fe1557f1bc}} 
+\index{Matrix2D.h@{Matrix2D.h}!MATRIX2D\_MALLOC@{MATRIX2D\_MALLOC}}
+\index{MATRIX2D\_MALLOC@{MATRIX2D\_MALLOC}!Matrix2D.h@{Matrix2D.h}}
+\doxysubsubsection{\texorpdfstring{MATRIX2D\_MALLOC}{MATRIX2D\_MALLOC}}
+{\footnotesize\ttfamily \#define MATRIX2\+D\+\_\+\+MALLOC~malloc}
+
+
+
+Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00022}{22}} of file \mbox{\hyperlink{Matrix2D_8h_source}{Matrix2\+D.\+h}}.
+
+\mbox{\Hypertarget{Matrix2D_8h_a598a3330b3c21701223ee0ca14316eca}\label{Matrix2D_8h_a598a3330b3c21701223ee0ca14316eca}} 
+\index{Matrix2D.h@{Matrix2D.h}!PI@{PI}}
+\index{PI@{PI}!Matrix2D.h@{Matrix2D.h}}
+\doxysubsubsection{\texorpdfstring{PI}{PI}}
+{\footnotesize\ttfamily \#define PI~M\+\_\+\+PI}
+
+
+
+Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00062}{62}} of file \mbox{\hyperlink{Matrix2D_8h_source}{Matrix2\+D.\+h}}.
+
+
+
+\doxysubsection{Function Documentation}
+\mbox{\Hypertarget{Matrix2D_8h_aed7c0d494d147d19864b273f91c39423}\label{Matrix2D_8h_aed7c0d494d147d19864b273f91c39423}} 
+\index{Matrix2D.h@{Matrix2D.h}!mat2D\_add@{mat2D\_add}}
+\index{mat2D\_add@{mat2D\_add}!Matrix2D.h@{Matrix2D.h}}
+\doxysubsubsection{\texorpdfstring{mat2D\_add()}{mat2D\_add()}}
+{\footnotesize\ttfamily void mat2\+D\+\_\+add (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structMat2D}{Mat2D}}}]{dst,  }\item[{\mbox{\hyperlink{structMat2D}{Mat2D}}}]{a }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00258}{258}} of file \mbox{\hyperlink{Matrix2D_8h_source}{Matrix2\+D.\+h}}.
+
+
+
+References \mbox{\hyperlink{Matrix2D_8h_source_l00032}{Mat2\+D\+::cols}}, \mbox{\hyperlink{Matrix2D_8h_source_l00054}{MAT2\+D\+\_\+\+AT}}, \mbox{\hyperlink{Matrix2D_8h_source_l00027}{MATRIX2\+D\+\_\+\+ASSERT}}, and \mbox{\hyperlink{Matrix2D_8h_source_l00031}{Mat2\+D\+::rows}}.
+
+
+
+Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00451}{adl\+\_\+arrow\+\_\+draw()}}.
+
+\mbox{\Hypertarget{Matrix2D_8h_a5cbb061d84d2c806fead4b9208328351}\label{Matrix2D_8h_a5cbb061d84d2c806fead4b9208328351}} 
+\index{Matrix2D.h@{Matrix2D.h}!mat2D\_add\_col\_to\_col@{mat2D\_add\_col\_to\_col}}
+\index{mat2D\_add\_col\_to\_col@{mat2D\_add\_col\_to\_col}!Matrix2D.h@{Matrix2D.h}}
+\doxysubsubsection{\texorpdfstring{mat2D\_add\_col\_to\_col()}{mat2D\_add\_col\_to\_col()}}
+{\footnotesize\ttfamily void mat2\+D\+\_\+add\+\_\+col\+\_\+to\+\_\+col (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structMat2D}{Mat2D}}}]{des,  }\item[{size\+\_\+t}]{des\+\_\+col,  }\item[{\mbox{\hyperlink{structMat2D}{Mat2D}}}]{src,  }\item[{size\+\_\+t}]{src\+\_\+col }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00479}{479}} of file \mbox{\hyperlink{Matrix2D_8h_source}{Matrix2\+D.\+h}}.
+
+
+
+References \mbox{\hyperlink{Matrix2D_8h_source_l00032}{Mat2\+D\+::cols}}, \mbox{\hyperlink{Matrix2D_8h_source_l00054}{MAT2\+D\+\_\+\+AT}}, \mbox{\hyperlink{Matrix2D_8h_source_l00027}{MATRIX2\+D\+\_\+\+ASSERT}}, and \mbox{\hyperlink{Matrix2D_8h_source_l00031}{Mat2\+D\+::rows}}.
+
+\mbox{\Hypertarget{Matrix2D_8h_a305c4231df12b37653aa7fe59fea7fa2}\label{Matrix2D_8h_a305c4231df12b37653aa7fe59fea7fa2}} 
+\index{Matrix2D.h@{Matrix2D.h}!mat2D\_add\_row\_time\_factor\_to\_row@{mat2D\_add\_row\_time\_factor\_to\_row}}
+\index{mat2D\_add\_row\_time\_factor\_to\_row@{mat2D\_add\_row\_time\_factor\_to\_row}!Matrix2D.h@{Matrix2D.h}}
+\doxysubsubsection{\texorpdfstring{mat2D\_add\_row\_time\_factor\_to\_row()}{mat2D\_add\_row\_time\_factor\_to\_row()}}
+{\footnotesize\ttfamily void mat2\+D\+\_\+add\+\_\+row\+\_\+time\+\_\+factor\+\_\+to\+\_\+row (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structMat2D}{Mat2D}}}]{m,  }\item[{size\+\_\+t}]{des\+\_\+r,  }\item[{size\+\_\+t}]{src\+\_\+r,  }\item[{double}]{factor }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00269}{269}} of file \mbox{\hyperlink{Matrix2D_8h_source}{Matrix2\+D.\+h}}.
+
+
+
+References \mbox{\hyperlink{Matrix2D_8h_source_l00032}{Mat2\+D\+::cols}}, and \mbox{\hyperlink{Matrix2D_8h_source_l00054}{MAT2\+D\+\_\+\+AT}}.
+
+\mbox{\Hypertarget{Matrix2D_8h_a56ad741b13f711b033f7a29f0526bb51}\label{Matrix2D_8h_a56ad741b13f711b033f7a29f0526bb51}} 
+\index{Matrix2D.h@{Matrix2D.h}!mat2D\_add\_row\_to\_row@{mat2D\_add\_row\_to\_row}}
+\index{mat2D\_add\_row\_to\_row@{mat2D\_add\_row\_to\_row}!Matrix2D.h@{Matrix2D.h}}
+\doxysubsubsection{\texorpdfstring{mat2D\_add\_row\_to\_row()}{mat2D\_add\_row\_to\_row()}}
+{\footnotesize\ttfamily void mat2\+D\+\_\+add\+\_\+row\+\_\+to\+\_\+row (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structMat2D}{Mat2D}}}]{des,  }\item[{size\+\_\+t}]{des\+\_\+row,  }\item[{\mbox{\hyperlink{structMat2D}{Mat2D}}}]{src,  }\item[{size\+\_\+t}]{src\+\_\+row }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00521}{521}} of file \mbox{\hyperlink{Matrix2D_8h_source}{Matrix2\+D.\+h}}.
+
+
+
+References \mbox{\hyperlink{Matrix2D_8h_source_l00032}{Mat2\+D\+::cols}}, \mbox{\hyperlink{Matrix2D_8h_source_l00054}{MAT2\+D\+\_\+\+AT}}, \mbox{\hyperlink{Matrix2D_8h_source_l00027}{MATRIX2\+D\+\_\+\+ASSERT}}, and \mbox{\hyperlink{Matrix2D_8h_source_l00031}{Mat2\+D\+::rows}}.
+
+\mbox{\Hypertarget{Matrix2D_8h_aea533ae4263119e0abba26e2d87182dd}\label{Matrix2D_8h_aea533ae4263119e0abba26e2d87182dd}} 
+\index{Matrix2D.h@{Matrix2D.h}!mat2D\_alloc@{mat2D\_alloc}}
+\index{mat2D\_alloc@{mat2D\_alloc}!Matrix2D.h@{Matrix2D.h}}
+\doxysubsubsection{\texorpdfstring{mat2D\_alloc()}{mat2D\_alloc()}}
+{\footnotesize\ttfamily \mbox{\hyperlink{structMat2D}{Mat2D}} mat2\+D\+\_\+alloc (\begin{DoxyParamCaption}\item[{size\+\_\+t}]{rows,  }\item[{size\+\_\+t}]{cols }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00150}{150}} of file \mbox{\hyperlink{Matrix2D_8h_source}{Matrix2\+D.\+h}}.
+
+
+
+References \mbox{\hyperlink{Matrix2D_8h_source_l00032}{Mat2\+D\+::cols}}, \mbox{\hyperlink{Matrix2D_8h_source_l00034}{Mat2\+D\+::elements}}, \mbox{\hyperlink{Matrix2D_8h_source_l00027}{MATRIX2\+D\+\_\+\+ASSERT}}, \mbox{\hyperlink{Matrix2D_8h_source_l00022}{MATRIX2\+D\+\_\+\+MALLOC}}, \mbox{\hyperlink{Matrix2D_8h_source_l00031}{Mat2\+D\+::rows}}, and \mbox{\hyperlink{Matrix2D_8h_source_l00033}{Mat2\+D\+::stride\+\_\+r}}.
+
+
+
+Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00451}{adl\+\_\+arrow\+\_\+draw()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02014}{adl\+\_\+figure\+\_\+alloc()}}, \mbox{\hyperlink{display_8c_source_l00355}{check\+\_\+window\+\_\+mat\+\_\+size()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00625}{mat2\+D\+\_\+det()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00721}{mat2\+D\+\_\+invert()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00779}{mat2\+D\+\_\+solve\+\_\+linear\+\_\+sys\+\_\+\+LUP\+\_\+decomposition()}}, and \mbox{\hyperlink{display_8c_source_l00182}{setup\+\_\+window()}}.
+
+\mbox{\Hypertarget{Matrix2D_8h_adac1c1ab9a90014bf3c1cd0bb8381a90}\label{Matrix2D_8h_adac1c1ab9a90014bf3c1cd0bb8381a90}} 
+\index{Matrix2D.h@{Matrix2D.h}!mat2D\_alloc\_uint32@{mat2D\_alloc\_uint32}}
+\index{mat2D\_alloc\_uint32@{mat2D\_alloc\_uint32}!Matrix2D.h@{Matrix2D.h}}
+\doxysubsubsection{\texorpdfstring{mat2D\_alloc\_uint32()}{mat2D\_alloc\_uint32()}}
+{\footnotesize\ttfamily \mbox{\hyperlink{structMat2D__uint32}{Mat2\+D\+\_\+uint32}} mat2\+D\+\_\+alloc\+\_\+uint32 (\begin{DoxyParamCaption}\item[{size\+\_\+t}]{rows,  }\item[{size\+\_\+t}]{cols }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00162}{162}} of file \mbox{\hyperlink{Matrix2D_8h_source}{Matrix2\+D.\+h}}.
+
+
+
+References \mbox{\hyperlink{Matrix2D_8h_source_l00039}{Mat2\+D\+\_\+uint32\+::cols}}, \mbox{\hyperlink{Matrix2D_8h_source_l00041}{Mat2\+D\+\_\+uint32\+::elements}}, \mbox{\hyperlink{Matrix2D_8h_source_l00027}{MATRIX2\+D\+\_\+\+ASSERT}}, \mbox{\hyperlink{Matrix2D_8h_source_l00022}{MATRIX2\+D\+\_\+\+MALLOC}}, \mbox{\hyperlink{Matrix2D_8h_source_l00038}{Mat2\+D\+\_\+uint32\+::rows}}, and \mbox{\hyperlink{Matrix2D_8h_source_l00040}{Mat2\+D\+\_\+uint32\+::stride\+\_\+r}}.
+
+
+
+Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02014}{adl\+\_\+figure\+\_\+alloc()}}, \mbox{\hyperlink{display_8c_source_l00355}{check\+\_\+window\+\_\+mat\+\_\+size()}}, and \mbox{\hyperlink{display_8c_source_l00182}{setup\+\_\+window()}}.
+
+\mbox{\Hypertarget{Matrix2D_8h_abda90a369811f8c2693911008994f6ec}\label{Matrix2D_8h_abda90a369811f8c2693911008994f6ec}} 
+\index{Matrix2D.h@{Matrix2D.h}!mat2D\_calc\_norma@{mat2D\_calc\_norma}}
+\index{mat2D\_calc\_norma@{mat2D\_calc\_norma}!Matrix2D.h@{Matrix2D.h}}
+\doxysubsubsection{\texorpdfstring{mat2D\_calc\_norma()}{mat2D\_calc\_norma()}}
+{\footnotesize\ttfamily double mat2\+D\+\_\+calc\+\_\+norma (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structMat2D}{Mat2D}}}]{m }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00543}{543}} of file \mbox{\hyperlink{Matrix2D_8h_source}{Matrix2\+D.\+h}}.
+
+
+
+References \mbox{\hyperlink{Matrix2D_8h_source_l00032}{Mat2\+D\+::cols}}, \mbox{\hyperlink{Matrix2D_8h_source_l00054}{MAT2\+D\+\_\+\+AT}}, and \mbox{\hyperlink{Matrix2D_8h_source_l00031}{Mat2\+D\+::rows}}.
+
+\mbox{\Hypertarget{Matrix2D_8h_a28bf5a661ce1df3d74ba7094fb2ecd24}\label{Matrix2D_8h_a28bf5a661ce1df3d74ba7094fb2ecd24}} 
+\index{Matrix2D.h@{Matrix2D.h}!mat2D\_col\_is\_all\_digit@{mat2D\_col\_is\_all\_digit}}
+\index{mat2D\_col\_is\_all\_digit@{mat2D\_col\_is\_all\_digit}!Matrix2D.h@{Matrix2D.h}}
+\doxysubsubsection{\texorpdfstring{mat2D\_col\_is\_all\_digit()}{mat2D\_col\_is\_all\_digit()}}
+{\footnotesize\ttfamily bool mat2\+D\+\_\+col\+\_\+is\+\_\+all\+\_\+digit (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structMat2D}{Mat2D}}}]{m,  }\item[{double}]{digit,  }\item[{size\+\_\+t}]{c }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00577}{577}} of file \mbox{\hyperlink{Matrix2D_8h_source}{Matrix2\+D.\+h}}.
+
+
+
+References \mbox{\hyperlink{Matrix2D_8h_source_l00032}{Mat2\+D\+::cols}}, and \mbox{\hyperlink{Matrix2D_8h_source_l00054}{MAT2\+D\+\_\+\+AT}}.
+
+
+
+Referenced by \mbox{\hyperlink{Matrix2D_8h_source_l00625}{mat2\+D\+\_\+det()}}.
+
+\mbox{\Hypertarget{Matrix2D_8h_a5349f2b49eb72fa91c4824b0d08f4a83}\label{Matrix2D_8h_a5349f2b49eb72fa91c4824b0d08f4a83}} 
+\index{Matrix2D.h@{Matrix2D.h}!mat2D\_copy@{mat2D\_copy}}
+\index{mat2D\_copy@{mat2D\_copy}!Matrix2D.h@{Matrix2D.h}}
+\doxysubsubsection{\texorpdfstring{mat2D\_copy()}{mat2D\_copy()}}
+{\footnotesize\ttfamily void mat2\+D\+\_\+copy (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structMat2D}{Mat2D}}}]{des,  }\item[{\mbox{\hyperlink{structMat2D}{Mat2D}}}]{src }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00443}{443}} of file \mbox{\hyperlink{Matrix2D_8h_source}{Matrix2\+D.\+h}}.
+
+
+
+References \mbox{\hyperlink{Matrix2D_8h_source_l00032}{Mat2\+D\+::cols}}, \mbox{\hyperlink{Matrix2D_8h_source_l00054}{MAT2\+D\+\_\+\+AT}}, \mbox{\hyperlink{Matrix2D_8h_source_l00027}{MATRIX2\+D\+\_\+\+ASSERT}}, and \mbox{\hyperlink{Matrix2D_8h_source_l00031}{Mat2\+D\+::rows}}.
+
+
+
+Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00451}{adl\+\_\+arrow\+\_\+draw()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00625}{mat2\+D\+\_\+det()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00721}{mat2\+D\+\_\+invert()}}, and \mbox{\hyperlink{Matrix2D_8h_source_l00672}{mat2\+D\+\_\+\+LUP\+\_\+decomposition\+\_\+with\+\_\+swap()}}.
+
+\mbox{\Hypertarget{Matrix2D_8h_ae935510a8c4d391b73a954a6d37d02ae}\label{Matrix2D_8h_ae935510a8c4d391b73a954a6d37d02ae}} 
+\index{Matrix2D.h@{Matrix2D.h}!mat2D\_copy\_mat\_to\_mat\_at\_window@{mat2D\_copy\_mat\_to\_mat\_at\_window}}
+\index{mat2D\_copy\_mat\_to\_mat\_at\_window@{mat2D\_copy\_mat\_to\_mat\_at\_window}!Matrix2D.h@{Matrix2D.h}}
+\doxysubsubsection{\texorpdfstring{mat2D\_copy\_mat\_to\_mat\_at\_window()}{mat2D\_copy\_mat\_to\_mat\_at\_window()}}
+{\footnotesize\ttfamily void mat2\+D\+\_\+copy\+\_\+mat\+\_\+to\+\_\+mat\+\_\+at\+\_\+window (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structMat2D}{Mat2D}}}]{des,  }\item[{\mbox{\hyperlink{structMat2D}{Mat2D}}}]{src,  }\item[{size\+\_\+t}]{is,  }\item[{size\+\_\+t}]{js,  }\item[{size\+\_\+t}]{ie,  }\item[{size\+\_\+t}]{je }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00455}{455}} of file \mbox{\hyperlink{Matrix2D_8h_source}{Matrix2\+D.\+h}}.
+
+
+
+References \mbox{\hyperlink{Matrix2D_8h_source_l00032}{Mat2\+D\+::cols}}, \mbox{\hyperlink{Matrix2D_8h_source_l00054}{MAT2\+D\+\_\+\+AT}}, \mbox{\hyperlink{Matrix2D_8h_source_l00027}{MATRIX2\+D\+\_\+\+ASSERT}}, and \mbox{\hyperlink{Matrix2D_8h_source_l00031}{Mat2\+D\+::rows}}.
+
+\mbox{\Hypertarget{Matrix2D_8h_a195a44f3fe41a5c25f431b9a0c43ea48}\label{Matrix2D_8h_a195a44f3fe41a5c25f431b9a0c43ea48}} 
+\index{Matrix2D.h@{Matrix2D.h}!mat2D\_cross@{mat2D\_cross}}
+\index{mat2D\_cross@{mat2D\_cross}!Matrix2D.h@{Matrix2D.h}}
+\doxysubsubsection{\texorpdfstring{mat2D\_cross()}{mat2D\_cross()}}
+{\footnotesize\ttfamily void mat2\+D\+\_\+cross (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structMat2D}{Mat2D}}}]{dst,  }\item[{\mbox{\hyperlink{structMat2D}{Mat2D}}}]{a,  }\item[{\mbox{\hyperlink{structMat2D}{Mat2D}}}]{b }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00247}{247}} of file \mbox{\hyperlink{Matrix2D_8h_source}{Matrix2\+D.\+h}}.
+
+
+
+References \mbox{\hyperlink{Matrix2D_8h_source_l00032}{Mat2\+D\+::cols}}, \mbox{\hyperlink{Matrix2D_8h_source_l00054}{MAT2\+D\+\_\+\+AT}}, \mbox{\hyperlink{Matrix2D_8h_source_l00027}{MATRIX2\+D\+\_\+\+ASSERT}}, and \mbox{\hyperlink{Matrix2D_8h_source_l00031}{Mat2\+D\+::rows}}.
+
+\mbox{\Hypertarget{Matrix2D_8h_add98cfd72b7f2862809724a2933144b0}\label{Matrix2D_8h_add98cfd72b7f2862809724a2933144b0}} 
+\index{Matrix2D.h@{Matrix2D.h}!mat2D\_det@{mat2D\_det}}
+\index{mat2D\_det@{mat2D\_det}!Matrix2D.h@{Matrix2D.h}}
+\doxysubsubsection{\texorpdfstring{mat2D\_det()}{mat2D\_det()}}
+{\footnotesize\ttfamily double mat2\+D\+\_\+det (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structMat2D}{Mat2D}}}]{m }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00625}{625}} of file \mbox{\hyperlink{Matrix2D_8h_source}{Matrix2\+D.\+h}}.
+
+
+
+References \mbox{\hyperlink{Matrix2D_8h_source_l00032}{Mat2\+D\+::cols}}, \mbox{\hyperlink{Matrix2D_8h_source_l00150}{mat2\+D\+\_\+alloc()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00054}{MAT2\+D\+\_\+\+AT}}, \mbox{\hyperlink{Matrix2D_8h_source_l00577}{mat2\+D\+\_\+col\+\_\+is\+\_\+all\+\_\+digit()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00443}{mat2\+D\+\_\+copy()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00174}{mat2\+D\+\_\+free()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00567}{mat2\+D\+\_\+row\+\_\+is\+\_\+all\+\_\+digit()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00593}{mat2\+D\+\_\+triangulate()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00027}{MATRIX2\+D\+\_\+\+ASSERT}}, and \mbox{\hyperlink{Matrix2D_8h_source_l00031}{Mat2\+D\+::rows}}.
+
+
+
+Referenced by \mbox{\hyperlink{Matrix2D_8h_source_l00721}{mat2\+D\+\_\+invert()}}.
+
+\mbox{\Hypertarget{Matrix2D_8h_aa48d35c5b01b174bf27db465c2f76e13}\label{Matrix2D_8h_aa48d35c5b01b174bf27db465c2f76e13}} 
+\index{Matrix2D.h@{Matrix2D.h}!mat2D\_det\_2x2\_mat@{mat2D\_det\_2x2\_mat}}
+\index{mat2D\_det\_2x2\_mat@{mat2D\_det\_2x2\_mat}!Matrix2D.h@{Matrix2D.h}}
+\doxysubsubsection{\texorpdfstring{mat2D\_det\_2x2\_mat()}{mat2D\_det\_2x2\_mat()}}
+{\footnotesize\ttfamily double mat2\+D\+\_\+det\+\_\+2x2\+\_\+mat (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structMat2D}{Mat2D}}}]{m }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00587}{587}} of file \mbox{\hyperlink{Matrix2D_8h_source}{Matrix2\+D.\+h}}.
+
+
+
+References \mbox{\hyperlink{Matrix2D_8h_source_l00032}{Mat2\+D\+::cols}}, \mbox{\hyperlink{Matrix2D_8h_source_l00054}{MAT2\+D\+\_\+\+AT}}, \mbox{\hyperlink{Matrix2D_8h_source_l00027}{MATRIX2\+D\+\_\+\+ASSERT}}, and \mbox{\hyperlink{Matrix2D_8h_source_l00031}{Mat2\+D\+::rows}}.
+
+\mbox{\Hypertarget{Matrix2D_8h_afe3caf9b98714a590aa79313bbbca616}\label{Matrix2D_8h_afe3caf9b98714a590aa79313bbbca616}} 
+\index{Matrix2D.h@{Matrix2D.h}!mat2D\_det\_2x2\_mat\_minor@{mat2D\_det\_2x2\_mat\_minor}}
+\index{mat2D\_det\_2x2\_mat\_minor@{mat2D\_det\_2x2\_mat\_minor}!Matrix2D.h@{Matrix2D.h}}
+\doxysubsubsection{\texorpdfstring{mat2D\_det\_2x2\_mat\_minor()}{mat2D\_det\_2x2\_mat\_minor()}}
+{\footnotesize\ttfamily double mat2\+D\+\_\+det\+\_\+2x2\+\_\+mat\+\_\+minor (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structMat2D__Minor}{Mat2\+D\+\_\+\+Minor}}}]{mm }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00893}{893}} of file \mbox{\hyperlink{Matrix2D_8h_source}{Matrix2\+D.\+h}}.
+
+
+
+References \mbox{\hyperlink{Matrix2D_8h_source_l00046}{Mat2\+D\+\_\+\+Minor\+::cols}}, \mbox{\hyperlink{Matrix2D_8h_source_l00065}{MAT2\+D\+\_\+\+MINOR\+\_\+\+AT}}, \mbox{\hyperlink{Matrix2D_8h_source_l00027}{MATRIX2\+D\+\_\+\+ASSERT}}, and \mbox{\hyperlink{Matrix2D_8h_source_l00045}{Mat2\+D\+\_\+\+Minor\+::rows}}.
+
+
+
+Referenced by \mbox{\hyperlink{Matrix2D_8h_source_l00899}{mat2\+D\+\_\+minor\+\_\+det()}}.
+
+\mbox{\Hypertarget{Matrix2D_8h_a54befe38bb85e4e8d07030cf3c4f9e16}\label{Matrix2D_8h_a54befe38bb85e4e8d07030cf3c4f9e16}} 
+\index{Matrix2D.h@{Matrix2D.h}!mat2D\_dot@{mat2D\_dot}}
+\index{mat2D\_dot@{mat2D\_dot}!Matrix2D.h@{Matrix2D.h}}
+\doxysubsubsection{\texorpdfstring{mat2D\_dot()}{mat2D\_dot()}}
+{\footnotesize\ttfamily void mat2\+D\+\_\+dot (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structMat2D}{Mat2D}}}]{dst,  }\item[{\mbox{\hyperlink{structMat2D}{Mat2D}}}]{a,  }\item[{\mbox{\hyperlink{structMat2D}{Mat2D}}}]{b }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00230}{230}} of file \mbox{\hyperlink{Matrix2D_8h_source}{Matrix2\+D.\+h}}.
+
+
+
+References \mbox{\hyperlink{Matrix2D_8h_source_l00032}{Mat2\+D\+::cols}}, \mbox{\hyperlink{Matrix2D_8h_source_l00054}{MAT2\+D\+\_\+\+AT}}, \mbox{\hyperlink{Matrix2D_8h_source_l00027}{MATRIX2\+D\+\_\+\+ASSERT}}, and \mbox{\hyperlink{Matrix2D_8h_source_l00031}{Mat2\+D\+::rows}}.
+
+
+
+Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00451}{adl\+\_\+arrow\+\_\+draw()}}, and \mbox{\hyperlink{Matrix2D_8h_source_l00779}{mat2\+D\+\_\+solve\+\_\+linear\+\_\+sys\+\_\+\+LUP\+\_\+decomposition()}}.
+
+\mbox{\Hypertarget{Matrix2D_8h_a4277c771e5ccfc6b6192f6a5e662a7b4}\label{Matrix2D_8h_a4277c771e5ccfc6b6192f6a5e662a7b4}} 
+\index{Matrix2D.h@{Matrix2D.h}!mat2D\_fill@{mat2D\_fill}}
+\index{mat2D\_fill@{mat2D\_fill}!Matrix2D.h@{Matrix2D.h}}
+\doxysubsubsection{\texorpdfstring{mat2D\_fill()}{mat2D\_fill()}}
+{\footnotesize\ttfamily void mat2\+D\+\_\+fill (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structMat2D}{Mat2D}}}]{m,  }\item[{double}]{x }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00196}{196}} of file \mbox{\hyperlink{Matrix2D_8h_source}{Matrix2\+D.\+h}}.
+
+
+
+References \mbox{\hyperlink{Matrix2D_8h_source_l00032}{Mat2\+D\+::cols}}, \mbox{\hyperlink{Matrix2D_8h_source_l00054}{MAT2\+D\+\_\+\+AT}}, and \mbox{\hyperlink{Matrix2D_8h_source_l00031}{Mat2\+D\+::rows}}.
+
+
+
+Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00451}{adl\+\_\+arrow\+\_\+draw()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00721}{mat2\+D\+\_\+invert()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00672}{mat2\+D\+\_\+\+LUP\+\_\+decomposition\+\_\+with\+\_\+swap()}}, and \mbox{\hyperlink{Matrix2D_8h_source_l00779}{mat2\+D\+\_\+solve\+\_\+linear\+\_\+sys\+\_\+\+LUP\+\_\+decomposition()}}.
+
+\mbox{\Hypertarget{Matrix2D_8h_a1f08179655e7c57ca839636aa5a057e4}\label{Matrix2D_8h_a1f08179655e7c57ca839636aa5a057e4}} 
+\index{Matrix2D.h@{Matrix2D.h}!mat2D\_fill\_sequence@{mat2D\_fill\_sequence}}
+\index{mat2D\_fill\_sequence@{mat2D\_fill\_sequence}!Matrix2D.h@{Matrix2D.h}}
+\doxysubsubsection{\texorpdfstring{mat2D\_fill\_sequence()}{mat2D\_fill\_sequence()}}
+{\footnotesize\ttfamily void mat2\+D\+\_\+fill\+\_\+sequence (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structMat2D}{Mat2D}}}]{m,  }\item[{double}]{start,  }\item[{double}]{step }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00213}{213}} of file \mbox{\hyperlink{Matrix2D_8h_source}{Matrix2\+D.\+h}}.
+
+
+
+References \mbox{\hyperlink{Matrix2D_8h_source_l00032}{Mat2\+D\+::cols}}, \mbox{\hyperlink{Matrix2D_8h_source_l00054}{MAT2\+D\+\_\+\+AT}}, \mbox{\hyperlink{Matrix2D_8h_source_l00184}{mat2\+D\+\_\+offset2d()}}, and \mbox{\hyperlink{Matrix2D_8h_source_l00031}{Mat2\+D\+::rows}}.
+
+\mbox{\Hypertarget{Matrix2D_8h_a2a491f6686760e59ad4aaa6856f5efac}\label{Matrix2D_8h_a2a491f6686760e59ad4aaa6856f5efac}} 
+\index{Matrix2D.h@{Matrix2D.h}!mat2D\_fill\_uint32@{mat2D\_fill\_uint32}}
+\index{mat2D\_fill\_uint32@{mat2D\_fill\_uint32}!Matrix2D.h@{Matrix2D.h}}
+\doxysubsubsection{\texorpdfstring{mat2D\_fill\_uint32()}{mat2D\_fill\_uint32()}}
+{\footnotesize\ttfamily void mat2\+D\+\_\+fill\+\_\+uint32 (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structMat2D__uint32}{Mat2\+D\+\_\+uint32}}}]{m,  }\item[{uint32\+\_\+t}]{x }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00205}{205}} of file \mbox{\hyperlink{Matrix2D_8h_source}{Matrix2\+D.\+h}}.
+
+
+
+References \mbox{\hyperlink{Matrix2D_8h_source_l00039}{Mat2\+D\+\_\+uint32\+::cols}}, \mbox{\hyperlink{Matrix2D_8h_source_l00055}{MAT2\+D\+\_\+\+AT\+\_\+\+UINT32}}, and \mbox{\hyperlink{Matrix2D_8h_source_l00038}{Mat2\+D\+\_\+uint32\+::rows}}.
+
+
+
+Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02247}{adl\+\_\+2\+Dscalar\+\_\+interp\+\_\+on\+\_\+figure()}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02198}{adl\+\_\+curves\+\_\+plot\+\_\+on\+\_\+figure()}}.
+
+\mbox{\Hypertarget{Matrix2D_8h_a4d2d183b2cb18394e8c7e1e11f97b3ef}\label{Matrix2D_8h_a4d2d183b2cb18394e8c7e1e11f97b3ef}} 
+\index{Matrix2D.h@{Matrix2D.h}!mat2D\_free@{mat2D\_free}}
+\index{mat2D\_free@{mat2D\_free}!Matrix2D.h@{Matrix2D.h}}
+\doxysubsubsection{\texorpdfstring{mat2D\_free()}{mat2D\_free()}}
+{\footnotesize\ttfamily void mat2\+D\+\_\+free (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structMat2D}{Mat2D}}}]{m }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00174}{174}} of file \mbox{\hyperlink{Matrix2D_8h_source}{Matrix2\+D.\+h}}.
+
+
+
+References \mbox{\hyperlink{Matrix2D_8h_source_l00034}{Mat2\+D\+::elements}}.
+
+
+
+Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00451}{adl\+\_\+arrow\+\_\+draw()}}, \mbox{\hyperlink{display_8c_source_l00355}{check\+\_\+window\+\_\+mat\+\_\+size()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00625}{mat2\+D\+\_\+det()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00721}{mat2\+D\+\_\+invert()}}, and \mbox{\hyperlink{Matrix2D_8h_source_l00779}{mat2\+D\+\_\+solve\+\_\+linear\+\_\+sys\+\_\+\+LUP\+\_\+decomposition()}}.
+
+\mbox{\Hypertarget{Matrix2D_8h_a84aaa6e232bb1c89b613d70b3367acb0}\label{Matrix2D_8h_a84aaa6e232bb1c89b613d70b3367acb0}} 
+\index{Matrix2D.h@{Matrix2D.h}!mat2D\_free\_uint32@{mat2D\_free\_uint32}}
+\index{mat2D\_free\_uint32@{mat2D\_free\_uint32}!Matrix2D.h@{Matrix2D.h}}
+\doxysubsubsection{\texorpdfstring{mat2D\_free\_uint32()}{mat2D\_free\_uint32()}}
+{\footnotesize\ttfamily void mat2\+D\+\_\+free\+\_\+uint32 (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structMat2D__uint32}{Mat2\+D\+\_\+uint32}}}]{m }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00179}{179}} of file \mbox{\hyperlink{Matrix2D_8h_source}{Matrix2\+D.\+h}}.
+
+
+
+References \mbox{\hyperlink{Matrix2D_8h_source_l00041}{Mat2\+D\+\_\+uint32\+::elements}}.
+
+
+
+Referenced by \mbox{\hyperlink{display_8c_source_l00355}{check\+\_\+window\+\_\+mat\+\_\+size()}}, and \mbox{\hyperlink{display_8c_source_l00312}{destroy\+\_\+window()}}.
+
+\mbox{\Hypertarget{Matrix2D_8h_a948b8a466add0925958cf875c19312cc}\label{Matrix2D_8h_a948b8a466add0925958cf875c19312cc}} 
+\index{Matrix2D.h@{Matrix2D.h}!mat2D\_get\_col@{mat2D\_get\_col}}
+\index{mat2D\_get\_col@{mat2D\_get\_col}!Matrix2D.h@{Matrix2D.h}}
+\doxysubsubsection{\texorpdfstring{mat2D\_get\_col()}{mat2D\_get\_col()}}
+{\footnotesize\ttfamily void mat2\+D\+\_\+get\+\_\+col (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structMat2D}{Mat2D}}}]{des,  }\item[{size\+\_\+t}]{des\+\_\+col,  }\item[{\mbox{\hyperlink{structMat2D}{Mat2D}}}]{src,  }\item[{size\+\_\+t}]{src\+\_\+col }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00468}{468}} of file \mbox{\hyperlink{Matrix2D_8h_source}{Matrix2\+D.\+h}}.
+
+
+
+References \mbox{\hyperlink{Matrix2D_8h_source_l00032}{Mat2\+D\+::cols}}, \mbox{\hyperlink{Matrix2D_8h_source_l00054}{MAT2\+D\+\_\+\+AT}}, \mbox{\hyperlink{Matrix2D_8h_source_l00027}{MATRIX2\+D\+\_\+\+ASSERT}}, and \mbox{\hyperlink{Matrix2D_8h_source_l00031}{Mat2\+D\+::rows}}.
+
+\mbox{\Hypertarget{Matrix2D_8h_a8c922d40f23f1b9c852971bdd7698ac1}\label{Matrix2D_8h_a8c922d40f23f1b9c852971bdd7698ac1}} 
+\index{Matrix2D.h@{Matrix2D.h}!mat2D\_get\_row@{mat2D\_get\_row}}
+\index{mat2D\_get\_row@{mat2D\_get\_row}!Matrix2D.h@{Matrix2D.h}}
+\doxysubsubsection{\texorpdfstring{mat2D\_get\_row()}{mat2D\_get\_row()}}
+{\footnotesize\ttfamily void mat2\+D\+\_\+get\+\_\+row (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structMat2D}{Mat2D}}}]{des,  }\item[{size\+\_\+t}]{des\+\_\+row,  }\item[{\mbox{\hyperlink{structMat2D}{Mat2D}}}]{src,  }\item[{size\+\_\+t}]{src\+\_\+row }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00510}{510}} of file \mbox{\hyperlink{Matrix2D_8h_source}{Matrix2\+D.\+h}}.
+
+
+
+References \mbox{\hyperlink{Matrix2D_8h_source_l00032}{Mat2\+D\+::cols}}, \mbox{\hyperlink{Matrix2D_8h_source_l00054}{MAT2\+D\+\_\+\+AT}}, \mbox{\hyperlink{Matrix2D_8h_source_l00027}{MATRIX2\+D\+\_\+\+ASSERT}}, and \mbox{\hyperlink{Matrix2D_8h_source_l00031}{Mat2\+D\+::rows}}.
+
+\mbox{\Hypertarget{Matrix2D_8h_a0daf72b975daa37e24afa208e399f85e}\label{Matrix2D_8h_a0daf72b975daa37e24afa208e399f85e}} 
+\index{Matrix2D.h@{Matrix2D.h}!mat2D\_invert@{mat2D\_invert}}
+\index{mat2D\_invert@{mat2D\_invert}!Matrix2D.h@{Matrix2D.h}}
+\doxysubsubsection{\texorpdfstring{mat2D\_invert()}{mat2D\_invert()}}
+{\footnotesize\ttfamily void mat2\+D\+\_\+invert (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structMat2D}{Mat2D}}}]{des,  }\item[{\mbox{\hyperlink{structMat2D}{Mat2D}}}]{src }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00721}{721}} of file \mbox{\hyperlink{Matrix2D_8h_source}{Matrix2\+D.\+h}}.
+
+
+
+References \mbox{\hyperlink{Matrix2D_8h_source_l00032}{Mat2\+D\+::cols}}, \mbox{\hyperlink{Matrix2D_8h_source_l00150}{mat2\+D\+\_\+alloc()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00054}{MAT2\+D\+\_\+\+AT}}, \mbox{\hyperlink{Matrix2D_8h_source_l00443}{mat2\+D\+\_\+copy()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00625}{mat2\+D\+\_\+det()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00196}{mat2\+D\+\_\+fill()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00174}{mat2\+D\+\_\+free()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00303}{mat2\+D\+\_\+mult\+\_\+row()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00350}{mat2\+D\+\_\+set\+\_\+identity()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00287}{mat2\+D\+\_\+sub\+\_\+row\+\_\+time\+\_\+factor\+\_\+to\+\_\+row()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00501}{mat2\+D\+\_\+swap\+\_\+rows()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00027}{MATRIX2\+D\+\_\+\+ASSERT}}, and \mbox{\hyperlink{Matrix2D_8h_source_l00031}{Mat2\+D\+::rows}}.
+
+
+
+Referenced by \mbox{\hyperlink{Matrix2D_8h_source_l00779}{mat2\+D\+\_\+solve\+\_\+linear\+\_\+sys\+\_\+\+LUP\+\_\+decomposition()}}.
+
+\mbox{\Hypertarget{Matrix2D_8h_a672b9f8e012459a3486c9f980d4723e4}\label{Matrix2D_8h_a672b9f8e012459a3486c9f980d4723e4}} 
+\index{Matrix2D.h@{Matrix2D.h}!mat2D\_LUP\_decomposition\_with\_swap@{mat2D\_LUP\_decomposition\_with\_swap}}
+\index{mat2D\_LUP\_decomposition\_with\_swap@{mat2D\_LUP\_decomposition\_with\_swap}!Matrix2D.h@{Matrix2D.h}}
+\doxysubsubsection{\texorpdfstring{mat2D\_LUP\_decomposition\_with\_swap()}{mat2D\_LUP\_decomposition\_with\_swap()}}
+{\footnotesize\ttfamily void mat2\+D\+\_\+\+LUP\+\_\+decomposition\+\_\+with\+\_\+swap (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structMat2D}{Mat2D}}}]{src,  }\item[{\mbox{\hyperlink{structMat2D}{Mat2D}}}]{l,  }\item[{\mbox{\hyperlink{structMat2D}{Mat2D}}}]{p,  }\item[{\mbox{\hyperlink{structMat2D}{Mat2D}}}]{u }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00672}{672}} of file \mbox{\hyperlink{Matrix2D_8h_source}{Matrix2\+D.\+h}}.
+
+
+
+References \mbox{\hyperlink{Matrix2D_8h_source_l00032}{Mat2\+D\+::cols}}, \mbox{\hyperlink{Matrix2D_8h_source_l00054}{MAT2\+D\+\_\+\+AT}}, \mbox{\hyperlink{Matrix2D_8h_source_l00443}{mat2\+D\+\_\+copy()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00196}{mat2\+D\+\_\+fill()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00350}{mat2\+D\+\_\+set\+\_\+identity()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00287}{mat2\+D\+\_\+sub\+\_\+row\+\_\+time\+\_\+factor\+\_\+to\+\_\+row()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00501}{mat2\+D\+\_\+swap\+\_\+rows()}}, and \mbox{\hyperlink{Matrix2D_8h_source_l00031}{Mat2\+D\+::rows}}.
+
+
+
+Referenced by \mbox{\hyperlink{Matrix2D_8h_source_l00779}{mat2\+D\+\_\+solve\+\_\+linear\+\_\+sys\+\_\+\+LUP\+\_\+decomposition()}}.
+
+\mbox{\Hypertarget{Matrix2D_8h_aa32e2ed8bbfcab17633e232790bfe7c6}\label{Matrix2D_8h_aa32e2ed8bbfcab17633e232790bfe7c6}} 
+\index{Matrix2D.h@{Matrix2D.h}!mat2D\_make\_identity@{mat2D\_make\_identity}}
+\index{mat2D\_make\_identity@{mat2D\_make\_identity}!Matrix2D.h@{Matrix2D.h}}
+\doxysubsubsection{\texorpdfstring{mat2D\_make\_identity()}{mat2D\_make\_identity()}}
+{\footnotesize\ttfamily double mat2\+D\+\_\+make\+\_\+identity (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structMat2D}{Mat2D}}}]{m }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00366}{366}} of file \mbox{\hyperlink{Matrix2D_8h_source}{Matrix2\+D.\+h}}.
+
+
+
+References \mbox{\hyperlink{Matrix2D_8h_source_l00032}{Mat2\+D\+::cols}}, \mbox{\hyperlink{Matrix2D_8h_source_l00054}{MAT2\+D\+\_\+\+AT}}, \mbox{\hyperlink{Matrix2D_8h_source_l00303}{mat2\+D\+\_\+mult\+\_\+row()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00287}{mat2\+D\+\_\+sub\+\_\+row\+\_\+time\+\_\+factor\+\_\+to\+\_\+row()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00501}{mat2\+D\+\_\+swap\+\_\+rows()}}, and \mbox{\hyperlink{Matrix2D_8h_source_l00031}{Mat2\+D\+::rows}}.
+
+\mbox{\Hypertarget{Matrix2D_8h_acb12a1d20afc3dcc569d819488c53c51}\label{Matrix2D_8h_acb12a1d20afc3dcc569d819488c53c51}} 
+\index{Matrix2D.h@{Matrix2D.h}!mat2D\_mat\_is\_all\_digit@{mat2D\_mat\_is\_all\_digit}}
+\index{mat2D\_mat\_is\_all\_digit@{mat2D\_mat\_is\_all\_digit}!Matrix2D.h@{Matrix2D.h}}
+\doxysubsubsection{\texorpdfstring{mat2D\_mat\_is\_all\_digit()}{mat2D\_mat\_is\_all\_digit()}}
+{\footnotesize\ttfamily bool mat2\+D\+\_\+mat\+\_\+is\+\_\+all\+\_\+digit (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structMat2D}{Mat2D}}}]{m,  }\item[{double}]{digit }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00555}{555}} of file \mbox{\hyperlink{Matrix2D_8h_source}{Matrix2\+D.\+h}}.
+
+
+
+References \mbox{\hyperlink{Matrix2D_8h_source_l00032}{Mat2\+D\+::cols}}, \mbox{\hyperlink{Matrix2D_8h_source_l00054}{MAT2\+D\+\_\+\+AT}}, and \mbox{\hyperlink{Matrix2D_8h_source_l00031}{Mat2\+D\+::rows}}.
+
+\mbox{\Hypertarget{Matrix2D_8h_a7e83ff7368f80735336e4f872b02d3cf}\label{Matrix2D_8h_a7e83ff7368f80735336e4f872b02d3cf}} 
+\index{Matrix2D.h@{Matrix2D.h}!mat2D\_minor\_alloc\_fill\_from\_mat@{mat2D\_minor\_alloc\_fill\_from\_mat}}
+\index{mat2D\_minor\_alloc\_fill\_from\_mat@{mat2D\_minor\_alloc\_fill\_from\_mat}!Matrix2D.h@{Matrix2D.h}}
+\doxysubsubsection{\texorpdfstring{mat2D\_minor\_alloc\_fill\_from\_mat()}{mat2D\_minor\_alloc\_fill\_from\_mat()}}
+{\footnotesize\ttfamily \mbox{\hyperlink{structMat2D__Minor}{Mat2\+D\+\_\+\+Minor}} mat2\+D\+\_\+minor\+\_\+alloc\+\_\+fill\+\_\+from\+\_\+mat (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structMat2D}{Mat2D}}}]{ref\+\_\+mat,  }\item[{size\+\_\+t}]{i,  }\item[{size\+\_\+t}]{j }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00814}{814}} of file \mbox{\hyperlink{Matrix2D_8h_source}{Matrix2\+D.\+h}}.
+
+
+
+References \mbox{\hyperlink{Matrix2D_8h_source_l00032}{Mat2\+D\+::cols}}, \mbox{\hyperlink{Matrix2D_8h_source_l00046}{Mat2\+D\+\_\+\+Minor\+::cols}}, \mbox{\hyperlink{Matrix2D_8h_source_l00049}{Mat2\+D\+\_\+\+Minor\+::cols\+\_\+list}}, \mbox{\hyperlink{Matrix2D_8h_source_l00027}{MATRIX2\+D\+\_\+\+ASSERT}}, \mbox{\hyperlink{Matrix2D_8h_source_l00022}{MATRIX2\+D\+\_\+\+MALLOC}}, \mbox{\hyperlink{Matrix2D_8h_source_l00050}{Mat2\+D\+\_\+\+Minor\+::ref\+\_\+mat}}, \mbox{\hyperlink{Matrix2D_8h_source_l00031}{Mat2\+D\+::rows}}, \mbox{\hyperlink{Matrix2D_8h_source_l00045}{Mat2\+D\+\_\+\+Minor\+::rows}}, \mbox{\hyperlink{Matrix2D_8h_source_l00048}{Mat2\+D\+\_\+\+Minor\+::rows\+\_\+list}}, and \mbox{\hyperlink{Matrix2D_8h_source_l00047}{Mat2\+D\+\_\+\+Minor\+::stride\+\_\+r}}.
+
+\mbox{\Hypertarget{Matrix2D_8h_ac53223569c7ba558b10a0d2ad0287d32}\label{Matrix2D_8h_ac53223569c7ba558b10a0d2ad0287d32}} 
+\index{Matrix2D.h@{Matrix2D.h}!mat2D\_minor\_alloc\_fill\_from\_mat\_minor@{mat2D\_minor\_alloc\_fill\_from\_mat\_minor}}
+\index{mat2D\_minor\_alloc\_fill\_from\_mat\_minor@{mat2D\_minor\_alloc\_fill\_from\_mat\_minor}!Matrix2D.h@{Matrix2D.h}}
+\doxysubsubsection{\texorpdfstring{mat2D\_minor\_alloc\_fill\_from\_mat\_minor()}{mat2D\_minor\_alloc\_fill\_from\_mat\_minor()}}
+{\footnotesize\ttfamily \mbox{\hyperlink{structMat2D__Minor}{Mat2\+D\+\_\+\+Minor}} mat2\+D\+\_\+minor\+\_\+alloc\+\_\+fill\+\_\+from\+\_\+mat\+\_\+minor (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structMat2D__Minor}{Mat2\+D\+\_\+\+Minor}}}]{ref\+\_\+mm,  }\item[{size\+\_\+t}]{i,  }\item[{size\+\_\+t}]{j }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00844}{844}} of file \mbox{\hyperlink{Matrix2D_8h_source}{Matrix2\+D.\+h}}.
+
+
+
+References \mbox{\hyperlink{Matrix2D_8h_source_l00046}{Mat2\+D\+\_\+\+Minor\+::cols}}, \mbox{\hyperlink{Matrix2D_8h_source_l00049}{Mat2\+D\+\_\+\+Minor\+::cols\+\_\+list}}, \mbox{\hyperlink{Matrix2D_8h_source_l00027}{MATRIX2\+D\+\_\+\+ASSERT}}, \mbox{\hyperlink{Matrix2D_8h_source_l00022}{MATRIX2\+D\+\_\+\+MALLOC}}, \mbox{\hyperlink{Matrix2D_8h_source_l00050}{Mat2\+D\+\_\+\+Minor\+::ref\+\_\+mat}}, \mbox{\hyperlink{Matrix2D_8h_source_l00045}{Mat2\+D\+\_\+\+Minor\+::rows}}, \mbox{\hyperlink{Matrix2D_8h_source_l00048}{Mat2\+D\+\_\+\+Minor\+::rows\+\_\+list}}, and \mbox{\hyperlink{Matrix2D_8h_source_l00047}{Mat2\+D\+\_\+\+Minor\+::stride\+\_\+r}}.
+
+
+
+Referenced by \mbox{\hyperlink{Matrix2D_8h_source_l00899}{mat2\+D\+\_\+minor\+\_\+det()}}.
+
+\mbox{\Hypertarget{Matrix2D_8h_a7d5f0d7c8a402b96d04efd9e7e4e899b}\label{Matrix2D_8h_a7d5f0d7c8a402b96d04efd9e7e4e899b}} 
+\index{Matrix2D.h@{Matrix2D.h}!mat2D\_minor\_det@{mat2D\_minor\_det}}
+\index{mat2D\_minor\_det@{mat2D\_minor\_det}!Matrix2D.h@{Matrix2D.h}}
+\doxysubsubsection{\texorpdfstring{mat2D\_minor\_det()}{mat2D\_minor\_det()}}
+{\footnotesize\ttfamily double mat2\+D\+\_\+minor\+\_\+det (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structMat2D__Minor}{Mat2\+D\+\_\+\+Minor}}}]{mm }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00899}{899}} of file \mbox{\hyperlink{Matrix2D_8h_source}{Matrix2\+D.\+h}}.
+
+
+
+References \mbox{\hyperlink{Matrix2D_8h_source_l00046}{Mat2\+D\+\_\+\+Minor\+::cols}}, \mbox{\hyperlink{Matrix2D_8h_source_l00893}{mat2\+D\+\_\+det\+\_\+2x2\+\_\+mat\+\_\+minor()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00844}{mat2\+D\+\_\+minor\+\_\+alloc\+\_\+fill\+\_\+from\+\_\+mat\+\_\+minor()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00065}{MAT2\+D\+\_\+\+MINOR\+\_\+\+AT}}, \mbox{\hyperlink{Matrix2D_8h_source_l00874}{mat2\+D\+\_\+minor\+\_\+free()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00027}{MATRIX2\+D\+\_\+\+ASSERT}}, and \mbox{\hyperlink{Matrix2D_8h_source_l00045}{Mat2\+D\+\_\+\+Minor\+::rows}}.
+
+\mbox{\Hypertarget{Matrix2D_8h_afe36aba7dc74ecd4ac750c327f3d613d}\label{Matrix2D_8h_afe36aba7dc74ecd4ac750c327f3d613d}} 
+\index{Matrix2D.h@{Matrix2D.h}!mat2D\_minor\_free@{mat2D\_minor\_free}}
+\index{mat2D\_minor\_free@{mat2D\_minor\_free}!Matrix2D.h@{Matrix2D.h}}
+\doxysubsubsection{\texorpdfstring{mat2D\_minor\_free()}{mat2D\_minor\_free()}}
+{\footnotesize\ttfamily void mat2\+D\+\_\+minor\+\_\+free (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structMat2D__Minor}{Mat2\+D\+\_\+\+Minor}}}]{mm }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00874}{874}} of file \mbox{\hyperlink{Matrix2D_8h_source}{Matrix2\+D.\+h}}.
+
+
+
+References \mbox{\hyperlink{Matrix2D_8h_source_l00049}{Mat2\+D\+\_\+\+Minor\+::cols\+\_\+list}}, and \mbox{\hyperlink{Matrix2D_8h_source_l00048}{Mat2\+D\+\_\+\+Minor\+::rows\+\_\+list}}.
+
+
+
+Referenced by \mbox{\hyperlink{Matrix2D_8h_source_l00899}{mat2\+D\+\_\+minor\+\_\+det()}}.
+
+\mbox{\Hypertarget{Matrix2D_8h_afa42796a16a92b05af6f6de0ef2cb3f9}\label{Matrix2D_8h_afa42796a16a92b05af6f6de0ef2cb3f9}} 
+\index{Matrix2D.h@{Matrix2D.h}!mat2D\_minor\_print@{mat2D\_minor\_print}}
+\index{mat2D\_minor\_print@{mat2D\_minor\_print}!Matrix2D.h@{Matrix2D.h}}
+\doxysubsubsection{\texorpdfstring{mat2D\_minor\_print()}{mat2D\_minor\_print()}}
+{\footnotesize\ttfamily void mat2\+D\+\_\+minor\+\_\+print (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structMat2D__Minor}{Mat2\+D\+\_\+\+Minor}}}]{mm,  }\item[{const char $\ast$}]{name,  }\item[{size\+\_\+t}]{padding }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00880}{880}} of file \mbox{\hyperlink{Matrix2D_8h_source}{Matrix2\+D.\+h}}.
+
+
+
+References \mbox{\hyperlink{Matrix2D_8h_source_l00046}{Mat2\+D\+\_\+\+Minor\+::cols}}, \mbox{\hyperlink{Matrix2D_8h_source_l00065}{MAT2\+D\+\_\+\+MINOR\+\_\+\+AT}}, and \mbox{\hyperlink{Matrix2D_8h_source_l00045}{Mat2\+D\+\_\+\+Minor\+::rows}}.
+
+\mbox{\Hypertarget{Matrix2D_8h_ab053dbc6d1eba395817707c410b227e0}\label{Matrix2D_8h_ab053dbc6d1eba395817707c410b227e0}} 
+\index{Matrix2D.h@{Matrix2D.h}!mat2D\_mult@{mat2D\_mult}}
+\index{mat2D\_mult@{mat2D\_mult}!Matrix2D.h@{Matrix2D.h}}
+\doxysubsubsection{\texorpdfstring{mat2D\_mult()}{mat2D\_mult()}}
+{\footnotesize\ttfamily void mat2\+D\+\_\+mult (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structMat2D}{Mat2D}}}]{m,  }\item[{double}]{factor }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00294}{294}} of file \mbox{\hyperlink{Matrix2D_8h_source}{Matrix2\+D.\+h}}.
+
+
+
+References \mbox{\hyperlink{Matrix2D_8h_source_l00032}{Mat2\+D\+::cols}}, \mbox{\hyperlink{Matrix2D_8h_source_l00054}{MAT2\+D\+\_\+\+AT}}, and \mbox{\hyperlink{Matrix2D_8h_source_l00031}{Mat2\+D\+::rows}}.
+
+\mbox{\Hypertarget{Matrix2D_8h_ab3dc13931aa9de3b4bf25fcf35de6313}\label{Matrix2D_8h_ab3dc13931aa9de3b4bf25fcf35de6313}} 
+\index{Matrix2D.h@{Matrix2D.h}!mat2D\_mult\_row@{mat2D\_mult\_row}}
+\index{mat2D\_mult\_row@{mat2D\_mult\_row}!Matrix2D.h@{Matrix2D.h}}
+\doxysubsubsection{\texorpdfstring{mat2D\_mult\_row()}{mat2D\_mult\_row()}}
+{\footnotesize\ttfamily void mat2\+D\+\_\+mult\+\_\+row (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structMat2D}{Mat2D}}}]{m,  }\item[{size\+\_\+t}]{r,  }\item[{double}]{factor }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00303}{303}} of file \mbox{\hyperlink{Matrix2D_8h_source}{Matrix2\+D.\+h}}.
+
+
+
+References \mbox{\hyperlink{Matrix2D_8h_source_l00032}{Mat2\+D\+::cols}}, and \mbox{\hyperlink{Matrix2D_8h_source_l00054}{MAT2\+D\+\_\+\+AT}}.
+
+
+
+Referenced by \mbox{\hyperlink{Matrix2D_8h_source_l00721}{mat2\+D\+\_\+invert()}}, and \mbox{\hyperlink{Matrix2D_8h_source_l00366}{mat2\+D\+\_\+make\+\_\+identity()}}.
+
+\mbox{\Hypertarget{Matrix2D_8h_a5de871b70b3fb41ec18a9188778b6013}\label{Matrix2D_8h_a5de871b70b3fb41ec18a9188778b6013}} 
+\index{Matrix2D.h@{Matrix2D.h}!mat2D\_offset2d@{mat2D\_offset2d}}
+\index{mat2D\_offset2d@{mat2D\_offset2d}!Matrix2D.h@{Matrix2D.h}}
+\doxysubsubsection{\texorpdfstring{mat2D\_offset2d()}{mat2D\_offset2d()}}
+{\footnotesize\ttfamily size\+\_\+t mat2\+D\+\_\+offset2d (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structMat2D}{Mat2D}}}]{m,  }\item[{size\+\_\+t}]{i,  }\item[{size\+\_\+t}]{j }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00184}{184}} of file \mbox{\hyperlink{Matrix2D_8h_source}{Matrix2\+D.\+h}}.
+
+
+
+References \mbox{\hyperlink{Matrix2D_8h_source_l00032}{Mat2\+D\+::cols}}, \mbox{\hyperlink{Matrix2D_8h_source_l00027}{MATRIX2\+D\+\_\+\+ASSERT}}, \mbox{\hyperlink{Matrix2D_8h_source_l00031}{Mat2\+D\+::rows}}, and \mbox{\hyperlink{Matrix2D_8h_source_l00033}{Mat2\+D\+::stride\+\_\+r}}.
+
+
+
+Referenced by \mbox{\hyperlink{Matrix2D_8h_source_l00213}{mat2\+D\+\_\+fill\+\_\+sequence()}}.
+
+\mbox{\Hypertarget{Matrix2D_8h_a9fd601ff83505e155beb7929f1acbffa}\label{Matrix2D_8h_a9fd601ff83505e155beb7929f1acbffa}} 
+\index{Matrix2D.h@{Matrix2D.h}!mat2D\_offset2d\_uint32@{mat2D\_offset2d\_uint32}}
+\index{mat2D\_offset2d\_uint32@{mat2D\_offset2d\_uint32}!Matrix2D.h@{Matrix2D.h}}
+\doxysubsubsection{\texorpdfstring{mat2D\_offset2d\_uint32()}{mat2D\_offset2d\_uint32()}}
+{\footnotesize\ttfamily size\+\_\+t mat2\+D\+\_\+offset2d\+\_\+uint32 (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structMat2D__uint32}{Mat2\+D\+\_\+uint32}}}]{m,  }\item[{size\+\_\+t}]{i,  }\item[{size\+\_\+t}]{j }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00190}{190}} of file \mbox{\hyperlink{Matrix2D_8h_source}{Matrix2\+D.\+h}}.
+
+
+
+References \mbox{\hyperlink{Matrix2D_8h_source_l00039}{Mat2\+D\+\_\+uint32\+::cols}}, \mbox{\hyperlink{Matrix2D_8h_source_l00027}{MATRIX2\+D\+\_\+\+ASSERT}}, \mbox{\hyperlink{Matrix2D_8h_source_l00038}{Mat2\+D\+\_\+uint32\+::rows}}, and \mbox{\hyperlink{Matrix2D_8h_source_l00040}{Mat2\+D\+\_\+uint32\+::stride\+\_\+r}}.
+
+\mbox{\Hypertarget{Matrix2D_8h_a2259aafa1dad6d102143d9fd4a760f74}\label{Matrix2D_8h_a2259aafa1dad6d102143d9fd4a760f74}} 
+\index{Matrix2D.h@{Matrix2D.h}!mat2D\_print@{mat2D\_print}}
+\index{mat2D\_print@{mat2D\_print}!Matrix2D.h@{Matrix2D.h}}
+\doxysubsubsection{\texorpdfstring{mat2D\_print()}{mat2D\_print()}}
+{\footnotesize\ttfamily void mat2\+D\+\_\+print (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structMat2D}{Mat2D}}}]{m,  }\item[{const char $\ast$}]{name,  }\item[{size\+\_\+t}]{padding }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00310}{310}} of file \mbox{\hyperlink{Matrix2D_8h_source}{Matrix2\+D.\+h}}.
+
+
+
+References \mbox{\hyperlink{Matrix2D_8h_source_l00032}{Mat2\+D\+::cols}}, \mbox{\hyperlink{Matrix2D_8h_source_l00054}{MAT2\+D\+\_\+\+AT}}, and \mbox{\hyperlink{Matrix2D_8h_source_l00031}{Mat2\+D\+::rows}}.
+
+\mbox{\Hypertarget{Matrix2D_8h_a9f58c68361c1cb6532ae5936caef8869}\label{Matrix2D_8h_a9f58c68361c1cb6532ae5936caef8869}} 
+\index{Matrix2D.h@{Matrix2D.h}!mat2D\_print\_as\_col@{mat2D\_print\_as\_col}}
+\index{mat2D\_print\_as\_col@{mat2D\_print\_as\_col}!Matrix2D.h@{Matrix2D.h}}
+\doxysubsubsection{\texorpdfstring{mat2D\_print\_as\_col()}{mat2D\_print\_as\_col()}}
+{\footnotesize\ttfamily void mat2\+D\+\_\+print\+\_\+as\+\_\+col (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structMat2D}{Mat2D}}}]{m,  }\item[{const char $\ast$}]{name,  }\item[{size\+\_\+t}]{padding }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00340}{340}} of file \mbox{\hyperlink{Matrix2D_8h_source}{Matrix2\+D.\+h}}.
+
+
+
+References \mbox{\hyperlink{Matrix2D_8h_source_l00032}{Mat2\+D\+::cols}}, \mbox{\hyperlink{Matrix2D_8h_source_l00034}{Mat2\+D\+::elements}}, and \mbox{\hyperlink{Matrix2D_8h_source_l00031}{Mat2\+D\+::rows}}.
+
+\mbox{\Hypertarget{Matrix2D_8h_ac1c669a88bb0d49fd1844b19e7e35d39}\label{Matrix2D_8h_ac1c669a88bb0d49fd1844b19e7e35d39}} 
+\index{Matrix2D.h@{Matrix2D.h}!mat2D\_rand@{mat2D\_rand}}
+\index{mat2D\_rand@{mat2D\_rand}!Matrix2D.h@{Matrix2D.h}}
+\doxysubsubsection{\texorpdfstring{mat2D\_rand()}{mat2D\_rand()}}
+{\footnotesize\ttfamily void mat2\+D\+\_\+rand (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structMat2D}{Mat2D}}}]{m,  }\item[{double}]{low,  }\item[{double}]{high }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00221}{221}} of file \mbox{\hyperlink{Matrix2D_8h_source}{Matrix2\+D.\+h}}.
+
+
+
+References \mbox{\hyperlink{Matrix2D_8h_source_l00032}{Mat2\+D\+::cols}}, \mbox{\hyperlink{Matrix2D_8h_source_l00054}{MAT2\+D\+\_\+\+AT}}, \mbox{\hyperlink{Matrix2D_8h_source_l00145}{rand\+\_\+double()}}, and \mbox{\hyperlink{Matrix2D_8h_source_l00031}{Mat2\+D\+::rows}}.
+
+\mbox{\Hypertarget{Matrix2D_8h_a8591bb4b2ed5a9aa2b92f4c081848ee2}\label{Matrix2D_8h_a8591bb4b2ed5a9aa2b92f4c081848ee2}} 
+\index{Matrix2D.h@{Matrix2D.h}!mat2D\_row\_is\_all\_digit@{mat2D\_row\_is\_all\_digit}}
+\index{mat2D\_row\_is\_all\_digit@{mat2D\_row\_is\_all\_digit}!Matrix2D.h@{Matrix2D.h}}
+\doxysubsubsection{\texorpdfstring{mat2D\_row\_is\_all\_digit()}{mat2D\_row\_is\_all\_digit()}}
+{\footnotesize\ttfamily bool mat2\+D\+\_\+row\+\_\+is\+\_\+all\+\_\+digit (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structMat2D}{Mat2D}}}]{m,  }\item[{double}]{digit,  }\item[{size\+\_\+t}]{r }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00567}{567}} of file \mbox{\hyperlink{Matrix2D_8h_source}{Matrix2\+D.\+h}}.
+
+
+
+References \mbox{\hyperlink{Matrix2D_8h_source_l00032}{Mat2\+D\+::cols}}, and \mbox{\hyperlink{Matrix2D_8h_source_l00054}{MAT2\+D\+\_\+\+AT}}.
+
+
+
+Referenced by \mbox{\hyperlink{Matrix2D_8h_source_l00625}{mat2\+D\+\_\+det()}}.
+
+\mbox{\Hypertarget{Matrix2D_8h_a67a8ec9129b92e0ad62a578daf7b797b}\label{Matrix2D_8h_a67a8ec9129b92e0ad62a578daf7b797b}} 
+\index{Matrix2D.h@{Matrix2D.h}!mat2D\_set\_identity@{mat2D\_set\_identity}}
+\index{mat2D\_set\_identity@{mat2D\_set\_identity}!Matrix2D.h@{Matrix2D.h}}
+\doxysubsubsection{\texorpdfstring{mat2D\_set\_identity()}{mat2D\_set\_identity()}}
+{\footnotesize\ttfamily void mat2\+D\+\_\+set\+\_\+identity (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structMat2D}{Mat2D}}}]{m }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00350}{350}} of file \mbox{\hyperlink{Matrix2D_8h_source}{Matrix2\+D.\+h}}.
+
+
+
+References \mbox{\hyperlink{Matrix2D_8h_source_l00032}{Mat2\+D\+::cols}}, \mbox{\hyperlink{Matrix2D_8h_source_l00054}{MAT2\+D\+\_\+\+AT}}, \mbox{\hyperlink{Matrix2D_8h_source_l00027}{MATRIX2\+D\+\_\+\+ASSERT}}, and \mbox{\hyperlink{Matrix2D_8h_source_l00031}{Mat2\+D\+::rows}}.
+
+
+
+Referenced by \mbox{\hyperlink{Matrix2D_8h_source_l00721}{mat2\+D\+\_\+invert()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00672}{mat2\+D\+\_\+\+LUP\+\_\+decomposition\+\_\+with\+\_\+swap()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00407}{mat2\+D\+\_\+set\+\_\+rot\+\_\+mat\+\_\+x()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00419}{mat2\+D\+\_\+set\+\_\+rot\+\_\+mat\+\_\+y()}}, and \mbox{\hyperlink{Matrix2D_8h_source_l00431}{mat2\+D\+\_\+set\+\_\+rot\+\_\+mat\+\_\+z()}}.
+
+\mbox{\Hypertarget{Matrix2D_8h_aa65d8e2a4d3609149bb9a73f2839e174}\label{Matrix2D_8h_aa65d8e2a4d3609149bb9a73f2839e174}} 
+\index{Matrix2D.h@{Matrix2D.h}!mat2D\_set\_rot\_mat\_x@{mat2D\_set\_rot\_mat\_x}}
+\index{mat2D\_set\_rot\_mat\_x@{mat2D\_set\_rot\_mat\_x}!Matrix2D.h@{Matrix2D.h}}
+\doxysubsubsection{\texorpdfstring{mat2D\_set\_rot\_mat\_x()}{mat2D\_set\_rot\_mat\_x()}}
+{\footnotesize\ttfamily void mat2\+D\+\_\+set\+\_\+rot\+\_\+mat\+\_\+x (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structMat2D}{Mat2D}}}]{m,  }\item[{float}]{angle\+\_\+deg }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00407}{407}} of file \mbox{\hyperlink{Matrix2D_8h_source}{Matrix2\+D.\+h}}.
+
+
+
+References \mbox{\hyperlink{Matrix2D_8h_source_l00032}{Mat2\+D\+::cols}}, \mbox{\hyperlink{Matrix2D_8h_source_l00054}{MAT2\+D\+\_\+\+AT}}, \mbox{\hyperlink{Matrix2D_8h_source_l00350}{mat2\+D\+\_\+set\+\_\+identity()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00027}{MATRIX2\+D\+\_\+\+ASSERT}}, \mbox{\hyperlink{Matrix2D_8h_source_l00062}{PI}}, and \mbox{\hyperlink{Matrix2D_8h_source_l00031}{Mat2\+D\+::rows}}.
+
+\mbox{\Hypertarget{Matrix2D_8h_ab4db0c7ac08c4e94284e4748f5c63fda}\label{Matrix2D_8h_ab4db0c7ac08c4e94284e4748f5c63fda}} 
+\index{Matrix2D.h@{Matrix2D.h}!mat2D\_set\_rot\_mat\_y@{mat2D\_set\_rot\_mat\_y}}
+\index{mat2D\_set\_rot\_mat\_y@{mat2D\_set\_rot\_mat\_y}!Matrix2D.h@{Matrix2D.h}}
+\doxysubsubsection{\texorpdfstring{mat2D\_set\_rot\_mat\_y()}{mat2D\_set\_rot\_mat\_y()}}
+{\footnotesize\ttfamily void mat2\+D\+\_\+set\+\_\+rot\+\_\+mat\+\_\+y (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structMat2D}{Mat2D}}}]{m,  }\item[{float}]{angle\+\_\+deg }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00419}{419}} of file \mbox{\hyperlink{Matrix2D_8h_source}{Matrix2\+D.\+h}}.
+
+
+
+References \mbox{\hyperlink{Matrix2D_8h_source_l00032}{Mat2\+D\+::cols}}, \mbox{\hyperlink{Matrix2D_8h_source_l00054}{MAT2\+D\+\_\+\+AT}}, \mbox{\hyperlink{Matrix2D_8h_source_l00350}{mat2\+D\+\_\+set\+\_\+identity()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00027}{MATRIX2\+D\+\_\+\+ASSERT}}, \mbox{\hyperlink{Matrix2D_8h_source_l00062}{PI}}, and \mbox{\hyperlink{Matrix2D_8h_source_l00031}{Mat2\+D\+::rows}}.
+
+\mbox{\Hypertarget{Matrix2D_8h_a7cf78b0a4151b30bbc97f86bb8617cb3}\label{Matrix2D_8h_a7cf78b0a4151b30bbc97f86bb8617cb3}} 
+\index{Matrix2D.h@{Matrix2D.h}!mat2D\_set\_rot\_mat\_z@{mat2D\_set\_rot\_mat\_z}}
+\index{mat2D\_set\_rot\_mat\_z@{mat2D\_set\_rot\_mat\_z}!Matrix2D.h@{Matrix2D.h}}
+\doxysubsubsection{\texorpdfstring{mat2D\_set\_rot\_mat\_z()}{mat2D\_set\_rot\_mat\_z()}}
+{\footnotesize\ttfamily void mat2\+D\+\_\+set\+\_\+rot\+\_\+mat\+\_\+z (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structMat2D}{Mat2D}}}]{m,  }\item[{float}]{angle\+\_\+deg }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00431}{431}} of file \mbox{\hyperlink{Matrix2D_8h_source}{Matrix2\+D.\+h}}.
+
+
+
+References \mbox{\hyperlink{Matrix2D_8h_source_l00032}{Mat2\+D\+::cols}}, \mbox{\hyperlink{Matrix2D_8h_source_l00054}{MAT2\+D\+\_\+\+AT}}, \mbox{\hyperlink{Matrix2D_8h_source_l00350}{mat2\+D\+\_\+set\+\_\+identity()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00027}{MATRIX2\+D\+\_\+\+ASSERT}}, \mbox{\hyperlink{Matrix2D_8h_source_l00062}{PI}}, and \mbox{\hyperlink{Matrix2D_8h_source_l00031}{Mat2\+D\+::rows}}.
+
+
+
+Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00451}{adl\+\_\+arrow\+\_\+draw()}}.
+
+\mbox{\Hypertarget{Matrix2D_8h_a7e86b66e4a2fa4395433ec3806d69878}\label{Matrix2D_8h_a7e86b66e4a2fa4395433ec3806d69878}} 
+\index{Matrix2D.h@{Matrix2D.h}!mat2D\_solve\_linear\_sys\_LUP\_decomposition@{mat2D\_solve\_linear\_sys\_LUP\_decomposition}}
+\index{mat2D\_solve\_linear\_sys\_LUP\_decomposition@{mat2D\_solve\_linear\_sys\_LUP\_decomposition}!Matrix2D.h@{Matrix2D.h}}
+\doxysubsubsection{\texorpdfstring{mat2D\_solve\_linear\_sys\_LUP\_decomposition()}{mat2D\_solve\_linear\_sys\_LUP\_decomposition()}}
+{\footnotesize\ttfamily void mat2\+D\+\_\+solve\+\_\+linear\+\_\+sys\+\_\+\+LUP\+\_\+decomposition (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structMat2D}{Mat2D}}}]{A,  }\item[{\mbox{\hyperlink{structMat2D}{Mat2D}}}]{x,  }\item[{\mbox{\hyperlink{structMat2D}{Mat2D}}}]{B }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00779}{779}} of file \mbox{\hyperlink{Matrix2D_8h_source}{Matrix2\+D.\+h}}.
+
+
+
+References \mbox{\hyperlink{Matrix2D_8h_source_l00032}{Mat2\+D\+::cols}}, \mbox{\hyperlink{Matrix2D_8h_source_l00150}{mat2\+D\+\_\+alloc()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00230}{mat2\+D\+\_\+dot()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00196}{mat2\+D\+\_\+fill()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00174}{mat2\+D\+\_\+free()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00721}{mat2\+D\+\_\+invert()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00672}{mat2\+D\+\_\+\+LUP\+\_\+decomposition\+\_\+with\+\_\+swap()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00027}{MATRIX2\+D\+\_\+\+ASSERT}}, and \mbox{\hyperlink{Matrix2D_8h_source_l00031}{Mat2\+D\+::rows}}.
+
+\mbox{\Hypertarget{Matrix2D_8h_a96b3b954a60d4f9dd6ac9954945bc749}\label{Matrix2D_8h_a96b3b954a60d4f9dd6ac9954945bc749}} 
+\index{Matrix2D.h@{Matrix2D.h}!mat2D\_sub@{mat2D\_sub}}
+\index{mat2D\_sub@{mat2D\_sub}!Matrix2D.h@{Matrix2D.h}}
+\doxysubsubsection{\texorpdfstring{mat2D\_sub()}{mat2D\_sub()}}
+{\footnotesize\ttfamily void mat2\+D\+\_\+sub (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structMat2D}{Mat2D}}}]{dst,  }\item[{\mbox{\hyperlink{structMat2D}{Mat2D}}}]{a }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00276}{276}} of file \mbox{\hyperlink{Matrix2D_8h_source}{Matrix2\+D.\+h}}.
+
+
+
+References \mbox{\hyperlink{Matrix2D_8h_source_l00032}{Mat2\+D\+::cols}}, \mbox{\hyperlink{Matrix2D_8h_source_l00054}{MAT2\+D\+\_\+\+AT}}, \mbox{\hyperlink{Matrix2D_8h_source_l00027}{MATRIX2\+D\+\_\+\+ASSERT}}, and \mbox{\hyperlink{Matrix2D_8h_source_l00031}{Mat2\+D\+::rows}}.
+
+
+
+Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00451}{adl\+\_\+arrow\+\_\+draw()}}.
+
+\mbox{\Hypertarget{Matrix2D_8h_a300a05e18ba239b6170e0a4a12863508}\label{Matrix2D_8h_a300a05e18ba239b6170e0a4a12863508}} 
+\index{Matrix2D.h@{Matrix2D.h}!mat2D\_sub\_col\_to\_col@{mat2D\_sub\_col\_to\_col}}
+\index{mat2D\_sub\_col\_to\_col@{mat2D\_sub\_col\_to\_col}!Matrix2D.h@{Matrix2D.h}}
+\doxysubsubsection{\texorpdfstring{mat2D\_sub\_col\_to\_col()}{mat2D\_sub\_col\_to\_col()}}
+{\footnotesize\ttfamily void mat2\+D\+\_\+sub\+\_\+col\+\_\+to\+\_\+col (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structMat2D}{Mat2D}}}]{des,  }\item[{size\+\_\+t}]{des\+\_\+col,  }\item[{\mbox{\hyperlink{structMat2D}{Mat2D}}}]{src,  }\item[{size\+\_\+t}]{src\+\_\+col }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00490}{490}} of file \mbox{\hyperlink{Matrix2D_8h_source}{Matrix2\+D.\+h}}.
+
+
+
+References \mbox{\hyperlink{Matrix2D_8h_source_l00032}{Mat2\+D\+::cols}}, \mbox{\hyperlink{Matrix2D_8h_source_l00054}{MAT2\+D\+\_\+\+AT}}, \mbox{\hyperlink{Matrix2D_8h_source_l00027}{MATRIX2\+D\+\_\+\+ASSERT}}, and \mbox{\hyperlink{Matrix2D_8h_source_l00031}{Mat2\+D\+::rows}}.
+
+\mbox{\Hypertarget{Matrix2D_8h_abff2de8510578beb574dad66ce1785b2}\label{Matrix2D_8h_abff2de8510578beb574dad66ce1785b2}} 
+\index{Matrix2D.h@{Matrix2D.h}!mat2D\_sub\_row\_time\_factor\_to\_row@{mat2D\_sub\_row\_time\_factor\_to\_row}}
+\index{mat2D\_sub\_row\_time\_factor\_to\_row@{mat2D\_sub\_row\_time\_factor\_to\_row}!Matrix2D.h@{Matrix2D.h}}
+\doxysubsubsection{\texorpdfstring{mat2D\_sub\_row\_time\_factor\_to\_row()}{mat2D\_sub\_row\_time\_factor\_to\_row()}}
+{\footnotesize\ttfamily void mat2\+D\+\_\+sub\+\_\+row\+\_\+time\+\_\+factor\+\_\+to\+\_\+row (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structMat2D}{Mat2D}}}]{m,  }\item[{size\+\_\+t}]{des\+\_\+r,  }\item[{size\+\_\+t}]{src\+\_\+r,  }\item[{double}]{factor }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00287}{287}} of file \mbox{\hyperlink{Matrix2D_8h_source}{Matrix2\+D.\+h}}.
+
+
+
+References \mbox{\hyperlink{Matrix2D_8h_source_l00032}{Mat2\+D\+::cols}}, and \mbox{\hyperlink{Matrix2D_8h_source_l00054}{MAT2\+D\+\_\+\+AT}}.
+
+
+
+Referenced by \mbox{\hyperlink{Matrix2D_8h_source_l00721}{mat2\+D\+\_\+invert()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00672}{mat2\+D\+\_\+\+LUP\+\_\+decomposition\+\_\+with\+\_\+swap()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00366}{mat2\+D\+\_\+make\+\_\+identity()}}, and \mbox{\hyperlink{Matrix2D_8h_source_l00593}{mat2\+D\+\_\+triangulate()}}.
+
+\mbox{\Hypertarget{Matrix2D_8h_a2e3905602c600a3a2552325f8c35eebd}\label{Matrix2D_8h_a2e3905602c600a3a2552325f8c35eebd}} 
+\index{Matrix2D.h@{Matrix2D.h}!mat2D\_sub\_row\_to\_row@{mat2D\_sub\_row\_to\_row}}
+\index{mat2D\_sub\_row\_to\_row@{mat2D\_sub\_row\_to\_row}!Matrix2D.h@{Matrix2D.h}}
+\doxysubsubsection{\texorpdfstring{mat2D\_sub\_row\_to\_row()}{mat2D\_sub\_row\_to\_row()}}
+{\footnotesize\ttfamily void mat2\+D\+\_\+sub\+\_\+row\+\_\+to\+\_\+row (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structMat2D}{Mat2D}}}]{des,  }\item[{size\+\_\+t}]{des\+\_\+row,  }\item[{\mbox{\hyperlink{structMat2D}{Mat2D}}}]{src,  }\item[{size\+\_\+t}]{src\+\_\+row }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00532}{532}} of file \mbox{\hyperlink{Matrix2D_8h_source}{Matrix2\+D.\+h}}.
+
+
+
+References \mbox{\hyperlink{Matrix2D_8h_source_l00032}{Mat2\+D\+::cols}}, \mbox{\hyperlink{Matrix2D_8h_source_l00054}{MAT2\+D\+\_\+\+AT}}, \mbox{\hyperlink{Matrix2D_8h_source_l00027}{MATRIX2\+D\+\_\+\+ASSERT}}, and \mbox{\hyperlink{Matrix2D_8h_source_l00031}{Mat2\+D\+::rows}}.
+
+\mbox{\Hypertarget{Matrix2D_8h_ab6ff4f83b4ba30ac9abbe561eb5f211e}\label{Matrix2D_8h_ab6ff4f83b4ba30ac9abbe561eb5f211e}} 
+\index{Matrix2D.h@{Matrix2D.h}!mat2D\_swap\_rows@{mat2D\_swap\_rows}}
+\index{mat2D\_swap\_rows@{mat2D\_swap\_rows}!Matrix2D.h@{Matrix2D.h}}
+\doxysubsubsection{\texorpdfstring{mat2D\_swap\_rows()}{mat2D\_swap\_rows()}}
+{\footnotesize\ttfamily void mat2\+D\+\_\+swap\+\_\+rows (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structMat2D}{Mat2D}}}]{m,  }\item[{size\+\_\+t}]{r1,  }\item[{size\+\_\+t}]{r2 }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00501}{501}} of file \mbox{\hyperlink{Matrix2D_8h_source}{Matrix2\+D.\+h}}.
+
+
+
+References \mbox{\hyperlink{Matrix2D_8h_source_l00032}{Mat2\+D\+::cols}}, and \mbox{\hyperlink{Matrix2D_8h_source_l00054}{MAT2\+D\+\_\+\+AT}}.
+
+
+
+Referenced by \mbox{\hyperlink{Matrix2D_8h_source_l00721}{mat2\+D\+\_\+invert()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00672}{mat2\+D\+\_\+\+LUP\+\_\+decomposition\+\_\+with\+\_\+swap()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00366}{mat2\+D\+\_\+make\+\_\+identity()}}, and \mbox{\hyperlink{Matrix2D_8h_source_l00593}{mat2\+D\+\_\+triangulate()}}.
+
+\mbox{\Hypertarget{Matrix2D_8h_a18bd1d4bbab4a1fdef11f735cb3fbf5d}\label{Matrix2D_8h_a18bd1d4bbab4a1fdef11f735cb3fbf5d}} 
+\index{Matrix2D.h@{Matrix2D.h}!mat2D\_transpose@{mat2D\_transpose}}
+\index{mat2D\_transpose@{mat2D\_transpose}!Matrix2D.h@{Matrix2D.h}}
+\doxysubsubsection{\texorpdfstring{mat2D\_transpose()}{mat2D\_transpose()}}
+{\footnotesize\ttfamily void mat2\+D\+\_\+transpose (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structMat2D}{Mat2D}}}]{des,  }\item[{\mbox{\hyperlink{structMat2D}{Mat2D}}}]{src }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00709}{709}} of file \mbox{\hyperlink{Matrix2D_8h_source}{Matrix2\+D.\+h}}.
+
+
+
+References \mbox{\hyperlink{Matrix2D_8h_source_l00032}{Mat2\+D\+::cols}}, \mbox{\hyperlink{Matrix2D_8h_source_l00054}{MAT2\+D\+\_\+\+AT}}, \mbox{\hyperlink{Matrix2D_8h_source_l00027}{MATRIX2\+D\+\_\+\+ASSERT}}, and \mbox{\hyperlink{Matrix2D_8h_source_l00031}{Mat2\+D\+::rows}}.
+
+\mbox{\Hypertarget{Matrix2D_8h_a9f78068de09b891e4e44633783d90bae}\label{Matrix2D_8h_a9f78068de09b891e4e44633783d90bae}} 
+\index{Matrix2D.h@{Matrix2D.h}!mat2D\_triangulate@{mat2D\_triangulate}}
+\index{mat2D\_triangulate@{mat2D\_triangulate}!Matrix2D.h@{Matrix2D.h}}
+\doxysubsubsection{\texorpdfstring{mat2D\_triangulate()}{mat2D\_triangulate()}}
+{\footnotesize\ttfamily double mat2\+D\+\_\+triangulate (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structMat2D}{Mat2D}}}]{m }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00593}{593}} of file \mbox{\hyperlink{Matrix2D_8h_source}{Matrix2\+D.\+h}}.
+
+
+
+References \mbox{\hyperlink{Matrix2D_8h_source_l00032}{Mat2\+D\+::cols}}, \mbox{\hyperlink{Matrix2D_8h_source_l00054}{MAT2\+D\+\_\+\+AT}}, \mbox{\hyperlink{Matrix2D_8h_source_l00287}{mat2\+D\+\_\+sub\+\_\+row\+\_\+time\+\_\+factor\+\_\+to\+\_\+row()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00501}{mat2\+D\+\_\+swap\+\_\+rows()}}, and \mbox{\hyperlink{Matrix2D_8h_source_l00031}{Mat2\+D\+::rows}}.
+
+
+
+Referenced by \mbox{\hyperlink{Matrix2D_8h_source_l00625}{mat2\+D\+\_\+det()}}.
+
+\mbox{\Hypertarget{Matrix2D_8h_a297912d62f26a66aa3e71947116380bb}\label{Matrix2D_8h_a297912d62f26a66aa3e71947116380bb}} 
+\index{Matrix2D.h@{Matrix2D.h}!mat2D\_uint32\_print@{mat2D\_uint32\_print}}
+\index{mat2D\_uint32\_print@{mat2D\_uint32\_print}!Matrix2D.h@{Matrix2D.h}}
+\doxysubsubsection{\texorpdfstring{mat2D\_uint32\_print()}{mat2D\_uint32\_print()}}
+{\footnotesize\ttfamily void mat2\+D\+\_\+uint32\+\_\+print (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structMat2D__uint32}{Mat2\+D\+\_\+uint32}}}]{m,  }\item[{const char $\ast$}]{name,  }\item[{size\+\_\+t}]{padding }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00323}{323}} of file \mbox{\hyperlink{Matrix2D_8h_source}{Matrix2\+D.\+h}}.
+
+
+
+References \mbox{\hyperlink{Matrix2D_8h_source_l00039}{Mat2\+D\+\_\+uint32\+::cols}}, \mbox{\hyperlink{Matrix2D_8h_source_l00055}{MAT2\+D\+\_\+\+AT\+\_\+\+UINT32}}, and \mbox{\hyperlink{Matrix2D_8h_source_l00038}{Mat2\+D\+\_\+uint32\+::rows}}.
+
+\mbox{\Hypertarget{Matrix2D_8h_affdba9e27c79692b1660fa94ec70bfe3}\label{Matrix2D_8h_affdba9e27c79692b1660fa94ec70bfe3}} 
+\index{Matrix2D.h@{Matrix2D.h}!rand\_double@{rand\_double}}
+\index{rand\_double@{rand\_double}!Matrix2D.h@{Matrix2D.h}}
+\doxysubsubsection{\texorpdfstring{rand\_double()}{rand\_double()}}
+{\footnotesize\ttfamily double rand\+\_\+double (\begin{DoxyParamCaption}\item[{void}]{ }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00145}{145}} of file \mbox{\hyperlink{Matrix2D_8h_source}{Matrix2\+D.\+h}}.
+
+
+
+Referenced by \mbox{\hyperlink{Matrix2D_8h_source_l00221}{mat2\+D\+\_\+rand()}}.
+
