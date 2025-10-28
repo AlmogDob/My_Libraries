@@ -8,7 +8,7 @@
 <area shape="rect" id="node12" href="$structLight__source.html" title=" " alt="" coords="321,175,425,201"/>
 <area shape="rect" id="node6" href="$structMaterial.html" title=" " alt="" coords="429,411,505,438"/>
 <area shape="rect" id="node7" href="$structCamera.html" title=" " alt="" coords="660,411,733,438"/>
-<area shape="rect" id="node8" href="$structMat2D.html" title=" " alt="" coords="568,225,633,252"/>
+<area shape="rect" id="node8" href="$structMat2D.html" title="Dense row&#45;major matrix of doubles." alt="" coords="568,225,633,252"/>
 <area shape="rect" id="node9" href="$structQuad__mesh__array.html" title=" " alt="" coords="159,411,299,438"/>
 <area shape="rect" id="node10" href="$structQuad__mesh.html" title=" " alt="" coords="179,225,278,252"/>
 </map>

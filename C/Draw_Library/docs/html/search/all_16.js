@@ -1,5 +1,6 @@
 var searchData=
 [
-  ['z_288',['z',['../structPoint.html#a9a666531e0e99adff132be93d2407d0c',1,'Point']]],
-  ['zoom_5fmultiplier_289',['zoom_multiplier',['../structOffset__zoom__param.html#a019a25c3b0ac20cc7c2740ebe40e35f9',1,'Offset_zoom_param']]]
+  ['y_287',['y',['../structPoint.html#a6101960c8d2d4e8ea1d32c9234bbeb8d',1,'Point']]],
+  ['y_5faxis_5fhead_5fsize_288',['y_axis_head_size',['../structFigure.html#a93fb83221c702899f524e808eb4cd3be',1,'Figure']]],
+  ['yellow_5fhexargb_289',['YELLOW_hexARGB',['../Almog__Draw__Library_8h.html#a2c08d20a50ce1fb32f381d143a1940d4',1,'Almog_Draw_Library.h']]]
 ];

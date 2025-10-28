@@ -17,8 +17,8 @@ void setup(game_state_t *game_state)
     ada_init_array(Tri_mesh, game_state->scene.in_world_tri_meshes);
     ada_init_array(Tri_mesh, game_state->scene.projected_tri_meshes);
 
-    char file_path[MAX_LEN_LINE];
-    strncpy(file_path, "./teapot.stl", MAX_LEN_LINE);
+    char file_path[ASM_MAX_LEN_LINE];
+    strncpy(file_path, "./teapot.stl", ASM_MAX_LEN_LINE);
 
     Tri_mesh tri_mesh = ae_tri_mesh_get_from_file(file_path);
 

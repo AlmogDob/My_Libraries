@@ -1,10 +1,13 @@
 var searchData=
 [
-  ['s_5fwas_5fpressed_248',['s_was_pressed',['../structgame__state__t.html#a9fb74517862b22011180665f3acddae4',1,'game_state_t']]],
-  ['setup_249',['SETUP',['../display_8c.html#ac3b15998ba7221fca6fc579b1cd60557',1,'SETUP():&#160;display.c'],['../example1_8c.html#ac3b15998ba7221fca6fc579b1cd60557',1,'SETUP():&#160;example1.c'],['../temp_8c.html#ac3b15998ba7221fca6fc579b1cd60557',1,'SETUP():&#160;temp.c']]],
-  ['setup_250',['setup',['../display_8c.html#ab919e5f7eac1e9022a91a3a237b2951a',1,'setup(game_state_t *game_state):&#160;display.c'],['../example1_8c.html#ab919e5f7eac1e9022a91a3a237b2951a',1,'setup(game_state_t *game_state):&#160;example1.c'],['../temp_8c.html#ab919e5f7eac1e9022a91a3a237b2951a',1,'setup(game_state_t *game_state):&#160;temp.c']]],
-  ['setup_5fwindow_251',['setup_window',['../display_8c.html#a747df082ba281c7cc34610740c8a9c04',1,'display.c']]],
-  ['space_5fbar_5fwas_5fpressed_252',['space_bar_was_pressed',['../structgame__state__t.html#a70e2cdada86a958a04d7449747b6c306',1,'game_state_t']]],
-  ['src_5fcurve_5farray_253',['src_curve_array',['../structFigure.html#a88975f23da9504f729460f036c6e6036',1,'Figure']]],
-  ['stride_5fr_254',['stride_r',['../structMat2D.html#a6192f06b935bf444e406c7bda0a27d92',1,'Mat2D::stride_r()'],['../structMat2D__uint32.html#aee36492a44397a9401e6d73c3047832e',1,'Mat2D_uint32::stride_r()'],['../structMat2D__Minor.html#aa3732a646cc31bfe41fee2f6e21ef887',1,'Mat2D_Minor::stride_r()']]]
+  ['red_5fhexargb_240',['RED_hexARGB',['../Almog__Draw__Library_8h.html#a18d40dca86bc96286a6b4e865ff1bcc9',1,'Almog_Draw_Library.h']]],
+  ['ref_5fmat_241',['ref_mat',['../structMat2D__Minor.html#af16064766b41a0c96edbaa56e60f393c',1,'Mat2D_Minor']]],
+  ['render_242',['render',['../display_8c.html#a189f73f504256a3c91c9b7741b956c69',1,'render(game_state_t *game_state):&#160;display.c'],['../example1_8c.html#a189f73f504256a3c91c9b7741b956c69',1,'render(game_state_t *game_state):&#160;example1.c'],['../temp_8c.html#a189f73f504256a3c91c9b7741b956c69',1,'render(game_state_t *game_state):&#160;temp.c']]],
+  ['render_243',['RENDER',['../display_8c.html#ada165dd53c6f81f42de99c903e5eece0',1,'RENDER():&#160;display.c'],['../example1_8c.html#ada165dd53c6f81f42de99c903e5eece0',1,'RENDER():&#160;example1.c'],['../temp_8c.html#ada165dd53c6f81f42de99c903e5eece0',1,'RENDER():&#160;temp.c']]],
+  ['render_5fwindow_244',['render_window',['../display_8c.html#abe1c145aff2869418160eca444036f8b',1,'display.c']]],
+  ['renderer_245',['renderer',['../structgame__state__t.html#aaa547b5615c3ac5375557a9bf8ff4a7e',1,'game_state_t']]],
+  ['rgb_5fhexrgb_246',['RGB_hexRGB',['../Almog__Draw__Library_8h.html#ae5c9bd99d773c485b76cef79ced9ef29',1,'Almog_Draw_Library.h']]],
+  ['rgba_5fhexargb_247',['RGBA_hexARGB',['../Almog__Draw__Library_8h.html#af2a5454da38824700317a8dbcab92f1b',1,'Almog_Draw_Library.h']]],
+  ['rows_248',['rows',['../structMat2D.html#ae2c1f099d11352ac91db1ff1b0c8ed0a',1,'Mat2D::rows()'],['../structMat2D__uint32.html#a20afe9ce6a7fd1eebccaf13e4b6ec886',1,'Mat2D_uint32::rows()'],['../structMat2D__Minor.html#a8b67b273e4d77f181ba4f58b28ca5aa0',1,'Mat2D_Minor::rows()']]],
+  ['rows_5flist_249',['rows_list',['../structMat2D__Minor.html#a8054668899ecbae0f4c293a0e49e54c8',1,'Mat2D_Minor']]]
 ];

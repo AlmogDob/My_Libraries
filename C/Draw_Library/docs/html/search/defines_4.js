@@ -1,4 +1,8 @@
 var searchData=
 [
-  ['edge_5fcross_5fpoint_543',['edge_cross_point',['../Almog__Draw__Library_8h.html#a6da6a8f68ff61bf4850d903390c0c690',1,'Almog_Draw_Library.h']]]
+  ['dprintchar_543',['dprintCHAR',['../display_8c.html#a8b63874b09e98605eddc71b18323ceaf',1,'display.c']]],
+  ['dprintd_544',['dprintD',['../display_8c.html#a09101bb7984231d49fae12c5dd510882',1,'display.c']]],
+  ['dprintint_545',['dprintINT',['../display_8c.html#ad6ee5604ae166c2578fb919ba8047d32',1,'display.c']]],
+  ['dprintsize_5ft_546',['dprintSIZE_T',['../display_8c.html#a44ef8de62cc4802e6e2d52716d9ea342',1,'display.c']]],
+  ['dprintstring_547',['dprintSTRING',['../display_8c.html#a8a10eb1b51de8ec7f32760fc42a499d3',1,'display.c']]]
 ];

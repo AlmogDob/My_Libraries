@@ -1,27 +1,34 @@
 \begin{theindex}
 
+  \item {\_\_USE\_MISC}
+    \subitem {Matrix2D.h}, \hyperpage{138}
+
+  \indexspace
+
   \item {a\_was\_pressed}
     \subitem {game\_state\_t}, \hyperpage{14}
   \item {ada\_appand}
-    \subitem {Almog\_Dynamic\_Array.h}, \hyperpage{107}
+    \subitem {Almog\_Dynamic\_Array.h}, \hyperpage{108}
   \item {ADA\_ASSERT}
-    \subitem {Almog\_Dynamic\_Array.h}, \hyperpage{108}
+    \subitem {Almog\_Dynamic\_Array.h}, \hyperpage{109}
   \item {ada\_init\_array}
-    \subitem {Almog\_Dynamic\_Array.h}, \hyperpage{108}
-  \item {ada\_insert}
-    \subitem {Almog\_Dynamic\_Array.h}, \hyperpage{108}
-  \item {ada\_insert\_unordered}
-    \subitem {Almog\_Dynamic\_Array.h}, \hyperpage{108}
-  \item {ADA\_MALLOC}
     \subitem {Almog\_Dynamic\_Array.h}, \hyperpage{109}
-  \item {ADA\_REALLOC}
-    \subitem {Almog\_Dynamic\_Array.h}, \hyperpage{109}
-  \item {ada\_remove}
-    \subitem {Almog\_Dynamic\_Array.h}, \hyperpage{109}
-  \item {ada\_remove\_unordered}
-    \subitem {Almog\_Dynamic\_Array.h}, \hyperpage{109}
-  \item {ada\_resize}
+  \item {ADA\_INIT\_CAPACITY}
     \subitem {Almog\_Dynamic\_Array.h}, \hyperpage{110}
+  \item {ada\_insert}
+    \subitem {Almog\_Dynamic\_Array.h}, \hyperpage{110}
+  \item {ada\_insert\_unordered}
+    \subitem {Almog\_Dynamic\_Array.h}, \hyperpage{111}
+  \item {ADA\_MALLOC}
+    \subitem {Almog\_Dynamic\_Array.h}, \hyperpage{112}
+  \item {ADA\_REALLOC}
+    \subitem {Almog\_Dynamic\_Array.h}, \hyperpage{112}
+  \item {ada\_remove}
+    \subitem {Almog\_Dynamic\_Array.h}, \hyperpage{112}
+  \item {ada\_remove\_unordered}
+    \subitem {Almog\_Dynamic\_Array.h}, \hyperpage{113}
+  \item {ada\_resize}
+    \subitem {Almog\_Dynamic\_Array.h}, \hyperpage{113}
   \item {adl\_2Dscalar\_interp\_on\_figure}
     \subitem {Almog\_Draw\_Library.h}, \hyperpage{51}
   \item {adl\_arrow\_draw}
@@ -241,20 +248,20 @@
     \subitem {TRI\_MESH}, \hyperpage{51}
     \subitem {YELLOW\_hexARGB}, \hyperpage{51}
   \item {ALMOG\_DRAW\_LIBRARY\_IMPLEMENTATION}
-    \subitem {example1.c}, \hyperpage{124}
-    \subitem {temp.c}, \hyperpage{158}
+    \subitem {example1.c}, \hyperpage{128}
+    \subitem {temp.c}, \hyperpage{180}
   \item {Almog\_Dynamic\_Array.h}, \hyperpage{106}
-    \subitem {ada\_appand}, \hyperpage{107}
-    \subitem {ADA\_ASSERT}, \hyperpage{108}
-    \subitem {ada\_init\_array}, \hyperpage{108}
-    \subitem {ada\_insert}, \hyperpage{108}
-    \subitem {ada\_insert\_unordered}, \hyperpage{108}
-    \subitem {ADA\_MALLOC}, \hyperpage{109}
-    \subitem {ADA\_REALLOC}, \hyperpage{109}
-    \subitem {ada\_remove}, \hyperpage{109}
-    \subitem {ada\_remove\_unordered}, \hyperpage{109}
-    \subitem {ada\_resize}, \hyperpage{110}
-    \subitem {INIT\_CAPACITY}, \hyperpage{110}
+    \subitem {ada\_appand}, \hyperpage{108}
+    \subitem {ADA\_ASSERT}, \hyperpage{109}
+    \subitem {ada\_init\_array}, \hyperpage{109}
+    \subitem {ADA\_INIT\_CAPACITY}, \hyperpage{110}
+    \subitem {ada\_insert}, \hyperpage{110}
+    \subitem {ada\_insert\_unordered}, \hyperpage{111}
+    \subitem {ADA\_MALLOC}, \hyperpage{112}
+    \subitem {ADA\_REALLOC}, \hyperpage{112}
+    \subitem {ada\_remove}, \hyperpage{112}
+    \subitem {ada\_remove\_unordered}, \hyperpage{113}
+    \subitem {ada\_resize}, \hyperpage{113}
 
   \indexspace
 
@@ -268,25 +275,25 @@
   \item {capacity}
     \subitem {Curve}, \hyperpage{5}
     \subitem {Curve\_ada}, \hyperpage{7}
-    \subitem {Quad\_mesh}, \hyperpage{33}
-    \subitem {Tri\_mesh}, \hyperpage{37}
+    \subitem {Quad\_mesh}, \hyperpage{34}
+    \subitem {Tri\_mesh}, \hyperpage{38}
   \item {check\_window\_mat\_size}
-    \subitem {display.c}, \hyperpage{116}
+    \subitem {display.c}, \hyperpage{120}
   \item {color}
     \subitem {Curve}, \hyperpage{6}
   \item {colors}
-    \subitem {Quad}, \hyperpage{31}
-    \subitem {Tri}, \hyperpage{35}
+    \subitem {Quad}, \hyperpage{32}
+    \subitem {Tri}, \hyperpage{36}
   \item {cols}
     \subitem {Mat2D}, \hyperpage{23}
     \subitem {Mat2D\_Minor}, \hyperpage{25}
     \subitem {Mat2D\_uint32}, \hyperpage{27}
   \item {cols\_list}
-    \subitem {Mat2D\_Minor}, \hyperpage{25}
+    \subitem {Mat2D\_Minor}, \hyperpage{26}
   \item {const\_fps}
     \subitem {game\_state\_t}, \hyperpage{14}
   \item {copy\_mat\_to\_surface\_RGB}
-    \subitem {display.c}, \hyperpage{116}
+    \subitem {display.c}, \hyperpage{120}
   \item {CURVE}
     \subitem {Almog\_Draw\_Library.h}, \hyperpage{47}
   \item {Curve}, \hyperpage{5}
@@ -316,43 +323,43 @@
   \item {delta\_time}
     \subitem {game\_state\_t}, \hyperpage{14}
   \item {destroy\_window}
-    \subitem {display.c}, \hyperpage{116}
-  \item {display.c}, \hyperpage{112}
-    \subitem {check\_window\_mat\_size}, \hyperpage{116}
-    \subitem {copy\_mat\_to\_surface\_RGB}, \hyperpage{116}
-    \subitem {destroy\_window}, \hyperpage{116}
-    \subitem {dprintCHAR}, \hyperpage{114}
-    \subitem {dprintD}, \hyperpage{114}
-    \subitem {dprintINT}, \hyperpage{114}
-    \subitem {dprintSIZE\_T}, \hyperpage{114}
-    \subitem {dprintSTRING}, \hyperpage{114}
-    \subitem {fix\_framerate}, \hyperpage{116}
-    \subitem {FPS}, \hyperpage{114}
-    \subitem {FRAME\_TARGET\_TIME}, \hyperpage{115}
-    \subitem {initialize\_window}, \hyperpage{117}
-    \subitem {main}, \hyperpage{117}
-    \subitem {process\_input\_window}, \hyperpage{117}
-    \subitem {RENDER}, \hyperpage{115}
-    \subitem {render}, \hyperpage{117}
-    \subitem {render\_window}, \hyperpage{118}
-    \subitem {SETUP}, \hyperpage{115}
-    \subitem {setup}, \hyperpage{118}
-    \subitem {setup\_window}, \hyperpage{118}
-    \subitem {UPDATE}, \hyperpage{115}
-    \subitem {update}, \hyperpage{118}
-    \subitem {update\_window}, \hyperpage{119}
-    \subitem {WINDOW\_HEIGHT}, \hyperpage{115}
-    \subitem {WINDOW\_WIDTH}, \hyperpage{115}
+    \subitem {display.c}, \hyperpage{120}
+  \item {display.c}, \hyperpage{116}
+    \subitem {check\_window\_mat\_size}, \hyperpage{120}
+    \subitem {copy\_mat\_to\_surface\_RGB}, \hyperpage{120}
+    \subitem {destroy\_window}, \hyperpage{120}
+    \subitem {dprintCHAR}, \hyperpage{118}
+    \subitem {dprintD}, \hyperpage{118}
+    \subitem {dprintINT}, \hyperpage{118}
+    \subitem {dprintSIZE\_T}, \hyperpage{118}
+    \subitem {dprintSTRING}, \hyperpage{118}
+    \subitem {fix\_framerate}, \hyperpage{120}
+    \subitem {FPS}, \hyperpage{118}
+    \subitem {FRAME\_TARGET\_TIME}, \hyperpage{119}
+    \subitem {initialize\_window}, \hyperpage{121}
+    \subitem {main}, \hyperpage{121}
+    \subitem {process\_input\_window}, \hyperpage{121}
+    \subitem {RENDER}, \hyperpage{119}
+    \subitem {render}, \hyperpage{121}
+    \subitem {render\_window}, \hyperpage{122}
+    \subitem {SETUP}, \hyperpage{119}
+    \subitem {setup}, \hyperpage{122}
+    \subitem {setup\_window}, \hyperpage{122}
+    \subitem {UPDATE}, \hyperpage{119}
+    \subitem {update}, \hyperpage{122}
+    \subitem {update\_window}, \hyperpage{123}
+    \subitem {WINDOW\_HEIGHT}, \hyperpage{119}
+    \subitem {WINDOW\_WIDTH}, \hyperpage{119}
   \item {dprintCHAR}
-    \subitem {display.c}, \hyperpage{114}
+    \subitem {display.c}, \hyperpage{118}
   \item {dprintD}
-    \subitem {display.c}, \hyperpage{114}
+    \subitem {display.c}, \hyperpage{118}
   \item {dprintINT}
-    \subitem {display.c}, \hyperpage{114}
+    \subitem {display.c}, \hyperpage{118}
   \item {dprintSIZE\_T}
-    \subitem {display.c}, \hyperpage{114}
+    \subitem {display.c}, \hyperpage{118}
   \item {dprintSTRING}
-    \subitem {display.c}, \hyperpage{114}
+    \subitem {display.c}, \hyperpage{118}
 
   \indexspace
 
@@ -365,23 +372,23 @@
   \item {elements}
     \subitem {Curve}, \hyperpage{6}
     \subitem {Curve\_ada}, \hyperpage{7}
-    \subitem {Mat2D}, \hyperpage{23}
-    \subitem {Mat2D\_uint32}, \hyperpage{27}
-    \subitem {Quad\_mesh}, \hyperpage{33}
-    \subitem {Tri\_mesh}, \hyperpage{37}
-  \item {example1.c}, \hyperpage{124}
-    \subitem {ALMOG\_DRAW\_LIBRARY\_IMPLEMENTATION}, \hyperpage{124}
-    \subitem {figure1}, \hyperpage{126}
-    \subitem {figure2}, \hyperpage{126}
-    \subitem {MATRIX2D\_IMPLEMENTATION}, \hyperpage{125}
-    \subitem {points}, \hyperpage{127}
-    \subitem {points1}, \hyperpage{127}
-    \subitem {RENDER}, \hyperpage{125}
-    \subitem {render}, \hyperpage{125}
-    \subitem {SETUP}, \hyperpage{125}
-    \subitem {setup}, \hyperpage{126}
-    \subitem {UPDATE}, \hyperpage{125}
-    \subitem {update}, \hyperpage{126}
+    \subitem {Mat2D}, \hyperpage{24}
+    \subitem {Mat2D\_uint32}, \hyperpage{28}
+    \subitem {Quad\_mesh}, \hyperpage{34}
+    \subitem {Tri\_mesh}, \hyperpage{38}
+  \item {example1.c}, \hyperpage{128}
+    \subitem {ALMOG\_DRAW\_LIBRARY\_IMPLEMENTATION}, \hyperpage{128}
+    \subitem {figure1}, \hyperpage{130}
+    \subitem {figure2}, \hyperpage{130}
+    \subitem {MATRIX2D\_IMPLEMENTATION}, \hyperpage{129}
+    \subitem {points}, \hyperpage{131}
+    \subitem {points1}, \hyperpage{131}
+    \subitem {RENDER}, \hyperpage{129}
+    \subitem {render}, \hyperpage{129}
+    \subitem {SETUP}, \hyperpage{129}
+    \subitem {setup}, \hyperpage{130}
+    \subitem {UPDATE}, \hyperpage{129}
+    \subitem {update}, \hyperpage{130}
 
   \indexspace
 
@@ -405,19 +412,19 @@
     \subitem {x\_axis\_head\_size}, \hyperpage{12}
     \subitem {y\_axis\_head\_size}, \hyperpage{12}
   \item {figure1}
-    \subitem {example1.c}, \hyperpage{126}
+    \subitem {example1.c}, \hyperpage{130}
   \item {figure2}
-    \subitem {example1.c}, \hyperpage{126}
+    \subitem {example1.c}, \hyperpage{130}
   \item {fix\_framerate}
-    \subitem {display.c}, \hyperpage{116}
+    \subitem {display.c}, \hyperpage{120}
   \item {font}
     \subitem {game\_state\_t}, \hyperpage{15}
   \item {FPS}
-    \subitem {display.c}, \hyperpage{114}
+    \subitem {display.c}, \hyperpage{118}
   \item {fps}
     \subitem {game\_state\_t}, \hyperpage{15}
   \item {FRAME\_TARGET\_TIME}
-    \subitem {display.c}, \hyperpage{115}
+    \subitem {display.c}, \hyperpage{119}
   \item {frame\_target\_time}
     \subitem {game\_state\_t}, \hyperpage{15}
 
@@ -480,10 +487,8 @@
 
   \indexspace
 
-  \item {INIT\_CAPACITY}
-    \subitem {Almog\_Dynamic\_Array.h}, \hyperpage{110}
   \item {initialize\_window}
-    \subitem {display.c}, \hyperpage{117}
+    \subitem {display.c}, \hyperpage{121}
   \item {inv\_z\_buffer\_mat}
     \subitem {Figure}, \hyperpage{9}
     \subitem {game\_state\_t}, \hyperpage{16}
@@ -501,224 +506,230 @@
   \item {length}
     \subitem {Curve}, \hyperpage{6}
     \subitem {Curve\_ada}, \hyperpage{8}
-    \subitem {Quad\_mesh}, \hyperpage{34}
-    \subitem {Tri\_mesh}, \hyperpage{37}
+    \subitem {Quad\_mesh}, \hyperpage{35}
+    \subitem {Tri\_mesh}, \hyperpage{38}
   \item {light\_intensity}
-    \subitem {Quad}, \hyperpage{31}
-    \subitem {Tri}, \hyperpage{35}
+    \subitem {Quad}, \hyperpage{32}
+    \subitem {Tri}, \hyperpage{36}
 
   \indexspace
 
   \item {main}
-    \subitem {display.c}, \hyperpage{117}
+    \subitem {display.c}, \hyperpage{121}
   \item {Mat2D}, \hyperpage{23}
     \subitem {cols}, \hyperpage{23}
-    \subitem {elements}, \hyperpage{23}
+    \subitem {elements}, \hyperpage{24}
     \subitem {rows}, \hyperpage{24}
     \subitem {stride\_r}, \hyperpage{24}
   \item {mat2D\_add}
-    \subitem {Matrix2D.h}, \hyperpage{133}
-  \item {mat2D\_add\_col\_to\_col}
-    \subitem {Matrix2D.h}, \hyperpage{134}
-  \item {mat2D\_add\_row\_time\_factor\_to\_row}
-    \subitem {Matrix2D.h}, \hyperpage{134}
-  \item {mat2D\_add\_row\_to\_row}
-    \subitem {Matrix2D.h}, \hyperpage{134}
-  \item {mat2D\_alloc}
-    \subitem {Matrix2D.h}, \hyperpage{134}
-  \item {mat2D\_alloc\_uint32}
-    \subitem {Matrix2D.h}, \hyperpage{135}
-  \item {MAT2D\_AT}
-    \subitem {Matrix2D.h}, \hyperpage{131}
-  \item {MAT2D\_AT\_UINT32}
-    \subitem {Matrix2D.h}, \hyperpage{132}
-  \item {mat2D\_calc\_norma}
-    \subitem {Matrix2D.h}, \hyperpage{135}
-  \item {mat2D\_col\_is\_all\_digit}
-    \subitem {Matrix2D.h}, \hyperpage{135}
-  \item {mat2D\_copy}
-    \subitem {Matrix2D.h}, \hyperpage{135}
-  \item {mat2D\_copy\_mat\_to\_mat\_at\_window}
-    \subitem {Matrix2D.h}, \hyperpage{136}
-  \item {mat2D\_cross}
-    \subitem {Matrix2D.h}, \hyperpage{136}
-  \item {mat2D\_det}
-    \subitem {Matrix2D.h}, \hyperpage{136}
-  \item {mat2D\_det\_2x2\_mat}
-    \subitem {Matrix2D.h}, \hyperpage{136}
-  \item {mat2D\_det\_2x2\_mat\_minor}
-    \subitem {Matrix2D.h}, \hyperpage{137}
-  \item {mat2D\_dot}
-    \subitem {Matrix2D.h}, \hyperpage{137}
-  \item {mat2D\_fill}
-    \subitem {Matrix2D.h}, \hyperpage{137}
-  \item {mat2D\_fill\_sequence}
-    \subitem {Matrix2D.h}, \hyperpage{137}
-  \item {mat2D\_fill\_uint32}
-    \subitem {Matrix2D.h}, \hyperpage{138}
-  \item {mat2D\_free}
-    \subitem {Matrix2D.h}, \hyperpage{138}
-  \item {mat2D\_free\_uint32}
-    \subitem {Matrix2D.h}, \hyperpage{138}
-  \item {mat2D\_get\_col}
-    \subitem {Matrix2D.h}, \hyperpage{138}
-  \item {mat2D\_get\_row}
-    \subitem {Matrix2D.h}, \hyperpage{139}
-  \item {mat2D\_invert}
-    \subitem {Matrix2D.h}, \hyperpage{139}
-  \item {mat2D\_LUP\_decomposition\_with\_swap}
-    \subitem {Matrix2D.h}, \hyperpage{139}
-  \item {mat2D\_make\_identity}
-    \subitem {Matrix2D.h}, \hyperpage{139}
-  \item {mat2D\_mat\_is\_all\_digit}
     \subitem {Matrix2D.h}, \hyperpage{140}
-  \item {Mat2D\_Minor}, \hyperpage{24}
+  \item {mat2D\_add\_col\_to\_col}
+    \subitem {Matrix2D.h}, \hyperpage{141}
+  \item {mat2D\_add\_row\_time\_factor\_to\_row}
+    \subitem {Matrix2D.h}, \hyperpage{141}
+  \item {mat2D\_add\_row\_to\_row}
+    \subitem {Matrix2D.h}, \hyperpage{142}
+  \item {mat2D\_alloc}
+    \subitem {Matrix2D.h}, \hyperpage{142}
+  \item {mat2D\_alloc\_uint32}
+    \subitem {Matrix2D.h}, \hyperpage{143}
+  \item {MAT2D\_AT}
+    \subitem {Matrix2D.h}, \hyperpage{138}
+  \item {MAT2D\_AT\_UINT32}
+    \subitem {Matrix2D.h}, \hyperpage{138}
+  \item {mat2D\_calc\_norma}
+    \subitem {Matrix2D.h}, \hyperpage{143}
+  \item {mat2D\_col\_is\_all\_digit}
+    \subitem {Matrix2D.h}, \hyperpage{144}
+  \item {mat2D\_copy}
+    \subitem {Matrix2D.h}, \hyperpage{144}
+  \item {mat2D\_copy\_mat\_to\_mat\_at\_window}
+    \subitem {Matrix2D.h}, \hyperpage{145}
+  \item {mat2D\_cross}
+    \subitem {Matrix2D.h}, \hyperpage{145}
+  \item {mat2D\_det}
+    \subitem {Matrix2D.h}, \hyperpage{146}
+  \item {mat2D\_det\_2x2\_mat}
+    \subitem {Matrix2D.h}, \hyperpage{146}
+  \item {mat2D\_det\_2x2\_mat\_minor}
+    \subitem {Matrix2D.h}, \hyperpage{147}
+  \item {mat2D\_dot}
+    \subitem {Matrix2D.h}, \hyperpage{147}
+  \item {mat2D\_dot\_product}
+    \subitem {Matrix2D.h}, \hyperpage{148}
+  \item {mat2D\_fill}
+    \subitem {Matrix2D.h}, \hyperpage{148}
+  \item {mat2D\_fill\_sequence}
+    \subitem {Matrix2D.h}, \hyperpage{149}
+  \item {mat2D\_fill\_uint32}
+    \subitem {Matrix2D.h}, \hyperpage{149}
+  \item {mat2D\_free}
+    \subitem {Matrix2D.h}, \hyperpage{150}
+  \item {mat2D\_free\_uint32}
+    \subitem {Matrix2D.h}, \hyperpage{150}
+  \item {mat2D\_get\_col}
+    \subitem {Matrix2D.h}, \hyperpage{151}
+  \item {mat2D\_get\_row}
+    \subitem {Matrix2D.h}, \hyperpage{151}
+  \item {mat2D\_invert}
+    \subitem {Matrix2D.h}, \hyperpage{152}
+  \item {mat2D\_LUP\_decomposition\_with\_swap}
+    \subitem {Matrix2D.h}, \hyperpage{152}
+  \item {mat2D\_make\_identity}
+    \subitem {Matrix2D.h}, \hyperpage{153}
+  \item {mat2D\_mat\_is\_all\_digit}
+    \subitem {Matrix2D.h}, \hyperpage{153}
+  \item {Mat2D\_Minor}, \hyperpage{25}
     \subitem {cols}, \hyperpage{25}
-    \subitem {cols\_list}, \hyperpage{25}
-    \subitem {ref\_mat}, \hyperpage{25}
-    \subitem {rows}, \hyperpage{25}
+    \subitem {cols\_list}, \hyperpage{26}
+    \subitem {ref\_mat}, \hyperpage{26}
+    \subitem {rows}, \hyperpage{26}
     \subitem {rows\_list}, \hyperpage{26}
     \subitem {stride\_r}, \hyperpage{26}
   \item {mat2D\_minor\_alloc\_fill\_from\_mat}
-    \subitem {Matrix2D.h}, \hyperpage{140}
+    \subitem {Matrix2D.h}, \hyperpage{154}
   \item {mat2D\_minor\_alloc\_fill\_from\_mat\_minor}
-    \subitem {Matrix2D.h}, \hyperpage{140}
+    \subitem {Matrix2D.h}, \hyperpage{154}
   \item {MAT2D\_MINOR\_AT}
-    \subitem {Matrix2D.h}, \hyperpage{132}
+    \subitem {Matrix2D.h}, \hyperpage{138}
   \item {mat2D\_minor\_det}
-    \subitem {Matrix2D.h}, \hyperpage{140}
+    \subitem {Matrix2D.h}, \hyperpage{155}
   \item {mat2D\_minor\_free}
-    \subitem {Matrix2D.h}, \hyperpage{141}
+    \subitem {Matrix2D.h}, \hyperpage{156}
   \item {MAT2D\_MINOR\_PRINT}
-    \subitem {Matrix2D.h}, \hyperpage{132}
+    \subitem {Matrix2D.h}, \hyperpage{139}
   \item {mat2D\_minor\_print}
-    \subitem {Matrix2D.h}, \hyperpage{141}
+    \subitem {Matrix2D.h}, \hyperpage{156}
   \item {mat2D\_mult}
-    \subitem {Matrix2D.h}, \hyperpage{141}
+    \subitem {Matrix2D.h}, \hyperpage{157}
   \item {mat2D\_mult\_row}
-    \subitem {Matrix2D.h}, \hyperpage{141}
+    \subitem {Matrix2D.h}, \hyperpage{157}
+  \item {mat2D\_normalize}
+    \subitem {Matrix2D.h}, \hyperpage{139}
   \item {mat2D\_offset2d}
-    \subitem {Matrix2D.h}, \hyperpage{142}
+    \subitem {Matrix2D.h}, \hyperpage{157}
   \item {mat2D\_offset2d\_uint32}
-    \subitem {Matrix2D.h}, \hyperpage{142}
+    \subitem {Matrix2D.h}, \hyperpage{159}
   \item {MAT2D\_PRINT}
-    \subitem {Matrix2D.h}, \hyperpage{132}
+    \subitem {Matrix2D.h}, \hyperpage{139}
   \item {mat2D\_print}
-    \subitem {Matrix2D.h}, \hyperpage{142}
+    \subitem {Matrix2D.h}, \hyperpage{159}
   \item {MAT2D\_PRINT\_AS\_COL}
-    \subitem {Matrix2D.h}, \hyperpage{132}
+    \subitem {Matrix2D.h}, \hyperpage{139}
   \item {mat2D\_print\_as\_col}
-    \subitem {Matrix2D.h}, \hyperpage{142}
+    \subitem {Matrix2D.h}, \hyperpage{160}
   \item {mat2D\_rand}
-    \subitem {Matrix2D.h}, \hyperpage{143}
+    \subitem {Matrix2D.h}, \hyperpage{160}
+  \item {mat2D\_rand\_double}
+    \subitem {Matrix2D.h}, \hyperpage{161}
   \item {mat2D\_row\_is\_all\_digit}
-    \subitem {Matrix2D.h}, \hyperpage{143}
+    \subitem {Matrix2D.h}, \hyperpage{161}
+  \item {mat2D\_set\_DCM\_zyx}
+    \subitem {Matrix2D.h}, \hyperpage{162}
   \item {mat2D\_set\_identity}
-    \subitem {Matrix2D.h}, \hyperpage{143}
+    \subitem {Matrix2D.h}, \hyperpage{162}
   \item {mat2D\_set\_rot\_mat\_x}
-    \subitem {Matrix2D.h}, \hyperpage{143}
+    \subitem {Matrix2D.h}, \hyperpage{163}
   \item {mat2D\_set\_rot\_mat\_y}
-    \subitem {Matrix2D.h}, \hyperpage{144}
+    \subitem {Matrix2D.h}, \hyperpage{163}
   \item {mat2D\_set\_rot\_mat\_z}
-    \subitem {Matrix2D.h}, \hyperpage{144}
+    \subitem {Matrix2D.h}, \hyperpage{163}
   \item {mat2D\_solve\_linear\_sys\_LUP\_decomposition}
-    \subitem {Matrix2D.h}, \hyperpage{144}
+    \subitem {Matrix2D.h}, \hyperpage{164}
   \item {mat2D\_sub}
-    \subitem {Matrix2D.h}, \hyperpage{144}
+    \subitem {Matrix2D.h}, \hyperpage{164}
   \item {mat2D\_sub\_col\_to\_col}
-    \subitem {Matrix2D.h}, \hyperpage{145}
+    \subitem {Matrix2D.h}, \hyperpage{165}
   \item {mat2D\_sub\_row\_time\_factor\_to\_row}
-    \subitem {Matrix2D.h}, \hyperpage{145}
+    \subitem {Matrix2D.h}, \hyperpage{165}
   \item {mat2D\_sub\_row\_to\_row}
-    \subitem {Matrix2D.h}, \hyperpage{145}
+    \subitem {Matrix2D.h}, \hyperpage{166}
   \item {mat2D\_swap\_rows}
-    \subitem {Matrix2D.h}, \hyperpage{145}
+    \subitem {Matrix2D.h}, \hyperpage{166}
   \item {mat2D\_transpose}
-    \subitem {Matrix2D.h}, \hyperpage{146}
+    \subitem {Matrix2D.h}, \hyperpage{167}
   \item {mat2D\_triangulate}
-    \subitem {Matrix2D.h}, \hyperpage{146}
-  \item {Mat2D\_uint32}, \hyperpage{26}
+    \subitem {Matrix2D.h}, \hyperpage{167}
+  \item {Mat2D\_uint32}, \hyperpage{27}
     \subitem {cols}, \hyperpage{27}
-    \subitem {elements}, \hyperpage{27}
-    \subitem {rows}, \hyperpage{27}
-    \subitem {stride\_r}, \hyperpage{27}
-  \item {MAT2D\_UINT32\_PRINT}
-    \subitem {Matrix2D.h}, \hyperpage{133}
-  \item {mat2D\_uint32\_print}
-    \subitem {Matrix2D.h}, \hyperpage{146}
-  \item {Matrix2D.h}, \hyperpage{129}
-    \subitem {mat2D\_add}, \hyperpage{133}
-    \subitem {mat2D\_add\_col\_to\_col}, \hyperpage{134}
-    \subitem {mat2D\_add\_row\_time\_factor\_to\_row}, \hyperpage{134}
-    \subitem {mat2D\_add\_row\_to\_row}, \hyperpage{134}
-    \subitem {mat2D\_alloc}, \hyperpage{134}
-    \subitem {mat2D\_alloc\_uint32}, \hyperpage{135}
-    \subitem {MAT2D\_AT}, \hyperpage{131}
-    \subitem {MAT2D\_AT\_UINT32}, \hyperpage{132}
-    \subitem {mat2D\_calc\_norma}, \hyperpage{135}
-    \subitem {mat2D\_col\_is\_all\_digit}, \hyperpage{135}
-    \subitem {mat2D\_copy}, \hyperpage{135}
-    \subitem {mat2D\_copy\_mat\_to\_mat\_at\_window}, \hyperpage{136}
-    \subitem {mat2D\_cross}, \hyperpage{136}
-    \subitem {mat2D\_det}, \hyperpage{136}
-    \subitem {mat2D\_det\_2x2\_mat}, \hyperpage{136}
-    \subitem {mat2D\_det\_2x2\_mat\_minor}, \hyperpage{137}
-    \subitem {mat2D\_dot}, \hyperpage{137}
-    \subitem {mat2D\_fill}, \hyperpage{137}
-    \subitem {mat2D\_fill\_sequence}, \hyperpage{137}
-    \subitem {mat2D\_fill\_uint32}, \hyperpage{138}
-    \subitem {mat2D\_free}, \hyperpage{138}
-    \subitem {mat2D\_free\_uint32}, \hyperpage{138}
-    \subitem {mat2D\_get\_col}, \hyperpage{138}
-    \subitem {mat2D\_get\_row}, \hyperpage{139}
-    \subitem {mat2D\_invert}, \hyperpage{139}
-    \subitem {mat2D\_LUP\_decomposition\_with\_swap}, \hyperpage{139}
-    \subitem {mat2D\_make\_identity}, \hyperpage{139}
-    \subitem {mat2D\_mat\_is\_all\_digit}, \hyperpage{140}
-    \subitem {mat2D\_minor\_alloc\_fill\_from\_mat}, \hyperpage{140}
+    \subitem {elements}, \hyperpage{28}
+    \subitem {rows}, \hyperpage{28}
+    \subitem {stride\_r}, \hyperpage{28}
+  \item {Matrix2D.h}, \hyperpage{133}
+    \subitem {\_\_USE\_MISC}, \hyperpage{138}
+    \subitem {mat2D\_add}, \hyperpage{140}
+    \subitem {mat2D\_add\_col\_to\_col}, \hyperpage{141}
+    \subitem {mat2D\_add\_row\_time\_factor\_to\_row}, \hyperpage{141}
+    \subitem {mat2D\_add\_row\_to\_row}, \hyperpage{142}
+    \subitem {mat2D\_alloc}, \hyperpage{142}
+    \subitem {mat2D\_alloc\_uint32}, \hyperpage{143}
+    \subitem {MAT2D\_AT}, \hyperpage{138}
+    \subitem {MAT2D\_AT\_UINT32}, \hyperpage{138}
+    \subitem {mat2D\_calc\_norma}, \hyperpage{143}
+    \subitem {mat2D\_col\_is\_all\_digit}, \hyperpage{144}
+    \subitem {mat2D\_copy}, \hyperpage{144}
+    \subitem {mat2D\_copy\_mat\_to\_mat\_at\_window}, \hyperpage{145}
+    \subitem {mat2D\_cross}, \hyperpage{145}
+    \subitem {mat2D\_det}, \hyperpage{146}
+    \subitem {mat2D\_det\_2x2\_mat}, \hyperpage{146}
+    \subitem {mat2D\_det\_2x2\_mat\_minor}, \hyperpage{147}
+    \subitem {mat2D\_dot}, \hyperpage{147}
+    \subitem {mat2D\_dot\_product}, \hyperpage{148}
+    \subitem {mat2D\_fill}, \hyperpage{148}
+    \subitem {mat2D\_fill\_sequence}, \hyperpage{149}
+    \subitem {mat2D\_fill\_uint32}, \hyperpage{149}
+    \subitem {mat2D\_free}, \hyperpage{150}
+    \subitem {mat2D\_free\_uint32}, \hyperpage{150}
+    \subitem {mat2D\_get\_col}, \hyperpage{151}
+    \subitem {mat2D\_get\_row}, \hyperpage{151}
+    \subitem {mat2D\_invert}, \hyperpage{152}
+    \subitem {mat2D\_LUP\_decomposition\_with\_swap}, \hyperpage{152}
+    \subitem {mat2D\_make\_identity}, \hyperpage{153}
+    \subitem {mat2D\_mat\_is\_all\_digit}, \hyperpage{153}
+    \subitem {mat2D\_minor\_alloc\_fill\_from\_mat}, \hyperpage{154}
     \subitem {mat2D\_minor\_alloc\_fill\_from\_mat\_minor}, 
-		\hyperpage{140}
-    \subitem {MAT2D\_MINOR\_AT}, \hyperpage{132}
-    \subitem {mat2D\_minor\_det}, \hyperpage{140}
-    \subitem {mat2D\_minor\_free}, \hyperpage{141}
-    \subitem {MAT2D\_MINOR\_PRINT}, \hyperpage{132}
-    \subitem {mat2D\_minor\_print}, \hyperpage{141}
-    \subitem {mat2D\_mult}, \hyperpage{141}
-    \subitem {mat2D\_mult\_row}, \hyperpage{141}
-    \subitem {mat2D\_offset2d}, \hyperpage{142}
-    \subitem {mat2D\_offset2d\_uint32}, \hyperpage{142}
-    \subitem {MAT2D\_PRINT}, \hyperpage{132}
-    \subitem {mat2D\_print}, \hyperpage{142}
-    \subitem {MAT2D\_PRINT\_AS\_COL}, \hyperpage{132}
-    \subitem {mat2D\_print\_as\_col}, \hyperpage{142}
-    \subitem {mat2D\_rand}, \hyperpage{143}
-    \subitem {mat2D\_row\_is\_all\_digit}, \hyperpage{143}
-    \subitem {mat2D\_set\_identity}, \hyperpage{143}
-    \subitem {mat2D\_set\_rot\_mat\_x}, \hyperpage{143}
-    \subitem {mat2D\_set\_rot\_mat\_y}, \hyperpage{144}
-    \subitem {mat2D\_set\_rot\_mat\_z}, \hyperpage{144}
+		\hyperpage{154}
+    \subitem {MAT2D\_MINOR\_AT}, \hyperpage{138}
+    \subitem {mat2D\_minor\_det}, \hyperpage{155}
+    \subitem {mat2D\_minor\_free}, \hyperpage{156}
+    \subitem {MAT2D\_MINOR\_PRINT}, \hyperpage{139}
+    \subitem {mat2D\_minor\_print}, \hyperpage{156}
+    \subitem {mat2D\_mult}, \hyperpage{157}
+    \subitem {mat2D\_mult\_row}, \hyperpage{157}
+    \subitem {mat2D\_normalize}, \hyperpage{139}
+    \subitem {mat2D\_offset2d}, \hyperpage{157}
+    \subitem {mat2D\_offset2d\_uint32}, \hyperpage{159}
+    \subitem {MAT2D\_PRINT}, \hyperpage{139}
+    \subitem {mat2D\_print}, \hyperpage{159}
+    \subitem {MAT2D\_PRINT\_AS\_COL}, \hyperpage{139}
+    \subitem {mat2D\_print\_as\_col}, \hyperpage{160}
+    \subitem {mat2D\_rand}, \hyperpage{160}
+    \subitem {mat2D\_rand\_double}, \hyperpage{161}
+    \subitem {mat2D\_row\_is\_all\_digit}, \hyperpage{161}
+    \subitem {mat2D\_set\_DCM\_zyx}, \hyperpage{162}
+    \subitem {mat2D\_set\_identity}, \hyperpage{162}
+    \subitem {mat2D\_set\_rot\_mat\_x}, \hyperpage{163}
+    \subitem {mat2D\_set\_rot\_mat\_y}, \hyperpage{163}
+    \subitem {mat2D\_set\_rot\_mat\_z}, \hyperpage{163}
     \subitem {mat2D\_solve\_linear\_sys\_LUP\_decomposition}, 
-		\hyperpage{144}
-    \subitem {mat2D\_sub}, \hyperpage{144}
-    \subitem {mat2D\_sub\_col\_to\_col}, \hyperpage{145}
-    \subitem {mat2D\_sub\_row\_time\_factor\_to\_row}, \hyperpage{145}
-    \subitem {mat2D\_sub\_row\_to\_row}, \hyperpage{145}
-    \subitem {mat2D\_swap\_rows}, \hyperpage{145}
-    \subitem {mat2D\_transpose}, \hyperpage{146}
-    \subitem {mat2D\_triangulate}, \hyperpage{146}
-    \subitem {MAT2D\_UINT32\_PRINT}, \hyperpage{133}
-    \subitem {mat2D\_uint32\_print}, \hyperpage{146}
-    \subitem {MATRIX2D\_ASSERT}, \hyperpage{133}
-    \subitem {MATRIX2D\_MALLOC}, \hyperpage{133}
-    \subitem {PI}, \hyperpage{133}
-    \subitem {rand\_double}, \hyperpage{146}
+		\hyperpage{164}
+    \subitem {mat2D\_sub}, \hyperpage{164}
+    \subitem {mat2D\_sub\_col\_to\_col}, \hyperpage{165}
+    \subitem {mat2D\_sub\_row\_time\_factor\_to\_row}, \hyperpage{165}
+    \subitem {mat2D\_sub\_row\_to\_row}, \hyperpage{166}
+    \subitem {mat2D\_swap\_rows}, \hyperpage{166}
+    \subitem {mat2D\_transpose}, \hyperpage{167}
+    \subitem {mat2D\_triangulate}, \hyperpage{167}
+    \subitem {MATRIX2D\_ASSERT}, \hyperpage{140}
+    \subitem {MATRIX2D\_MALLOC}, \hyperpage{140}
+    \subitem {PI}, \hyperpage{140}
   \item {MATRIX2D\_ASSERT}
-    \subitem {Matrix2D.h}, \hyperpage{133}
+    \subitem {Matrix2D.h}, \hyperpage{140}
   \item {MATRIX2D\_IMPLEMENTATION}
-    \subitem {example1.c}, \hyperpage{125}
-    \subitem {temp.c}, \hyperpage{158}
+    \subitem {example1.c}, \hyperpage{129}
+    \subitem {temp.c}, \hyperpage{180}
   \item {MATRIX2D\_MALLOC}
-    \subitem {Matrix2D.h}, \hyperpage{133}
+    \subitem {Matrix2D.h}, \hyperpage{140}
   \item {max\_e1}
     \subitem {Grid}, \hyperpage{21}
   \item {max\_e2}
@@ -744,15 +755,15 @@
   \item {min\_y\_pixel}
     \subitem {Figure}, \hyperpage{11}
   \item {mouse\_x}
-    \subitem {Offset\_zoom\_param}, \hyperpage{28}
+    \subitem {Offset\_zoom\_param}, \hyperpage{29}
   \item {mouse\_y}
-    \subitem {Offset\_zoom\_param}, \hyperpage{28}
+    \subitem {Offset\_zoom\_param}, \hyperpage{29}
 
   \indexspace
 
   \item {normals}
-    \subitem {Quad}, \hyperpage{32}
-    \subitem {Tri}, \hyperpage{35}
+    \subitem {Quad}, \hyperpage{33}
+    \subitem {Tri}, \hyperpage{36}
   \item {num\_samples\_e1}
     \subitem {Grid}, \hyperpage{22}
   \item {num\_samples\_e2}
@@ -761,15 +772,15 @@
   \indexspace
 
   \item {offset\_x}
-    \subitem {Offset\_zoom\_param}, \hyperpage{28}
+    \subitem {Offset\_zoom\_param}, \hyperpage{29}
   \item {offset\_y}
-    \subitem {Offset\_zoom\_param}, \hyperpage{28}
-  \item {Offset\_zoom\_param}, \hyperpage{28}
-    \subitem {mouse\_x}, \hyperpage{28}
-    \subitem {mouse\_y}, \hyperpage{28}
-    \subitem {offset\_x}, \hyperpage{28}
-    \subitem {offset\_y}, \hyperpage{28}
-    \subitem {zoom\_multiplier}, \hyperpage{29}
+    \subitem {Offset\_zoom\_param}, \hyperpage{29}
+  \item {Offset\_zoom\_param}, \hyperpage{29}
+    \subitem {mouse\_x}, \hyperpage{29}
+    \subitem {mouse\_y}, \hyperpage{29}
+    \subitem {offset\_x}, \hyperpage{29}
+    \subitem {offset\_y}, \hyperpage{29}
+    \subitem {zoom\_multiplier}, \hyperpage{30}
   \item {offset\_zoom\_param}
     \subitem {Figure}, \hyperpage{11}
     \subitem {game\_state\_t}, \hyperpage{16}
@@ -777,28 +788,28 @@
   \indexspace
 
   \item {PI}
-    \subitem {Matrix2D.h}, \hyperpage{133}
+    \subitem {Matrix2D.h}, \hyperpage{140}
   \item {pixels\_mat}
     \subitem {Figure}, \hyperpage{11}
   \item {plane}
     \subitem {Grid}, \hyperpage{22}
   \item {POINT}
     \subitem {Almog\_Draw\_Library.h}, \hyperpage{49}
-  \item {Point}, \hyperpage{29}
-    \subitem {w}, \hyperpage{29}
-    \subitem {x}, \hyperpage{30}
-    \subitem {y}, \hyperpage{30}
-    \subitem {z}, \hyperpage{30}
+  \item {Point}, \hyperpage{30}
+    \subitem {w}, \hyperpage{30}
+    \subitem {x}, \hyperpage{31}
+    \subitem {y}, \hyperpage{31}
+    \subitem {z}, \hyperpage{31}
   \item {points}
-    \subitem {example1.c}, \hyperpage{127}
-    \subitem {Quad}, \hyperpage{32}
-    \subitem {Tri}, \hyperpage{35}
+    \subitem {example1.c}, \hyperpage{131}
+    \subitem {Quad}, \hyperpage{33}
+    \subitem {Tri}, \hyperpage{36}
   \item {points1}
-    \subitem {example1.c}, \hyperpage{127}
+    \subitem {example1.c}, \hyperpage{131}
   \item {previous\_frame\_time}
     \subitem {game\_state\_t}, \hyperpage{16}
   \item {process\_input\_window}
-    \subitem {display.c}, \hyperpage{117}
+    \subitem {display.c}, \hyperpage{121}
   \item {PURPLE\_hexARGB}
     \subitem {Almog\_Draw\_Library.h}, \hyperpage{50}
 
@@ -808,39 +819,37 @@
     \subitem {game\_state\_t}, \hyperpage{17}
   \item {QUAD}
     \subitem {Almog\_Draw\_Library.h}, \hyperpage{50}
-  \item {Quad}, \hyperpage{31}
-    \subitem {colors}, \hyperpage{31}
-    \subitem {light\_intensity}, \hyperpage{31}
-    \subitem {normals}, \hyperpage{32}
-    \subitem {points}, \hyperpage{32}
-    \subitem {to\_draw}, \hyperpage{32}
+  \item {Quad}, \hyperpage{32}
+    \subitem {colors}, \hyperpage{32}
+    \subitem {light\_intensity}, \hyperpage{32}
+    \subitem {normals}, \hyperpage{33}
+    \subitem {points}, \hyperpage{33}
+    \subitem {to\_draw}, \hyperpage{33}
   \item {quad1}
-    \subitem {temp.c}, \hyperpage{160}
+    \subitem {temp.c}, \hyperpage{181}
   \item {QUAD\_MESH}
     \subitem {Almog\_Draw\_Library.h}, \hyperpage{50}
-  \item {Quad\_mesh}, \hyperpage{33}
-    \subitem {capacity}, \hyperpage{33}
-    \subitem {elements}, \hyperpage{33}
-    \subitem {length}, \hyperpage{34}
+  \item {Quad\_mesh}, \hyperpage{34}
+    \subitem {capacity}, \hyperpage{34}
+    \subitem {elements}, \hyperpage{34}
+    \subitem {length}, \hyperpage{35}
 
   \indexspace
 
-  \item {rand\_double}
-    \subitem {Matrix2D.h}, \hyperpage{146}
   \item {RED\_hexARGB}
     \subitem {Almog\_Draw\_Library.h}, \hyperpage{50}
   \item {ref\_mat}
-    \subitem {Mat2D\_Minor}, \hyperpage{25}
+    \subitem {Mat2D\_Minor}, \hyperpage{26}
   \item {RENDER}
-    \subitem {display.c}, \hyperpage{115}
-    \subitem {example1.c}, \hyperpage{125}
-    \subitem {temp.c}, \hyperpage{159}
+    \subitem {display.c}, \hyperpage{119}
+    \subitem {example1.c}, \hyperpage{129}
+    \subitem {temp.c}, \hyperpage{180}
   \item {render}
-    \subitem {display.c}, \hyperpage{117}
-    \subitem {example1.c}, \hyperpage{125}
-    \subitem {temp.c}, \hyperpage{159}
+    \subitem {display.c}, \hyperpage{121}
+    \subitem {example1.c}, \hyperpage{129}
+    \subitem {temp.c}, \hyperpage{181}
   \item {render\_window}
-    \subitem {display.c}, \hyperpage{118}
+    \subitem {display.c}, \hyperpage{122}
   \item {renderer}
     \subitem {game\_state\_t}, \hyperpage{17}
   \item {RGB\_hexRGB}
@@ -849,8 +858,8 @@
     \subitem {Almog\_Draw\_Library.h}, \hyperpage{50}
   \item {rows}
     \subitem {Mat2D}, \hyperpage{24}
-    \subitem {Mat2D\_Minor}, \hyperpage{25}
-    \subitem {Mat2D\_uint32}, \hyperpage{27}
+    \subitem {Mat2D\_Minor}, \hyperpage{26}
+    \subitem {Mat2D\_uint32}, \hyperpage{28}
   \item {rows\_list}
     \subitem {Mat2D\_Minor}, \hyperpage{26}
 
@@ -859,15 +868,15 @@
   \item {s\_was\_pressed}
     \subitem {game\_state\_t}, \hyperpage{17}
   \item {SETUP}
-    \subitem {display.c}, \hyperpage{115}
-    \subitem {example1.c}, \hyperpage{125}
-    \subitem {temp.c}, \hyperpage{159}
+    \subitem {display.c}, \hyperpage{119}
+    \subitem {example1.c}, \hyperpage{129}
+    \subitem {temp.c}, \hyperpage{180}
   \item {setup}
-    \subitem {display.c}, \hyperpage{118}
-    \subitem {example1.c}, \hyperpage{126}
-    \subitem {temp.c}, \hyperpage{159}
+    \subitem {display.c}, \hyperpage{122}
+    \subitem {example1.c}, \hyperpage{130}
+    \subitem {temp.c}, \hyperpage{181}
   \item {setup\_window}
-    \subitem {display.c}, \hyperpage{118}
+    \subitem {display.c}, \hyperpage{122}
   \item {space\_bar\_was\_pressed}
     \subitem {game\_state\_t}, \hyperpage{17}
   \item {src\_curve\_array}
@@ -875,28 +884,28 @@
   \item {stride\_r}
     \subitem {Mat2D}, \hyperpage{24}
     \subitem {Mat2D\_Minor}, \hyperpage{26}
-    \subitem {Mat2D\_uint32}, \hyperpage{27}
+    \subitem {Mat2D\_uint32}, \hyperpage{28}
 
   \indexspace
 
-  \item {temp.c}, \hyperpage{158}
-    \subitem {ALMOG\_DRAW\_LIBRARY\_IMPLEMENTATION}, \hyperpage{158}
-    \subitem {MATRIX2D\_IMPLEMENTATION}, \hyperpage{158}
-    \subitem {quad1}, \hyperpage{160}
-    \subitem {RENDER}, \hyperpage{159}
-    \subitem {render}, \hyperpage{159}
-    \subitem {SETUP}, \hyperpage{159}
-    \subitem {setup}, \hyperpage{159}
-    \subitem {tri}, \hyperpage{160}
-    \subitem {UPDATE}, \hyperpage{159}
-    \subitem {update}, \hyperpage{160}
+  \item {temp.c}, \hyperpage{179}
+    \subitem {ALMOG\_DRAW\_LIBRARY\_IMPLEMENTATION}, \hyperpage{180}
+    \subitem {MATRIX2D\_IMPLEMENTATION}, \hyperpage{180}
+    \subitem {quad1}, \hyperpage{181}
+    \subitem {RENDER}, \hyperpage{180}
+    \subitem {render}, \hyperpage{181}
+    \subitem {SETUP}, \hyperpage{180}
+    \subitem {setup}, \hyperpage{181}
+    \subitem {tri}, \hyperpage{181}
+    \subitem {UPDATE}, \hyperpage{180}
+    \subitem {update}, \hyperpage{181}
   \item {tex\_points}
-    \subitem {Tri}, \hyperpage{36}
+    \subitem {Tri}, \hyperpage{37}
   \item {to\_clear\_renderer}
     \subitem {game\_state\_t}, \hyperpage{17}
   \item {to\_draw}
-    \subitem {Quad}, \hyperpage{32}
-    \subitem {Tri}, \hyperpage{36}
+    \subitem {Quad}, \hyperpage{33}
+    \subitem {Tri}, \hyperpage{37}
   \item {to\_draw\_axis}
     \subitem {Figure}, \hyperpage{12}
   \item {to\_draw\_max\_min\_values}
@@ -911,39 +920,39 @@
     \subitem {Figure}, \hyperpage{12}
   \item {TRI}
     \subitem {Almog\_Draw\_Library.h}, \hyperpage{51}
-  \item {Tri}, \hyperpage{34}
-    \subitem {colors}, \hyperpage{35}
-    \subitem {light\_intensity}, \hyperpage{35}
-    \subitem {normals}, \hyperpage{35}
-    \subitem {points}, \hyperpage{35}
-    \subitem {tex\_points}, \hyperpage{36}
-    \subitem {to\_draw}, \hyperpage{36}
+  \item {Tri}, \hyperpage{35}
+    \subitem {colors}, \hyperpage{36}
+    \subitem {light\_intensity}, \hyperpage{36}
+    \subitem {normals}, \hyperpage{36}
+    \subitem {points}, \hyperpage{36}
+    \subitem {tex\_points}, \hyperpage{37}
+    \subitem {to\_draw}, \hyperpage{37}
   \item {tri}
-    \subitem {temp.c}, \hyperpage{160}
+    \subitem {temp.c}, \hyperpage{181}
   \item {TRI\_MESH}
     \subitem {Almog\_Draw\_Library.h}, \hyperpage{51}
-  \item {Tri\_mesh}, \hyperpage{36}
-    \subitem {capacity}, \hyperpage{37}
-    \subitem {elements}, \hyperpage{37}
-    \subitem {length}, \hyperpage{37}
+  \item {Tri\_mesh}, \hyperpage{37}
+    \subitem {capacity}, \hyperpage{38}
+    \subitem {elements}, \hyperpage{38}
+    \subitem {length}, \hyperpage{38}
 
   \indexspace
 
   \item {UPDATE}
-    \subitem {display.c}, \hyperpage{115}
-    \subitem {example1.c}, \hyperpage{125}
-    \subitem {temp.c}, \hyperpage{159}
-  \item {update}
-    \subitem {display.c}, \hyperpage{118}
-    \subitem {example1.c}, \hyperpage{126}
-    \subitem {temp.c}, \hyperpage{160}
-  \item {update\_window}
     \subitem {display.c}, \hyperpage{119}
+    \subitem {example1.c}, \hyperpage{129}
+    \subitem {temp.c}, \hyperpage{180}
+  \item {update}
+    \subitem {display.c}, \hyperpage{122}
+    \subitem {example1.c}, \hyperpage{130}
+    \subitem {temp.c}, \hyperpage{181}
+  \item {update\_window}
+    \subitem {display.c}, \hyperpage{123}
 
   \indexspace
 
   \item {w}
-    \subitem {Point}, \hyperpage{29}
+    \subitem {Point}, \hyperpage{30}
   \item {w\_was\_pressed}
     \subitem {game\_state\_t}, \hyperpage{18}
   \item {window}
@@ -951,7 +960,7 @@
   \item {window\_h}
     \subitem {game\_state\_t}, \hyperpage{19}
   \item {WINDOW\_HEIGHT}
-    \subitem {display.c}, \hyperpage{115}
+    \subitem {display.c}, \hyperpage{119}
   \item {window\_pixels\_mat}
     \subitem {game\_state\_t}, \hyperpage{19}
   \item {window\_surface}
@@ -961,19 +970,19 @@
   \item {window\_w}
     \subitem {game\_state\_t}, \hyperpage{19}
   \item {WINDOW\_WIDTH}
-    \subitem {display.c}, \hyperpage{115}
+    \subitem {display.c}, \hyperpage{119}
 
   \indexspace
 
   \item {x}
-    \subitem {Point}, \hyperpage{30}
+    \subitem {Point}, \hyperpage{31}
   \item {x\_axis\_head\_size}
     \subitem {Figure}, \hyperpage{12}
 
   \indexspace
 
   \item {y}
-    \subitem {Point}, \hyperpage{30}
+    \subitem {Point}, \hyperpage{31}
   \item {y\_axis\_head\_size}
     \subitem {Figure}, \hyperpage{12}
   \item {YELLOW\_hexARGB}
@@ -982,8 +991,8 @@
   \indexspace
 
   \item {z}
-    \subitem {Point}, \hyperpage{30}
+    \subitem {Point}, \hyperpage{31}
   \item {zoom\_multiplier}
-    \subitem {Offset\_zoom\_param}, \hyperpage{29}
+    \subitem {Offset\_zoom\_param}, \hyperpage{30}
 
 \end{theindex}

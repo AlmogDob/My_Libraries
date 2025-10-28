@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['temp_2ec_18',['temp.c',['../temp_8c.html',1,'']]]
+  ['striped_5falmog_5fstring_5fmanipulation_2eh_19',['striped_Almog_String_Manipulation.h',['../striped__Almog__String__Manipulation_8h.html',1,'']]]
 ];

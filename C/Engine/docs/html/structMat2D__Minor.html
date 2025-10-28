@@ -89,14 +89,17 @@ $(document).ready(function(){initNavTree('structMat2D__Minor.html',''); initResi
 </div><!--header-->
 <div class="contents">
 
+<p>A minor "view" into a reference matrix.  
+ <a href="structMat2D__Minor.html#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="Matrix2D_8h_source.html">Matrix2D.h</a>&gt;</code></p>
 <div class="dynheader">
 Collaboration diagram for Mat2D_Minor:</div>
 <div class="dyncontent">
 <div class="center"><img src="structMat2D__Minor__coll__graph.png" border="0" usemap="#aMat2D__Minor_coll__map" alt="Collaboration graph"/></div>
 <map name="aMat2D__Minor_coll__map" id="aMat2D__Minor_coll__map">
-<area shape="rect" title=" " alt="" coords="5,95,115,121"/>
-<area shape="rect" href="structMat2D.html" title=" " alt="" coords="27,5,93,32"/>
+<area shape="rect" title="A minor &quot;view&quot; into a reference matrix." alt="" coords="5,95,115,121"/>
+<area shape="rect" href="structMat2D.html" title="Dense row&#45;major matrix of doubles." alt="" coords="27,5,93,32"/>
 </map>
 <center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
@@ -116,8 +119,14 @@ Public Attributes</h2></td></tr>
 <tr class="separator:af16064766b41a0c96edbaa56e60f393c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock">
-<p class="definition">Definition at line <a class="el" href="Matrix2D_8h_source.html#l00043">43</a> of file <a class="el" href="Matrix2D_8h_source.html">Matrix2D.h</a>.</p>
+<div class="textblock"><p>A minor "view" into a reference matrix. </p>
+<p>Represents a minor by excluding one row and one column of a reference matrix. It holds index lists mapping into the reference matrix, without owning the data of the reference matrix itself.</p>
+<p>Memory ownership:</p><ul>
+<li>rows_list and cols_list are heap-allocated by minor allocators and must be freed with mat2D_minor_free.</li>
+<li>The underlying matrix data (ref_mat.elements) is not owned by the minor and must not be freed by the minor functions. </li>
+</ul>
+
+<p class="definition">Definition at line <a class="el" href="Matrix2D_8h_source.html#l00119">119</a> of file <a class="el" href="Matrix2D_8h_source.html">Matrix2D.h</a>.</p>
 </div><h2 class="groupheader">Member Data Documentation</h2>
 <a id="a4b2f1126d93c1adc994127be12c27c6b"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a4b2f1126d93c1adc994127be12c27c6b">&#9670;&nbsp;</a></span>cols</h2>
@@ -131,9 +140,9 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="Matrix2D_8h_source.html#l00045">45</a> of file <a class="el" href="Matrix2D_8h_source.html">Matrix2D.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="Matrix2D_8h_source.html#l00121">121</a> of file <a class="el" href="Matrix2D_8h_source.html">Matrix2D.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="Matrix2D_8h_source.html#l00926">mat2D_det_2x2_mat_minor()</a>, <a class="el" href="Matrix2D_8h_source.html#l00847">mat2D_minor_alloc_fill_from_mat()</a>, <a class="el" href="Matrix2D_8h_source.html#l00877">mat2D_minor_alloc_fill_from_mat_minor()</a>, <a class="el" href="Matrix2D_8h_source.html#l00932">mat2D_minor_det()</a>, and <a class="el" href="Matrix2D_8h_source.html#l00913">mat2D_minor_print()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="Matrix2D_8h_source.html#l01383">mat2D_det_2x2_mat_minor()</a>, <a class="el" href="Matrix2D_8h_source.html#l01279">mat2D_minor_alloc_fill_from_mat()</a>, <a class="el" href="Matrix2D_8h_source.html#l01318">mat2D_minor_alloc_fill_from_mat_minor()</a>, <a class="el" href="Matrix2D_8h_source.html#l01396">mat2D_minor_det()</a>, and <a class="el" href="Matrix2D_8h_source.html#l01365">mat2D_minor_print()</a>.</p>
 
 </div>
 </div>
@@ -149,9 +158,9 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="Matrix2D_8h_source.html#l00048">48</a> of file <a class="el" href="Matrix2D_8h_source.html">Matrix2D.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="Matrix2D_8h_source.html#l00124">124</a> of file <a class="el" href="Matrix2D_8h_source.html">Matrix2D.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="Matrix2D_8h_source.html#l00847">mat2D_minor_alloc_fill_from_mat()</a>, <a class="el" href="Matrix2D_8h_source.html#l00877">mat2D_minor_alloc_fill_from_mat_minor()</a>, and <a class="el" href="Matrix2D_8h_source.html#l00907">mat2D_minor_free()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="Matrix2D_8h_source.html#l01279">mat2D_minor_alloc_fill_from_mat()</a>, <a class="el" href="Matrix2D_8h_source.html#l01318">mat2D_minor_alloc_fill_from_mat_minor()</a>, and <a class="el" href="Matrix2D_8h_source.html#l01353">mat2D_minor_free()</a>.</p>
 
 </div>
 </div>
@@ -167,9 +176,9 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="Matrix2D_8h_source.html#l00049">49</a> of file <a class="el" href="Matrix2D_8h_source.html">Matrix2D.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="Matrix2D_8h_source.html#l00125">125</a> of file <a class="el" href="Matrix2D_8h_source.html">Matrix2D.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="Matrix2D_8h_source.html#l00847">mat2D_minor_alloc_fill_from_mat()</a>, and <a class="el" href="Matrix2D_8h_source.html#l00877">mat2D_minor_alloc_fill_from_mat_minor()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="Matrix2D_8h_source.html#l01279">mat2D_minor_alloc_fill_from_mat()</a>, and <a class="el" href="Matrix2D_8h_source.html#l01318">mat2D_minor_alloc_fill_from_mat_minor()</a>.</p>
 
 </div>
 </div>
@@ -185,9 +194,9 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="Matrix2D_8h_source.html#l00044">44</a> of file <a class="el" href="Matrix2D_8h_source.html">Matrix2D.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="Matrix2D_8h_source.html#l00120">120</a> of file <a class="el" href="Matrix2D_8h_source.html">Matrix2D.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="Matrix2D_8h_source.html#l00926">mat2D_det_2x2_mat_minor()</a>, <a class="el" href="Matrix2D_8h_source.html#l00847">mat2D_minor_alloc_fill_from_mat()</a>, <a class="el" href="Matrix2D_8h_source.html#l00877">mat2D_minor_alloc_fill_from_mat_minor()</a>, <a class="el" href="Matrix2D_8h_source.html#l00932">mat2D_minor_det()</a>, and <a class="el" href="Matrix2D_8h_source.html#l00913">mat2D_minor_print()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="Matrix2D_8h_source.html#l01383">mat2D_det_2x2_mat_minor()</a>, <a class="el" href="Matrix2D_8h_source.html#l01279">mat2D_minor_alloc_fill_from_mat()</a>, <a class="el" href="Matrix2D_8h_source.html#l01318">mat2D_minor_alloc_fill_from_mat_minor()</a>, <a class="el" href="Matrix2D_8h_source.html#l01396">mat2D_minor_det()</a>, and <a class="el" href="Matrix2D_8h_source.html#l01365">mat2D_minor_print()</a>.</p>
 
 </div>
 </div>
@@ -203,9 +212,9 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="Matrix2D_8h_source.html#l00047">47</a> of file <a class="el" href="Matrix2D_8h_source.html">Matrix2D.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="Matrix2D_8h_source.html#l00123">123</a> of file <a class="el" href="Matrix2D_8h_source.html">Matrix2D.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="Matrix2D_8h_source.html#l00847">mat2D_minor_alloc_fill_from_mat()</a>, <a class="el" href="Matrix2D_8h_source.html#l00877">mat2D_minor_alloc_fill_from_mat_minor()</a>, and <a class="el" href="Matrix2D_8h_source.html#l00907">mat2D_minor_free()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="Matrix2D_8h_source.html#l01279">mat2D_minor_alloc_fill_from_mat()</a>, <a class="el" href="Matrix2D_8h_source.html#l01318">mat2D_minor_alloc_fill_from_mat_minor()</a>, and <a class="el" href="Matrix2D_8h_source.html#l01353">mat2D_minor_free()</a>.</p>
 
 </div>
 </div>
@@ -221,9 +230,9 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="Matrix2D_8h_source.html#l00046">46</a> of file <a class="el" href="Matrix2D_8h_source.html">Matrix2D.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="Matrix2D_8h_source.html#l00122">122</a> of file <a class="el" href="Matrix2D_8h_source.html">Matrix2D.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="Matrix2D_8h_source.html#l00847">mat2D_minor_alloc_fill_from_mat()</a>, and <a class="el" href="Matrix2D_8h_source.html#l00877">mat2D_minor_alloc_fill_from_mat_minor()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="Matrix2D_8h_source.html#l01279">mat2D_minor_alloc_fill_from_mat()</a>, and <a class="el" href="Matrix2D_8h_source.html#l01318">mat2D_minor_alloc_fill_from_mat_minor()</a>.</p>
 
 </div>
 </div>

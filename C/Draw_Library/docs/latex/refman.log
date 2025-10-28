@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2022/dev/Debian) (preloaded format=pdflatex 2024.10.14)  28 OCT 2025 00:00
+This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2022/dev/Debian) (preloaded format=pdflatex 2024.10.14)  28 OCT 2025 23:01
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -905,84 +905,84 @@ File: t1pcr.fd 2001/06/04 font definitions for T1/pcr.
 pdfTeX warning: pdflatex (file ./structCurve__coll__graph.pdf): PDF inclusion: 
 multiple pdfs with page group included in a single page
 >
-<structCurve__coll__graph.pdf, id=2056, 152.57pt x 167.62625pt>
+<structCurve__coll__graph.pdf, id=2076, 152.57pt x 167.62625pt>
 File: structCurve__coll__graph.pdf Graphic file (type pdf)
 <use structCurve__coll__graph.pdf>
-Package pdftex.def Info: structCurve__coll__graph.pdf  used on input line 13.
+Package pdftex.def Info: structCurve__coll__graph.pdf  used on input line 14.
 (pdftex.def)             Requested size: 152.0pt x 167.00684pt.
 LaTeX Font Info:    Font shape `T1/phv/b/n' will be
-(Font)              scaled to size 10.79993pt on input line 16.
-LaTeX Font Info:    Trying to load font information for TS1+phv on input line 1
-9.
+(Font)              scaled to size 10.79993pt on input line 17.
+LaTeX Font Info:    Trying to load font information for TS1+phv on input line 2
+0.
  (/usr/share/texlive/texmf-dist/tex/latex/psnfss/ts1phv.fd
 File: ts1phv.fd 2020/03/25 scalable font definitions for TS1/phv.
 )
 LaTeX Font Info:    Font shape `TS1/phv/m/n' will be
-(Font)              scaled to size 8.99994pt on input line 19.
+(Font)              scaled to size 8.99994pt on input line 20.
 LaTeX Font Info:    Font shape `T1/phv/m/n' will be
-(Font)              scaled to size 7.19995pt on input line 41.
+(Font)              scaled to size 7.19995pt on input line 42.
  [5])
 (./structCurve__ada.tex <./structCurve__ada__coll__graph.pdf>
-<structCurve__ada__coll__graph.pdf, id=2105, 163.61125pt x 234.8775pt>
+<structCurve__ada__coll__graph.pdf, id=2125, 163.61125pt x 234.8775pt>
 File: structCurve__ada__coll__graph.pdf Graphic file (type pdf)
 <use structCurve__ada__coll__graph.pdf>
 Package pdftex.def Info: structCurve__ada__coll__graph.pdf  used on input line 
-13.
+14.
 (pdftex.def)             Requested size: 163.0pt x 233.99886pt.
  [6] [7])
 (./structFigure.tex <./structFigure__coll__graph.pdf>
-<structFigure__coll__graph.pdf, id=2158, 584.1825pt x 302.12875pt>
+<structFigure__coll__graph.pdf, id=2178, 584.1825pt x 302.12875pt>
 File: structFigure__coll__graph.pdf Graphic file (type pdf)
 <use structFigure__coll__graph.pdf>
-Package pdftex.def Info: structFigure__coll__graph.pdf  used on input line 13.
+Package pdftex.def Info: structFigure__coll__graph.pdf  used on input line 14.
 (pdftex.def)             Requested size: 350.0pt x 181.02048pt.
  [8]
-Underfull \hbox (badness 10000) in paragraph at lines 105--106
+Underfull \hbox (badness 10000) in paragraph at lines 106--107
 []\T1/phv/m/n/10 Referenced by [], [], [],
  []
 
 [9]
-Underfull \hbox (badness 10000) in paragraph at lines 119--120
+Underfull \hbox (badness 10000) in paragraph at lines 120--121
 []\T1/phv/m/n/10 Referenced by [], [], [],
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 133--134
+Underfull \hbox (badness 10000) in paragraph at lines 134--135
 []\T1/phv/m/n/10 Referenced by [], [], [],
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 147--148
+Underfull \hbox (badness 10000) in paragraph at lines 148--149
 []\T1/phv/m/n/10 Referenced by [], [], [],
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 161--162
+Underfull \hbox (badness 10000) in paragraph at lines 162--163
 []\T1/phv/m/n/10 Referenced by [], [], [],
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 175--176
+Underfull \hbox (badness 10000) in paragraph at lines 176--177
 []\T1/phv/m/n/10 Referenced by [], [], [],
  []
 
 [10]
-Underfull \hbox (badness 10000) in paragraph at lines 189--190
+Underfull \hbox (badness 10000) in paragraph at lines 190--191
 []\T1/phv/m/n/10 Referenced by [], [], [],
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 203--204
+Underfull \hbox (badness 10000) in paragraph at lines 204--205
 []\T1/phv/m/n/10 Referenced by [], [], [],
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 217--218
+Underfull \hbox (badness 10000) in paragraph at lines 218--219
 []\T1/phv/m/n/10 Referenced by [], [], [],
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 231--232
+Underfull \hbox (badness 10000) in paragraph at lines 232--233
 []\T1/phv/m/n/10 Referenced by [], [], [],
  []
 
@@ -991,14 +991,14 @@ Underfull \hbox (badness 10000) in paragraph at lines 231--232
 pdfTeX warning: pdflatex (file ./structgame__state__t__coll__graph.pdf): PDF in
 clusion: multiple pdfs with page group included in a single page
 >
-<structgame__state__t__coll__graph.pdf, id=2370, 460.72125pt x 167.62625pt>
+<structgame__state__t__coll__graph.pdf, id=2391, 460.72125pt x 167.62625pt>
 File: structgame__state__t__coll__graph.pdf Graphic file (type pdf)
 <use structgame__state__t__coll__graph.pdf>
 Package pdftex.def Info: structgame__state__t__coll__graph.pdf  used on input l
-ine 9.
+ine 10.
 (pdftex.def)             Requested size: 350.0pt x 127.34099pt.
  [12] [13] [14] [15] [16] [17]
-Underfull \hbox (badness 2818) in paragraph at lines 417--418
+Underfull \hbox (badness 2818) in paragraph at lines 418--419
 []\T1/phv/m/n/10 Referenced by [], [], [], [], [],
  []
 
@@ -1007,138 +1007,133 @@ Underfull \hbox (badness 2818) in paragraph at lines 417--418
 pdfTeX warning: pdflatex (file ./structGrid__coll__graph.pdf): PDF inclusion: m
 ultiple pdfs with page group included in a single page
 >
-<structGrid__coll__graph.pdf, id=2676, 163.61125pt x 302.12875pt>
+<structGrid__coll__graph.pdf, id=2697, 163.61125pt x 302.12875pt>
 File: structGrid__coll__graph.pdf Graphic file (type pdf)
 <use structGrid__coll__graph.pdf>
-Package pdftex.def Info: structGrid__coll__graph.pdf  used on input line 13.
+Package pdftex.def Info: structGrid__coll__graph.pdf  used on input line 14.
 (pdftex.def)             Requested size: 163.0pt x 300.99852pt.
  [20] [21]) (./structMat2D.tex [22]
-Underfull \hbox (badness 10000) in paragraph at lines 40--41
+Underfull \hbox (badness 10000) in paragraph at lines 53--54
 []\T1/phv/m/n/10 , [], [], [],
  []
 
 
-Overfull \hbox (17.02058pt too wide) in paragraph at lines 40--41
+Overfull \hbox (17.02058pt too wide) in paragraph at lines 53--54
 []\T1/phv/m/n/10 , [], [], [], [],
  []
 
 
-Underfull \hbox (badness 5548) in paragraph at lines 40--41
+Overfull \hbox (18.21729pt too wide) in paragraph at lines 53--54
+[]\T1/phv/m/n/10 , [], [], [], [],
+ []
+
+
+Overfull \hbox (43.04892pt too wide) in paragraph at lines 53--54
 []\T1/phv/m/n/10 , [], [], [], [], [],
- []
-
-
-Overfull \hbox (51.21962pt too wide) in paragraph at lines 40--41
-[]\T1/phv/m/n/10 , [], [], [], [],
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 40--41
-[]\T1/phv/m/n/10 , [], [], [], [],
- []
-
-
-Underfull \hbox (badness 764) in paragraph at lines 40--41
-[]\T1/phv/m/n/10 , [], [], [], [],
  []
 
 [23]
-Underfull \hbox (badness 10000) in paragraph at lines 68--69
+Underfull \hbox (badness 10000) in paragraph at lines 81--82
 []\T1/phv/m/n/10 , [], [], [], [],
  []
 
 
-Underfull \hbox (badness 5274) in paragraph at lines 68--69
+Underfull \hbox (badness 5274) in paragraph at lines 81--82
 []\T1/phv/m/n/10 , [], [], [], [],
  []
 
 
-Overfull \hbox (65.92728pt too wide) in paragraph at lines 68--69
+Overfull \hbox (57.86884pt too wide) in paragraph at lines 81--82
+[]\T1/phv/m/n/10 , [], [], [],
+ []
+
+
+Underfull \hbox (badness 1701) in paragraph at lines 81--82
 []\T1/phv/m/n/10 , [], [], [], [], [],
  []
 
 
-Overfull \hbox (21.6909pt too wide) in paragraph at lines 68--69
+Overfull \hbox (33.74913pt too wide) in paragraph at lines 81--82
+[]\T1/phv/m/n/10 , [], [], [],
+ []
+
+
+Underfull \hbox (badness 3049) in paragraph at lines 81--82
 []\T1/phv/m/n/10 , [], [], [], [],
  []
 
-
-Overfull \hbox (38.69289pt too wide) in paragraph at lines 68--69
-[]\T1/phv/m/n/10 , [], [], [], [], [],
- []
-
-) (./structMat2D__Minor.tex <./structMat2D__Minor__coll__graph.pdf
+) (./structMat2D__Minor.tex [24] <./structMat2D__Minor__coll__graph.pdf
 
 pdfTeX warning: pdflatex (file ./structMat2D__Minor__coll__graph.pdf): PDF incl
 usion: multiple pdfs with page group included in a single page
 >
-<structMat2D__Minor__coll__graph.pdf, id=2933, 163.61125pt x 167.62625pt>
+<structMat2D__Minor__coll__graph.pdf, id=2965, 163.61125pt x 167.62625pt>
 File: structMat2D__Minor__coll__graph.pdf Graphic file (type pdf)
 <use structMat2D__Minor__coll__graph.pdf>
 Package pdftex.def Info: structMat2D__Minor__coll__graph.pdf  used on input lin
-e 13.
+e 19.
 (pdftex.def)             Requested size: 163.0pt x 166.99916pt.
- [24]
-Overfull \hbox (40.28137pt too wide) in paragraph at lines 53--54
-[]\T1/phv/m/n/10 Referenced by [], [], [],
- []
 
-
-Overfull \hbox (20.6797pt too wide) in paragraph at lines 67--68
-[]\T1/phv/m/n/10 Referenced by [], [], and []. 
- []
-
-
-Overfull \hbox (40.28137pt too wide) in paragraph at lines 95--96
+Overfull \hbox (40.28137pt too wide) in paragraph at lines 67--68
 []\T1/phv/m/n/10 Referenced by [], [], [],
  []
 
 [25]
-Overfull \hbox (20.6797pt too wide) in paragraph at lines 109--110
+Overfull \hbox (20.6797pt too wide) in paragraph at lines 81--82
 []\T1/phv/m/n/10 Referenced by [], [], and []. 
  []
 
-) (./structMat2D__uint32.tex
-Overfull \hbox (37.61046pt too wide) in paragraph at lines 40--41
+
+Overfull \hbox (40.28137pt too wide) in paragraph at lines 109--110
+[]\T1/phv/m/n/10 Referenced by [], [], [],
+ []
+
+
+Overfull \hbox (20.6797pt too wide) in paragraph at lines 123--124
+[]\T1/phv/m/n/10 Referenced by [], [], and []. 
+ []
+
+) (./structMat2D__uint32.tex [26]
+Overfull \hbox (37.61046pt too wide) in paragraph at lines 53--54
 []\T1/phv/m/n/10 Referenced by [], [], [], [],
  []
 
 
-Overfull \hbox (122.35379pt too wide) in paragraph at lines 40--41
+Overfull \hbox (122.35379pt too wide) in paragraph at lines 53--54
 []\T1/phv/m/n/10 , [], [], [], [],
  []
 
 
-Overfull \hbox (80.35652pt too wide) in paragraph at lines 40--41
+Overfull \hbox (80.35652pt too wide) in paragraph at lines 53--54
 []\T1/phv/m/n/10 , [], [],
  []
 
 
-Overfull \hbox (46.53096pt too wide) in paragraph at lines 40--41
+Overfull \hbox (46.53096pt too wide) in paragraph at lines 53--54
 []\T1/phv/m/n/10 , [], [], [], [],
  []
 
-[26]
-Overfull \hbox (37.61046pt too wide) in paragraph at lines 68--69
+[27]
+Overfull \hbox (37.61046pt too wide) in paragraph at lines 81--82
 []\T1/phv/m/n/10 Referenced by [], [], [], [],
  []
 
 
-Overfull \hbox (89.06383pt too wide) in paragraph at lines 68--69
+Overfull \hbox (89.06383pt too wide) in paragraph at lines 81--82
 []\T1/phv/m/n/10 , [], [], [], [],
  []
 
 
-Overfull \hbox (66.605pt too wide) in paragraph at lines 68--69
+Overfull \hbox (66.605pt too wide) in paragraph at lines 81--82
 []\T1/phv/m/n/10 , [], [],
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 68--69
+Underfull \hbox (badness 10000) in paragraph at lines 81--82
 []\T1/phv/m/n/10 , [], [],
  []
 
-) (./structOffset__zoom__param.tex [27] [28]) (./structPoint.tex
+) (./structOffset__zoom__param.tex [28] [29]) (./structPoint.tex
 Overfull \hbox (97.6296pt too wide) in paragraph at lines 40--41
 []\T1/phv/m/n/10 Referenced by [], [], [], [],
  []
@@ -1158,7 +1153,7 @@ Overfull \hbox (24.8482pt too wide) in paragraph at lines 54--55
 []\T1/phv/m/n/10 , [], [], [],
  []
 
-[29]
+[30]
 Underfull \hbox (badness 10000) in paragraph at lines 68--69
 []\T1/phv/m/n/10 Referenced by [], [], [],
  []
@@ -1183,51 +1178,51 @@ Overfull \hbox (66.605pt too wide) in paragraph at lines 82--83
 pdfTeX warning: pdflatex (file ./structQuad__coll__graph.pdf): PDF inclusion: m
 ultiple pdfs with page group included in a single page
 >
-<structQuad__coll__graph.pdf, id=3223, 144.54pt x 178.6675pt>
+<structQuad__coll__graph.pdf, id=3247, 144.54pt x 178.6675pt>
 File: structQuad__coll__graph.pdf Graphic file (type pdf)
 <use structQuad__coll__graph.pdf>
-Package pdftex.def Info: structQuad__coll__graph.pdf  used on input line 13.
+Package pdftex.def Info: structQuad__coll__graph.pdf  used on input line 14.
 (pdftex.def)             Requested size: 144.0pt x 178.01003pt.
- [30]
-Overfull \hbox (47.84259pt too wide) in paragraph at lines 65--66
+ [31]
+Overfull \hbox (47.84259pt too wide) in paragraph at lines 66--67
 []\T1/phv/m/n/10 Referenced by [], [], [], [],
  []
 
-[31]
-Overfull \hbox (119.62703pt too wide) in paragraph at lines 89--90
+[32]
+Overfull \hbox (119.62703pt too wide) in paragraph at lines 90--91
 []\T1/phv/m/n/10 Referenced by [], [], [], [], [],
  []
 
 ) (./structQuad__mesh.tex <./structQuad__mesh__coll__graph.pdf>
-<structQuad__mesh__coll__graph.pdf, id=3304, 166.6225pt x 245.91875pt>
+<structQuad__mesh__coll__graph.pdf, id=3328, 166.6225pt x 245.91875pt>
 File: structQuad__mesh__coll__graph.pdf Graphic file (type pdf)
 <use structQuad__mesh__coll__graph.pdf>
 Package pdftex.def Info: structQuad__mesh__coll__graph.pdf  used on input line 
-13.
+14.
 (pdftex.def)             Requested size: 166.0pt x 245.01755pt.
- [32]
-Underfull \hbox (badness 4927) in paragraph at lines 57--58
+ [33]
+Underfull \hbox (badness 4927) in paragraph at lines 58--59
 []\T1/phv/m/n/10 Referenced by [], [], [], and
  []
 
-[33]
-Underfull \hbox (badness 4927) in paragraph at lines 71--72
+[34]
+Underfull \hbox (badness 4927) in paragraph at lines 72--73
 []\T1/phv/m/n/10 Referenced by [], [], [], and
  []
 
 ) (./structTri.tex <./structTri__coll__graph.pdf>
-<structTri__coll__graph.pdf, id=3359, 153.57375pt x 189.70876pt>
+<structTri__coll__graph.pdf, id=3383, 153.57375pt x 189.70876pt>
 File: structTri__coll__graph.pdf Graphic file (type pdf)
 <use structTri__coll__graph.pdf>
-Package pdftex.def Info: structTri__coll__graph.pdf  used on input line 13.
+Package pdftex.def Info: structTri__coll__graph.pdf  used on input line 14.
 (pdftex.def)             Requested size: 153.0pt x 189.01065pt.
- [34]
-Overfull \hbox (55.20396pt too wide) in paragraph at lines 91--92
+ [35]
+Overfull \hbox (55.20396pt too wide) in paragraph at lines 92--93
 []\T1/phv/m/n/10 Referenced by [], [], [], [],
  []
 
-[35]
-Overfull \hbox (136.22974pt too wide) in paragraph at lines 115--116
+[36]
+Overfull \hbox (136.22974pt too wide) in paragraph at lines 116--117
 []\T1/phv/m/n/10 Referenced by [], [], [], [],
  []
 
@@ -1236,50 +1231,50 @@ Overfull \hbox (136.22974pt too wide) in paragraph at lines 115--116
 pdfTeX warning: pdflatex (file ./structTri__mesh__coll__graph.pdf): PDF inclusi
 on: multiple pdfs with page group included in a single page
 >
-<structTri__mesh__coll__graph.pdf, id=3438, 162.6075pt x 256.96pt>
+<structTri__mesh__coll__graph.pdf, id=3462, 162.6075pt x 256.96pt>
 File: structTri__mesh__coll__graph.pdf Graphic file (type pdf)
 <use structTri__mesh__coll__graph.pdf>
 Package pdftex.def Info: structTri__mesh__coll__graph.pdf  used on input line 1
-3.
+4.
 (pdftex.def)             Requested size: 162.0pt x 256.01834pt.
- [36]
-Overfull \hbox (71.54636pt too wide) in paragraph at lines 57--58
+ [37]
+Overfull \hbox (71.54636pt too wide) in paragraph at lines 58--59
 []\T1/phv/m/n/10 Referenced by [], [], [],
  []
 
 
-Overfull \hbox (71.54636pt too wide) in paragraph at lines 71--72
+Overfull \hbox (71.54636pt too wide) in paragraph at lines 72--73
 []\T1/phv/m/n/10 Referenced by [], [], [],
  []
 
-) [37] [38
-
-]
+) [38]
 Chapter 4.
 (./Almog__Draw__Library_8h.tex <./Almog__Draw__Library_8h__incl.pdf
 
 pdfTeX warning: pdflatex (file ./Almog__Draw__Library_8h__incl.pdf): PDF inclus
 ion: multiple pdfs with page group included in a single page
 >
-<Almog__Draw__Library_8h__incl.pdf, id=3500, 764.8575pt x 212.795pt>
+<Almog__Draw__Library_8h__incl.pdf, id=3520, 764.8575pt x 212.795pt>
 File: Almog__Draw__Library_8h__incl.pdf Graphic file (type pdf)
 <use Almog__Draw__Library_8h__incl.pdf>
 Package pdftex.def Info: Almog__Draw__Library_8h__incl.pdf  used on input line 
-20.
+21.
 (pdftex.def)             Requested size: 350.0pt x 97.37386pt.
  <./Almog__Draw__Library_8h__dep__incl.pdf
 
 pdfTeX warning: pdflatex (file ./Almog__Draw__Library_8h__dep__incl.pdf): PDF i
 nclusion: multiple pdfs with page group included in a single page
 >
-<Almog__Draw__Library_8h__dep__incl.pdf, id=3515, 231.86626pt x 212.795pt>
+<Almog__Draw__Library_8h__dep__incl.pdf, id=3535, 231.86626pt x 212.795pt>
 File: Almog__Draw__Library_8h__dep__incl.pdf Graphic file (type pdf)
 <use Almog__Draw__Library_8h__dep__incl.pdf>
 Package pdftex.def Info: Almog__Draw__Library_8h__dep__incl.pdf  used on input 
-line 27.
+line 29.
 (pdftex.def)             Requested size: 231.0pt x 212.00543pt.
- [39]
-Underfull \hbox (badness 2922) in paragraph at lines 74--76
+ [39
+
+]
+Underfull \hbox (badness 2922) in paragraph at lines 76--78
 []\T1/phv/m/n/10 #define [](x, r, g, b) r = ((x)$\OML/cmm/m/it/10 >$$>$\T1/phv/
 m/n/10 (8$\OMS/cmsy/m/n/10 ^^C$\T1/phv/m/n/10 2)&0x[]FF); g = ((x)$\OML/cmm/m/i
 t/10 >$$>$\T1/phv/m/n/10 (8$\OMS/cmsy/m/n/10 ^^C$\T1/phv/m/n/10 1)&0x[]FF); b =
@@ -1287,7 +1282,7 @@ t/10 >$$>$\T1/phv/m/n/10 (8$\OMS/cmsy/m/n/10 ^^C$\T1/phv/m/n/10 1)&0x[]FF); b =
  []
 
 
-Underfull \hbox (badness 870) in paragraph at lines 76--78
+Underfull \hbox (badness 870) in paragraph at lines 78--80
 []\T1/phv/m/n/10 #define [](x, r, g, b, a) r = ((x)$\OML/cmm/m/it/10 >$$>$\T1/p
 hv/m/n/10 (8$\OMS/cmsy/m/n/10 ^^C$\T1/phv/m/n/10 2)&0x[]FF); g = ((x)$\OML/cmm/
 m/it/10 >$$>$\T1/phv/m/n/10 (8$\OMS/cmsy/m/n/10 ^^C$\T1/phv/m/n/10 1)&0x[]FF); 
@@ -1295,7 +1290,7 @@ b =
  []
 
 
-Underfull \hbox (badness 4505) in paragraph at lines 80--82
+Underfull \hbox (badness 4505) in paragraph at lines 82--84
 []\T1/phv/m/n/10 #define [](r, g, b, a) (int)(0x01000000l$\OMS/cmsy/m/n/10 ^^C$
 \T1/phv/m/n/10 (int)(fminf(a, 255)) + 0x010000$\OMS/cmsy/m/n/10 ^^C$\T1/phv/m/n
 /10 (int)(r) +
@@ -1303,57 +1298,57 @@ Underfull \hbox (badness 4505) in paragraph at lines 80--82
 
 [40]
 LaTeX Font Info:    Font shape `T1/phv/m/n' will be
-(Font)              scaled to size 8.09995pt on input line 140.
+(Font)              scaled to size 8.09995pt on input line 142.
 LaTeX Font Info:    Font shape `T1/phv/m/it' in size <9> not available
-(Font)              Font shape `T1/phv/m/sl' tried instead on input line 140.
+(Font)              Font shape `T1/phv/m/sl' tried instead on input line 142.
 LaTeX Font Info:    Font shape `T1/phv/m/sl' will be
-(Font)              scaled to size 8.09995pt on input line 140.
+(Font)              scaled to size 8.09995pt on input line 142.
  [41]
-Underfull \hbox (badness 3271) in paragraph at lines 157--158
+Underfull \hbox (badness 3271) in paragraph at lines 159--160
 []\T1/phv/m/n/10 void [] ([] screen[]_[]mat, [] inv[]_[]z[]_[]buffer, [] quad, 
 uint32[]_[]t color,
  []
 
 
-Underfull \hbox (badness 6078) in paragraph at lines 159--160
+Underfull \hbox (badness 6078) in paragraph at lines 161--162
 []\T1/phv/m/n/10 void [] ([] screen[]_[]mat, [] inv[]_[]z[]_[]buffer, [] quad, 
 uint32[]_[]t color,
  []
 
 
-Underfull \hbox (badness 1675) in paragraph at lines 165--166
+Underfull \hbox (badness 1675) in paragraph at lines 167--168
 []\T1/phv/m/n/10 void [] ([] screen[]_[]mat, [] inv[]_[]z[]_[]buffer[]_[]mat, [
 ] mesh,
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 169--170
+Underfull \hbox (badness 10000) in paragraph at lines 171--172
 []\T1/phv/m/n/10 void [] ([] screen[]_[]mat, [] inv[]_[]z[]_[]buffer[]_[]mat,
  []
 
 
-Underfull \hbox (badness 1436) in paragraph at lines 175--176
+Underfull \hbox (badness 1436) in paragraph at lines 177--178
 []\T1/phv/m/n/10 void [] ([] screen[]_[]mat, float center[]_[]x, float center[]
 _[]y, float r, uint32[]_[]t color,
  []
 
 LaTeX Font Info:    Font shape `TS1/phv/m/it' in size <9> not available
-(Font)              Font shape `TS1/phv/m/sl' tried instead on input line 180.
+(Font)              Font shape `TS1/phv/m/sl' tried instead on input line 182.
 LaTeX Font Info:    Font shape `TS1/phv/m/sl' will be
-(Font)              scaled to size 8.09995pt on input line 180.
+(Font)              scaled to size 8.09995pt on input line 182.
 [42]
 LaTeX Font Info:    Font shape `T1/phv/m/it' in size <7> not available
-(Font)              Font shape `T1/phv/m/sl' tried instead on input line 200.
+(Font)              Font shape `T1/phv/m/sl' tried instead on input line 202.
 LaTeX Font Info:    Font shape `T1/phv/m/sl' will be
-(Font)              scaled to size 6.29996pt on input line 200.
+(Font)              scaled to size 6.29996pt on input line 202.
  [43]
 LaTeX Font Info:    Font shape `T1/pcr/m/it' in size <8> not available
-(Font)              Font shape `T1/pcr/m/sl' tried instead on input line 263.
+(Font)              Font shape `T1/pcr/m/sl' tried instead on input line 265.
  [44] [45] [46]
 LaTeX Font Info:    Font shape `T1/pcr/m/it' in size <7> not available
-(Font)              Font shape `T1/pcr/m/sl' tried instead on input line 438.
+(Font)              Font shape `T1/pcr/m/sl' tried instead on input line 440.
  [47]
-Underfull \hbox (badness 10000) in paragraph at lines 534--535
+Underfull \hbox (badness 10000) in paragraph at lines 536--537
 |   \T1/pcr/m/sl/8 a \T1/pcr/m/n/8 ) r = ((x)$\OML/cmm/m/it/8 >$$>$\T1/pcr/m/n/
 8 (8$\OMS/cmsy/m/n/8 ^^C$\T1/pcr/m/n/8 2)&0x[]FF); g = ((x)$\OML/cmm/m/it/8 >$$
 >$\T1/pcr/m/n/8 (8$\OMS/cmsy/m/n/8 ^^C$\T1/pcr/m/n/8 1)&0x[]FF); b = ((x)$\OML/
@@ -1362,32 +1357,32 @@ a =
  []
 
 [48] [49] [50] [51]
-Overfull \hbox (111.50946pt too wide) in paragraph at lines 710--711
+Overfull \hbox (111.50946pt too wide) in paragraph at lines 712--713
 []\T1/phv/m/n/10 , [], [], [], [],
  []
 
 
-Underfull \hbox (badness 7851) in paragraph at lines 710--711
+Underfull \hbox (badness 7851) in paragraph at lines 712--713
 []\T1/phv/m/n/10 , [], [], [], [],
  []
 
 
-Underfull \hbox (badness 1122) in paragraph at lines 710--711
+Underfull \hbox (badness 1122) in paragraph at lines 712--713
 []\T1/phv/m/n/10 , [], [], [], [], [],
  []
 
 
-Overfull \hbox (17.013pt too wide) in paragraph at lines 710--711
+Overfull \hbox (17.013pt too wide) in paragraph at lines 712--713
 []\T1/phv/m/n/10 , [], [], [], [], [],
  []
 
 
-Overfull \hbox (40.4756pt too wide) in paragraph at lines 710--711
+Overfull \hbox (40.4756pt too wide) in paragraph at lines 712--713
 []\T1/phv/m/n/10 , [], [], [], [], [],
  []
 
 
-Underfull \hbox (badness 10000) detected at line 724
+Underfull \hbox (badness 10000) detected at line 726
 [][][]
  []
 
@@ -1396,167 +1391,167 @@ Overfull \vbox (75.04384pt too high) has occurred while \output is active []
 
 
 [52]
-Overfull \hbox (110.77057pt too wide) in paragraph at lines 783--784
+Overfull \hbox (110.77057pt too wide) in paragraph at lines 785--786
 []\T1/phv/m/n/10 References [], [], [], [],
  []
 
 
-Underfull \hbox (badness 1838) in paragraph at lines 783--784
+Underfull \hbox (badness 1838) in paragraph at lines 785--786
 []\T1/phv/m/n/10 , [], [], [],
  []
 
 [53]
-Underfull \hbox (badness 10000) detected at line 820
+Underfull \hbox (badness 10000) detected at line 822
 [][][]
  []
 
 
-Underfull \hbox (badness 2368) in paragraph at lines 829--830
+Underfull \hbox (badness 2368) in paragraph at lines 831--832
 []\T1/phv/m/n/10 References [], [], [], [], [], [], [],
  []
 
 
-Underfull \hbox (badness 1552) in paragraph at lines 829--830
+Underfull \hbox (badness 1552) in paragraph at lines 831--832
 []\T1/phv/m/n/10 , [], [], [], [], [], [],
  []
 
 [54] [55] [56]
-Underfull \hbox (badness 2134) in paragraph at lines 1000--1001
+Underfull \hbox (badness 2134) in paragraph at lines 1002--1003
 []\T1/phv/m/n/10 , [], [], [], [], [],
  []
 
 
-Underfull \hbox (badness 2318) in paragraph at lines 1000--1001
+Underfull \hbox (badness 2318) in paragraph at lines 1002--1003
 []\T1/phv/m/n/10 , [], [], [], [],
  []
 
 
-Underfull \hbox (badness 10000) detected at line 1027
+Underfull \hbox (badness 10000) detected at line 1029
 [][][]
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1036--1037
+Underfull \hbox (badness 10000) in paragraph at lines 1038--1039
 []\T1/phv/m/n/10 References [], [], [], [],
  []
 
 
-Underfull \hbox (badness 4647) in paragraph at lines 1036--1037
+Underfull \hbox (badness 4647) in paragraph at lines 1038--1039
 []\T1/phv/m/n/10 , [], [], [],
  []
 
 
-Overfull \hbox (15.62698pt too wide) in paragraph at lines 1036--1037
+Overfull \hbox (15.62698pt too wide) in paragraph at lines 1038--1039
 []\T1/phv/m/n/10 , [], [], [], [], [],
  []
 
 
-Underfull \hbox (badness 2134) in paragraph at lines 1036--1037
+Underfull \hbox (badness 2134) in paragraph at lines 1038--1039
 []\T1/phv/m/n/10 , [], [], [], [], [],
  []
 
 [57]
-Underfull \hbox (badness 10000) in paragraph at lines 1100--1101
+Underfull \hbox (badness 10000) in paragraph at lines 1102--1103
 []\T1/phv/m/n/10 References [], [], [], [], [], and
  []
 
 [58] [59]
-Overfull \hbox (28.69322pt too wide) in paragraph at lines 1174--1175
+Overfull \hbox (28.69322pt too wide) in paragraph at lines 1176--1177
 []\T1/phv/m/n/10 References [], [], [], [], [],
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1178--1179
+Underfull \hbox (badness 10000) in paragraph at lines 1180--1181
 []\T1/phv/m/n/10 Referenced by [], [], [], [],
  []
 
 
-Underfull \hbox (badness 10000) detected at line 1203
+Underfull \hbox (badness 10000) detected at line 1205
 [][][]
  []
 
 [60] [61] [62]
-Underfull \hbox (badness 10000) in paragraph at lines 1379--1380
+Underfull \hbox (badness 10000) in paragraph at lines 1381--1382
 []\T1/phv/m/n/10 , [], [], [], [],
  []
 
 [63]
-Underfull \hbox (badness 1990) in paragraph at lines 1486--1487
+Underfull \hbox (badness 1990) in paragraph at lines 1488--1489
 []\T1/phv/m/n/10 References [], [], [], [],
  []
 
 
-Overfull \hbox (52.85347pt too wide) in paragraph at lines 1490--1491
+Overfull \hbox (52.85347pt too wide) in paragraph at lines 1492--1493
 []\T1/phv/m/n/10 , [], [],
  []
 
 [64] [65] [66]
-Underfull \hbox (badness 6792) in paragraph at lines 1632--1633
+Underfull \hbox (badness 6792) in paragraph at lines 1634--1635
 []\T1/phv/m/n/10 References [], [], [], [], [],
  []
 
 [67]
-Underfull \hbox (badness 5431) in paragraph at lines 1706--1707
+Underfull \hbox (badness 5431) in paragraph at lines 1708--1709
 []\T1/phv/m/n/10 References [], [], [], [], and
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1739--1740
+Underfull \hbox (badness 10000) in paragraph at lines 1741--1742
 []\T1/phv/m/n/10 References [], [], [], [], and
  []
 
 [68]
-Underfull \hbox (badness 5711) in paragraph at lines 1770--1771
+Underfull \hbox (badness 5711) in paragraph at lines 1772--1773
 []\T1/phv/m/n/10 References [], [], [],
  []
 
 [69]
-Underfull \hbox (badness 1184) in paragraph at lines 1803--1804
+Underfull \hbox (badness 1184) in paragraph at lines 1805--1806
 []\T1/phv/m/n/10 References [], [], [],
  []
 
 [70] [71]
-Underfull \hbox (badness 10000) detected at line 1951
+Underfull \hbox (badness 10000) detected at line 1953
 [][][]
  []
 
 [72]
-Underfull \hbox (badness 5504) in paragraph at lines 2030--2031
+Underfull \hbox (badness 5504) in paragraph at lines 2032--2033
 []\T1/phv/m/n/10 References [], [], [], [], [],
  []
 
 
-Underfull \hbox (badness 1442) in paragraph at lines 2030--2031
+Underfull \hbox (badness 1442) in paragraph at lines 2032--2033
 []\T1/phv/m/n/10 , [], [], [], [], [], [],
  []
 
 [73]
-Underfull \hbox (badness 6775) in paragraph at lines 2065--2066
+Underfull \hbox (badness 6775) in paragraph at lines 2067--2068
 []\T1/phv/m/n/10 References [], [], [], [], [],
  []
 
 
-Underfull \hbox (badness 5504) in paragraph at lines 2102--2103
+Underfull \hbox (badness 5504) in paragraph at lines 2104--2105
 []\T1/phv/m/n/10 References [], [], [], [], [],
  []
 
 
-Underfull \hbox (badness 1442) in paragraph at lines 2102--2103
+Underfull \hbox (badness 1442) in paragraph at lines 2104--2105
 []\T1/phv/m/n/10 , [], [], [], [], [], [],
  []
 
 [74]
-Underfull \hbox (badness 10000) in paragraph at lines 2170--2171
+Underfull \hbox (badness 10000) in paragraph at lines 2172--2173
 []\T1/phv/m/n/10 References [], [], [], [],
  []
 
 [75]
-Underfull \hbox (badness 10000) in paragraph at lines 2203--2204
+Underfull \hbox (badness 10000) in paragraph at lines 2205--2206
 []\T1/phv/m/n/10 References [], [], [],
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 2236--2237
+Underfull \hbox (badness 10000) in paragraph at lines 2238--2239
 []\T1/phv/m/n/10 References [], [], [],
  []
 
@@ -1568,322 +1563,674 @@ Underfull \hbox (badness 10000) in paragraph at lines 2236--2237
 pdfTeX warning: pdflatex (file ./Almog__Dynamic__Array_8h__incl.pdf): PDF inclu
 sion: multiple pdfs with page group included in a single page
 >
-<Almog__Dynamic__Array_8h__incl.pdf, id=7239, 216.81pt x 156.585pt>
+<Almog__Dynamic__Array_8h__incl.pdf, id=7259, 216.81pt x 156.585pt>
 File: Almog__Dynamic__Array_8h__incl.pdf Graphic file (type pdf)
 <use Almog__Dynamic__Array_8h__incl.pdf>
 Package pdftex.def Info: Almog__Dynamic__Array_8h__incl.pdf  used on input line
- 9.
+ 15.
 (pdftex.def)             Requested size: 216.0pt x 156.00879pt.
  <./Almog__Dynamic__Array_8h__dep__incl.pdf
 
 pdfTeX warning: pdflatex (file ./Almog__Dynamic__Array_8h__dep__incl.pdf): PDF 
 inclusion: multiple pdfs with page group included in a single page
 >
-<Almog__Dynamic__Array_8h__dep__incl.pdf, id=7247, 231.86626pt x 269.005pt>
+<Almog__Dynamic__Array_8h__dep__incl.pdf, id=7267, 231.86626pt x 269.005pt>
 File: Almog__Dynamic__Array_8h__dep__incl.pdf Graphic file (type pdf)
 <use Almog__Dynamic__Array_8h__dep__incl.pdf>
 Package pdftex.def Info: Almog__Dynamic__Array_8h__dep__incl.pdf  used on input
- line 16.
+ line 23.
 (pdftex.def)             Requested size: 231.0pt x 268.00688pt.
- [106] [107] [108] [109]) (./Almog__Dynamic__Array_8h_source.tex [110]
-[111]) (./display_8c.tex <./display_8c__incl.pdf
+ [106] [107] [108]
+Underfull \hbox (badness 10000) detected at line 125
+[][][]
+ []
+
+
+Underfull \hbox (badness 10000) detected at line 128
+[][][]
+ []
+
+[109]
+Underfull \hbox (badness 10000) detected at line 176
+[][][]
+ []
+
+
+Underfull \hbox (badness 10000) detected at line 179
+[][][]
+ []
+
+
+Underfull \hbox (badness 10000) detected at line 182
+[][][]
+ []
+
+[110]
+Underfull \hbox (badness 10000) detected at line 237
+[][][]
+ []
+
+
+Underfull \hbox (badness 10000) detected at line 242
+[][][]
+ []
+
+
+Underfull \hbox (badness 10000) detected at line 245
+[][][]
+ []
+
+
+Overfull \vbox (30.6489pt too high) has occurred while \output is active []
+
+
+[111]
+Underfull \hbox (badness 10000) detected at line 289
+[][][]
+ []
+
+
+Underfull \hbox (badness 10000) detected at line 292
+[][][]
+ []
+
+[112]
+Underfull \hbox (badness 10000) detected at line 358
+[][][]
+ []
+
+
+Underfull \hbox (badness 10000) detected at line 361
+[][][]
+ []
+
+
+Underfull \hbox (badness 10000) detected at line 397
+[][][]
+ []
+
+
+Underfull \hbox (badness 10000) detected at line 400
+[][][]
+ []
+
+[113]
+Underfull \hbox (badness 10000) detected at line 439
+[][][]
+ []
+
+
+Underfull \hbox (badness 10000) detected at line 442
+[][][]
+ []
+
+
+Underfull \hbox (badness 10000) detected at line 445
+[][][]
+ []
+
+
+Underfull \hbox (badness 10000) detected at line 448
+[][][]
+ []
+
+) (./Almog__Dynamic__Array_8h_source.tex [114] [115]) (./display_8c.tex <./disp
+lay_8c__incl.pdf
 
 pdfTeX warning: pdflatex (file ./display_8c__incl.pdf): PDF inclusion: multiple
  pdfs with page group included in a single page
 >
-<display_8c__incl.pdf, id=7352, 888.31876pt x 269.005pt>
+<display_8c__incl.pdf, id=7403, 888.31876pt x 269.005pt>
 File: display_8c__incl.pdf Graphic file (type pdf)
 <use display_8c__incl.pdf>
-Package pdftex.def Info: display_8c__incl.pdf  used on input line 13.
+Package pdftex.def Info: display_8c__incl.pdf  used on input line 14.
 (pdftex.def)             Requested size: 350.0pt x 105.98694pt.
  <./display_8c__dep__incl.pdf
 
 pdfTeX warning: pdflatex (file ./display_8c__dep__incl.pdf): PDF inclusion: mul
 tiple pdfs with page group included in a single page
 >
-<display_8c__dep__incl.pdf, id=7367, 222.8325pt x 156.585pt>
+<display_8c__dep__incl.pdf, id=7418, 222.8325pt x 156.585pt>
 File: display_8c__dep__incl.pdf Graphic file (type pdf)
 <use display_8c__dep__incl.pdf>
-Package pdftex.def Info: display_8c__dep__incl.pdf  used on input line 20.
+Package pdftex.def Info: display_8c__dep__incl.pdf  used on input line 22.
 (pdftex.def)             Requested size: 222.0pt x 156.00162pt.
- [112] [113] [114] [115]
-Underfull \hbox (badness 10000) in paragraph at lines 222--223
+ [116] [117] [118] [119]
+Underfull \hbox (badness 10000) in paragraph at lines 224--225
 []\T1/phv/m/n/10 References [], [], [], [],
  []
 
 
-Underfull \hbox (badness 5533) in paragraph at lines 222--223
+Underfull \hbox (badness 5533) in paragraph at lines 224--225
 []\T1/phv/m/n/10 , [], [], [], [],
  []
 
-[116]
-Overfull \hbox (52.45035pt too wide) in paragraph at lines 312--313
+[120]
+Overfull \hbox (52.45035pt too wide) in paragraph at lines 314--315
 []\T1/phv/m/n/10 References [], [], [], [],
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 312--313
+Underfull \hbox (badness 10000) in paragraph at lines 314--315
 []\T1/phv/m/n/10 , [], [], [], [],
  []
 
 
-Overfull \hbox (54.01624pt too wide) in paragraph at lines 312--313
+Overfull \hbox (54.01624pt too wide) in paragraph at lines 314--315
 []\T1/phv/m/n/10 , [], [], [],
  []
 
 
-Overfull \hbox (67.0323pt too wide) in paragraph at lines 312--313
+Overfull \hbox (67.0323pt too wide) in paragraph at lines 314--315
 []\T1/phv/m/n/10 , [], [], [], [],
  []
 
 
-Overfull \hbox (18.77289pt too wide) in paragraph at lines 312--313
+Overfull \hbox (18.77289pt too wide) in paragraph at lines 314--315
 []\T1/phv/m/n/10 , [], [], [],
  []
 
 
-Overfull \hbox (44.70296pt too wide) in paragraph at lines 312--313
+Overfull \hbox (44.70296pt too wide) in paragraph at lines 314--315
 []\T1/phv/m/n/10 , [], [], [], [],
  []
 
 
-Overfull \hbox (83.64636pt too wide) in paragraph at lines 312--313
+Overfull \hbox (83.64636pt too wide) in paragraph at lines 314--315
 []\T1/phv/m/n/10 , [], [], [], and []. 
  []
 
 
-Overfull \hbox (67.43512pt too wide) in paragraph at lines 326--327
+Overfull \hbox (67.43512pt too wide) in paragraph at lines 328--329
 []\T1/phv/m/n/10 References [], [], [], [],
  []
 
 
-Overfull \hbox (120.14743pt too wide) in paragraph at lines 326--327
+Overfull \hbox (120.14743pt too wide) in paragraph at lines 328--329
 []\T1/phv/m/n/10 , [], [], [],
  []
 
-[117]
-Overfull \hbox (19.12598pt too wide) in paragraph at lines 358--359
+[121]
+Overfull \hbox (19.12598pt too wide) in paragraph at lines 360--361
 []\T1/phv/m/n/10 References [], [], [], [], [],
  []
 
 
-Overfull \hbox (38.87889pt too wide) in paragraph at lines 390--391
+Overfull \hbox (38.87889pt too wide) in paragraph at lines 392--393
 []\T1/phv/m/n/10 , [], [], and []. 
  []
 
-[118]
-Overfull \hbox (25.73003pt too wide) in paragraph at lines 422--423
+[122]
+Overfull \hbox (25.73003pt too wide) in paragraph at lines 424--425
 []\T1/phv/m/n/10 References [], [], [], [],
  []
 
 
-Underfull \hbox (badness 7722) in paragraph at lines 422--423
+Underfull \hbox (badness 7722) in paragraph at lines 424--425
 []\T1/phv/m/n/10 , [], [], [], [],
  []
 
-) (./display_8c_source.tex [119] [120] [121] [122]) (./example1_8c.tex <./examp
+) (./display_8c_source.tex [123] [124] [125] [126]) (./example1_8c.tex <./examp
 le1_8c__incl.pdf
 
 pdfTeX warning: pdflatex (file ./example1_8c__incl.pdf): PDF inclusion: multipl
 e pdfs with page group included in a single page
 >
-<example1_8c__incl.pdf, id=8029, 721.69624pt x 325.215pt>
+<example1_8c__incl.pdf, id=8078, 721.69624pt x 325.215pt>
 File: example1_8c__incl.pdf Graphic file (type pdf)
 <use example1_8c__incl.pdf>
-Package pdftex.def Info: example1_8c__incl.pdf  used on input line 10.
+Package pdftex.def Info: example1_8c__incl.pdf  used on input line 11.
 (pdftex.def)             Requested size: 350.0pt x 157.71916pt.
- [123] [124]
-Overfull \hbox (52.38846pt too wide) in paragraph at lines 114--115
+ [127] [128]
+Overfull \hbox (52.38846pt too wide) in paragraph at lines 115--116
 []\T1/phv/m/n/10 References [], [], [], [],
  []
 
-[125] [126]) (./example1_8c_source.tex [127] [128]) (./Matrix2D_8h.tex <./Matri
+[129] [130]) (./example1_8c_source.tex [131] [132]) (./Matrix2D_8h.tex <./Matri
 x2D_8h__incl.pdf
 
 pdfTeX warning: pdflatex (file ./Matrix2D_8h__incl.pdf): PDF inclusion: multipl
 e pdfs with page group included in a single page
 >
-<Matrix2D_8h__incl.pdf, id=8419, 572.1375pt x 156.585pt>
+<Matrix2D_8h__incl.pdf, id=8468, 573.14125pt x 156.585pt>
 File: Matrix2D_8h__incl.pdf Graphic file (type pdf)
 <use Matrix2D_8h__incl.pdf>
-Package pdftex.def Info: Matrix2D_8h__incl.pdf  used on input line 14.
-(pdftex.def)             Requested size: 350.0pt x 95.78908pt.
+Package pdftex.def Info: Matrix2D_8h__incl.pdf  used on input line 20.
+(pdftex.def)             Requested size: 350.0pt x 95.62183pt.
  <./Matrix2D_8h__dep__incl.pdf
 
 pdfTeX warning: pdflatex (file ./Matrix2D_8h__dep__incl.pdf): PDF inclusion: mu
 ltiple pdfs with page group included in a single page
 >
-<Matrix2D_8h__dep__incl.pdf, id=8427, 266.9975pt x 269.005pt>
+<Matrix2D_8h__dep__incl.pdf, id=8476, 266.9975pt x 269.005pt>
 File: Matrix2D_8h__dep__incl.pdf Graphic file (type pdf)
 <use Matrix2D_8h__dep__incl.pdf>
-Package pdftex.def Info: Matrix2D_8h__dep__incl.pdf  used on input line 21.
+Package pdftex.def Info: Matrix2D_8h__dep__incl.pdf  used on input line 28.
 (pdftex.def)             Requested size: 266.0pt x 268.0274pt.
- [129] [130] [131] [132] [133]
-Underfull \hbox (badness 2005) in paragraph at lines 343--344
-[]\T1/phv/m/n/10 References [], [], [], [], [], and
+ [133] [134] [135] [136]
+Underfull \hbox (badness 10000) detected at line 193
+[][][]
  []
 
-[134]
-Overfull \hbox (39.08798pt too wide) in paragraph at lines 361--362
-[]\T1/phv/m/n/10 References [], [], [], [], [],
- []
 
-[135]
-Underfull \hbox (badness 1354) in paragraph at lines 457--458
-[]\T1/phv/m/n/10 References [], [], [], [], [], [],
- []
-
-[136]
-Overfull \hbox (120.19322pt too wide) in paragraph at lines 529--530
-[]\T1/phv/m/n/10 Referenced by [], [], [], and []. 
+Underfull \hbox (badness 10000) detected at line 196
+[][][]
  []
 
 [137]
-Overfull \hbox (115.16417pt too wide) in paragraph at lines 579--580
-[]\T1/phv/m/n/10 Referenced by [], [], [], [], and []. 
- []
-
-[138]
-Overfull \hbox (41.81535pt too wide) in paragraph at lines 639--640
-[]\T1/phv/m/n/10 , [], [], [], [],
+Underfull \hbox (badness 10000) detected at line 230
+[][][]
  []
 
 
-Overfull \hbox (47.6758pt too wide) in paragraph at lines 657--658
+Underfull \hbox (badness 10000) detected at line 247
+[][][]
+ []
+
+[138] [139] [140]
+Underfull \hbox (badness 10000) detected at line 382
+[][][]
+ []
+
+
+Overfull \hbox (0.98067pt too wide) in paragraph at lines 3--3
+[]\T1/phv/m/sl/10 des[] 
+ []
+
+[141] [142]
+Underfull \hbox (badness 10000) detected at line 501
+[][][]
+ []
+
+
+Underfull \hbox (badness 10000) detected at line 504
+[][][]
+ []
+
+
+Underfull \hbox (badness 2005) in paragraph at lines 513--514
+[]\T1/phv/m/n/10 References [], [], [], [], [], and
+ []
+
+
+Underfull \hbox (badness 10000) detected at line 536
+[][][]
+ []
+
+
+Underfull \hbox (badness 10000) detected at line 539
+[][][]
+ []
+
+
+Overfull \hbox (39.08798pt too wide) in paragraph at lines 548--549
+[]\T1/phv/m/n/10 References [], [], [], [], [],
+ []
+
+[143]
+Underfull \hbox (badness 10000) detected at line 569
+[][][]
+ []
+
+
+Underfull \hbox (badness 10000) detected at line 599
+[][][]
+ []
+
+[144]
+Underfull \hbox (badness 10000) detected at line 631
+[][][]
+ []
+
+
+Underfull \hbox (badness 10000) detected at line 671
+[][][]
+ []
+
+[145]
+Underfull \hbox (badness 10000) detected at line 701
+[][][]
+ []
+
+
+Underfull \hbox (badness 10000) detected at line 727
+[][][]
+ []
+
+
+Underfull \hbox (badness 1354) in paragraph at lines 736--737
 []\T1/phv/m/n/10 References [], [], [], [], [], [],
  []
 
-[139]
-Overfull \hbox (40.17703pt too wide) in paragraph at lines 717--718
+[146]
+Underfull \hbox (badness 10000) detected at line 757
+[][][]
+ []
+
+
+Underfull \hbox (badness 10000) detected at line 783
+[][][]
+ []
+
+[147]
+Underfull \hbox (badness 10000) detected at line 817
+[][][]
+ []
+
+
+Underfull \hbox (badness 10000) detected at line 820
+[][][]
+ []
+
+
+Underfull \hbox (badness 10000) detected at line 852
+[][][]
+ []
+
+
+Underfull \hbox (badness 10000) detected at line 855
+[][][]
+ []
+
+[148]
+Overfull \hbox (120.19322pt too wide) in paragraph at lines 893--894
+[]\T1/phv/m/n/10 Referenced by [], [], [], and []. 
+ []
+
+[149]
+Underfull \hbox (badness 10000) detected at line 966
+[][][]
+ []
+
+[150]
+Underfull \hbox (badness 10000) detected at line 996
+[][][]
+ []
+
+[151]
+Underfull \hbox (badness 10000) detected at line 1086
+[][][]
+ []
+
+
+Underfull \hbox (badness 10000) detected at line 1089
+[][][]
+ []
+
+
+Overfull \hbox (41.81535pt too wide) in paragraph at lines 1098--1099
+[]\T1/phv/m/n/10 , [], [], [], [],
+ []
+
+[152]
+Underfull \hbox (badness 10000) detected at line 1125
+[][][]
+ []
+
+
+Overfull \hbox (47.6758pt too wide) in paragraph at lines 1134--1135
+[]\T1/phv/m/n/10 References [], [], [], [], [], [],
+ []
+
+
+Underfull \hbox (badness 10000) detected at line 1155
+[][][]
+ []
+
+
+Underfull \hbox (badness 10000) detected at line 1158
+[][][]
+ []
+
+
+Underfull \hbox (badness 10000) detected at line 1161
+[][][]
+ []
+
+[153]
+Underfull \hbox (badness 10000) detected at line 1189
+[][][]
+ []
+
+
+Underfull \hbox (badness 10000) detected at line 1219
+[][][]
+ []
+
+
+Underfull \hbox (badness 10000) detected at line 1222
+[][][]
+ []
+
+[154]
+Underfull \hbox (badness 10000) detected at line 1252
+[][][]
+ []
+
+
+Underfull \hbox (badness 10000) detected at line 1255
+[][][]
+ []
+
+
+Overfull \hbox (40.17703pt too wide) in paragraph at lines 1264--1265
 []\T1/phv/m/n/10 References [], [], [], [], [],
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 735--736
+Underfull \hbox (badness 10000) detected at line 1285
+[][][]
+ []
+
+
+Underfull \hbox (badness 10000) detected at line 1288
+[][][]
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 1297--1298
 []\T1/phv/m/n/10 References [], [], [],
  []
 
-[140] [141] [142]
-Overfull \hbox (33.38927pt too wide) in paragraph at lines 909--910
+[155]
+Underfull \hbox (badness 10000) detected at line 1314
+[][][]
+ []
+
+[156] [157] [158]
+Underfull \hbox (badness 10000) detected at line 1431
+[][][]
+ []
+
+
+Underfull \hbox (badness 10000) detected at line 1434
+[][][]
+ []
+
+
+Underfull \hbox (badness 10000) detected at line 1468
+[][][]
+ []
+
+
+Underfull \hbox (badness 10000) detected at line 1471
+[][][]
+ []
+
+[159] [160]
+Underfull \hbox (badness 10000) detected at line 1555
+[][][]
+ []
+
+
+Underfull \hbox (badness 10000) detected at line 1576
+[][][]
+ []
+
+[161]
+Underfull \hbox (badness 10000) detected at line 1606
+[][][]
+ []
+
+[162]
+Underfull \hbox (badness 10000) detected at line 1665
+[][][]
+ []
+
+
+Overfull \hbox (33.38927pt too wide) in paragraph at lines 1678--1679
 []\T1/phv/m/n/10 Referenced by [], [], [], [],
  []
 
-[143]
-Overfull \hbox (98.72427pt too wide) in paragraph at lines 969--970
+[163]
+Underfull \hbox (badness 10000) detected at line 1786
+[][][]
+ []
+
+
+Overfull \hbox (98.72427pt too wide) in paragraph at lines 1795--1796
 []\T1/phv/m/n/10 References [], [], [], [], [], [], [],
  []
 
-[144]
-Overfull \hbox (33.75816pt too wide) in paragraph at lines 1019--1020
+[164]
+Underfull \hbox (badness 10000) detected at line 1814
+[][][]
+ []
+
+[165]
+Overfull \hbox (0.98067pt too wide) in paragraph at lines 3--3
+[]\T1/phv/m/sl/10 des[] 
+ []
+
+
+Overfull \hbox (33.75816pt too wide) in paragraph at lines 1889--1890
 []\T1/phv/m/n/10 Referenced by [], [], [], and []. 
  []
 
-[145]
-Overfull \hbox (33.75816pt too wide) in paragraph at lines 1051--1052
+[166]
+Overfull \hbox (33.75816pt too wide) in paragraph at lines 1949--1950
 []\T1/phv/m/n/10 Referenced by [], [], [], and []. 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1079--1080
+Underfull \hbox (badness 10000) detected at line 1991
+[][][]
+ []
+
+[167]
+Underfull \hbox (badness 10000) detected at line 1994
+[][][]
+ []
+
+
+Underfull \hbox (badness 10000) detected at line 1997
+[][][]
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 2006--2007
 []\T1/phv/m/n/10 References [], [], [], [], and
  []
 
-) (./Matrix2D_8h_source.tex [146] [147] [148] [149] [150] [151] [152] [153]
-[154] [155] [156]) (./temp_8c.tex <./temp_8c__incl.pdf
+) (./Matrix2D_8h_source.tex [168] [169] [170] [171] [172] [173] [174] [175]
+[176] [177] [178]) (./temp_8c.tex <./temp_8c__incl.pdf
 
 pdfTeX warning: pdflatex (file ./temp_8c__incl.pdf): PDF inclusion: multiple pd
 fs with page group included in a single page
 >
-<temp_8c__incl.pdf, id=10137, 721.69624pt x 325.215pt>
+<temp_8c__incl.pdf, id=10408, 721.69624pt x 325.215pt>
 File: temp_8c__incl.pdf Graphic file (type pdf)
 <use temp_8c__incl.pdf>
-Package pdftex.def Info: temp_8c__incl.pdf  used on input line 10.
+Package pdftex.def Info: temp_8c__incl.pdf  used on input line 11.
 (pdftex.def)             Requested size: 350.0pt x 157.71916pt.
- [157] [158]
-Underfull \hbox (badness 1552) in paragraph at lines 110--111
+ [179]
+Underfull \hbox (badness 1552) in paragraph at lines 111--112
 []\T1/phv/m/n/10 References [], [], [], [],
  []
 
 
-Underfull \hbox (badness 5696) in paragraph at lines 110--111
+Underfull \hbox (badness 5696) in paragraph at lines 111--112
 []\T1/phv/m/n/10 , [], [], [],
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 110--111
+Underfull \hbox (badness 10000) in paragraph at lines 111--112
 []\T1/phv/m/n/10 , [], [], [], [], [], and
  []
 
-[159]) (./temp_8c_source.tex [160]) [161] [162] (./refman.ind [163
+[180]) (./temp_8c_source.tex [181] [182]) [183] [184
 
+] (./refman.ind [185
 
 
 ]
-Underfull \hbox (badness 10000) in paragraph at lines 210--212
+Underfull \hbox (badness 10000) in paragraph at lines 217--219
 []| \T1/phv/m/n/10 adl_tri_fill_Pinedas_rasterizer_interpolate_color,
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 212--214
+Underfull \hbox (badness 10000) in paragraph at lines 219--221
 []| \T1/phv/m/n/10 adl_tri_fill_Pinedas_rasterizer_interpolate_normal,
  []
 
 
-Overfull \hbox (16.76659pt too wide) in paragraph at lines 217--219
+Overfull \hbox (16.76659pt too wide) in paragraph at lines 224--226
 []| \T1/phv/m/n/10 adl_tri_mesh_fill_Pinedas_rasterizer_interpolate_color,
  []
 
-
-Overfull \hbox (24.99242pt too wide) in paragraph at lines 219--221
+[186]
+Overfull \hbox (24.99242pt too wide) in paragraph at lines 226--228
 []| \T1/phv/m/n/10 adl_tri_mesh_fill_Pinedas_rasterizer_interpolate_normal,
  []
 
-[164] [165]
-Underfull \hbox (badness 10000) in paragraph at lines 373--374
+[187]
+Underfull \hbox (badness 10000) in paragraph at lines 380--381
 []| \T1/phv/m/n/10 AL-MOG_DRAW_LIBRARY_IMPLEMENTATION,
  []
 
-[166] [167]
-Underfull \hbox (badness 10000) in paragraph at lines 700--702
+[188] [189] [190]
+Underfull \hbox (badness 10000) in paragraph at lines 714--716
 []| \T1/phv/m/n/10 mat2D_solve_linear_sys_LUP_decomposition,
  []
 
-[168] [169]
-Underfull \hbox (badness 10000) in paragraph at lines 883--884
+[191]
+Underfull \hbox (badness 10000) in paragraph at lines 892--893
 []| \T1/phv/m/n/10 AL-MOG_DRAW_LIBRARY_IMPLEMENTATION,
  []
 
-[170] [171
+[192] [193
 
 ]) (./refman.aux)
 Package rerunfilecheck Info: File `refman.out' has not changed.
-(rerunfilecheck)             Checksum: 27B83198AFEFF60BBA0DADB62B078D09;77609.
+(rerunfilecheck)             Checksum: 62540E8869B82C1033003085C19B0168;78453.
  ) 
 Here is how much of TeX's memory you used:
- 19598 strings out of 478287
- 345032 string characters out of 5849288
- 725881 words of memory out of 5000000
- 36105 multiletter control sequences out of 15000+600000
+ 19754 strings out of 478287
+ 346642 string characters out of 5849288
+ 728278 words of memory out of 5000000
+ 36171 multiletter control sequences out of 15000+600000
  528986 words of font info for 105 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 99i,16n,117p,3904b,643s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 99i,16n,117p,3983b,643s stack positions out of 5000i,500n,10000p,200000b,80000s
 {/usr/share/texlive/texmf-dist/fonts/enc/dvips/base/8r.enc}</usr/share/texliv
 e/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/share/texlive/texm
 f-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr/share/texlive/texmf-dist/
 fonts/type1/public/amsfonts/cm/cmmi8.pfb></usr/share/texlive/texmf-dist/fonts/t
 ype1/public/amsfonts/cm/cmmi9.pfb></usr/share/texlive/texmf-dist/fonts/type1/pu
 blic/amsfonts/cm/cmsy10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/a
-msfonts/cm/cmsy7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts
-/cm/cmsy8.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/courier/ucrr8a.pfb
-></usr/share/texlive/texmf-dist/fonts/type1/urw/courier/ucrro8a.pfb></usr/share
-/texlive/texmf-dist/fonts/type1/urw/helvetic/uhvb8a.pfb></usr/share/texlive/tex
-mf-dist/fonts/type1/urw/helvetic/uhvb8ac.pfb></usr/share/texlive/texmf-dist/fon
-ts/type1/urw/helvetic/uhvr8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw
-/helvetic/uhvro8a.pfb>
-Output written on refman.pdf (183 pages, 864892 bytes).
+msfonts/cm/cmsy6.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts
+/cm/cmsy7.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cms
+y8.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy9.pfb>
+</usr/share/texlive/texmf-dist/fonts/type1/urw/courier/ucrr8a.pfb></usr/share/t
+exlive/texmf-dist/fonts/type1/urw/courier/ucrro8a.pfb></usr/share/texlive/texmf
+-dist/fonts/type1/urw/helvetic/uhvb8a.pfb></usr/share/texlive/texmf-dist/fonts/
+type1/urw/helvetic/uhvb8ac.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/h
+elvetic/uhvr8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/helvetic/uhvr
+o8a.pfb>
+Output written on refman.pdf (205 pages, 932453 bytes).
 PDF statistics:
- 11412 PDF objects out of 12825 (max. 8388607)
- 10967 compressed objects within 110 object streams
- 1309 named destinations out of 1440 (max. 500000)
- 3173 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 11712 PDF objects out of 12825 (max. 8388607)
+ 11238 compressed objects within 113 object streams
+ 1399 named destinations out of 1440 (max. 500000)
+ 3205 words of extra memory for PDF output out of 10000 (max. 10000000)
 

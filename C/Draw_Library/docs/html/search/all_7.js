@@ -1,6 +1,7 @@
 var searchData=
 [
-  ['hexargb_5frgb_5fvar_121',['HexARGB_RGB_VAR',['../Almog__Draw__Library_8h.html#a1e38982ab1aaaae615016576f660dff1',1,'Almog_Draw_Library.h']]],
-  ['hexargb_5frgba_122',['HexARGB_RGBA',['../Almog__Draw__Library_8h.html#a96d19b5694505d2bcea416c9771bb31b',1,'Almog_Draw_Library.h']]],
-  ['hexargb_5frgba_5fvar_123',['HexARGB_RGBA_VAR',['../Almog__Draw__Library_8h.html#ad02384d393ba960796c2471b74350c2d',1,'Almog_Draw_Library.h']]]
+  ['game_5fis_5frunning_119',['game_is_running',['../structgame__state__t.html#a173566254b94b77f82a2c4a772eb4b2f',1,'game_state_t']]],
+  ['game_5fstate_5ft_120',['game_state_t',['../structgame__state__t.html',1,'']]],
+  ['green_5fhexargb_121',['GREEN_hexARGB',['../Almog__Draw__Library_8h.html#a2573b865d687b5dcfe3d091f1a645921',1,'Almog_Draw_Library.h']]],
+  ['grid_122',['Grid',['../structGrid.html',1,'']]]
 ];

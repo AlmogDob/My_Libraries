@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['fps_544',['FPS',['../display_8c.html#ac92ca5ab87034a348decad7ee8d4bd1b',1,'display.c']]],
-  ['frame_5ftarget_5ftime_545',['FRAME_TARGET_TIME',['../display_8c.html#ad9bc53a358319625d023bee296e683f9',1,'display.c']]]
+  ['edge_5fcross_5fpoint_548',['edge_cross_point',['../Almog__Draw__Library_8h.html#a6da6a8f68ff61bf4850d903390c0c690',1,'Almog_Draw_Library.h']]]
 ];

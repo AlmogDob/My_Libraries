@@ -48,7 +48,7 @@ var NAVTREE =
 var NAVTREEINDEX =
 [
 "Almog__Draw__Library_8h.html",
-"structFigure.html#a3b5295186bb66df83e4e41b8f2d93eaf"
+"structFigure.html#a0cfd42fb62501fe81affa560b8a9be78"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

@@ -1,7 +1,6 @@
 var searchData=
 [
-  ['offset_5fx_217',['offset_x',['../structOffset__zoom__param.html#a8d6b91e28b53ba7b7e6dd74facf38363',1,'Offset_zoom_param']]],
-  ['offset_5fy_218',['offset_y',['../structOffset__zoom__param.html#a8456b409c576fbae5e6c13ba1fbf4f30',1,'Offset_zoom_param']]],
-  ['offset_5fzoom_5fparam_219',['Offset_zoom_param',['../structOffset__zoom__param.html',1,'']]],
-  ['offset_5fzoom_5fparam_220',['offset_zoom_param',['../structFigure.html#a0cfd42fb62501fe81affa560b8a9be78',1,'Figure::offset_zoom_param()'],['../structgame__state__t.html#afb974313f383df169a69aaa6efa21b00',1,'game_state_t::offset_zoom_param()']]]
+  ['normals_217',['normals',['../structTri.html#a3614ec76d2b41cb7f1cffc66cd5482ec',1,'Tri::normals()'],['../structQuad.html#a00c91a94eee9820ce31b8ee8927368f0',1,'Quad::normals()']]],
+  ['num_5fsamples_5fe1_218',['num_samples_e1',['../structGrid.html#a685abd34e1822e012b650cb89260f8ca',1,'Grid']]],
+  ['num_5fsamples_5fe2_219',['num_samples_e2',['../structGrid.html#a88e636fffe0d456e4f5541faf6397577',1,'Grid']]]
 ];

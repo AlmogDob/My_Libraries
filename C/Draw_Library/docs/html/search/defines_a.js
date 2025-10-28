@@ -1,6 +1,13 @@
 var searchData=
 [
-  ['pi_564',['PI',['../Matrix2D_8h.html#a598a3330b3c21701223ee0ca14316eca',1,'Matrix2D.h']]],
-  ['point_565',['POINT',['../Almog__Draw__Library_8h.html#a43011aabc923f9b33f1f51dc03b23539',1,'Almog_Draw_Library.h']]],
-  ['purple_5fhexargb_566',['PURPLE_hexARGB',['../Almog__Draw__Library_8h.html#a80fe53ef28c00cbaaffe5afbcf3ffefb',1,'Almog_Draw_Library.h']]]
+  ['mat2d_5fat_558',['MAT2D_AT',['../Matrix2D_8h.html#abdffe058c709b68f7d491ac9bf23f52e',1,'Matrix2D.h']]],
+  ['mat2d_5fat_5fuint32_559',['MAT2D_AT_UINT32',['../Matrix2D_8h.html#aa1863fe86a08bbc48ddaa1137dbb82c2',1,'Matrix2D.h']]],
+  ['mat2d_5fminor_5fat_560',['MAT2D_MINOR_AT',['../Matrix2D_8h.html#a2e8f5d497116d911d476064b647cf04d',1,'Matrix2D.h']]],
+  ['mat2d_5fminor_5fprint_561',['MAT2D_MINOR_PRINT',['../Matrix2D_8h.html#ab283467b75cb3f2007a3f63fd1d627e5',1,'Matrix2D.h']]],
+  ['mat2d_5fnormalize_562',['mat2D_normalize',['../Matrix2D_8h.html#af74e919ae2726605b4b8edfbcd639a64',1,'Matrix2D.h']]],
+  ['mat2d_5fprint_563',['MAT2D_PRINT',['../Matrix2D_8h.html#af942a81c35d5c350130180adb694cf16',1,'Matrix2D.h']]],
+  ['mat2d_5fprint_5fas_5fcol_564',['MAT2D_PRINT_AS_COL',['../Matrix2D_8h.html#ae6619814831ec2f936c071e7dc7d81a3',1,'Matrix2D.h']]],
+  ['matrix2d_5fassert_565',['MATRIX2D_ASSERT',['../Matrix2D_8h.html#a8d1087dbe390c9bf0f913390c3240639',1,'Matrix2D.h']]],
+  ['matrix2d_5fimplementation_566',['MATRIX2D_IMPLEMENTATION',['../example1_8c.html#aed3a01dc18a629a4bd301adbdf7d18c9',1,'MATRIX2D_IMPLEMENTATION():&#160;example1.c'],['../temp_8c.html#aed3a01dc18a629a4bd301adbdf7d18c9',1,'MATRIX2D_IMPLEMENTATION():&#160;temp.c']]],
+  ['matrix2d_5fmalloc_567',['MATRIX2D_MALLOC',['../Matrix2D_8h.html#abafa689bce24e7a987e033fe1557f1bc',1,'Matrix2D.h']]]
 ];

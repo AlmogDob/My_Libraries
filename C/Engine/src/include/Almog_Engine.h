@@ -539,31 +539,31 @@ Point ae_mat2D_to_point(Mat2D m)
  */
 Tri_mesh ae_tri_mesh_get_from_obj_file(char *file_path)
 {
-    char current_line[MAX_LEN_LINE], current_word[MAX_LEN_LINE], current_num_str[MAX_LEN_LINE];
-    char file_name[MAX_LEN_LINE], file_extention[MAX_LEN_LINE], mesh_name[MAX_LEN_LINE];
+    char current_line[ASM_MAX_LEN_LINE], current_word[ASM_MAX_LEN_LINE], current_num_str[ASM_MAX_LEN_LINE];
+    char file_name[ASM_MAX_LEN_LINE], file_extention[ASM_MAX_LEN_LINE], mesh_name[ASM_MAX_LEN_LINE];
     int texture_warning_was_printed = 0;
 
-    strncpy(file_name, file_path, MAX_LEN_LINE);
-    strncpy(file_extention, file_name, MAX_LEN_LINE);
+    strncpy(file_name, file_path, ASM_MAX_LEN_LINE);
+    strncpy(file_extention, file_name, ASM_MAX_LEN_LINE);
 
     /* check if file is an obj file*/
     asm_get_word_and_cut(file_name, file_extention, '.');
     asm_get_word_and_cut(file_name, file_extention, '.');
-    if (strncmp(file_extention, ".obj", MAX_LEN_LINE)) {
+    if (strncmp(file_extention, ".obj", ASM_MAX_LEN_LINE)) {
         fprintf(stderr, "%s:%d: [Error] unsupported file format: '%s'\n", __FILE__, __LINE__, file_name);
         exit(1);
     }
 
-    strncpy(mesh_name, file_name, MAX_LEN_LINE);
+    strncpy(mesh_name, file_name, ASM_MAX_LEN_LINE);
     while(asm_length(mesh_name)) {
         asm_get_word_and_cut(current_word, mesh_name, '/');
     }
 
-    strncpy(mesh_name, current_word, MAX_LEN_LINE);
+    strncpy(mesh_name, current_word, ASM_MAX_LEN_LINE);
 
-    strncpy(current_word, ".", MAX_LEN_LINE);
-    strncat(file_name, ".obj", MAX_LEN_LINE/2);
-    strncat(current_word, file_name, MAX_LEN_LINE/2);
+    strncpy(current_word, ".", ASM_MAX_LEN_LINE);
+    strncat(file_name, ".obj", ASM_MAX_LEN_LINE/2);
+    strncat(current_word, file_name, ASM_MAX_LEN_LINE/2);
 
     FILE *fp_input = fopen(current_word, "rt");
     if (fp_input == NULL) {
@@ -571,9 +571,9 @@ Tri_mesh ae_tri_mesh_get_from_obj_file(char *file_path)
         exit(1);
     }
 
-    // strncpy(output_file_name, "./build/", MAX_LEN_LINE);
-    // strncat(output_file_name, mesh_name, MAX_LEN_LINE/2);
-    // strncat(output_file_name, ".c", MAX_LEN_LINE/2);
+    // strncpy(output_file_name, "./build/", ASM_MAX_LEN_LINE);
+    // strncat(output_file_name, mesh_name, ASM_MAX_LEN_LINE/2);
+    // strncat(output_file_name, ".c", ASM_MAX_LEN_LINE/2);
     // FILE *fp_output = fopen(output_file_name, "wt");
     // if (fp_input == NULL) {
     //     fprintf(stderr, "%s:%d: [Error] failed to open output file: '%s'. %s\n", __FILE__, __LINE__, output_file_name, strerror(errno));
@@ -815,9 +815,9 @@ Tri_mesh ae_tri_mesh_get_from_stl_file(char *file_path)
  */
 Tri_mesh ae_tri_mesh_get_from_file(char *file_path)
 {
-    char file_extention[MAX_LEN_LINE], temp_word[MAX_LEN_LINE];
+    char file_extention[ASM_MAX_LEN_LINE], temp_word[ASM_MAX_LEN_LINE];
 
-    strncpy(file_extention, file_path, MAX_LEN_LINE);
+    strncpy(file_extention, file_path, ASM_MAX_LEN_LINE);
 
     int num_of_dots;
     while ((num_of_dots = asm_str_in_str(file_extention, ".")) >= 1) {
@@ -3807,4 +3807,4 @@ void ae_z_buffer_copy_to_screen(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer)
     }
 }
 
-#endif /* ALMOG_ENGINE_IMPLEMENTATION */ //
+#endif /* ALMOG_ENGINE_IMPLEMENTATION */ 

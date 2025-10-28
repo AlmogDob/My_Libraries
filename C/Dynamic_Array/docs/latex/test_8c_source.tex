@@ -1,0 +1,83 @@
+\hypertarget{test_8c_source}{}\doxysection{test.\+c}
+
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001 \textcolor{preprocessor}{\#include <stdio.h>}}
+\DoxyCodeLine{00002 \textcolor{preprocessor}{\#include "{}\mbox{\hyperlink{Almog__Dynamic__Array_8h}{Almog\_Dynamic\_Array.h}}"{}}}
+\DoxyCodeLine{00003 }
+\DoxyCodeLine{\Hypertarget{test_8c_source_l00004}\mbox{\hyperlink{structada__int__array}{00004}} \textcolor{keyword}{typedef} \textcolor{keyword}{struct }\{}
+\DoxyCodeLine{\Hypertarget{test_8c_source_l00005}\mbox{\hyperlink{structada__int__array_a1218cfa7f11b25f0a5993d2c2c57109e}{00005}}     \textcolor{keywordtype}{size\_t} \mbox{\hyperlink{structada__int__array_a1218cfa7f11b25f0a5993d2c2c57109e}{length}};}
+\DoxyCodeLine{\Hypertarget{test_8c_source_l00006}\mbox{\hyperlink{structada__int__array_a9f7a6658a351632548c84344d6c4687e}{00006}}     \textcolor{keywordtype}{size\_t} \mbox{\hyperlink{structada__int__array_a9f7a6658a351632548c84344d6c4687e}{capacity}};}
+\DoxyCodeLine{\Hypertarget{test_8c_source_l00007}\mbox{\hyperlink{structada__int__array_a8b7188ab1100f37da35f363588fbfc59}{00007}}     \textcolor{keywordtype}{int}* \mbox{\hyperlink{structada__int__array_a8b7188ab1100f37da35f363588fbfc59}{elements}};}
+\DoxyCodeLine{00008 \} \mbox{\hyperlink{structada__int__array}{ada\_int\_array}};}
+\DoxyCodeLine{00009 }
+\DoxyCodeLine{\Hypertarget{test_8c_source_l00010}\mbox{\hyperlink{structada__float__array}{00010}} \textcolor{keyword}{typedef} \textcolor{keyword}{struct }\{}
+\DoxyCodeLine{\Hypertarget{test_8c_source_l00011}\mbox{\hyperlink{structada__float__array_ae9c53219acd91eae2f5c35d058e40f6f}{00011}}     \textcolor{keywordtype}{size\_t} \mbox{\hyperlink{structada__float__array_ae9c53219acd91eae2f5c35d058e40f6f}{length}};}
+\DoxyCodeLine{\Hypertarget{test_8c_source_l00012}\mbox{\hyperlink{structada__float__array_ac5e6223f1c290225700a2e8b8b0cbdbb}{00012}}     \textcolor{keywordtype}{size\_t} \mbox{\hyperlink{structada__float__array_ac5e6223f1c290225700a2e8b8b0cbdbb}{capacity}};}
+\DoxyCodeLine{\Hypertarget{test_8c_source_l00013}\mbox{\hyperlink{structada__float__array_abeda3e5963ca4f2963768431a838a73f}{00013}}     \textcolor{keywordtype}{float}* \mbox{\hyperlink{structada__float__array_abeda3e5963ca4f2963768431a838a73f}{elements}};}
+\DoxyCodeLine{00014 \} \mbox{\hyperlink{structada__float__array}{ada\_float\_array}};}
+\DoxyCodeLine{00015 }
+\DoxyCodeLine{\Hypertarget{test_8c_source_l00016}\mbox{\hyperlink{test_8c_a0073887de0dd6b6b4368dd6dc9cd6cca}{00016}} \textcolor{keywordtype}{void} \mbox{\hyperlink{test_8c_a0073887de0dd6b6b4368dd6dc9cd6cca}{print\_int\_ada}}(\mbox{\hyperlink{structada__int__array}{ada\_int\_array}} ada, \textcolor{keywordtype}{char} *name)}
+\DoxyCodeLine{00017 \{}
+\DoxyCodeLine{00018     printf(\textcolor{stringliteral}{"{}\%s\(\backslash\)n"{}}, name);}
+\DoxyCodeLine{00019     printf(\textcolor{stringliteral}{"{}capacity: \%zu\(\backslash\)n"{}}, ada.\mbox{\hyperlink{structada__int__array_a9f7a6658a351632548c84344d6c4687e}{capacity}});}
+\DoxyCodeLine{00020     printf(\textcolor{stringliteral}{"{}length: \%zu\(\backslash\)n["{}}, ada.\mbox{\hyperlink{structada__int__array_a1218cfa7f11b25f0a5993d2c2c57109e}{length}});}
+\DoxyCodeLine{00021     \textcolor{keywordflow}{if} (ada.\mbox{\hyperlink{structada__int__array_a1218cfa7f11b25f0a5993d2c2c57109e}{length}} == 0) \{}
+\DoxyCodeLine{00022         printf(\textcolor{stringliteral}{"{}]\(\backslash\)n\(\backslash\)n"{}});}
+\DoxyCodeLine{00023         \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00024     \}}
+\DoxyCodeLine{00025     \textcolor{keywordflow}{for} (\textcolor{keywordtype}{size\_t} i = 0; i < ada.\mbox{\hyperlink{structada__int__array_a1218cfa7f11b25f0a5993d2c2c57109e}{length}} -\/ 1; i++) \{}
+\DoxyCodeLine{00026         printf(\textcolor{stringliteral}{"{}\%d, "{}}, ada.\mbox{\hyperlink{structada__int__array_a8b7188ab1100f37da35f363588fbfc59}{elements}}[i]);}
+\DoxyCodeLine{00027     \}}
+\DoxyCodeLine{00028     printf(\textcolor{stringliteral}{"{}\%d]\(\backslash\)n\(\backslash\)n"{}}, ada.\mbox{\hyperlink{structada__int__array_a8b7188ab1100f37da35f363588fbfc59}{elements}}[ada.\mbox{\hyperlink{structada__int__array_a1218cfa7f11b25f0a5993d2c2c57109e}{length}} -\/ 1]);}
+\DoxyCodeLine{00029 \}}
+\DoxyCodeLine{\Hypertarget{test_8c_source_l00030}\mbox{\hyperlink{test_8c_a00288123d0ece60da70e5f64527fb630}{00030}} \textcolor{preprocessor}{\#define ADA\_INT\_PRINT(ada) print\_int\_ada(ada, \#ada)}}
+\DoxyCodeLine{00031 }
+\DoxyCodeLine{\Hypertarget{test_8c_source_l00032}\mbox{\hyperlink{test_8c_a786a387c88d6ae112efc344d0169c110}{00032}} \textcolor{keywordtype}{void} \mbox{\hyperlink{test_8c_a786a387c88d6ae112efc344d0169c110}{print\_float\_ada}}(\mbox{\hyperlink{structada__float__array}{ada\_float\_array}} ada, \textcolor{keywordtype}{char} *name)}
+\DoxyCodeLine{00033 \{}
+\DoxyCodeLine{00034     printf(\textcolor{stringliteral}{"{}\%s\(\backslash\)n"{}}, name);}
+\DoxyCodeLine{00035     printf(\textcolor{stringliteral}{"{}capacity: \%zu\(\backslash\)n"{}}, ada.\mbox{\hyperlink{structada__float__array_ac5e6223f1c290225700a2e8b8b0cbdbb}{capacity}});}
+\DoxyCodeLine{00036     printf(\textcolor{stringliteral}{"{}length: \%zu\(\backslash\)n["{}}, ada.\mbox{\hyperlink{structada__float__array_ae9c53219acd91eae2f5c35d058e40f6f}{length}});}
+\DoxyCodeLine{00037     \textcolor{keywordflow}{if} (ada.\mbox{\hyperlink{structada__float__array_ae9c53219acd91eae2f5c35d058e40f6f}{length}} == 0) \{}
+\DoxyCodeLine{00038         printf(\textcolor{stringliteral}{"{}]\(\backslash\)n\(\backslash\)n"{}});}
+\DoxyCodeLine{00039         \textcolor{keywordflow}{return};}
+\DoxyCodeLine{00040     \}}
+\DoxyCodeLine{00041     \textcolor{keywordflow}{for} (\textcolor{keywordtype}{size\_t} i = 0; i < ada.\mbox{\hyperlink{structada__float__array_ae9c53219acd91eae2f5c35d058e40f6f}{length}} -\/ 1; i++) \{}
+\DoxyCodeLine{00042         printf(\textcolor{stringliteral}{"{}\%g, "{}}, ada.\mbox{\hyperlink{structada__float__array_abeda3e5963ca4f2963768431a838a73f}{elements}}[i]);}
+\DoxyCodeLine{00043     \}}
+\DoxyCodeLine{00044     printf(\textcolor{stringliteral}{"{}\%g]\(\backslash\)n\(\backslash\)n"{}}, ada.\mbox{\hyperlink{structada__float__array_abeda3e5963ca4f2963768431a838a73f}{elements}}[ada.\mbox{\hyperlink{structada__float__array_ae9c53219acd91eae2f5c35d058e40f6f}{length}} -\/ 1]);}
+\DoxyCodeLine{00045 \}}
+\DoxyCodeLine{\Hypertarget{test_8c_source_l00046}\mbox{\hyperlink{test_8c_a04e3ed5d21edc3899cf1280cd9b4678d}{00046}} \textcolor{preprocessor}{\#define ADA\_FLOAT\_PRINT(ada) print\_float\_ada(ada, \#ada)}}
+\DoxyCodeLine{00047 }
+\DoxyCodeLine{\Hypertarget{test_8c_source_l00048}\mbox{\hyperlink{test_8c_ae66f6b31b5ad750f1fe042a706a4e3d4}{00048}} \textcolor{keywordtype}{int} \mbox{\hyperlink{test_8c_ae66f6b31b5ad750f1fe042a706a4e3d4}{main}}()}
+\DoxyCodeLine{00049 \{}
+\DoxyCodeLine{00050     \mbox{\hyperlink{structada__int__array}{ada\_int\_array}} a;}
+\DoxyCodeLine{00051 }
+\DoxyCodeLine{00052     \mbox{\hyperlink{Almog__Dynamic__Array_8h_aac157302e0837f301f0c915360cfb182}{ada\_init\_array}}(\textcolor{keywordtype}{int}, a);}
+\DoxyCodeLine{00053 }
+\DoxyCodeLine{00054     \textcolor{keywordflow}{for} (\textcolor{keywordtype}{int} i = 0; i < 14; i++) \{}
+\DoxyCodeLine{00055         \mbox{\hyperlink{Almog__Dynamic__Array_8h_a61680400e419e2d55c2e3cb9fe96dad7}{ada\_appand}}(\textcolor{keywordtype}{int}, a, i);}
+\DoxyCodeLine{00056     \}}
+\DoxyCodeLine{00057     }
+\DoxyCodeLine{00058     \mbox{\hyperlink{test_8c_a00288123d0ece60da70e5f64527fb630}{ADA\_INT\_PRINT}}(a);}
+\DoxyCodeLine{00059 }
+\DoxyCodeLine{00060     \mbox{\hyperlink{Almog__Dynamic__Array_8h_aeaca809f410cc095f257c1caf9e647a2}{ada\_insert}}(\textcolor{keywordtype}{int}, a, 100, 1);}
+\DoxyCodeLine{00061     \mbox{\hyperlink{Almog__Dynamic__Array_8h_aeaca809f410cc095f257c1caf9e647a2}{ada\_insert}}(\textcolor{keywordtype}{int}, a, 100, 1);}
+\DoxyCodeLine{00062     \mbox{\hyperlink{test_8c_a00288123d0ece60da70e5f64527fb630}{ADA\_INT\_PRINT}}(a);}
+\DoxyCodeLine{00063     }
+\DoxyCodeLine{00064 }
+\DoxyCodeLine{00065     \mbox{\hyperlink{structada__float__array}{ada\_float\_array}} b;}
+\DoxyCodeLine{00066 }
+\DoxyCodeLine{00067     \mbox{\hyperlink{Almog__Dynamic__Array_8h_aac157302e0837f301f0c915360cfb182}{ada\_init\_array}}(\textcolor{keywordtype}{float}, b);}
+\DoxyCodeLine{00068 }
+\DoxyCodeLine{00069     \textcolor{keywordflow}{for} (\textcolor{keywordtype}{int} i = 0; i < 69; i++) \{}
+\DoxyCodeLine{00070         \mbox{\hyperlink{Almog__Dynamic__Array_8h_a61680400e419e2d55c2e3cb9fe96dad7}{ada\_appand}}(\textcolor{keywordtype}{float}, b, i/2.0);}
+\DoxyCodeLine{00071     \}}
+\DoxyCodeLine{00072 }
+\DoxyCodeLine{00073     \mbox{\hyperlink{test_8c_a04e3ed5d21edc3899cf1280cd9b4678d}{ADA\_FLOAT\_PRINT}}(b);}
+\DoxyCodeLine{00074 }
+\DoxyCodeLine{00075 }
+\DoxyCodeLine{00076     \textcolor{keywordflow}{return} 0;}
+\DoxyCodeLine{00077 \}}
+\DoxyCodeLine{00078 }
+
+\end{DoxyCode}

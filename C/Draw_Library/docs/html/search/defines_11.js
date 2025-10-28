@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['yellow_5fhexargb_579',['YELLOW_hexARGB',['../Almog__Draw__Library_8h.html#a2c08d20a50ce1fb32f381d143a1940d4',1,'Almog_Draw_Library.h']]]
+  ['window_5fheight_581',['WINDOW_HEIGHT',['../display_8c.html#a5473cf64fa979b48335079c99532e243',1,'display.c']]],
+  ['window_5fwidth_582',['WINDOW_WIDTH',['../display_8c.html#a498d9f026138406895e9a34b504ac6a6',1,'display.c']]]
 ];

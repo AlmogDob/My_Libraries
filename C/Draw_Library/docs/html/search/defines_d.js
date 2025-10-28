@@ -1,4 +1,7 @@
 var searchData=
 [
-  ['setup_573',['SETUP',['../display_8c.html#ac3b15998ba7221fca6fc579b1cd60557',1,'SETUP():&#160;display.c'],['../example1_8c.html#ac3b15998ba7221fca6fc579b1cd60557',1,'SETUP():&#160;example1.c'],['../temp_8c.html#ac3b15998ba7221fca6fc579b1cd60557',1,'SETUP():&#160;temp.c']]]
+  ['red_5fhexargb_573',['RED_hexARGB',['../Almog__Draw__Library_8h.html#a18d40dca86bc96286a6b4e865ff1bcc9',1,'Almog_Draw_Library.h']]],
+  ['render_574',['RENDER',['../display_8c.html#ada165dd53c6f81f42de99c903e5eece0',1,'RENDER():&#160;display.c'],['../example1_8c.html#ada165dd53c6f81f42de99c903e5eece0',1,'RENDER():&#160;example1.c'],['../temp_8c.html#ada165dd53c6f81f42de99c903e5eece0',1,'RENDER():&#160;temp.c']]],
+  ['rgb_5fhexrgb_575',['RGB_hexRGB',['../Almog__Draw__Library_8h.html#ae5c9bd99d773c485b76cef79ced9ef29',1,'Almog_Draw_Library.h']]],
+  ['rgba_5fhexargb_576',['RGBA_hexARGB',['../Almog__Draw__Library_8h.html#af2a5454da38824700317a8dbcab92f1b',1,'Almog_Draw_Library.h']]]
 ];

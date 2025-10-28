@@ -20,7 +20,6 @@ var Almog__Engine_8h =
     [ "ae_points_equal", "Almog__Engine_8h.html#a640ff0675ee6dc6d040bf5941be08258", null ],
     [ "AE_PRINT_MESH", "Almog__Engine_8h.html#a7b30a109359f4a6a1e27161d8a2b8dd6", null ],
     [ "AE_PRINT_TRI", "Almog__Engine_8h.html#a899e6cd6738dea0e52e5bbcb017a257e", null ],
-    [ "ALMOG_STRING_MANIPULATION_IMPLEMENTATION", "Almog__Engine_8h.html#a7dcf618ed2a010f88afa86c4687cf444", null ],
     [ "ARGB_hexARGB", "Almog__Engine_8h.html#a6f18a8c8789c03cb3eb675357954917f", null ],
     [ "QUAD_MESH_ARRAY", "Almog__Engine_8h.html#a398bca11413e52815bbc275b2c797347", null ],
     [ "STL_ATTRIBUTE_BITS_SIZE", "Almog__Engine_8h.html#a45967694710f3c5c2924b7afff0e9775", null ],

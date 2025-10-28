@@ -11,7 +11,7 @@
 \DoxyCodeLine{00035 \textcolor{preprocessor}{\#include "{}\mbox{\hyperlink{Almog__Draw__Library_8h}{./Almog\_Draw\_Library.h}}"{}}}
 \DoxyCodeLine{00036 }
 \DoxyCodeLine{00037 \textcolor{preprocessor}{\#ifndef ALMOG\_STRING\_MANIPULATION\_IMPLEMENTATION}}
-\DoxyCodeLine{\Hypertarget{Almog__Engine_8h_source_l00038}\mbox{\hyperlink{Almog__Engine_8h_a7dcf618ed2a010f88afa86c4687cf444}{00038}} \textcolor{preprocessor}{\#define ALMOG\_STRING\_MANIPULATION\_IMPLEMENTATION}}
+\DoxyCodeLine{00038 \textcolor{preprocessor}{\#define ALMOG\_STRING\_MANIPULATION\_IMPLEMENTATION}}
 \DoxyCodeLine{00039 \textcolor{preprocessor}{\#endif}}
 \DoxyCodeLine{00040 \textcolor{preprocessor}{\#include "{}\mbox{\hyperlink{Almog__String__Manipulation_8h}{./Almog\_String\_Manipulation.h}}"{}}}
 \DoxyCodeLine{00041 }
@@ -418,31 +418,31 @@
 \DoxyCodeLine{00527 }
 \DoxyCodeLine{\Hypertarget{Almog__Engine_8h_source_l00540}\mbox{\hyperlink{Almog__Engine_8h_aef0dc6e58e24d1fad454eedddcbecda3}{00540}} \mbox{\hyperlink{structTri__mesh}{Tri\_mesh}} \mbox{\hyperlink{Almog__Engine_8h_aef0dc6e58e24d1fad454eedddcbecda3}{ae\_tri\_mesh\_get\_from\_obj\_file}}(\textcolor{keywordtype}{char} *file\_path)}
 \DoxyCodeLine{00541 \{}
-\DoxyCodeLine{00542     \textcolor{keywordtype}{char} current\_line[\mbox{\hyperlink{Almog__String__Manipulation_8h_a076fd3c5ba5ac7c6bbedb64c188565f3}{MAX\_LEN\_LINE}}], current\_word[\mbox{\hyperlink{Almog__String__Manipulation_8h_a076fd3c5ba5ac7c6bbedb64c188565f3}{MAX\_LEN\_LINE}}], current\_num\_str[\mbox{\hyperlink{Almog__String__Manipulation_8h_a076fd3c5ba5ac7c6bbedb64c188565f3}{MAX\_LEN\_LINE}}];}
-\DoxyCodeLine{00543     \textcolor{keywordtype}{char} file\_name[\mbox{\hyperlink{Almog__String__Manipulation_8h_a076fd3c5ba5ac7c6bbedb64c188565f3}{MAX\_LEN\_LINE}}], file\_extention[\mbox{\hyperlink{Almog__String__Manipulation_8h_a076fd3c5ba5ac7c6bbedb64c188565f3}{MAX\_LEN\_LINE}}], mesh\_name[\mbox{\hyperlink{Almog__String__Manipulation_8h_a076fd3c5ba5ac7c6bbedb64c188565f3}{MAX\_LEN\_LINE}}];}
+\DoxyCodeLine{00542     \textcolor{keywordtype}{char} current\_line[\mbox{\hyperlink{Almog__String__Manipulation_8h_a0b297f6220bd049e02b3fb6ea0b8e6a9}{ASM\_MAX\_LEN\_LINE}}], current\_word[\mbox{\hyperlink{Almog__String__Manipulation_8h_a0b297f6220bd049e02b3fb6ea0b8e6a9}{ASM\_MAX\_LEN\_LINE}}], current\_num\_str[\mbox{\hyperlink{Almog__String__Manipulation_8h_a0b297f6220bd049e02b3fb6ea0b8e6a9}{ASM\_MAX\_LEN\_LINE}}];}
+\DoxyCodeLine{00543     \textcolor{keywordtype}{char} file\_name[\mbox{\hyperlink{Almog__String__Manipulation_8h_a0b297f6220bd049e02b3fb6ea0b8e6a9}{ASM\_MAX\_LEN\_LINE}}], file\_extention[\mbox{\hyperlink{Almog__String__Manipulation_8h_a0b297f6220bd049e02b3fb6ea0b8e6a9}{ASM\_MAX\_LEN\_LINE}}], mesh\_name[\mbox{\hyperlink{Almog__String__Manipulation_8h_a0b297f6220bd049e02b3fb6ea0b8e6a9}{ASM\_MAX\_LEN\_LINE}}];}
 \DoxyCodeLine{00544     \textcolor{keywordtype}{int} texture\_warning\_was\_printed = 0;}
 \DoxyCodeLine{00545 }
-\DoxyCodeLine{00546     strncpy(file\_name, file\_path, \mbox{\hyperlink{Almog__String__Manipulation_8h_a076fd3c5ba5ac7c6bbedb64c188565f3}{MAX\_LEN\_LINE}});}
-\DoxyCodeLine{00547     strncpy(file\_extention, file\_name, \mbox{\hyperlink{Almog__String__Manipulation_8h_a076fd3c5ba5ac7c6bbedb64c188565f3}{MAX\_LEN\_LINE}});}
+\DoxyCodeLine{00546     strncpy(file\_name, file\_path, \mbox{\hyperlink{Almog__String__Manipulation_8h_a0b297f6220bd049e02b3fb6ea0b8e6a9}{ASM\_MAX\_LEN\_LINE}});}
+\DoxyCodeLine{00547     strncpy(file\_extention, file\_name, \mbox{\hyperlink{Almog__String__Manipulation_8h_a0b297f6220bd049e02b3fb6ea0b8e6a9}{ASM\_MAX\_LEN\_LINE}});}
 \DoxyCodeLine{00548 }
 \DoxyCodeLine{00549     \textcolor{comment}{/* check if file is an obj file*/}}
 \DoxyCodeLine{00550     \mbox{\hyperlink{Almog__String__Manipulation_8h_a1eed5e458a06330f12a09ed0c8b9d77d}{asm\_get\_word\_and\_cut}}(file\_name, file\_extention, \textcolor{charliteral}{'.'});}
 \DoxyCodeLine{00551     \mbox{\hyperlink{Almog__String__Manipulation_8h_a1eed5e458a06330f12a09ed0c8b9d77d}{asm\_get\_word\_and\_cut}}(file\_name, file\_extention, \textcolor{charliteral}{'.'});}
-\DoxyCodeLine{00552     \textcolor{keywordflow}{if} (strncmp(file\_extention, \textcolor{stringliteral}{"{}.obj"{}}, \mbox{\hyperlink{Almog__String__Manipulation_8h_a076fd3c5ba5ac7c6bbedb64c188565f3}{MAX\_LEN\_LINE}})) \{}
+\DoxyCodeLine{00552     \textcolor{keywordflow}{if} (strncmp(file\_extention, \textcolor{stringliteral}{"{}.obj"{}}, \mbox{\hyperlink{Almog__String__Manipulation_8h_a0b297f6220bd049e02b3fb6ea0b8e6a9}{ASM\_MAX\_LEN\_LINE}})) \{}
 \DoxyCodeLine{00553         fprintf(stderr, \textcolor{stringliteral}{"{}\%s:\%d: [Error] unsupported file format: '\%s'\(\backslash\)n"{}}, \_\_FILE\_\_, \_\_LINE\_\_, file\_name);}
 \DoxyCodeLine{00554         exit(1);}
 \DoxyCodeLine{00555     \}}
 \DoxyCodeLine{00556 }
-\DoxyCodeLine{00557     strncpy(mesh\_name, file\_name, \mbox{\hyperlink{Almog__String__Manipulation_8h_a076fd3c5ba5ac7c6bbedb64c188565f3}{MAX\_LEN\_LINE}});}
+\DoxyCodeLine{00557     strncpy(mesh\_name, file\_name, \mbox{\hyperlink{Almog__String__Manipulation_8h_a0b297f6220bd049e02b3fb6ea0b8e6a9}{ASM\_MAX\_LEN\_LINE}});}
 \DoxyCodeLine{00558     \textcolor{keywordflow}{while}(\mbox{\hyperlink{Almog__String__Manipulation_8h_a8cd7d02540e05c2a9b7457500b3de50f}{asm\_length}}(mesh\_name)) \{}
 \DoxyCodeLine{00559         \mbox{\hyperlink{Almog__String__Manipulation_8h_a1eed5e458a06330f12a09ed0c8b9d77d}{asm\_get\_word\_and\_cut}}(current\_word, mesh\_name, \textcolor{charliteral}{'/'});}
 \DoxyCodeLine{00560     \}}
 \DoxyCodeLine{00561 }
-\DoxyCodeLine{00562     strncpy(mesh\_name, current\_word, \mbox{\hyperlink{Almog__String__Manipulation_8h_a076fd3c5ba5ac7c6bbedb64c188565f3}{MAX\_LEN\_LINE}});}
+\DoxyCodeLine{00562     strncpy(mesh\_name, current\_word, \mbox{\hyperlink{Almog__String__Manipulation_8h_a0b297f6220bd049e02b3fb6ea0b8e6a9}{ASM\_MAX\_LEN\_LINE}});}
 \DoxyCodeLine{00563 }
-\DoxyCodeLine{00564     strncpy(current\_word, \textcolor{stringliteral}{"{}."{}}, \mbox{\hyperlink{Almog__String__Manipulation_8h_a076fd3c5ba5ac7c6bbedb64c188565f3}{MAX\_LEN\_LINE}});}
-\DoxyCodeLine{00565     strncat(file\_name, \textcolor{stringliteral}{"{}.obj"{}}, \mbox{\hyperlink{Almog__String__Manipulation_8h_a076fd3c5ba5ac7c6bbedb64c188565f3}{MAX\_LEN\_LINE}}/2);}
-\DoxyCodeLine{00566     strncat(current\_word, file\_name, \mbox{\hyperlink{Almog__String__Manipulation_8h_a076fd3c5ba5ac7c6bbedb64c188565f3}{MAX\_LEN\_LINE}}/2);}
+\DoxyCodeLine{00564     strncpy(current\_word, \textcolor{stringliteral}{"{}."{}}, \mbox{\hyperlink{Almog__String__Manipulation_8h_a0b297f6220bd049e02b3fb6ea0b8e6a9}{ASM\_MAX\_LEN\_LINE}});}
+\DoxyCodeLine{00565     strncat(file\_name, \textcolor{stringliteral}{"{}.obj"{}}, \mbox{\hyperlink{Almog__String__Manipulation_8h_a0b297f6220bd049e02b3fb6ea0b8e6a9}{ASM\_MAX\_LEN\_LINE}}/2);}
+\DoxyCodeLine{00566     strncat(current\_word, file\_name, \mbox{\hyperlink{Almog__String__Manipulation_8h_a0b297f6220bd049e02b3fb6ea0b8e6a9}{ASM\_MAX\_LEN\_LINE}}/2);}
 \DoxyCodeLine{00567 }
 \DoxyCodeLine{00568     FILE *fp\_input = fopen(current\_word, \textcolor{stringliteral}{"{}rt"{}});}
 \DoxyCodeLine{00569     \textcolor{keywordflow}{if} (fp\_input == NULL) \{}
@@ -450,9 +450,9 @@
 \DoxyCodeLine{00571         exit(1);}
 \DoxyCodeLine{00572     \}}
 \DoxyCodeLine{00573 }
-\DoxyCodeLine{00574     \textcolor{comment}{// strncpy(output\_file\_name, "{}./build/"{}, MAX\_LEN\_LINE);}}
-\DoxyCodeLine{00575     \textcolor{comment}{// strncat(output\_file\_name, mesh\_name, MAX\_LEN\_LINE/2);}}
-\DoxyCodeLine{00576     \textcolor{comment}{// strncat(output\_file\_name, "{}.c"{}, MAX\_LEN\_LINE/2);}}
+\DoxyCodeLine{00574     \textcolor{comment}{// strncpy(output\_file\_name, "{}./build/"{}, ASM\_MAX\_LEN\_LINE);}}
+\DoxyCodeLine{00575     \textcolor{comment}{// strncat(output\_file\_name, mesh\_name, ASM\_MAX\_LEN\_LINE/2);}}
+\DoxyCodeLine{00576     \textcolor{comment}{// strncat(output\_file\_name, "{}.c"{}, ASM\_MAX\_LEN\_LINE/2);}}
 \DoxyCodeLine{00577     \textcolor{comment}{// FILE *fp\_output = fopen(output\_file\_name, "{}wt"{});}}
 \DoxyCodeLine{00578     \textcolor{comment}{// if (fp\_input == NULL) \{}}
 \DoxyCodeLine{00579     \textcolor{comment}{//     fprintf(stderr, "{}\%s:\%d: [Error] failed to open output file: '\%s'. \%s\(\backslash\)n"{}, \_\_FILE\_\_, \_\_LINE\_\_, output\_file\_name, strerror(errno));}}
@@ -673,9 +673,9 @@
 \DoxyCodeLine{00805 }
 \DoxyCodeLine{\Hypertarget{Almog__Engine_8h_source_l00816}\mbox{\hyperlink{Almog__Engine_8h_af8271eb7d6d313acddd78b4bcf6a8555}{00816}} \mbox{\hyperlink{structTri__mesh}{Tri\_mesh}} \mbox{\hyperlink{Almog__Engine_8h_af8271eb7d6d313acddd78b4bcf6a8555}{ae\_tri\_mesh\_get\_from\_file}}(\textcolor{keywordtype}{char} *file\_path)}
 \DoxyCodeLine{00817 \{}
-\DoxyCodeLine{00818     \textcolor{keywordtype}{char} file\_extention[\mbox{\hyperlink{Almog__String__Manipulation_8h_a076fd3c5ba5ac7c6bbedb64c188565f3}{MAX\_LEN\_LINE}}], temp\_word[\mbox{\hyperlink{Almog__String__Manipulation_8h_a076fd3c5ba5ac7c6bbedb64c188565f3}{MAX\_LEN\_LINE}}];}
+\DoxyCodeLine{00818     \textcolor{keywordtype}{char} file\_extention[\mbox{\hyperlink{Almog__String__Manipulation_8h_a0b297f6220bd049e02b3fb6ea0b8e6a9}{ASM\_MAX\_LEN\_LINE}}], temp\_word[\mbox{\hyperlink{Almog__String__Manipulation_8h_a0b297f6220bd049e02b3fb6ea0b8e6a9}{ASM\_MAX\_LEN\_LINE}}];}
 \DoxyCodeLine{00819 }
-\DoxyCodeLine{00820     strncpy(file\_extention, file\_path, \mbox{\hyperlink{Almog__String__Manipulation_8h_a076fd3c5ba5ac7c6bbedb64c188565f3}{MAX\_LEN\_LINE}});}
+\DoxyCodeLine{00820     strncpy(file\_extention, file\_path, \mbox{\hyperlink{Almog__String__Manipulation_8h_a0b297f6220bd049e02b3fb6ea0b8e6a9}{ASM\_MAX\_LEN\_LINE}});}
 \DoxyCodeLine{00821 }
 \DoxyCodeLine{00822     \textcolor{keywordtype}{int} num\_of\_dots;}
 \DoxyCodeLine{00823     \textcolor{keywordflow}{while} ((num\_of\_dots = \mbox{\hyperlink{Almog__String__Manipulation_8h_a929b5505a3cdb1796f2865b25b3bc92a}{asm\_str\_in\_str}}(file\_extention, \textcolor{stringliteral}{"{}."{}})) >= 1) \{}
@@ -3124,6 +3124,6 @@
 \DoxyCodeLine{03807     \}}
 \DoxyCodeLine{03808 \}}
 \DoxyCodeLine{03809 }
-\DoxyCodeLine{03810 \textcolor{preprocessor}{\#endif }\textcolor{comment}{/* ALMOG\_ENGINE\_IMPLEMENTATION */}\textcolor{preprocessor}{ }\textcolor{comment}{//}}
+\DoxyCodeLine{03810 \textcolor{preprocessor}{\#endif }\textcolor{comment}{/* ALMOG\_ENGINE\_IMPLEMENTATION */}\textcolor{preprocessor}{ }}
 
 \end{DoxyCode}

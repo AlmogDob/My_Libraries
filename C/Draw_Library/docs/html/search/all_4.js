@@ -1,8 +1,14 @@
 var searchData=
 [
-  ['e_5fwas_5fpressed_103',['e_was_pressed',['../structgame__state__t.html#af229dff663c775ac3bbe218351c5e161',1,'game_state_t']]],
-  ['edge_5fcross_5fpoint_104',['edge_cross_point',['../Almog__Draw__Library_8h.html#a6da6a8f68ff61bf4850d903390c0c690',1,'Almog_Draw_Library.h']]],
-  ['elapsed_5ftime_105',['elapsed_time',['../structgame__state__t.html#ae461a66325998fb4664b30c33d70f6b9',1,'game_state_t']]],
-  ['elements_106',['elements',['../structCurve.html#a9ec44e5490914bd92c039a365980fe56',1,'Curve::elements()'],['../structCurve__ada.html#ac06bc687ac15c82dd410ca6634beaa68',1,'Curve_ada::elements()'],['../structTri__mesh.html#ac89551cc5ed8f98f0d21a12e2c96dcdb',1,'Tri_mesh::elements()'],['../structQuad__mesh.html#a834716c539e7ceaa66821b4f3de7744d',1,'Quad_mesh::elements()'],['../structMat2D.html#a4bfd4e67e3347866bdd5f5149dc170b6',1,'Mat2D::elements()'],['../structMat2D__uint32.html#a79e155b6ec688f2dcbf81b878b351cd9',1,'Mat2D_uint32::elements()']]],
-  ['example1_2ec_107',['example1.c',['../example1_8c.html',1,'']]]
+  ['d_5fwas_5fpressed_94',['d_was_pressed',['../structgame__state__t.html#a8a1ffcf9031e2beeac59546da9a9d79f',1,'game_state_t']]],
+  ['de1_95',['de1',['../structGrid.html#a3f9b118807d9910812d03e8fdbccc7bf',1,'Grid']]],
+  ['de2_96',['de2',['../structGrid.html#a7a4584c54211d210b04ff7ef59fa4a94',1,'Grid']]],
+  ['delta_5ftime_97',['delta_time',['../structgame__state__t.html#a3fae340e0ea4b143bcb7b04544cab7ce',1,'game_state_t']]],
+  ['destroy_5fwindow_98',['destroy_window',['../display_8c.html#ad4200915725a69b5e7ca4015d7351931',1,'display.c']]],
+  ['display_2ec_99',['display.c',['../display_8c.html',1,'']]],
+  ['dprintchar_100',['dprintCHAR',['../display_8c.html#a8b63874b09e98605eddc71b18323ceaf',1,'display.c']]],
+  ['dprintd_101',['dprintD',['../display_8c.html#a09101bb7984231d49fae12c5dd510882',1,'display.c']]],
+  ['dprintint_102',['dprintINT',['../display_8c.html#ad6ee5604ae166c2578fb919ba8047d32',1,'display.c']]],
+  ['dprintsize_5ft_103',['dprintSIZE_T',['../display_8c.html#a44ef8de62cc4802e6e2d52716d9ea342',1,'display.c']]],
+  ['dprintstring_104',['dprintSTRING',['../display_8c.html#a8a10eb1b51de8ec7f32760fc42a499d3',1,'display.c']]]
 ];

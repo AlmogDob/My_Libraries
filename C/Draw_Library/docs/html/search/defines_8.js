@@ -1,7 +1,6 @@
 var searchData=
 [
-  ['init_5fcapacity_550',['INIT_CAPACITY',['../Almog__Dynamic__Array_8h.html#a1c2454dbbfd298b8e2cd09eb93b6a8f6',1,'Almog_Dynamic_Array.h']]],
-  ['is_5fleft_5fedge_551',['is_left_edge',['../Almog__Draw__Library_8h.html#a28aba875656d27a94a74f19eef7065e1',1,'Almog_Draw_Library.h']]],
-  ['is_5ftop_5fedge_552',['is_top_edge',['../Almog__Draw__Library_8h.html#a4a44974f1e3313a1951dab5533e6156e',1,'Almog_Draw_Library.h']]],
-  ['is_5ftop_5fleft_553',['is_top_left',['../Almog__Draw__Library_8h.html#a4684a6b9c18ba630636b7407653e1057',1,'Almog_Draw_Library.h']]]
+  ['hexargb_5frgb_5fvar_552',['HexARGB_RGB_VAR',['../Almog__Draw__Library_8h.html#a1e38982ab1aaaae615016576f660dff1',1,'Almog_Draw_Library.h']]],
+  ['hexargb_5frgba_553',['HexARGB_RGBA',['../Almog__Draw__Library_8h.html#a96d19b5694505d2bcea416c9771bb31b',1,'Almog_Draw_Library.h']]],
+  ['hexargb_5frgba_5fvar_554',['HexARGB_RGBA_VAR',['../Almog__Draw__Library_8h.html#ad02384d393ba960796c2471b74350c2d',1,'Almog_Draw_Library.h']]]
 ];

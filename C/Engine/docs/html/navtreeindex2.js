@@ -1,6 +1,5 @@
 var NAVTREEINDEX2 =
 {
-"structgame__state__t.html#aecd77938a1375613f71e3c398f2bf0e1":[0,0,4,25],
 "structgame__state__t.html#af229dff663c775ac3bbe218351c5e161":[0,0,4,4],
 "teapot__example_8c.html":[1,0,0,2],
 "teapot__example_8c.html#a189f73f504256a3c91c9b7741b956c69":[1,0,0,2,6],

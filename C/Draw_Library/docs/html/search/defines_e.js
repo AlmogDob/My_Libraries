@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['tri_574',['TRI',['../Almog__Draw__Library_8h.html#af6427767938abfcff7c07db4a3020f6a',1,'Almog_Draw_Library.h']]],
-  ['tri_5fmesh_575',['TRI_MESH',['../Almog__Draw__Library_8h.html#abb9096632f751c821ce5591ee8751c8d',1,'Almog_Draw_Library.h']]]
+  ['setup_577',['SETUP',['../display_8c.html#ac3b15998ba7221fca6fc579b1cd60557',1,'SETUP():&#160;display.c'],['../example1_8c.html#ac3b15998ba7221fca6fc579b1cd60557',1,'SETUP():&#160;example1.c'],['../temp_8c.html#ac3b15998ba7221fca6fc579b1cd60557',1,'SETUP():&#160;temp.c']]]
 ];

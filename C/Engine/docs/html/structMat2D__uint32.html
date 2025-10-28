@@ -89,6 +89,9 @@ $(document).ready(function(){initNavTree('structMat2D__uint32.html',''); initRes
 </div><!--header-->
 <div class="contents">
 
+<p>Dense row-major matrix of uint32_t.  
+ <a href="structMat2D__uint32.html#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="Matrix2D_8h_source.html">Matrix2D.h</a>&gt;</code></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-attribs"></a>
@@ -103,8 +106,15 @@ Public Attributes</h2></td></tr>
 <tr class="separator:a79e155b6ec688f2dcbf81b878b351cd9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock">
-<p class="definition">Definition at line <a class="el" href="Matrix2D_8h_source.html#l00036">36</a> of file <a class="el" href="Matrix2D_8h_source.html">Matrix2D.h</a>.</p>
+<div class="textblock"><p>Dense row-major matrix of uint32_t. </p>
+<ul>
+<li>rows: number of rows (height)</li>
+<li>cols: number of columns (width)</li>
+<li>stride_r: number of elements between successive rows in memory (for contiguous storage, stride_r == cols)</li>
+<li>elements: pointer to contiguous storage of size rows * cols </li>
+</ul>
+
+<p class="definition">Definition at line <a class="el" href="Matrix2D_8h_source.html#l00098">98</a> of file <a class="el" href="Matrix2D_8h_source.html">Matrix2D.h</a>.</p>
 </div><h2 class="groupheader">Member Data Documentation</h2>
 <a id="a956aa085cebaf71324dbee36f4a20bb4"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a956aa085cebaf71324dbee36f4a20bb4">&#9670;&nbsp;</a></span>cols</h2>
@@ -118,9 +128,9 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="Matrix2D_8h_source.html#l00038">38</a> of file <a class="el" href="Matrix2D_8h_source.html">Matrix2D.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="Matrix2D_8h_source.html#l00100">100</a> of file <a class="el" href="Matrix2D_8h_source.html">Matrix2D.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="Almog__Draw__Library_8h_source.html#l02247">adl_2Dscalar_interp_on_figure()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l02077">adl_axis_draw_on_figure()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l02014">adl_figure_alloc()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l02057">adl_figure_copy_to_screen()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l00316">adl_line_draw()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l00283">adl_point_draw()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l00961">adl_quad_fill()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l01149">adl_quad_fill_interpolate_color_mean_value()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l01055">adl_quad_fill_interpolate_normal_mean_value()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l01425">adl_tri_fill_Pinedas_rasterizer()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l01506">adl_tri_fill_Pinedas_rasterizer_interpolate_color()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l01597">adl_tri_fill_Pinedas_rasterizer_interpolate_normal()</a>, <a class="el" href="display_8c_source.html#l00361">check_window_mat_size()</a>, <a class="el" href="display_8c_source.html#l00376">copy_mat_to_surface_RGB()</a>, <a class="el" href="Matrix2D_8h_source.html#l00166">mat2D_alloc_uint32()</a>, <a class="el" href="Matrix2D_8h_source.html#l00217">mat2D_fill_uint32()</a>, <a class="el" href="Matrix2D_8h_source.html#l00194">mat2D_offset2d_uint32()</a>, and <a class="el" href="display_8c_source.html#l00295">render_window()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="Almog__Draw__Library_8h_source.html#l02247">adl_2Dscalar_interp_on_figure()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l02077">adl_axis_draw_on_figure()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l02014">adl_figure_alloc()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l02057">adl_figure_copy_to_screen()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l00316">adl_line_draw()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l00283">adl_point_draw()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l00961">adl_quad_fill()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l01149">adl_quad_fill_interpolate_color_mean_value()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l01055">adl_quad_fill_interpolate_normal_mean_value()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l01425">adl_tri_fill_Pinedas_rasterizer()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l01506">adl_tri_fill_Pinedas_rasterizer_interpolate_color()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l01597">adl_tri_fill_Pinedas_rasterizer_interpolate_normal()</a>, <a class="el" href="display_8c_source.html#l00361">check_window_mat_size()</a>, <a class="el" href="display_8c_source.html#l00376">copy_mat_to_surface_RGB()</a>, <a class="el" href="Matrix2D_8h_source.html#l00297">mat2D_alloc_uint32()</a>, <a class="el" href="Matrix2D_8h_source.html#l00391">mat2D_fill_uint32()</a>, <a class="el" href="Matrix2D_8h_source.html#l00351">mat2D_offset2d_uint32()</a>, and <a class="el" href="display_8c_source.html#l00295">render_window()</a>.</p>
 
 </div>
 </div>
@@ -136,9 +146,9 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="Matrix2D_8h_source.html#l00040">40</a> of file <a class="el" href="Matrix2D_8h_source.html">Matrix2D.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="Matrix2D_8h_source.html#l00102">102</a> of file <a class="el" href="Matrix2D_8h_source.html">Matrix2D.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="display_8c_source.html#l00376">copy_mat_to_surface_RGB()</a>, <a class="el" href="Matrix2D_8h_source.html#l00166">mat2D_alloc_uint32()</a>, <a class="el" href="Matrix2D_8h_source.html#l00183">mat2D_free_uint32()</a>, and <a class="el" href="display_8c_source.html#l00295">render_window()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="display_8c_source.html#l00376">copy_mat_to_surface_RGB()</a>, <a class="el" href="Matrix2D_8h_source.html#l00297">mat2D_alloc_uint32()</a>, <a class="el" href="Matrix2D_8h_source.html#l00324">mat2D_free_uint32()</a>, and <a class="el" href="display_8c_source.html#l00295">render_window()</a>.</p>
 
 </div>
 </div>
@@ -154,9 +164,9 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="Matrix2D_8h_source.html#l00037">37</a> of file <a class="el" href="Matrix2D_8h_source.html">Matrix2D.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="Matrix2D_8h_source.html#l00099">99</a> of file <a class="el" href="Matrix2D_8h_source.html">Matrix2D.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="Almog__Draw__Library_8h_source.html#l02247">adl_2Dscalar_interp_on_figure()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l02077">adl_axis_draw_on_figure()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l02014">adl_figure_alloc()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l02057">adl_figure_copy_to_screen()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l00316">adl_line_draw()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l02103">adl_max_min_values_draw_on_figure()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l00283">adl_point_draw()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l00961">adl_quad_fill()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l01149">adl_quad_fill_interpolate_color_mean_value()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l01055">adl_quad_fill_interpolate_normal_mean_value()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l01425">adl_tri_fill_Pinedas_rasterizer()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l01506">adl_tri_fill_Pinedas_rasterizer_interpolate_color()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l01597">adl_tri_fill_Pinedas_rasterizer_interpolate_normal()</a>, <a class="el" href="display_8c_source.html#l00361">check_window_mat_size()</a>, <a class="el" href="display_8c_source.html#l00376">copy_mat_to_surface_RGB()</a>, <a class="el" href="Matrix2D_8h_source.html#l00166">mat2D_alloc_uint32()</a>, <a class="el" href="Matrix2D_8h_source.html#l00217">mat2D_fill_uint32()</a>, <a class="el" href="Matrix2D_8h_source.html#l00194">mat2D_offset2d_uint32()</a>, and <a class="el" href="display_8c_source.html#l00295">render_window()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="Almog__Draw__Library_8h_source.html#l02247">adl_2Dscalar_interp_on_figure()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l02077">adl_axis_draw_on_figure()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l02014">adl_figure_alloc()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l02057">adl_figure_copy_to_screen()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l00316">adl_line_draw()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l02103">adl_max_min_values_draw_on_figure()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l00283">adl_point_draw()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l00961">adl_quad_fill()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l01149">adl_quad_fill_interpolate_color_mean_value()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l01055">adl_quad_fill_interpolate_normal_mean_value()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l01425">adl_tri_fill_Pinedas_rasterizer()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l01506">adl_tri_fill_Pinedas_rasterizer_interpolate_color()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l01597">adl_tri_fill_Pinedas_rasterizer_interpolate_normal()</a>, <a class="el" href="display_8c_source.html#l00361">check_window_mat_size()</a>, <a class="el" href="display_8c_source.html#l00376">copy_mat_to_surface_RGB()</a>, <a class="el" href="Matrix2D_8h_source.html#l00297">mat2D_alloc_uint32()</a>, <a class="el" href="Matrix2D_8h_source.html#l00391">mat2D_fill_uint32()</a>, <a class="el" href="Matrix2D_8h_source.html#l00351">mat2D_offset2d_uint32()</a>, and <a class="el" href="display_8c_source.html#l00295">render_window()</a>.</p>
 
 </div>
 </div>
@@ -172,9 +182,9 @@ Public Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="Matrix2D_8h_source.html#l00039">39</a> of file <a class="el" href="Matrix2D_8h_source.html">Matrix2D.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="Matrix2D_8h_source.html#l00101">101</a> of file <a class="el" href="Matrix2D_8h_source.html">Matrix2D.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="Matrix2D_8h_source.html#l00166">mat2D_alloc_uint32()</a>, and <a class="el" href="Matrix2D_8h_source.html#l00194">mat2D_offset2d_uint32()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="Matrix2D_8h_source.html#l00297">mat2D_alloc_uint32()</a>, and <a class="el" href="Matrix2D_8h_source.html#l00351">mat2D_offset2d_uint32()</a>.</p>
 
 </div>
 </div>

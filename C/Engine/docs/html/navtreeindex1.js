@@ -1,11 +1,11 @@
 var NAVTREEINDEX1 =
 {
-"Matrix2D_8h.html#abda90a369811f8c2693911008994f6ec":[1,0,0,0,5,20],
 "Matrix2D_8h.html#abdffe058c709b68f7d491ac9bf23f52e":[1,0,0,0,5,4],
-"Matrix2D_8h.html#abff2de8510578beb574dad66ce1785b2":[1,0,0,0,5,62],
+"Matrix2D_8h.html#abff2de8510578beb574dad66ce1785b2":[1,0,0,0,5,63],
 "Matrix2D_8h.html#ac1c669a88bb0d49fd1844b19e7e35d39":[1,0,0,0,5,52],
 "Matrix2D_8h.html#ac53223569c7ba558b10a0d2ad0287d32":[1,0,0,0,5,42],
 "Matrix2D_8h.html#acb12a1d20afc3dcc569d819488c53c51":[1,0,0,0,5,40],
+"Matrix2D_8h.html#ad64669da13fce595c71de8b9ec12dde5":[1,0,0,0,5,53],
 "Matrix2D_8h.html#adac1c1ab9a90014bf3c1cd0bb8381a90":[1,0,0,0,5,19],
 "Matrix2D_8h.html#add98cfd72b7f2862809724a2933144b0":[1,0,0,0,5,25],
 "Matrix2D_8h.html#ae6619814831ec2f936c071e7dc7d81a3":[1,0,0,0,5,10],
@@ -17,7 +17,6 @@ var NAVTREEINDEX1 =
 "Matrix2D_8h.html#afa42796a16a92b05af6f6de0ef2cb3f9":[1,0,0,0,5,45],
 "Matrix2D_8h.html#afe36aba7dc74ecd4ac750c327f3d613d":[1,0,0,0,5,44],
 "Matrix2D_8h.html#afe3caf9b98714a590aa79313bbbca616":[1,0,0,0,5,27],
-"Matrix2D_8h.html#affdba9e27c79692b1660fa94ec70bfe3":[1,0,0,0,5,67],
 "Matrix2D_8h_source.html":[1,0,0,0,5],
 "annotated.html":[0,0],
 "classes.html":[0,1],
@@ -249,5 +248,6 @@ var NAVTREEINDEX1 =
 "structgame__state__t.html#ac097087a8e2cbf1dc166ce3cb3feae6e":[0,0,4,19],
 "structgame__state__t.html#adf6de1fece0bb3d4fd31ad35a9772948":[0,0,4,20],
 "structgame__state__t.html#ae461a66325998fb4664b30c33d70f6b9":[0,0,4,5],
-"structgame__state__t.html#aeaa4ff862bd51a350b59446cc9da619c":[0,0,4,6]
+"structgame__state__t.html#aeaa4ff862bd51a350b59446cc9da619c":[0,0,4,6],
+"structgame__state__t.html#aecd77938a1375613f71e3c398f2bf0e1":[0,0,4,25]
 };

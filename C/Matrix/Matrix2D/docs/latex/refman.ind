@@ -1,0 +1,268 @@
+\begin{theindex}
+
+  \item {\_\_USE\_MISC}
+    \subitem {Matrix2D.h}, \hyperpage{15}
+
+  \indexspace
+
+  \item {cols}
+    \subitem {Mat2D}, \hyperpage{5}
+    \subitem {Mat2D\_Minor}, \hyperpage{7}
+    \subitem {Mat2D\_uint32}, \hyperpage{9}
+  \item {cols\_list}
+    \subitem {Mat2D\_Minor}, \hyperpage{8}
+
+  \indexspace
+
+  \item {elements}
+    \subitem {Mat2D}, \hyperpage{6}
+    \subitem {Mat2D\_uint32}, \hyperpage{10}
+
+  \indexspace
+
+  \item {main}
+    \subitem {temp.c}, \hyperpage{56}
+  \item {Mat2D}, \hyperpage{5}
+    \subitem {cols}, \hyperpage{5}
+    \subitem {elements}, \hyperpage{6}
+    \subitem {rows}, \hyperpage{6}
+    \subitem {stride\_r}, \hyperpage{6}
+  \item {mat2D\_add}
+    \subitem {Matrix2D.h}, \hyperpage{17}
+  \item {mat2D\_add\_col\_to\_col}
+    \subitem {Matrix2D.h}, \hyperpage{18}
+  \item {mat2D\_add\_row\_time\_factor\_to\_row}
+    \subitem {Matrix2D.h}, \hyperpage{18}
+  \item {mat2D\_add\_row\_to\_row}
+    \subitem {Matrix2D.h}, \hyperpage{19}
+  \item {mat2D\_alloc}
+    \subitem {Matrix2D.h}, \hyperpage{19}
+  \item {mat2D\_alloc\_uint32}
+    \subitem {Matrix2D.h}, \hyperpage{20}
+  \item {MAT2D\_AT}
+    \subitem {Matrix2D.h}, \hyperpage{15}
+  \item {MAT2D\_AT\_UINT32}
+    \subitem {Matrix2D.h}, \hyperpage{15}
+  \item {mat2D\_calc\_norma}
+    \subitem {Matrix2D.h}, \hyperpage{20}
+  \item {mat2D\_col\_is\_all\_digit}
+    \subitem {Matrix2D.h}, \hyperpage{21}
+  \item {mat2D\_copy}
+    \subitem {Matrix2D.h}, \hyperpage{21}
+  \item {mat2D\_copy\_mat\_to\_mat\_at\_window}
+    \subitem {Matrix2D.h}, \hyperpage{22}
+  \item {mat2D\_cross}
+    \subitem {Matrix2D.h}, \hyperpage{22}
+  \item {mat2D\_det}
+    \subitem {Matrix2D.h}, \hyperpage{23}
+  \item {mat2D\_det\_2x2\_mat}
+    \subitem {Matrix2D.h}, \hyperpage{23}
+  \item {mat2D\_det\_2x2\_mat\_minor}
+    \subitem {Matrix2D.h}, \hyperpage{24}
+  \item {mat2D\_dot}
+    \subitem {Matrix2D.h}, \hyperpage{24}
+  \item {mat2D\_dot\_product}
+    \subitem {Matrix2D.h}, \hyperpage{25}
+  \item {mat2D\_fill}
+    \subitem {Matrix2D.h}, \hyperpage{25}
+  \item {mat2D\_fill\_sequence}
+    \subitem {Matrix2D.h}, \hyperpage{26}
+  \item {mat2D\_fill\_uint32}
+    \subitem {Matrix2D.h}, \hyperpage{26}
+  \item {mat2D\_free}
+    \subitem {Matrix2D.h}, \hyperpage{27}
+  \item {mat2D\_free\_uint32}
+    \subitem {Matrix2D.h}, \hyperpage{27}
+  \item {mat2D\_get\_col}
+    \subitem {Matrix2D.h}, \hyperpage{28}
+  \item {mat2D\_get\_row}
+    \subitem {Matrix2D.h}, \hyperpage{28}
+  \item {mat2D\_invert}
+    \subitem {Matrix2D.h}, \hyperpage{28}
+  \item {mat2D\_LUP\_decomposition\_with\_swap}
+    \subitem {Matrix2D.h}, \hyperpage{29}
+  \item {mat2D\_make\_identity}
+    \subitem {Matrix2D.h}, \hyperpage{30}
+  \item {mat2D\_mat\_is\_all\_digit}
+    \subitem {Matrix2D.h}, \hyperpage{30}
+  \item {Mat2D\_Minor}, \hyperpage{7}
+    \subitem {cols}, \hyperpage{7}
+    \subitem {cols\_list}, \hyperpage{8}
+    \subitem {ref\_mat}, \hyperpage{8}
+    \subitem {rows}, \hyperpage{8}
+    \subitem {rows\_list}, \hyperpage{8}
+    \subitem {stride\_r}, \hyperpage{8}
+  \item {mat2D\_minor\_alloc\_fill\_from\_mat}
+    \subitem {Matrix2D.h}, \hyperpage{31}
+  \item {mat2D\_minor\_alloc\_fill\_from\_mat\_minor}
+    \subitem {Matrix2D.h}, \hyperpage{31}
+  \item {MAT2D\_MINOR\_AT}
+    \subitem {Matrix2D.h}, \hyperpage{16}
+  \item {mat2D\_minor\_det}
+    \subitem {Matrix2D.h}, \hyperpage{32}
+  \item {mat2D\_minor\_free}
+    \subitem {Matrix2D.h}, \hyperpage{32}
+  \item {MAT2D\_MINOR\_PRINT}
+    \subitem {Matrix2D.h}, \hyperpage{16}
+  \item {mat2D\_minor\_print}
+    \subitem {Matrix2D.h}, \hyperpage{33}
+  \item {mat2D\_mult}
+    \subitem {Matrix2D.h}, \hyperpage{33}
+  \item {mat2D\_mult\_row}
+    \subitem {Matrix2D.h}, \hyperpage{34}
+  \item {mat2D\_normalize}
+    \subitem {Matrix2D.h}, \hyperpage{16}
+  \item {mat2D\_offset2d}
+    \subitem {Matrix2D.h}, \hyperpage{34}
+  \item {mat2D\_offset2d\_uint32}
+    \subitem {Matrix2D.h}, \hyperpage{35}
+  \item {MAT2D\_PRINT}
+    \subitem {Matrix2D.h}, \hyperpage{16}
+  \item {mat2D\_print}
+    \subitem {Matrix2D.h}, \hyperpage{35}
+  \item {MAT2D\_PRINT\_AS\_COL}
+    \subitem {Matrix2D.h}, \hyperpage{17}
+  \item {mat2D\_print\_as\_col}
+    \subitem {Matrix2D.h}, \hyperpage{36}
+  \item {mat2D\_rand}
+    \subitem {Matrix2D.h}, \hyperpage{36}
+  \item {mat2D\_rand\_double}
+    \subitem {Matrix2D.h}, \hyperpage{37}
+  \item {mat2D\_row\_is\_all\_digit}
+    \subitem {Matrix2D.h}, \hyperpage{37}
+  \item {mat2D\_set\_DCM\_zyx}
+    \subitem {Matrix2D.h}, \hyperpage{37}
+  \item {mat2D\_set\_identity}
+    \subitem {Matrix2D.h}, \hyperpage{38}
+  \item {mat2D\_set\_rot\_mat\_x}
+    \subitem {Matrix2D.h}, \hyperpage{38}
+  \item {mat2D\_set\_rot\_mat\_y}
+    \subitem {Matrix2D.h}, \hyperpage{39}
+  \item {mat2D\_set\_rot\_mat\_z}
+    \subitem {Matrix2D.h}, \hyperpage{39}
+  \item {mat2D\_solve\_linear\_sys\_LUP\_decomposition}
+    \subitem {Matrix2D.h}, \hyperpage{40}
+  \item {mat2D\_sub}
+    \subitem {Matrix2D.h}, \hyperpage{40}
+  \item {mat2D\_sub\_col\_to\_col}
+    \subitem {Matrix2D.h}, \hyperpage{41}
+  \item {mat2D\_sub\_row\_time\_factor\_to\_row}
+    \subitem {Matrix2D.h}, \hyperpage{41}
+  \item {mat2D\_sub\_row\_to\_row}
+    \subitem {Matrix2D.h}, \hyperpage{42}
+  \item {mat2D\_swap\_rows}
+    \subitem {Matrix2D.h}, \hyperpage{42}
+  \item {mat2D\_transpose}
+    \subitem {Matrix2D.h}, \hyperpage{43}
+  \item {mat2D\_triangulate}
+    \subitem {Matrix2D.h}, \hyperpage{43}
+  \item {Mat2D\_uint32}, \hyperpage{9}
+    \subitem {cols}, \hyperpage{9}
+    \subitem {elements}, \hyperpage{10}
+    \subitem {rows}, \hyperpage{10}
+    \subitem {stride\_r}, \hyperpage{10}
+  \item {Matrix2D.h}, \hyperpage{11}
+    \subitem {\_\_USE\_MISC}, \hyperpage{15}
+    \subitem {mat2D\_add}, \hyperpage{17}
+    \subitem {mat2D\_add\_col\_to\_col}, \hyperpage{18}
+    \subitem {mat2D\_add\_row\_time\_factor\_to\_row}, \hyperpage{18}
+    \subitem {mat2D\_add\_row\_to\_row}, \hyperpage{19}
+    \subitem {mat2D\_alloc}, \hyperpage{19}
+    \subitem {mat2D\_alloc\_uint32}, \hyperpage{20}
+    \subitem {MAT2D\_AT}, \hyperpage{15}
+    \subitem {MAT2D\_AT\_UINT32}, \hyperpage{15}
+    \subitem {mat2D\_calc\_norma}, \hyperpage{20}
+    \subitem {mat2D\_col\_is\_all\_digit}, \hyperpage{21}
+    \subitem {mat2D\_copy}, \hyperpage{21}
+    \subitem {mat2D\_copy\_mat\_to\_mat\_at\_window}, \hyperpage{22}
+    \subitem {mat2D\_cross}, \hyperpage{22}
+    \subitem {mat2D\_det}, \hyperpage{23}
+    \subitem {mat2D\_det\_2x2\_mat}, \hyperpage{23}
+    \subitem {mat2D\_det\_2x2\_mat\_minor}, \hyperpage{24}
+    \subitem {mat2D\_dot}, \hyperpage{24}
+    \subitem {mat2D\_dot\_product}, \hyperpage{25}
+    \subitem {mat2D\_fill}, \hyperpage{25}
+    \subitem {mat2D\_fill\_sequence}, \hyperpage{26}
+    \subitem {mat2D\_fill\_uint32}, \hyperpage{26}
+    \subitem {mat2D\_free}, \hyperpage{27}
+    \subitem {mat2D\_free\_uint32}, \hyperpage{27}
+    \subitem {mat2D\_get\_col}, \hyperpage{28}
+    \subitem {mat2D\_get\_row}, \hyperpage{28}
+    \subitem {mat2D\_invert}, \hyperpage{28}
+    \subitem {mat2D\_LUP\_decomposition\_with\_swap}, \hyperpage{29}
+    \subitem {mat2D\_make\_identity}, \hyperpage{30}
+    \subitem {mat2D\_mat\_is\_all\_digit}, \hyperpage{30}
+    \subitem {mat2D\_minor\_alloc\_fill\_from\_mat}, \hyperpage{31}
+    \subitem {mat2D\_minor\_alloc\_fill\_from\_mat\_minor}, 
+		\hyperpage{31}
+    \subitem {MAT2D\_MINOR\_AT}, \hyperpage{16}
+    \subitem {mat2D\_minor\_det}, \hyperpage{32}
+    \subitem {mat2D\_minor\_free}, \hyperpage{32}
+    \subitem {MAT2D\_MINOR\_PRINT}, \hyperpage{16}
+    \subitem {mat2D\_minor\_print}, \hyperpage{33}
+    \subitem {mat2D\_mult}, \hyperpage{33}
+    \subitem {mat2D\_mult\_row}, \hyperpage{34}
+    \subitem {mat2D\_normalize}, \hyperpage{16}
+    \subitem {mat2D\_offset2d}, \hyperpage{34}
+    \subitem {mat2D\_offset2d\_uint32}, \hyperpage{35}
+    \subitem {MAT2D\_PRINT}, \hyperpage{16}
+    \subitem {mat2D\_print}, \hyperpage{35}
+    \subitem {MAT2D\_PRINT\_AS\_COL}, \hyperpage{17}
+    \subitem {mat2D\_print\_as\_col}, \hyperpage{36}
+    \subitem {mat2D\_rand}, \hyperpage{36}
+    \subitem {mat2D\_rand\_double}, \hyperpage{37}
+    \subitem {mat2D\_row\_is\_all\_digit}, \hyperpage{37}
+    \subitem {mat2D\_set\_DCM\_zyx}, \hyperpage{37}
+    \subitem {mat2D\_set\_identity}, \hyperpage{38}
+    \subitem {mat2D\_set\_rot\_mat\_x}, \hyperpage{38}
+    \subitem {mat2D\_set\_rot\_mat\_y}, \hyperpage{39}
+    \subitem {mat2D\_set\_rot\_mat\_z}, \hyperpage{39}
+    \subitem {mat2D\_solve\_linear\_sys\_LUP\_decomposition}, 
+		\hyperpage{40}
+    \subitem {mat2D\_sub}, \hyperpage{40}
+    \subitem {mat2D\_sub\_col\_to\_col}, \hyperpage{41}
+    \subitem {mat2D\_sub\_row\_time\_factor\_to\_row}, \hyperpage{41}
+    \subitem {mat2D\_sub\_row\_to\_row}, \hyperpage{42}
+    \subitem {mat2D\_swap\_rows}, \hyperpage{42}
+    \subitem {mat2D\_transpose}, \hyperpage{43}
+    \subitem {mat2D\_triangulate}, \hyperpage{43}
+    \subitem {MATRIX2D\_ASSERT}, \hyperpage{17}
+    \subitem {MATRIX2D\_MALLOC}, \hyperpage{17}
+    \subitem {PI}, \hyperpage{17}
+  \item {MATRIX2D\_ASSERT}
+    \subitem {Matrix2D.h}, \hyperpage{17}
+  \item {MATRIX2D\_IMPLEMENTATION}
+    \subitem {temp.c}, \hyperpage{55}
+  \item {MATRIX2D\_MALLOC}
+    \subitem {Matrix2D.h}, \hyperpage{17}
+
+  \indexspace
+
+  \item {PI}
+    \subitem {Matrix2D.h}, \hyperpage{17}
+
+  \indexspace
+
+  \item {ref\_mat}
+    \subitem {Mat2D\_Minor}, \hyperpage{8}
+  \item {rows}
+    \subitem {Mat2D}, \hyperpage{6}
+    \subitem {Mat2D\_Minor}, \hyperpage{8}
+    \subitem {Mat2D\_uint32}, \hyperpage{10}
+  \item {rows\_list}
+    \subitem {Mat2D\_Minor}, \hyperpage{8}
+
+  \indexspace
+
+  \item {stride\_r}
+    \subitem {Mat2D}, \hyperpage{6}
+    \subitem {Mat2D\_Minor}, \hyperpage{8}
+    \subitem {Mat2D\_uint32}, \hyperpage{10}
+
+  \indexspace
+
+  \item {temp.c}, \hyperpage{55}
+    \subitem {main}, \hyperpage{56}
+    \subitem {MATRIX2D\_IMPLEMENTATION}, \hyperpage{55}
+
+\end{theindex}

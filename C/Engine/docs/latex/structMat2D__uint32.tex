@@ -2,6 +2,11 @@
 \label{structMat2D__uint32}\index{Mat2D\_uint32@{Mat2D\_uint32}}
 
 
+Dense row-\/major matrix of uint32\+\_\+t.  
+
+
+
+
 {\ttfamily \#include $<$Matrix2\+D.\+h$>$}
 
 \doxysubsection*{Public Attributes}
@@ -18,9 +23,17 @@ uint32\+\_\+t $\ast$ \mbox{\hyperlink{structMat2D__uint32_a79e155b6ec688f2dcbf81
 
 
 \doxysubsection{Detailed Description}
+Dense row-\/major matrix of uint32\+\_\+t. 
 
 
-Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00036}{36}} of file \mbox{\hyperlink{Matrix2D_8h_source}{Matrix2\+D.\+h}}.
+\begin{DoxyItemize}
+\item rows\+: number of rows (height)
+\item cols\+: number of columns (width)
+\item stride\+\_\+r\+: number of elements between successive rows in memory (for contiguous storage, stride\+\_\+r == cols)
+\item elements\+: pointer to contiguous storage of size rows $\ast$ cols 
+\end{DoxyItemize}
+
+Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00098}{98}} of file \mbox{\hyperlink{Matrix2D_8h_source}{Matrix2\+D.\+h}}.
 
 
 
@@ -33,11 +46,11 @@ Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00036}{36}} of file \mbo
 
 
 
-Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00038}{38}} of file \mbox{\hyperlink{Matrix2D_8h_source}{Matrix2\+D.\+h}}.
+Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00100}{100}} of file \mbox{\hyperlink{Matrix2D_8h_source}{Matrix2\+D.\+h}}.
 
 
 
-Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02247}{adl\+\_\+2\+Dscalar\+\_\+interp\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02077}{adl\+\_\+axis\+\_\+draw\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02014}{adl\+\_\+figure\+\_\+alloc()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02057}{adl\+\_\+figure\+\_\+copy\+\_\+to\+\_\+screen()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00316}{adl\+\_\+line\+\_\+draw()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00283}{adl\+\_\+point\+\_\+draw()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00961}{adl\+\_\+quad\+\_\+fill()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01149}{adl\+\_\+quad\+\_\+fill\+\_\+interpolate\+\_\+color\+\_\+mean\+\_\+value()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01055}{adl\+\_\+quad\+\_\+fill\+\_\+interpolate\+\_\+normal\+\_\+mean\+\_\+value()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01425}{adl\+\_\+tri\+\_\+fill\+\_\+\+Pinedas\+\_\+rasterizer()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01506}{adl\+\_\+tri\+\_\+fill\+\_\+\+Pinedas\+\_\+rasterizer\+\_\+interpolate\+\_\+color()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01597}{adl\+\_\+tri\+\_\+fill\+\_\+\+Pinedas\+\_\+rasterizer\+\_\+interpolate\+\_\+normal()}}, \mbox{\hyperlink{display_8c_source_l00361}{check\+\_\+window\+\_\+mat\+\_\+size()}}, \mbox{\hyperlink{display_8c_source_l00376}{copy\+\_\+mat\+\_\+to\+\_\+surface\+\_\+\+RGB()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00166}{mat2\+D\+\_\+alloc\+\_\+uint32()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00217}{mat2\+D\+\_\+fill\+\_\+uint32()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00194}{mat2\+D\+\_\+offset2d\+\_\+uint32()}}, and \mbox{\hyperlink{display_8c_source_l00295}{render\+\_\+window()}}.
+Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02247}{adl\+\_\+2\+Dscalar\+\_\+interp\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02077}{adl\+\_\+axis\+\_\+draw\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02014}{adl\+\_\+figure\+\_\+alloc()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02057}{adl\+\_\+figure\+\_\+copy\+\_\+to\+\_\+screen()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00316}{adl\+\_\+line\+\_\+draw()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00283}{adl\+\_\+point\+\_\+draw()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00961}{adl\+\_\+quad\+\_\+fill()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01149}{adl\+\_\+quad\+\_\+fill\+\_\+interpolate\+\_\+color\+\_\+mean\+\_\+value()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01055}{adl\+\_\+quad\+\_\+fill\+\_\+interpolate\+\_\+normal\+\_\+mean\+\_\+value()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01425}{adl\+\_\+tri\+\_\+fill\+\_\+\+Pinedas\+\_\+rasterizer()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01506}{adl\+\_\+tri\+\_\+fill\+\_\+\+Pinedas\+\_\+rasterizer\+\_\+interpolate\+\_\+color()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01597}{adl\+\_\+tri\+\_\+fill\+\_\+\+Pinedas\+\_\+rasterizer\+\_\+interpolate\+\_\+normal()}}, \mbox{\hyperlink{display_8c_source_l00361}{check\+\_\+window\+\_\+mat\+\_\+size()}}, \mbox{\hyperlink{display_8c_source_l00376}{copy\+\_\+mat\+\_\+to\+\_\+surface\+\_\+\+RGB()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00297}{mat2\+D\+\_\+alloc\+\_\+uint32()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00391}{mat2\+D\+\_\+fill\+\_\+uint32()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00351}{mat2\+D\+\_\+offset2d\+\_\+uint32()}}, and \mbox{\hyperlink{display_8c_source_l00295}{render\+\_\+window()}}.
 
 \mbox{\Hypertarget{structMat2D__uint32_a79e155b6ec688f2dcbf81b878b351cd9}\label{structMat2D__uint32_a79e155b6ec688f2dcbf81b878b351cd9}} 
 \index{Mat2D\_uint32@{Mat2D\_uint32}!elements@{elements}}
@@ -47,11 +60,11 @@ Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02247}{adl\+\_\+2
 
 
 
-Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00040}{40}} of file \mbox{\hyperlink{Matrix2D_8h_source}{Matrix2\+D.\+h}}.
+Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00102}{102}} of file \mbox{\hyperlink{Matrix2D_8h_source}{Matrix2\+D.\+h}}.
 
 
 
-Referenced by \mbox{\hyperlink{display_8c_source_l00376}{copy\+\_\+mat\+\_\+to\+\_\+surface\+\_\+\+RGB()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00166}{mat2\+D\+\_\+alloc\+\_\+uint32()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00183}{mat2\+D\+\_\+free\+\_\+uint32()}}, and \mbox{\hyperlink{display_8c_source_l00295}{render\+\_\+window()}}.
+Referenced by \mbox{\hyperlink{display_8c_source_l00376}{copy\+\_\+mat\+\_\+to\+\_\+surface\+\_\+\+RGB()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00297}{mat2\+D\+\_\+alloc\+\_\+uint32()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00324}{mat2\+D\+\_\+free\+\_\+uint32()}}, and \mbox{\hyperlink{display_8c_source_l00295}{render\+\_\+window()}}.
 
 \mbox{\Hypertarget{structMat2D__uint32_a20afe9ce6a7fd1eebccaf13e4b6ec886}\label{structMat2D__uint32_a20afe9ce6a7fd1eebccaf13e4b6ec886}} 
 \index{Mat2D\_uint32@{Mat2D\_uint32}!rows@{rows}}
@@ -61,11 +74,11 @@ Referenced by \mbox{\hyperlink{display_8c_source_l00376}{copy\+\_\+mat\+\_\+to\+
 
 
 
-Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00037}{37}} of file \mbox{\hyperlink{Matrix2D_8h_source}{Matrix2\+D.\+h}}.
+Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00099}{99}} of file \mbox{\hyperlink{Matrix2D_8h_source}{Matrix2\+D.\+h}}.
 
 
 
-Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02247}{adl\+\_\+2\+Dscalar\+\_\+interp\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02077}{adl\+\_\+axis\+\_\+draw\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02014}{adl\+\_\+figure\+\_\+alloc()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02057}{adl\+\_\+figure\+\_\+copy\+\_\+to\+\_\+screen()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00316}{adl\+\_\+line\+\_\+draw()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02103}{adl\+\_\+max\+\_\+min\+\_\+values\+\_\+draw\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00283}{adl\+\_\+point\+\_\+draw()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00961}{adl\+\_\+quad\+\_\+fill()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01149}{adl\+\_\+quad\+\_\+fill\+\_\+interpolate\+\_\+color\+\_\+mean\+\_\+value()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01055}{adl\+\_\+quad\+\_\+fill\+\_\+interpolate\+\_\+normal\+\_\+mean\+\_\+value()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01425}{adl\+\_\+tri\+\_\+fill\+\_\+\+Pinedas\+\_\+rasterizer()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01506}{adl\+\_\+tri\+\_\+fill\+\_\+\+Pinedas\+\_\+rasterizer\+\_\+interpolate\+\_\+color()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01597}{adl\+\_\+tri\+\_\+fill\+\_\+\+Pinedas\+\_\+rasterizer\+\_\+interpolate\+\_\+normal()}}, \mbox{\hyperlink{display_8c_source_l00361}{check\+\_\+window\+\_\+mat\+\_\+size()}}, \mbox{\hyperlink{display_8c_source_l00376}{copy\+\_\+mat\+\_\+to\+\_\+surface\+\_\+\+RGB()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00166}{mat2\+D\+\_\+alloc\+\_\+uint32()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00217}{mat2\+D\+\_\+fill\+\_\+uint32()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00194}{mat2\+D\+\_\+offset2d\+\_\+uint32()}}, and \mbox{\hyperlink{display_8c_source_l00295}{render\+\_\+window()}}.
+Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02247}{adl\+\_\+2\+Dscalar\+\_\+interp\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02077}{adl\+\_\+axis\+\_\+draw\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02014}{adl\+\_\+figure\+\_\+alloc()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02057}{adl\+\_\+figure\+\_\+copy\+\_\+to\+\_\+screen()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00316}{adl\+\_\+line\+\_\+draw()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02103}{adl\+\_\+max\+\_\+min\+\_\+values\+\_\+draw\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00283}{adl\+\_\+point\+\_\+draw()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00961}{adl\+\_\+quad\+\_\+fill()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01149}{adl\+\_\+quad\+\_\+fill\+\_\+interpolate\+\_\+color\+\_\+mean\+\_\+value()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01055}{adl\+\_\+quad\+\_\+fill\+\_\+interpolate\+\_\+normal\+\_\+mean\+\_\+value()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01425}{adl\+\_\+tri\+\_\+fill\+\_\+\+Pinedas\+\_\+rasterizer()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01506}{adl\+\_\+tri\+\_\+fill\+\_\+\+Pinedas\+\_\+rasterizer\+\_\+interpolate\+\_\+color()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01597}{adl\+\_\+tri\+\_\+fill\+\_\+\+Pinedas\+\_\+rasterizer\+\_\+interpolate\+\_\+normal()}}, \mbox{\hyperlink{display_8c_source_l00361}{check\+\_\+window\+\_\+mat\+\_\+size()}}, \mbox{\hyperlink{display_8c_source_l00376}{copy\+\_\+mat\+\_\+to\+\_\+surface\+\_\+\+RGB()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00297}{mat2\+D\+\_\+alloc\+\_\+uint32()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00391}{mat2\+D\+\_\+fill\+\_\+uint32()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00351}{mat2\+D\+\_\+offset2d\+\_\+uint32()}}, and \mbox{\hyperlink{display_8c_source_l00295}{render\+\_\+window()}}.
 
 \mbox{\Hypertarget{structMat2D__uint32_aee36492a44397a9401e6d73c3047832e}\label{structMat2D__uint32_aee36492a44397a9401e6d73c3047832e}} 
 \index{Mat2D\_uint32@{Mat2D\_uint32}!stride\_r@{stride\_r}}
@@ -75,11 +88,11 @@ Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02247}{adl\+\_\+2
 
 
 
-Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00039}{39}} of file \mbox{\hyperlink{Matrix2D_8h_source}{Matrix2\+D.\+h}}.
+Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00101}{101}} of file \mbox{\hyperlink{Matrix2D_8h_source}{Matrix2\+D.\+h}}.
 
 
 
-Referenced by \mbox{\hyperlink{Matrix2D_8h_source_l00166}{mat2\+D\+\_\+alloc\+\_\+uint32()}}, and \mbox{\hyperlink{Matrix2D_8h_source_l00194}{mat2\+D\+\_\+offset2d\+\_\+uint32()}}.
+Referenced by \mbox{\hyperlink{Matrix2D_8h_source_l00297}{mat2\+D\+\_\+alloc\+\_\+uint32()}}, and \mbox{\hyperlink{Matrix2D_8h_source_l00351}{mat2\+D\+\_\+offset2d\+\_\+uint32()}}.
 
 
 

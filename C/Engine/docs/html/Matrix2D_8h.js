@@ -53,6 +53,7 @@ var Matrix2D_8h =
     [ "mat2D_print", "Matrix2D_8h.html#a2259aafa1dad6d102143d9fd4a760f74", null ],
     [ "mat2D_print_as_col", "Matrix2D_8h.html#a9f58c68361c1cb6532ae5936caef8869", null ],
     [ "mat2D_rand", "Matrix2D_8h.html#ac1c669a88bb0d49fd1844b19e7e35d39", null ],
+    [ "mat2D_rand_double", "Matrix2D_8h.html#ad64669da13fce595c71de8b9ec12dde5", null ],
     [ "mat2D_row_is_all_digit", "Matrix2D_8h.html#a8591bb4b2ed5a9aa2b92f4c081848ee2", null ],
     [ "mat2D_set_DCM_zyx", "Matrix2D_8h.html#a4a9489c8a78bf80f98ec7b2b9fd0888e", null ],
     [ "mat2D_set_identity", "Matrix2D_8h.html#a67a8ec9129b92e0ad62a578daf7b797b", null ],
@@ -66,6 +67,5 @@ var Matrix2D_8h =
     [ "mat2D_sub_row_to_row", "Matrix2D_8h.html#a2e3905602c600a3a2552325f8c35eebd", null ],
     [ "mat2D_swap_rows", "Matrix2D_8h.html#ab6ff4f83b4ba30ac9abbe561eb5f211e", null ],
     [ "mat2D_transpose", "Matrix2D_8h.html#a18bd1d4bbab4a1fdef11f735cb3fbf5d", null ],
-    [ "mat2D_triangulate", "Matrix2D_8h.html#a9f78068de09b891e4e44633783d90bae", null ],
-    [ "rand_double", "Matrix2D_8h.html#affdba9e27c79692b1660fa94ec70bfe3", null ]
+    [ "mat2D_triangulate", "Matrix2D_8h.html#a9f78068de09b891e4e44633783d90bae", null ]
 ];

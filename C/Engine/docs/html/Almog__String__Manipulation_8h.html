@@ -88,6 +88,9 @@ $(document).ready(function(){initNavTree('Almog__String__Manipulation_8h.html','
 <div class="title">Almog_String_Manipulation.h File Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
+
+<p>Lightweight string and line manipulation helpers.  
+<a href="#details">More...</a></p>
 <div class="textblock"><code>#include &lt;stdio.h&gt;</code><br />
 <code>#include &lt;ctype.h&gt;</code><br />
 <code>#include &lt;stdlib.h&gt;</code><br />
@@ -97,7 +100,7 @@ Include dependency graph for Almog_String_Manipulation.h:</div>
 <div class="dyncontent">
 <div class="center"><img src="Almog__String__Manipulation_8h__incl.png" border="0" usemap="#asrc_2include_2Almog__String__Manipulation_8h" alt=""/></div>
 <map name="asrc_2include_2Almog__String__Manipulation_8h" id="asrc_2include_2Almog__String__Manipulation_8h">
-<area shape="rect" title=" " alt="" coords="87,5,270,47"/>
+<area shape="rect" title="Lightweight string and line manipulation helpers." alt="" coords="87,5,270,47"/>
 <area shape="rect" title=" " alt="" coords="5,95,72,121"/>
 <area shape="rect" title=" " alt="" coords="97,95,167,121"/>
 <area shape="rect" title=" " alt="" coords="191,95,262,121"/>
@@ -109,7 +112,7 @@ This graph shows which files directly or indirectly include this file:</div>
 <div class="dyncontent">
 <div class="center"><img src="Almog__String__Manipulation_8h__dep__incl.png" border="0" usemap="#asrc_2include_2Almog__String__Manipulation_8hdep" alt=""/></div>
 <map name="asrc_2include_2Almog__String__Manipulation_8hdep" id="asrc_2include_2Almog__String__Manipulation_8hdep">
-<area shape="rect" title=" " alt="" coords="195,5,377,47"/>
+<area shape="rect" title="Lightweight string and line manipulation helpers." alt="" coords="195,5,377,47"/>
 <area shape="rect" href="Almog__Engine_8h.html" title="Software 3D rendering and scene utilities for meshes, camera, and projection." alt="" coords="185,95,387,121"/>
 <area shape="rect" href="grid__example_8c.html" title=" " alt="" coords="5,244,151,271"/>
 <area shape="rect" href="display_8c.html" title=" " alt="" coords="154,169,306,196"/>
@@ -122,45 +125,81 @@ This graph shows which files directly or indirectly include this file:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="define-members"></a>
 Macros</h2></td></tr>
-<tr class="memitem:a18dca71f9c1cfae749d91ee885e5d0b3"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="Almog__String__Manipulation_8h.html#a18dca71f9c1cfae749d91ee885e5d0b3">MAXDIR</a>&#160;&#160;&#160;100</td></tr>
-<tr class="separator:a18dca71f9c1cfae749d91ee885e5d0b3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a076fd3c5ba5ac7c6bbedb64c188565f3"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="Almog__String__Manipulation_8h.html#a076fd3c5ba5ac7c6bbedb64c188565f3">MAX_LEN_LINE</a>&#160;&#160;&#160;(int)1e3</td></tr>
-<tr class="separator:a076fd3c5ba5ac7c6bbedb64c188565f3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8a10eb1b51de8ec7f32760fc42a499d3"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="Almog__String__Manipulation_8h.html#a8a10eb1b51de8ec7f32760fc42a499d3">dprintSTRING</a>(expr)&#160;&#160;&#160;printf(#expr &quot; = %s\n&quot;, expr)</td></tr>
-<tr class="separator:a8a10eb1b51de8ec7f32760fc42a499d3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8b63874b09e98605eddc71b18323ceaf"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="Almog__String__Manipulation_8h.html#a8b63874b09e98605eddc71b18323ceaf">dprintCHAR</a>(expr)&#160;&#160;&#160;printf(#expr &quot; = %c\n&quot;, expr)</td></tr>
-<tr class="separator:a8b63874b09e98605eddc71b18323ceaf"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad6ee5604ae166c2578fb919ba8047d32"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="Almog__String__Manipulation_8h.html#ad6ee5604ae166c2578fb919ba8047d32">dprintINT</a>(expr)&#160;&#160;&#160;printf(#expr &quot; = %d\n&quot;, expr)</td></tr>
-<tr class="separator:ad6ee5604ae166c2578fb919ba8047d32"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a44ef8de62cc4802e6e2d52716d9ea342"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="Almog__String__Manipulation_8h.html#a44ef8de62cc4802e6e2d52716d9ea342">dprintSIZE_T</a>(expr)&#160;&#160;&#160;printf(#expr &quot; = %zu\n&quot;, expr)</td></tr>
-<tr class="separator:a44ef8de62cc4802e6e2d52716d9ea342"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad471820dd5c75f65ca43362259b08c59"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="Almog__String__Manipulation_8h.html#ad471820dd5c75f65ca43362259b08c59">ASM_MAXDIR</a>&#160;&#160;&#160;100</td></tr>
+<tr class="memdesc:ad471820dd5c75f65ca43362259b08c59"><td class="mdescLeft">&#160;</td><td class="mdescRight">Generic maximum directory length constant (not used by the functions in this header but available to callers).  <a href="Almog__String__Manipulation_8h.html#ad471820dd5c75f65ca43362259b08c59">More...</a><br /></td></tr>
+<tr class="separator:ad471820dd5c75f65ca43362259b08c59"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0b297f6220bd049e02b3fb6ea0b8e6a9"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="Almog__String__Manipulation_8h.html#a0b297f6220bd049e02b3fb6ea0b8e6a9">ASM_MAX_LEN_LINE</a>&#160;&#160;&#160;(int)1e3</td></tr>
+<tr class="memdesc:a0b297f6220bd049e02b3fb6ea0b8e6a9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Maximum number of characters read by asm_get_line (excluding the terminating null).  <a href="Almog__String__Manipulation_8h.html#a0b297f6220bd049e02b3fb6ea0b8e6a9">More...</a><br /></td></tr>
+<tr class="separator:a0b297f6220bd049e02b3fb6ea0b8e6a9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aca98d8d2a0e5e0c21dc1b8b7f8d577c2"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="Almog__String__Manipulation_8h.html#aca98d8d2a0e5e0c21dc1b8b7f8d577c2">asm_dprintSTRING</a>(expr)&#160;&#160;&#160;printf(#expr &quot; = %s\n&quot;, expr)</td></tr>
+<tr class="memdesc:aca98d8d2a0e5e0c21dc1b8b7f8d577c2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Debug print a C string expression as "expr = value\n".  <a href="Almog__String__Manipulation_8h.html#aca98d8d2a0e5e0c21dc1b8b7f8d577c2">More...</a><br /></td></tr>
+<tr class="separator:aca98d8d2a0e5e0c21dc1b8b7f8d577c2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab837163fffc46611066258c7fee66e72"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="Almog__String__Manipulation_8h.html#ab837163fffc46611066258c7fee66e72">asm_dprintCHAR</a>(expr)&#160;&#160;&#160;printf(#expr &quot; = %c\n&quot;, expr)</td></tr>
+<tr class="memdesc:ab837163fffc46611066258c7fee66e72"><td class="mdescLeft">&#160;</td><td class="mdescRight">Debug print a character expression as "expr = c\n".  <a href="Almog__String__Manipulation_8h.html#ab837163fffc46611066258c7fee66e72">More...</a><br /></td></tr>
+<tr class="separator:ab837163fffc46611066258c7fee66e72"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af5e587f47be67febd1b05cdbbbd5327e"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="Almog__String__Manipulation_8h.html#af5e587f47be67febd1b05cdbbbd5327e">asm_dprintINT</a>(expr)&#160;&#160;&#160;printf(#expr &quot; = %d\n&quot;, expr)</td></tr>
+<tr class="memdesc:af5e587f47be67febd1b05cdbbbd5327e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Debug print an integer expression as "expr = n\n".  <a href="Almog__String__Manipulation_8h.html#af5e587f47be67febd1b05cdbbbd5327e">More...</a><br /></td></tr>
+<tr class="separator:af5e587f47be67febd1b05cdbbbd5327e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af9f72a9942a8366000e5bded5cfefa17"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="Almog__String__Manipulation_8h.html#af9f72a9942a8366000e5bded5cfefa17">asm_dprintSIZE_T</a>(expr)&#160;&#160;&#160;printf(#expr &quot; = %zu\n&quot;, expr)</td></tr>
+<tr class="memdesc:af9f72a9942a8366000e5bded5cfefa17"><td class="mdescLeft">&#160;</td><td class="mdescRight">Debug print a size_t expression as "expr = n\n".  <a href="Almog__String__Manipulation_8h.html#af9f72a9942a8366000e5bded5cfefa17">More...</a><br /></td></tr>
+<tr class="separator:af9f72a9942a8366000e5bded5cfefa17"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:a8f808979502627a0266c0e374f6e1641"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="Almog__String__Manipulation_8h.html#a8f808979502627a0266c0e374f6e1641">asm_get_line</a> (FILE *fp, char *dst)</td></tr>
+<tr class="memdesc:a8f808979502627a0266c0e374f6e1641"><td class="mdescLeft">&#160;</td><td class="mdescRight">Read a single line from a stream into a buffer.  <a href="Almog__String__Manipulation_8h.html#a8f808979502627a0266c0e374f6e1641">More...</a><br /></td></tr>
 <tr class="separator:a8f808979502627a0266c0e374f6e1641"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8cd7d02540e05c2a9b7457500b3de50f"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="Almog__String__Manipulation_8h.html#a8cd7d02540e05c2a9b7457500b3de50f">asm_length</a> (char *str)</td></tr>
+<tr class="memdesc:a8cd7d02540e05c2a9b7457500b3de50f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compute the length of a null-terminated C string.  <a href="Almog__String__Manipulation_8h.html#a8cd7d02540e05c2a9b7457500b3de50f">More...</a><br /></td></tr>
 <tr class="separator:a8cd7d02540e05c2a9b7457500b3de50f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a63ffe09b30c257a91c9b48a55837dbe0"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="Almog__String__Manipulation_8h.html#a63ffe09b30c257a91c9b48a55837dbe0">asm_get_next_word_from_line</a> (char *dst, char *src, char seperator)</td></tr>
+<tr class="memdesc:a63ffe09b30c257a91c9b48a55837dbe0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Extract the next word from a line without modifying the source.  <a href="Almog__String__Manipulation_8h.html#a63ffe09b30c257a91c9b48a55837dbe0">More...</a><br /></td></tr>
 <tr class="separator:a63ffe09b30c257a91c9b48a55837dbe0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab9b15c7b736606880f1545ef527748ce"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="Almog__String__Manipulation_8h.html#ab9b15c7b736606880f1545ef527748ce">asm_copy_arry_by_indesies</a> (char *target, int start, int end, char *src)</td></tr>
-<tr class="separator:ab9b15c7b736606880f1545ef527748ce"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6678a45a71470d241c237d5203047448"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="Almog__String__Manipulation_8h.html#a6678a45a71470d241c237d5203047448">asm_copy_array_by_indesies</a> (char *target, int start, int end, char *src)</td></tr>
+<tr class="memdesc:a6678a45a71470d241c237d5203047448"><td class="mdescLeft">&#160;</td><td class="mdescRight">Copy a substring [start, end) from src into target and null-terminate.  <a href="Almog__String__Manipulation_8h.html#a6678a45a71470d241c237d5203047448">More...</a><br /></td></tr>
+<tr class="separator:a6678a45a71470d241c237d5203047448"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1eed5e458a06330f12a09ed0c8b9d77d"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="Almog__String__Manipulation_8h.html#a1eed5e458a06330f12a09ed0c8b9d77d">asm_get_word_and_cut</a> (char *dst, char *src, char seperator)</td></tr>
+<tr class="memdesc:a1eed5e458a06330f12a09ed0c8b9d77d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the next word and cut the source string at that point.  <a href="Almog__String__Manipulation_8h.html#a1eed5e458a06330f12a09ed0c8b9d77d">More...</a><br /></td></tr>
 <tr class="separator:a1eed5e458a06330f12a09ed0c8b9d77d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a929b5505a3cdb1796f2865b25b3bc92a"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="Almog__String__Manipulation_8h.html#a929b5505a3cdb1796f2865b25b3bc92a">asm_str_in_str</a> (char *src, char *word2search)</td></tr>
+<tr class="memdesc:a929b5505a3cdb1796f2865b25b3bc92a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Count occurrences of a substring within a string.  <a href="Almog__String__Manipulation_8h.html#a929b5505a3cdb1796f2865b25b3bc92a">More...</a><br /></td></tr>
 <tr class="separator:a929b5505a3cdb1796f2865b25b3bc92a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afb4ca51d675f386a8f5325f4481314a9"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="Almog__String__Manipulation_8h.html#afb4ca51d675f386a8f5325f4481314a9">asm_strncmp</a> (const char *s1, const char *s2, const int N)</td></tr>
+<tr class="memdesc:afb4ca51d675f386a8f5325f4481314a9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Compare up to N characters for equality (boolean result).  <a href="Almog__String__Manipulation_8h.html#afb4ca51d675f386a8f5325f4481314a9">More...</a><br /></td></tr>
 <tr class="separator:afb4ca51d675f386a8f5325f4481314a9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Macro Definition Documentation</h2>
-<a id="a8b63874b09e98605eddc71b18323ceaf"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8b63874b09e98605eddc71b18323ceaf">&#9670;&nbsp;</a></span>dprintCHAR</h2>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Lightweight string and line manipulation helpers. </p>
+<p>This single-header module provides small utilities for working with C strings:</p><ul>
+<li>Reading a single line from a FILE stream</li>
+<li>Measuring string length</li>
+<li>Extracting the next "word" (token) from a line using a separator</li>
+<li>Cutting the extracted word from the source buffer</li>
+<li>Copying a substring by indices</li>
+<li>Counting occurrences of a substring</li>
+<li>A boolean-style strncmp (returns 1 on equality, 0 otherwise)</li>
+</ul>
+<p>Usage</p><ul>
+<li>In exactly one translation unit, define ALMOG_STRING_MANIPULATION_IMPLEMENTATION before including this header to compile the implementation.</li>
+<li>In all other files, include the header without the macro to get declarations only.</li>
+</ul>
+<p>Notes and limitations</p><ul>
+<li>All destination buffers must be large enough; functions do not grow or allocate buffers.</li>
+<li>asm_get_line enforces MAX_LEN_LINE characters (not counting the terminating '\0'). Longer lines cause a fatal error via exit(1).</li>
+<li>asm_strncmp differs from the standard C strncmp: this version returns 1 if equal and 0 otherwise.</li>
+<li>These functions are not locale-aware unless otherwise noted (isspace is used for whitespace handling). </li>
+</ul>
+
+<p class="definition">Definition in file <a class="el" href="Almog__String__Manipulation_8h_source.html">Almog_String_Manipulation.h</a>.</p>
+</div><h2 class="groupheader">Macro Definition Documentation</h2>
+<a id="ab837163fffc46611066258c7fee66e72"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab837163fffc46611066258c7fee66e72">&#9670;&nbsp;</a></span>asm_dprintCHAR</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">#define dprintCHAR</td>
+          <td class="memname">#define asm_dprintCHAR</td>
           <td>(</td>
           <td class="paramtype">&#160;</td>
           <td class="paramname">expr</td><td>)</td>
@@ -169,18 +208,26 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="Almog__String__Manipulation_8h_source.html#l00012">12</a> of file <a class="el" href="Almog__String__Manipulation_8h_source.html">Almog_String_Manipulation.h</a>.</p>
+<p>Debug print a character expression as "expr = c\n". </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">expr</td><td>An expression that yields a character promoted to int. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="Almog__String__Manipulation_8h_source.html#l00072">72</a> of file <a class="el" href="Almog__String__Manipulation_8h_source.html">Almog_String_Manipulation.h</a>.</p>
 
 </div>
 </div>
-<a id="ad6ee5604ae166c2578fb919ba8047d32"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad6ee5604ae166c2578fb919ba8047d32">&#9670;&nbsp;</a></span>dprintINT</h2>
+<a id="af5e587f47be67febd1b05cdbbbd5327e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af5e587f47be67febd1b05cdbbbd5327e">&#9670;&nbsp;</a></span>asm_dprintINT</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">#define dprintINT</td>
+          <td class="memname">#define asm_dprintINT</td>
           <td>(</td>
           <td class="paramtype">&#160;</td>
           <td class="paramname">expr</td><td>)</td>
@@ -189,18 +236,26 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="Almog__String__Manipulation_8h_source.html#l00013">13</a> of file <a class="el" href="Almog__String__Manipulation_8h_source.html">Almog_String_Manipulation.h</a>.</p>
+<p>Debug print an integer expression as "expr = n\n". </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">expr</td><td>An expression that yields an int. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="Almog__String__Manipulation_8h_source.html#l00079">79</a> of file <a class="el" href="Almog__String__Manipulation_8h_source.html">Almog_String_Manipulation.h</a>.</p>
 
 </div>
 </div>
-<a id="a44ef8de62cc4802e6e2d52716d9ea342"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a44ef8de62cc4802e6e2d52716d9ea342">&#9670;&nbsp;</a></span>dprintSIZE_T</h2>
+<a id="af9f72a9942a8366000e5bded5cfefa17"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af9f72a9942a8366000e5bded5cfefa17">&#9670;&nbsp;</a></span>asm_dprintSIZE_T</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">#define dprintSIZE_T</td>
+          <td class="memname">#define asm_dprintSIZE_T</td>
           <td>(</td>
           <td class="paramtype">&#160;</td>
           <td class="paramname">expr</td><td>)</td>
@@ -209,18 +264,26 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="Almog__String__Manipulation_8h_source.html#l00014">14</a> of file <a class="el" href="Almog__String__Manipulation_8h_source.html">Almog_String_Manipulation.h</a>.</p>
+<p>Debug print a size_t expression as "expr = n\n". </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">expr</td><td>An expression that yields a size_t. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="Almog__String__Manipulation_8h_source.html#l00086">86</a> of file <a class="el" href="Almog__String__Manipulation_8h_source.html">Almog_String_Manipulation.h</a>.</p>
 
 </div>
 </div>
-<a id="a8a10eb1b51de8ec7f32760fc42a499d3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8a10eb1b51de8ec7f32760fc42a499d3">&#9670;&nbsp;</a></span>dprintSTRING</h2>
+<a id="aca98d8d2a0e5e0c21dc1b8b7f8d577c2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aca98d8d2a0e5e0c21dc1b8b7f8d577c2">&#9670;&nbsp;</a></span>asm_dprintSTRING</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">#define dprintSTRING</td>
+          <td class="memname">#define asm_dprintSTRING</td>
           <td>(</td>
           <td class="paramtype">&#160;</td>
           <td class="paramname">expr</td><td>)</td>
@@ -229,51 +292,65 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="Almog__String__Manipulation_8h_source.html#l00011">11</a> of file <a class="el" href="Almog__String__Manipulation_8h_source.html">Almog_String_Manipulation.h</a>.</p>
+<p>Debug print a C string expression as "expr = value\n". </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">expr</td><td>An expression that yields a pointer to char (const or non-const). </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p class="definition">Definition at line <a class="el" href="Almog__String__Manipulation_8h_source.html#l00065">65</a> of file <a class="el" href="Almog__String__Manipulation_8h_source.html">Almog_String_Manipulation.h</a>.</p>
 
 </div>
 </div>
-<a id="a076fd3c5ba5ac7c6bbedb64c188565f3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a076fd3c5ba5ac7c6bbedb64c188565f3">&#9670;&nbsp;</a></span>MAX_LEN_LINE</h2>
+<a id="a0b297f6220bd049e02b3fb6ea0b8e6a9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0b297f6220bd049e02b3fb6ea0b8e6a9">&#9670;&nbsp;</a></span>ASM_MAX_LEN_LINE</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">#define MAX_LEN_LINE&#160;&#160;&#160;(int)1e3</td>
+          <td class="memname">#define ASM_MAX_LEN_LINE&#160;&#160;&#160;(int)1e3</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="Almog__String__Manipulation_8h_source.html#l00010">10</a> of file <a class="el" href="Almog__String__Manipulation_8h_source.html">Almog_String_Manipulation.h</a>.</p>
+<p>Maximum number of characters read by asm_get_line (excluding the terminating null). </p>
+<p>If an input line exceeds this value before encountering '<br  />
+' or EOF, asm_get_line prints an error to stderr and terminates the process with exit(1). </p>
+
+<p class="definition">Definition at line <a class="el" href="Almog__String__Manipulation_8h_source.html#l00058">58</a> of file <a class="el" href="Almog__String__Manipulation_8h_source.html">Almog_String_Manipulation.h</a>.</p>
 
 </div>
 </div>
-<a id="a18dca71f9c1cfae749d91ee885e5d0b3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a18dca71f9c1cfae749d91ee885e5d0b3">&#9670;&nbsp;</a></span>MAXDIR</h2>
+<a id="ad471820dd5c75f65ca43362259b08c59"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad471820dd5c75f65ca43362259b08c59">&#9670;&nbsp;</a></span>ASM_MAXDIR</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">#define MAXDIR&#160;&#160;&#160;100</td>
+          <td class="memname">#define ASM_MAXDIR&#160;&#160;&#160;100</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p class="definition">Definition at line <a class="el" href="Almog__String__Manipulation_8h_source.html#l00009">9</a> of file <a class="el" href="Almog__String__Manipulation_8h_source.html">Almog_String_Manipulation.h</a>.</p>
+<p>Generic maximum directory length constant (not used by the functions in this header but available to callers). </p>
+
+<p class="definition">Definition at line <a class="el" href="Almog__String__Manipulation_8h_source.html#l00047">47</a> of file <a class="el" href="Almog__String__Manipulation_8h_source.html">Almog_String_Manipulation.h</a>.</p>
 
 </div>
 </div>
 <h2 class="groupheader">Function Documentation</h2>
-<a id="ab9b15c7b736606880f1545ef527748ce"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab9b15c7b736606880f1545ef527748ce">&#9670;&nbsp;</a></span>asm_copy_arry_by_indesies()</h2>
+<a id="a6678a45a71470d241c237d5203047448"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6678a45a71470d241c237d5203047448">&#9670;&nbsp;</a></span>asm_copy_array_by_indesies()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void asm_copy_arry_by_indesies </td>
+          <td class="memname">void asm_copy_array_by_indesies </td>
           <td>(</td>
           <td class="paramtype">char *&#160;</td>
           <td class="paramname"><em>target</em>, </td>
@@ -304,6 +381,24 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Copy a substring [start, end) from src into target and null-terminate. </p>
+<p>Copies characters with indices i = start, start+1, ..., end-1 from src into target, then writes a terminating '\0'.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">target</td><td>Destination buffer. Must be large enough to hold (end - start) characters plus the null terminator. </td></tr>
+    <tr><td class="paramname">start</td><td>Inclusive start index within src (0-based). </td></tr>
+    <tr><td class="paramname">end</td><td>Exclusive end index within src (must satisfy end &gt;= start). </td></tr>
+    <tr><td class="paramname">src</td><td>Source string buffer.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section warning"><dt>Warning</dt><dd>No bounds checking is performed. The caller must ensure valid indices and sufficient target capacity. </dd></dl>
+<dl class="section note"><dt>Note</dt><dd>This routine supports in-place "left-shift" usage where target == src and start &gt; 0 (used by asm_get_word_and_cut). </dd></dl>
+
+<p class="definition">Definition at line <a class="el" href="Almog__String__Manipulation_8h_source.html#l00232">232</a> of file <a class="el" href="Almog__String__Manipulation_8h_source.html">Almog_String_Manipulation.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="Almog__String__Manipulation_8h_source.html#l00260">asm_get_word_and_cut()</a>.</p>
+
 </div>
 </div>
 <a id="a8f808979502627a0266c0e374f6e1641"></a>
@@ -331,6 +426,31 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Read a single line from a stream into a buffer. </p>
+<p>Reads characters from the FILE stream until a newline ('<br  />
+') or EOF is encountered. The newline, if present, is not copied. The result is always null-terminated.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">fp</td><td>Input stream (must be non-NULL). </td></tr>
+    <tr><td class="paramname">dst</td><td>Destination buffer. Must have capacity of at least MAX_LEN_LINE + 1 bytes. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Number of characters stored in dst (excluding the terminating null). </dd></dl>
+<dl class="retval"><dt>Return values</dt><dd>
+  <table class="retval">
+    <tr><td class="paramname">-1</td><td>EOF was encountered before any character was read.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section note"><dt>Note</dt><dd>If the line exceeds MAX_LEN_LINE characters before a newline or EOF, the function prints an error and calls exit(1). </dd>
+<dd>
+An empty line returns 0 (not -1). </dd></dl>
+
+<p class="definition">Definition at line <a class="el" href="Almog__String__Manipulation_8h_source.html#l00119">119</a> of file <a class="el" href="Almog__String__Manipulation_8h_source.html">Almog_String_Manipulation.h</a>.</p>
+
+<p class="reference">References <a class="el" href="Almog__String__Manipulation_8h_source.html#l00058">ASM_MAX_LEN_LINE</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="Almog__Engine_8h_source.html#l00540">ae_tri_mesh_get_from_obj_file()</a>.</p>
 
@@ -368,7 +488,33 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="Almog__Engine_8h_source.html#l00540">ae_tri_mesh_get_from_obj_file()</a>.</p>
+<p>Extract the next word from a line without modifying the source. </p>
+<p>Skips leading whitespace in src (as determined by isspace), then copies characters into dst until one of the following is seen: the separator, a newline ('<br  />
+'), or the string terminator ('\0'). The copied word in dst is null-terminated and is never empty on success.</p>
+<p>Special case:</p><ul>
+<li>If the very first character in src (at index 0, without leading whitespace) is the separator, '<br  />
+', or '\0', that single character is returned as a one-character "word".</li>
+</ul>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">dst</td><td>Destination buffer for the extracted word. Must be large enough to hold the token plus the null terminator. </td></tr>
+    <tr><td class="paramname">src</td><td>Source C string to parse (not modified by this function). </td></tr>
+    <tr><td class="paramname">seperator</td><td>Separator character to stop at (spelling as in the API). </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The number of characters consumed from src (i.e., the index of the first unconsumed character). </dd></dl>
+<dl class="retval"><dt>Return values</dt><dd>
+  <table class="retval">
+    <tr><td class="paramname">-1</td><td>No word was found (e.g., only whitespace before a delimiter or end-of-string).</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section note"><dt>Note</dt><dd>The source buffer is not altered. To both extract and advance/cut the source, see asm_get_word_and_cut. </dd></dl>
+
+<p class="definition">Definition at line <a class="el" href="Almog__String__Manipulation_8h_source.html#l00182">182</a> of file <a class="el" href="Almog__String__Manipulation_8h_source.html">Almog_String_Manipulation.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="Almog__Engine_8h_source.html#l00540">ae_tri_mesh_get_from_obj_file()</a>, and <a class="el" href="Almog__String__Manipulation_8h_source.html#l00260">asm_get_word_and_cut()</a>.</p>
 
 </div>
 </div>
@@ -404,6 +550,26 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
+<p>Get the next word and cut the source string at that point. </p>
+<p>Extracts the next word from src (per asm_get_next_word_from_line semantics) into dst. On success, src is modified in-place to remove the consumed prefix. The new src begins at the stopping character (the separator, newline, or terminator).</p>
+<p>Example: For src = "abc,def", separator = ','</p><ul>
+<li>dst becomes "abc"</li>
+<li>src becomes ",def" (note the leading separator remains)</li>
+</ul>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">dst</td><td>Destination buffer for the extracted word (large enough for the token and terminating null). </td></tr>
+    <tr><td class="paramname">src</td><td>Source buffer. Modified in-place if a word is found. </td></tr>
+    <tr><td class="paramname">seperator</td><td>Separator character to stop at (spelling as in the API). </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>1 if a word was extracted and src adjusted, 0 otherwise. </dd></dl>
+
+<p class="definition">Definition at line <a class="el" href="Almog__String__Manipulation_8h_source.html#l00260">260</a> of file <a class="el" href="Almog__String__Manipulation_8h_source.html">Almog_String_Manipulation.h</a>.</p>
+
+<p class="reference">References <a class="el" href="Almog__String__Manipulation_8h_source.html#l00232">asm_copy_array_by_indesies()</a>, <a class="el" href="Almog__String__Manipulation_8h_source.html#l00182">asm_get_next_word_from_line()</a>, and <a class="el" href="Almog__String__Manipulation_8h_source.html#l00146">asm_length()</a>.</p>
+
 <p class="reference">Referenced by <a class="el" href="Almog__Engine_8h_source.html#l00816">ae_tri_mesh_get_from_file()</a>, and <a class="el" href="Almog__Engine_8h_source.html#l00540">ae_tri_mesh_get_from_obj_file()</a>.</p>
 
 </div>
@@ -424,7 +590,18 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p class="reference">Referenced by <a class="el" href="Almog__Engine_8h_source.html#l00540">ae_tri_mesh_get_from_obj_file()</a>.</p>
+<p>Compute the length of a null-terminated C string. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">str</td><td>Null-terminated string (must be non-NULL). </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The number of characters before the terminating null byte. </dd></dl>
+
+<p class="definition">Definition at line <a class="el" href="Almog__String__Manipulation_8h_source.html#l00146">146</a> of file <a class="el" href="Almog__String__Manipulation_8h_source.html">Almog_String_Manipulation.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="Almog__Engine_8h_source.html#l00540">ae_tri_mesh_get_from_obj_file()</a>, <a class="el" href="Almog__String__Manipulation_8h_source.html#l00260">asm_get_word_and_cut()</a>, and <a class="el" href="Almog__String__Manipulation_8h_source.html#l00285">asm_str_in_str()</a>.</p>
 
 </div>
 </div>
@@ -453,6 +630,21 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Count occurrences of a substring within a string. </p>
+<p>Counts how many times word2search appears in src. Occurrences may overlap.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">src</td><td>The string to search in (must be null-terminated). </td></tr>
+    <tr><td class="paramname">word2search</td><td>The substring to find (must be null-terminated). </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The number of (possibly overlapping) occurrences found. </dd></dl>
+
+<p class="definition">Definition at line <a class="el" href="Almog__String__Manipulation_8h_source.html#l00285">285</a> of file <a class="el" href="Almog__String__Manipulation_8h_source.html">Almog_String_Manipulation.h</a>.</p>
+
+<p class="reference">References <a class="el" href="Almog__String__Manipulation_8h_source.html#l00146">asm_length()</a>, and <a class="el" href="Almog__String__Manipulation_8h_source.html#l00310">asm_strncmp()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="Almog__Engine_8h_source.html#l00816">ae_tri_mesh_get_from_file()</a>, and <a class="el" href="Almog__Engine_8h_source.html#l00540">ae_tri_mesh_get_from_obj_file()</a>.</p>
 
@@ -489,6 +681,22 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Compare up to N characters for equality (boolean result). </p>
+<p>Returns 1 if the first N characters of s1 and s2 are all equal; otherwise returns 0. Unlike the standard C strncmp, which returns 0 on equality and a non-zero value on inequality/order, this function returns a boolean-like result (1 == equal, 0 == different).</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">s1</td><td>First string (may be shorter than N). </td></tr>
+    <tr><td class="paramname">s2</td><td>Second string (may be shorter than N). </td></tr>
+    <tr><td class="paramname">N</td><td>Number of characters to compare. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>1 if equal for the first N characters, 0 otherwise. </dd></dl>
+
+<p class="definition">Definition at line <a class="el" href="Almog__String__Manipulation_8h_source.html#l00310">310</a> of file <a class="el" href="Almog__String__Manipulation_8h_source.html">Almog_String_Manipulation.h</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="Almog__String__Manipulation_8h_source.html#l00285">asm_str_in_str()</a>.</p>
 
 </div>
 </div>

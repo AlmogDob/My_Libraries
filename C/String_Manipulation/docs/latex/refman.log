@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2022/dev/Debian) (preloaded format=pdflatex 2024.10.14)  28 OCT 2025 19:45
+This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2022/dev/Debian) (preloaded format=pdflatex 2024.10.14)  28 OCT 2025 21:10
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -864,9 +864,7 @@ LaTeX Font Info:    Font shape `T1/phv/m/n' will be
 (Font)              scaled to size 6.29996pt on input line 169.
 LaTeX Font Info:    Font shape `T1/phv/b/n' will be
 (Font)              scaled to size 6.29996pt on input line 169.
- [1] [2
-
-]
+ [1] [2]
 Package hyperref Info: Option `pageanchor' set `true' on input line 171.
 
 Chapter 1.
@@ -887,6 +885,7 @@ LaTeX Font Info:    Font shape `T1/phv/b/n' will be
 (Font)              scaled to size 12.9599pt on input line 1.
 ) [1
 
+
 ] [2
 
 ]
@@ -902,133 +901,146 @@ File: t1pcr.fd 2001/06/04 font definitions for T1/pcr.
 pdfTeX warning: pdflatex (file ./Almog__String__Manipulation_8h__incl.pdf): PDF
  inclusion: multiple pdfs with page group included in a single page
 >
-<Almog__String__Manipulation_8h__incl.pdf, id=176, 348.30125pt x 156.585pt>
+<Almog__String__Manipulation_8h__incl.pdf, id=264, 348.30125pt x 156.585pt>
 File: Almog__String__Manipulation_8h__incl.pdf Graphic file (type pdf)
 <use Almog__String__Manipulation_8h__incl.pdf>
 Package pdftex.def Info: Almog__String__Manipulation_8h__incl.pdf  used on inpu
-t line 16.
+t line 17.
 (pdftex.def)             Requested size: 347.0pt x 156.0064pt.
  <./Almog__String__Manipulation_8h__dep__incl.pdf
 
 pdfTeX warning: pdflatex (file ./Almog__String__Manipulation_8h__dep__incl.pdf)
 : PDF inclusion: multiple pdfs with page group included in a single page
 >
-<Almog__String__Manipulation_8h__dep__incl.pdf, id=184, 240.9pt x 156.585pt>
+<Almog__String__Manipulation_8h__dep__incl.pdf, id=272, 240.9pt x 156.585pt>
 File: Almog__String__Manipulation_8h__dep__incl.pdf Graphic file (type pdf)
 <use Almog__String__Manipulation_8h__dep__incl.pdf>
 Package pdftex.def Info: Almog__String__Manipulation_8h__dep__incl.pdf  used on
- input line 23.
+ input line 25.
 (pdftex.def)             Requested size: 240.0pt x 156.004pt.
 LaTeX Font Info:    Font shape `T1/phv/b/n' will be
-(Font)              scaled to size 10.79993pt on input line 26.
-LaTeX Font Info:    Trying to load font information for TS1+phv on input line 2
-9.
+(Font)              scaled to size 10.79993pt on input line 28.
+LaTeX Font Info:    Trying to load font information for TS1+phv on input line 3
+1.
  (/usr/share/texlive/texmf-dist/tex/latex/psnfss/ts1phv.fd
 File: ts1phv.fd 2020/03/25 scalable font definitions for TS1/phv.
 )
 LaTeX Font Info:    Font shape `TS1/phv/m/n' will be
-(Font)              scaled to size 8.99994pt on input line 29.
+(Font)              scaled to size 8.99994pt on input line 31.
 LaTeX Font Info:    Font shape `T1/phv/m/n' will be
-(Font)              scaled to size 8.09995pt on input line 30.
+(Font)              scaled to size 8.09995pt on input line 32.
  [3]
 LaTeX Font Info:    Font shape `T1/phv/m/it' in size <9> not available
-(Font)              Font shape `T1/phv/m/sl' tried instead on input line 30.
-LaTeX Font Info:    Font shape `T1/phv/m/sl' will be
-(Font)              scaled to size 8.09995pt on input line 30.
-LaTeX Font Info:    Font shape `T1/phv/m/it' in size <7> not available
 (Font)              Font shape `T1/phv/m/sl' tried instead on input line 32.
 LaTeX Font Info:    Font shape `T1/phv/m/sl' will be
-(Font)              scaled to size 6.29996pt on input line 32.
+(Font)              scaled to size 8.09995pt on input line 32.
+LaTeX Font Info:    Font shape `T1/phv/m/it' in size <7> not available
+(Font)              Font shape `T1/phv/m/sl' tried instead on input line 34.
+LaTeX Font Info:    Font shape `T1/phv/m/sl' will be
+(Font)              scaled to size 6.29996pt on input line 34.
  [4]
 LaTeX Font Info:    Font shape `T1/phv/m/n' will be
-(Font)              scaled to size 7.19995pt on input line 97.
+(Font)              scaled to size 7.19995pt on input line 99.
 LaTeX Font Info:    Font shape `T1/pcr/m/it' in size <8> not available
-(Font)              Font shape `T1/pcr/m/sl' tried instead on input line 97.
+(Font)              Font shape `T1/pcr/m/sl' tried instead on input line 99.
  [5]
 [6]
-Underfull \hbox (badness 10000) detected at line 224
+Underfull \hbox (badness 10000) detected at line 226
 [][][]
  []
 
 
-Underfull \hbox (badness 10000) detected at line 227
+Underfull \hbox (badness 10000) detected at line 229
 [][][]
  []
 
 [7]
-Underfull \hbox (badness 10000) detected at line 258
+Underfull \hbox (badness 10000) detected at line 260
 [][][]
  []
 
 
-Underfull \hbox (badness 10000) detected at line 266
+Underfull \hbox (badness 10000) detected at line 268
 [][][]
  []
 
 [8]
-Underfull \hbox (badness 10000) detected at line 307
+Underfull \hbox (badness 10000) detected at line 309
 [][][]
  []
 
 
-Underfull \hbox (badness 10000) detected at line 315
+Underfull \hbox (badness 10000) detected at line 317
 [][][]
  []
 
 [9]
-Underfull \hbox (badness 10000) detected at line 353
+Underfull \hbox (badness 10000) detected at line 355
 [][][]
  []
 
 
-Underfull \hbox (badness 10000) detected at line 383
+Underfull \hbox (badness 10000) detected at line 385
 [][][]
  []
 
 [10]
-Underfull \hbox (badness 10000) detected at line 413
+Underfull \hbox (badness 10000) detected at line 415
 [][][]
  []
 
 
-Underfull \hbox (badness 10000) detected at line 445
+Underfull \hbox (badness 10000) detected at line 447
 [][][]
  []
 
-) (./Almog__String__Manipulation_8h_source.tex [11] [12]) (./temp_8c.tex <./tem
-p_8c__incl.pdf
+) (./Almog__String__Manipulation_8h_source.tex [11] [12])
+(./striped__Almog__String__Manipulation_8h.tex <./striped__Almog__String__Manip
+ulation_8h__incl.pdf
+
+pdfTeX warning: pdflatex (file ./striped__Almog__String__Manipulation_8h__incl.
+pdf): PDF inclusion: multiple pdfs with page group included in a single page
+>
+<striped__Almog__String__Manipulation_8h__incl.pdf, id=463, 348.30125pt x 167.6
+2625pt>
+File: striped__Almog__String__Manipulation_8h__incl.pdf Graphic file (type pdf)
+
+<use striped__Almog__String__Manipulation_8h__incl.pdf>
+Package pdftex.def Info: striped__Almog__String__Manipulation_8h__incl.pdf  use
+d on input line 12.
+(pdftex.def)             Requested size: 347.0pt x 167.00684pt.
+ [13] [14] [15]) (./striped__Almog__String__Manipulation_8h_source.tex
+[16] [17]) (./temp_8c.tex <./temp_8c__incl.pdf
 
 pdfTeX warning: pdflatex (file ./temp_8c__incl.pdf): PDF inclusion: multiple pd
 fs with page group included in a single page
 >
-<temp_8c__incl.pdf, id=374, 348.30125pt x 212.795pt>
+<temp_8c__incl.pdf, id=607, 348.30125pt x 212.795pt>
 File: temp_8c__incl.pdf Graphic file (type pdf)
 <use temp_8c__incl.pdf>
-Package pdftex.def Info: temp_8c__incl.pdf  used on input line 9.
+Package pdftex.def Info: temp_8c__incl.pdf  used on input line 10.
 (pdftex.def)             Requested size: 347.0pt x 212.00868pt.
- [13]) (./temp_8c_source.tex [14]) [15] [16
-
-] (./refman.ind
-Overfull \hbox (25.677pt too wide) in paragraph at lines 54--56
+ [18]) (./temp_8c_source.tex [19]) [20] (./refman.ind
+Overfull \hbox (25.677pt too wide) in paragraph at lines 84--86
 []| \T1/phv/m/n/10 AL-MOG_STRING_MANIPULATION_IMPLEMENTATION,
  []
 
-[17
+[21
 
 
 
 ]) (./refman.aux)
 Package rerunfilecheck Info: File `refman.out' has not changed.
-(rerunfilecheck)             Checksum: 05F9FC5A49E01AC4D13BAB5B9D10A70E;5573.
+(rerunfilecheck)             Checksum: C2B6E7EC03EB61C182A038049E8B216B;9357.
  ) 
 Here is how much of TeX's memory you used:
- 17411 strings out of 478287
- 280125 string characters out of 5849288
- 593989 words of memory out of 5000000
- 35178 multiletter control sequences out of 15000+600000
+ 17512 strings out of 478287
+ 284583 string characters out of 5849288
+ 596118 words of memory out of 5000000
+ 35223 multiletter control sequences out of 15000+600000
  526496 words of font info for 96 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 99i,16n,117p,602b,633s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 99i,16n,117p,795b,633s stack positions out of 5000i,500n,10000p,200000b,80000s
 {/usr/share/texlive/texmf-dist/fonts/enc/dvips/base/8r.enc}</usr/share/texliv
 e/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/share/texlive/texm
 f-dist/fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr/share/texlive/texmf-dist/
@@ -1040,10 +1052,10 @@ fb></usr/share/texlive/texmf-dist/fonts/type1/urw/helvetic/uhvb8a.pfb></usr/sha
 re/texlive/texmf-dist/fonts/type1/urw/helvetic/uhvb8ac.pfb></usr/share/texlive/
 texmf-dist/fonts/type1/urw/helvetic/uhvr8a.pfb></usr/share/texlive/texmf-dist/f
 onts/type1/urw/helvetic/uhvro8a.pfb>
-Output written on refman.pdf (21 pages, 164986 bytes).
+Output written on refman.pdf (25 pages, 186403 bytes).
 PDF statistics:
- 528 PDF objects out of 1000 (max. 8388607)
- 467 compressed objects within 5 object streams
- 101 named destinations out of 1000 (max. 500000)
- 240 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 796 PDF objects out of 1000 (max. 8388607)
+ 724 compressed objects within 8 object streams
+ 153 named destinations out of 1000 (max. 500000)
+ 381 words of extra memory for PDF output out of 10000 (max. 10000000)
 

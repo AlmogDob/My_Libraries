@@ -2,12 +2,16 @@
 \label{structMat2D__Minor}\index{Mat2D\_Minor@{Mat2D\_Minor}}
 
 
+A minor \char`\"{}view\char`\"{} into a reference matrix.  
+
+
+
+
 {\ttfamily \#include $<$Matrix2\+D.\+h$>$}
 
 
 
-Collaboration diagram for Mat2\+D\+\_\+\+Minor\+:
-\nopagebreak
+Collaboration diagram for Mat2\+D\+\_\+\+Minor\+:\nopagebreak
 \begin{figure}[H]
 \begin{center}
 \leavevmode
@@ -32,9 +36,17 @@ size\+\_\+t $\ast$ \mbox{\hyperlink{structMat2D__Minor_a1b6d9b990e80232df7d7cd73
 
 
 \doxysubsection{Detailed Description}
+A minor \char`\"{}view\char`\"{} into a reference matrix. 
 
+Represents a minor by excluding one row and one column of a reference matrix. It holds index lists mapping into the reference matrix, without owning the data of the reference matrix itself.
 
-Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00043}{43}} of file \mbox{\hyperlink{Matrix2D_8h_source}{Matrix2\+D.\+h}}.
+Memory ownership\+:
+\begin{DoxyItemize}
+\item rows\+\_\+list and cols\+\_\+list are heap-\/allocated by minor allocators and must be freed with mat2\+D\+\_\+minor\+\_\+free.
+\item The underlying matrix data (ref\+\_\+mat.\+elements) is not owned by the minor and must not be freed by the minor functions. 
+\end{DoxyItemize}
+
+Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00119}{119}} of file \mbox{\hyperlink{Matrix2D_8h_source}{Matrix2\+D.\+h}}.
 
 
 
@@ -47,11 +59,11 @@ Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00043}{43}} of file \mbo
 
 
 
-Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00045}{45}} of file \mbox{\hyperlink{Matrix2D_8h_source}{Matrix2\+D.\+h}}.
+Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00121}{121}} of file \mbox{\hyperlink{Matrix2D_8h_source}{Matrix2\+D.\+h}}.
 
 
 
-Referenced by \mbox{\hyperlink{Matrix2D_8h_source_l00926}{mat2\+D\+\_\+det\+\_\+2x2\+\_\+mat\+\_\+minor()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00847}{mat2\+D\+\_\+minor\+\_\+alloc\+\_\+fill\+\_\+from\+\_\+mat()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00877}{mat2\+D\+\_\+minor\+\_\+alloc\+\_\+fill\+\_\+from\+\_\+mat\+\_\+minor()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00932}{mat2\+D\+\_\+minor\+\_\+det()}}, and \mbox{\hyperlink{Matrix2D_8h_source_l00913}{mat2\+D\+\_\+minor\+\_\+print()}}.
+Referenced by \mbox{\hyperlink{Matrix2D_8h_source_l01383}{mat2\+D\+\_\+det\+\_\+2x2\+\_\+mat\+\_\+minor()}}, \mbox{\hyperlink{Matrix2D_8h_source_l01279}{mat2\+D\+\_\+minor\+\_\+alloc\+\_\+fill\+\_\+from\+\_\+mat()}}, \mbox{\hyperlink{Matrix2D_8h_source_l01318}{mat2\+D\+\_\+minor\+\_\+alloc\+\_\+fill\+\_\+from\+\_\+mat\+\_\+minor()}}, \mbox{\hyperlink{Matrix2D_8h_source_l01396}{mat2\+D\+\_\+minor\+\_\+det()}}, and \mbox{\hyperlink{Matrix2D_8h_source_l01365}{mat2\+D\+\_\+minor\+\_\+print()}}.
 
 \mbox{\Hypertarget{structMat2D__Minor_a1b6d9b990e80232df7d7cd734a781167}\label{structMat2D__Minor_a1b6d9b990e80232df7d7cd734a781167}} 
 \index{Mat2D\_Minor@{Mat2D\_Minor}!cols\_list@{cols\_list}}
@@ -61,11 +73,11 @@ Referenced by \mbox{\hyperlink{Matrix2D_8h_source_l00926}{mat2\+D\+\_\+det\+\_\+
 
 
 
-Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00048}{48}} of file \mbox{\hyperlink{Matrix2D_8h_source}{Matrix2\+D.\+h}}.
+Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00124}{124}} of file \mbox{\hyperlink{Matrix2D_8h_source}{Matrix2\+D.\+h}}.
 
 
 
-Referenced by \mbox{\hyperlink{Matrix2D_8h_source_l00847}{mat2\+D\+\_\+minor\+\_\+alloc\+\_\+fill\+\_\+from\+\_\+mat()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00877}{mat2\+D\+\_\+minor\+\_\+alloc\+\_\+fill\+\_\+from\+\_\+mat\+\_\+minor()}}, and \mbox{\hyperlink{Matrix2D_8h_source_l00907}{mat2\+D\+\_\+minor\+\_\+free()}}.
+Referenced by \mbox{\hyperlink{Matrix2D_8h_source_l01279}{mat2\+D\+\_\+minor\+\_\+alloc\+\_\+fill\+\_\+from\+\_\+mat()}}, \mbox{\hyperlink{Matrix2D_8h_source_l01318}{mat2\+D\+\_\+minor\+\_\+alloc\+\_\+fill\+\_\+from\+\_\+mat\+\_\+minor()}}, and \mbox{\hyperlink{Matrix2D_8h_source_l01353}{mat2\+D\+\_\+minor\+\_\+free()}}.
 
 \mbox{\Hypertarget{structMat2D__Minor_af16064766b41a0c96edbaa56e60f393c}\label{structMat2D__Minor_af16064766b41a0c96edbaa56e60f393c}} 
 \index{Mat2D\_Minor@{Mat2D\_Minor}!ref\_mat@{ref\_mat}}
@@ -75,11 +87,11 @@ Referenced by \mbox{\hyperlink{Matrix2D_8h_source_l00847}{mat2\+D\+\_\+minor\+\_
 
 
 
-Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00049}{49}} of file \mbox{\hyperlink{Matrix2D_8h_source}{Matrix2\+D.\+h}}.
+Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00125}{125}} of file \mbox{\hyperlink{Matrix2D_8h_source}{Matrix2\+D.\+h}}.
 
 
 
-Referenced by \mbox{\hyperlink{Matrix2D_8h_source_l00847}{mat2\+D\+\_\+minor\+\_\+alloc\+\_\+fill\+\_\+from\+\_\+mat()}}, and \mbox{\hyperlink{Matrix2D_8h_source_l00877}{mat2\+D\+\_\+minor\+\_\+alloc\+\_\+fill\+\_\+from\+\_\+mat\+\_\+minor()}}.
+Referenced by \mbox{\hyperlink{Matrix2D_8h_source_l01279}{mat2\+D\+\_\+minor\+\_\+alloc\+\_\+fill\+\_\+from\+\_\+mat()}}, and \mbox{\hyperlink{Matrix2D_8h_source_l01318}{mat2\+D\+\_\+minor\+\_\+alloc\+\_\+fill\+\_\+from\+\_\+mat\+\_\+minor()}}.
 
 \mbox{\Hypertarget{structMat2D__Minor_a8b67b273e4d77f181ba4f58b28ca5aa0}\label{structMat2D__Minor_a8b67b273e4d77f181ba4f58b28ca5aa0}} 
 \index{Mat2D\_Minor@{Mat2D\_Minor}!rows@{rows}}
@@ -89,11 +101,11 @@ Referenced by \mbox{\hyperlink{Matrix2D_8h_source_l00847}{mat2\+D\+\_\+minor\+\_
 
 
 
-Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00044}{44}} of file \mbox{\hyperlink{Matrix2D_8h_source}{Matrix2\+D.\+h}}.
+Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00120}{120}} of file \mbox{\hyperlink{Matrix2D_8h_source}{Matrix2\+D.\+h}}.
 
 
 
-Referenced by \mbox{\hyperlink{Matrix2D_8h_source_l00926}{mat2\+D\+\_\+det\+\_\+2x2\+\_\+mat\+\_\+minor()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00847}{mat2\+D\+\_\+minor\+\_\+alloc\+\_\+fill\+\_\+from\+\_\+mat()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00877}{mat2\+D\+\_\+minor\+\_\+alloc\+\_\+fill\+\_\+from\+\_\+mat\+\_\+minor()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00932}{mat2\+D\+\_\+minor\+\_\+det()}}, and \mbox{\hyperlink{Matrix2D_8h_source_l00913}{mat2\+D\+\_\+minor\+\_\+print()}}.
+Referenced by \mbox{\hyperlink{Matrix2D_8h_source_l01383}{mat2\+D\+\_\+det\+\_\+2x2\+\_\+mat\+\_\+minor()}}, \mbox{\hyperlink{Matrix2D_8h_source_l01279}{mat2\+D\+\_\+minor\+\_\+alloc\+\_\+fill\+\_\+from\+\_\+mat()}}, \mbox{\hyperlink{Matrix2D_8h_source_l01318}{mat2\+D\+\_\+minor\+\_\+alloc\+\_\+fill\+\_\+from\+\_\+mat\+\_\+minor()}}, \mbox{\hyperlink{Matrix2D_8h_source_l01396}{mat2\+D\+\_\+minor\+\_\+det()}}, and \mbox{\hyperlink{Matrix2D_8h_source_l01365}{mat2\+D\+\_\+minor\+\_\+print()}}.
 
 \mbox{\Hypertarget{structMat2D__Minor_a8054668899ecbae0f4c293a0e49e54c8}\label{structMat2D__Minor_a8054668899ecbae0f4c293a0e49e54c8}} 
 \index{Mat2D\_Minor@{Mat2D\_Minor}!rows\_list@{rows\_list}}
@@ -103,11 +115,11 @@ Referenced by \mbox{\hyperlink{Matrix2D_8h_source_l00926}{mat2\+D\+\_\+det\+\_\+
 
 
 
-Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00047}{47}} of file \mbox{\hyperlink{Matrix2D_8h_source}{Matrix2\+D.\+h}}.
+Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00123}{123}} of file \mbox{\hyperlink{Matrix2D_8h_source}{Matrix2\+D.\+h}}.
 
 
 
-Referenced by \mbox{\hyperlink{Matrix2D_8h_source_l00847}{mat2\+D\+\_\+minor\+\_\+alloc\+\_\+fill\+\_\+from\+\_\+mat()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00877}{mat2\+D\+\_\+minor\+\_\+alloc\+\_\+fill\+\_\+from\+\_\+mat\+\_\+minor()}}, and \mbox{\hyperlink{Matrix2D_8h_source_l00907}{mat2\+D\+\_\+minor\+\_\+free()}}.
+Referenced by \mbox{\hyperlink{Matrix2D_8h_source_l01279}{mat2\+D\+\_\+minor\+\_\+alloc\+\_\+fill\+\_\+from\+\_\+mat()}}, \mbox{\hyperlink{Matrix2D_8h_source_l01318}{mat2\+D\+\_\+minor\+\_\+alloc\+\_\+fill\+\_\+from\+\_\+mat\+\_\+minor()}}, and \mbox{\hyperlink{Matrix2D_8h_source_l01353}{mat2\+D\+\_\+minor\+\_\+free()}}.
 
 \mbox{\Hypertarget{structMat2D__Minor_aa3732a646cc31bfe41fee2f6e21ef887}\label{structMat2D__Minor_aa3732a646cc31bfe41fee2f6e21ef887}} 
 \index{Mat2D\_Minor@{Mat2D\_Minor}!stride\_r@{stride\_r}}
@@ -117,11 +129,11 @@ Referenced by \mbox{\hyperlink{Matrix2D_8h_source_l00847}{mat2\+D\+\_\+minor\+\_
 
 
 
-Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00046}{46}} of file \mbox{\hyperlink{Matrix2D_8h_source}{Matrix2\+D.\+h}}.
+Definition at line \mbox{\hyperlink{Matrix2D_8h_source_l00122}{122}} of file \mbox{\hyperlink{Matrix2D_8h_source}{Matrix2\+D.\+h}}.
 
 
 
-Referenced by \mbox{\hyperlink{Matrix2D_8h_source_l00847}{mat2\+D\+\_\+minor\+\_\+alloc\+\_\+fill\+\_\+from\+\_\+mat()}}, and \mbox{\hyperlink{Matrix2D_8h_source_l00877}{mat2\+D\+\_\+minor\+\_\+alloc\+\_\+fill\+\_\+from\+\_\+mat\+\_\+minor()}}.
+Referenced by \mbox{\hyperlink{Matrix2D_8h_source_l01279}{mat2\+D\+\_\+minor\+\_\+alloc\+\_\+fill\+\_\+from\+\_\+mat()}}, and \mbox{\hyperlink{Matrix2D_8h_source_l01318}{mat2\+D\+\_\+minor\+\_\+alloc\+\_\+fill\+\_\+from\+\_\+mat\+\_\+minor()}}.
 
 
 

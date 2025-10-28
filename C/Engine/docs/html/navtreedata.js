@@ -50,8 +50,8 @@ var NAVTREE =
 var NAVTREEINDEX =
 [
 "Almog__Draw__Library_8h.html",
-"Matrix2D_8h.html#abda90a369811f8c2693911008994f6ec",
-"structgame__state__t.html#aecd77938a1375613f71e3c398f2bf0e1"
+"Matrix2D_8h.html#abdffe058c709b68f7d491ac9bf23f52e",
+"structgame__state__t.html#af229dff663c775ac3bbe218351c5e161"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

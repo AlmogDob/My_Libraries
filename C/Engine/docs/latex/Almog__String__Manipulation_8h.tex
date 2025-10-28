@@ -1,19 +1,22 @@
 \hypertarget{Almog__String__Manipulation_8h}{}\doxysection{src/include/\+Almog\+\_\+\+String\+\_\+\+Manipulation.h File Reference}
 \label{Almog__String__Manipulation_8h}\index{src/include/Almog\_String\_Manipulation.h@{src/include/Almog\_String\_Manipulation.h}}
+
+
+Lightweight string and line manipulation helpers.  
+
+
 {\ttfamily \#include $<$stdio.\+h$>$}\newline
 {\ttfamily \#include $<$ctype.\+h$>$}\newline
 {\ttfamily \#include $<$stdlib.\+h$>$}\newline
 {\ttfamily \#include $<$assert.\+h$>$}\newline
-Include dependency graph for Almog\+\_\+\+String\+\_\+\+Manipulation.\+h\+:
-\nopagebreak
+Include dependency graph for Almog\+\_\+\+String\+\_\+\+Manipulation.\+h\+:\nopagebreak
 \begin{figure}[H]
 \begin{center}
 \leavevmode
 \includegraphics[width=347pt]{Almog__String__Manipulation_8h__incl}
 \end{center}
 \end{figure}
-This graph shows which files directly or indirectly include this file\+:
-\nopagebreak
+This graph shows which files directly or indirectly include this file\+:\nopagebreak
 \begin{figure}[H]
 \begin{center}
 \leavevmode
@@ -23,112 +26,255 @@ This graph shows which files directly or indirectly include this file\+:
 \doxysubsection*{Macros}
 \begin{DoxyCompactItemize}
 \item 
-\#define \mbox{\hyperlink{Almog__String__Manipulation_8h_a18dca71f9c1cfae749d91ee885e5d0b3}{MAXDIR}}~100
-\item 
-\#define \mbox{\hyperlink{Almog__String__Manipulation_8h_a076fd3c5ba5ac7c6bbedb64c188565f3}{MAX\+\_\+\+LEN\+\_\+\+LINE}}~(int)1e3
-\item 
-\#define \mbox{\hyperlink{Almog__String__Manipulation_8h_a8a10eb1b51de8ec7f32760fc42a499d3}{dprint\+STRING}}(expr)~printf(\#expr \char`\"{} = \%s\textbackslash{}n\char`\"{}, expr)
-\item 
-\#define \mbox{\hyperlink{Almog__String__Manipulation_8h_a8b63874b09e98605eddc71b18323ceaf}{dprint\+CHAR}}(expr)~printf(\#expr \char`\"{} = \%c\textbackslash{}n\char`\"{}, expr)
-\item 
-\#define \mbox{\hyperlink{Almog__String__Manipulation_8h_ad6ee5604ae166c2578fb919ba8047d32}{dprint\+INT}}(expr)~printf(\#expr \char`\"{} = \%d\textbackslash{}n\char`\"{}, expr)
-\item 
-\#define \mbox{\hyperlink{Almog__String__Manipulation_8h_a44ef8de62cc4802e6e2d52716d9ea342}{dprint\+SIZE\+\_\+T}}(expr)~printf(\#expr \char`\"{} = \%zu\textbackslash{}n\char`\"{}, expr)
-\end{DoxyCompactItemize}
+\#define \mbox{\hyperlink{Almog__String__Manipulation_8h_ad471820dd5c75f65ca43362259b08c59}{ASM\+\_\+\+MAXDIR}}~100
+\begin{DoxyCompactList}\small\item\em Generic maximum directory length constant (not used by the functions in this header but available to callers). \end{DoxyCompactList}\item 
+\#define \mbox{\hyperlink{Almog__String__Manipulation_8h_a0b297f6220bd049e02b3fb6ea0b8e6a9}{ASM\+\_\+\+MAX\+\_\+\+LEN\+\_\+\+LINE}}~(int)1e3
+\begin{DoxyCompactList}\small\item\em Maximum number of characters read by asm\+\_\+get\+\_\+line (excluding the terminating null). \end{DoxyCompactList}\item 
+\#define \mbox{\hyperlink{Almog__String__Manipulation_8h_aca98d8d2a0e5e0c21dc1b8b7f8d577c2}{asm\+\_\+dprint\+STRING}}(expr)~printf(\#expr \char`\"{} = \%s\textbackslash{}n\char`\"{}, expr)
+\begin{DoxyCompactList}\small\item\em Debug print a C string expression as \char`\"{}expr = value\textbackslash{}n\char`\"{}. \end{DoxyCompactList}\item 
+\#define \mbox{\hyperlink{Almog__String__Manipulation_8h_ab837163fffc46611066258c7fee66e72}{asm\+\_\+dprint\+CHAR}}(expr)~printf(\#expr \char`\"{} = \%c\textbackslash{}n\char`\"{}, expr)
+\begin{DoxyCompactList}\small\item\em Debug print a character expression as \char`\"{}expr = c\textbackslash{}n\char`\"{}. \end{DoxyCompactList}\item 
+\#define \mbox{\hyperlink{Almog__String__Manipulation_8h_af5e587f47be67febd1b05cdbbbd5327e}{asm\+\_\+dprint\+INT}}(expr)~printf(\#expr \char`\"{} = \%d\textbackslash{}n\char`\"{}, expr)
+\begin{DoxyCompactList}\small\item\em Debug print an integer expression as \char`\"{}expr = n\textbackslash{}n\char`\"{}. \end{DoxyCompactList}\item 
+\#define \mbox{\hyperlink{Almog__String__Manipulation_8h_af9f72a9942a8366000e5bded5cfefa17}{asm\+\_\+dprint\+SIZE\+\_\+T}}(expr)~printf(\#expr \char`\"{} = \%zu\textbackslash{}n\char`\"{}, expr)
+\begin{DoxyCompactList}\small\item\em Debug print a size\+\_\+t expression as \char`\"{}expr = n\textbackslash{}n\char`\"{}. \end{DoxyCompactList}\end{DoxyCompactItemize}
 \doxysubsection*{Functions}
 \begin{DoxyCompactItemize}
 \item 
 int \mbox{\hyperlink{Almog__String__Manipulation_8h_a8f808979502627a0266c0e374f6e1641}{asm\+\_\+get\+\_\+line}} (FILE $\ast$fp, char $\ast$dst)
-\item 
+\begin{DoxyCompactList}\small\item\em Read a single line from a stream into a buffer. \end{DoxyCompactList}\item 
 int \mbox{\hyperlink{Almog__String__Manipulation_8h_a8cd7d02540e05c2a9b7457500b3de50f}{asm\+\_\+length}} (char $\ast$str)
-\item 
+\begin{DoxyCompactList}\small\item\em Compute the length of a null-\/terminated C string. \end{DoxyCompactList}\item 
 int \mbox{\hyperlink{Almog__String__Manipulation_8h_a63ffe09b30c257a91c9b48a55837dbe0}{asm\+\_\+get\+\_\+next\+\_\+word\+\_\+from\+\_\+line}} (char $\ast$dst, char $\ast$src, char seperator)
-\item 
-void \mbox{\hyperlink{Almog__String__Manipulation_8h_ab9b15c7b736606880f1545ef527748ce}{asm\+\_\+copy\+\_\+arry\+\_\+by\+\_\+indesies}} (char $\ast$target, int start, int end, char $\ast$src)
-\item 
+\begin{DoxyCompactList}\small\item\em Extract the next word from a line without modifying the source. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{Almog__String__Manipulation_8h_a6678a45a71470d241c237d5203047448}{asm\+\_\+copy\+\_\+array\+\_\+by\+\_\+indesies}} (char $\ast$target, int start, int end, char $\ast$src)
+\begin{DoxyCompactList}\small\item\em Copy a substring \mbox{[}start, end) from src into target and null-\/terminate. \end{DoxyCompactList}\item 
 int \mbox{\hyperlink{Almog__String__Manipulation_8h_a1eed5e458a06330f12a09ed0c8b9d77d}{asm\+\_\+get\+\_\+word\+\_\+and\+\_\+cut}} (char $\ast$dst, char $\ast$src, char seperator)
-\item 
+\begin{DoxyCompactList}\small\item\em Get the next word and cut the source string at that point. \end{DoxyCompactList}\item 
 int \mbox{\hyperlink{Almog__String__Manipulation_8h_a929b5505a3cdb1796f2865b25b3bc92a}{asm\+\_\+str\+\_\+in\+\_\+str}} (char $\ast$src, char $\ast$word2search)
-\item 
+\begin{DoxyCompactList}\small\item\em Count occurrences of a substring within a string. \end{DoxyCompactList}\item 
 int \mbox{\hyperlink{Almog__String__Manipulation_8h_afb4ca51d675f386a8f5325f4481314a9}{asm\+\_\+strncmp}} (const char $\ast$s1, const char $\ast$s2, const int N)
-\end{DoxyCompactItemize}
+\begin{DoxyCompactList}\small\item\em Compare up to N characters for equality (boolean result). \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Lightweight string and line manipulation helpers. 
+
+This single-\/header module provides small utilities for working with C strings\+:
+\begin{DoxyItemize}
+\item Reading a single line from a FILE stream
+\item Measuring string length
+\item Extracting the next \char`\"{}word\char`\"{} (token) from a line using a separator
+\item Cutting the extracted word from the source buffer
+\item Copying a substring by indices
+\item Counting occurrences of a substring
+\item A boolean-\/style strncmp (returns 1 on equality, 0 otherwise)
+\end{DoxyItemize}
+
+Usage
+\begin{DoxyItemize}
+\item In exactly one translation unit, define ALMOG\+\_\+\+STRING\+\_\+\+MANIPULATION\+\_\+\+IMPLEMENTATION before including this header to compile the implementation.
+\item In all other files, include the header without the macro to get declarations only.
+\end{DoxyItemize}
+
+Notes and limitations
+\begin{DoxyItemize}
+\item All destination buffers must be large enough; functions do not grow or allocate buffers.
+\item asm\+\_\+get\+\_\+line enforces MAX\+\_\+\+LEN\+\_\+\+LINE characters (not counting the terminating \textquotesingle{}\textbackslash{}0\textquotesingle{}). Longer lines cause a fatal error via exit(1).
+\item asm\+\_\+strncmp differs from the standard C strncmp\+: this version returns 1 if equal and 0 otherwise.
+\item These functions are not locale-\/aware unless otherwise noted (isspace is used for whitespace handling). 
+\end{DoxyItemize}
+
+Definition in file \mbox{\hyperlink{Almog__String__Manipulation_8h_source}{Almog\+\_\+\+String\+\_\+\+Manipulation.\+h}}.
+
 
 
 \doxysubsection{Macro Definition Documentation}
-\mbox{\Hypertarget{Almog__String__Manipulation_8h_a8b63874b09e98605eddc71b18323ceaf}\label{Almog__String__Manipulation_8h_a8b63874b09e98605eddc71b18323ceaf}} 
-\index{Almog\_String\_Manipulation.h@{Almog\_String\_Manipulation.h}!dprintCHAR@{dprintCHAR}}
-\index{dprintCHAR@{dprintCHAR}!Almog\_String\_Manipulation.h@{Almog\_String\_Manipulation.h}}
-\doxysubsubsection{\texorpdfstring{dprintCHAR}{dprintCHAR}}
-{\footnotesize\ttfamily \#define dprint\+CHAR(\begin{DoxyParamCaption}\item[{}]{expr }\end{DoxyParamCaption})~printf(\#expr \char`\"{} = \%c\textbackslash{}n\char`\"{}, expr)}
+\mbox{\Hypertarget{Almog__String__Manipulation_8h_ab837163fffc46611066258c7fee66e72}\label{Almog__String__Manipulation_8h_ab837163fffc46611066258c7fee66e72}} 
+\index{Almog\_String\_Manipulation.h@{Almog\_String\_Manipulation.h}!asm\_dprintCHAR@{asm\_dprintCHAR}}
+\index{asm\_dprintCHAR@{asm\_dprintCHAR}!Almog\_String\_Manipulation.h@{Almog\_String\_Manipulation.h}}
+\doxysubsubsection{\texorpdfstring{asm\_dprintCHAR}{asm\_dprintCHAR}}
+{\footnotesize\ttfamily \#define asm\+\_\+dprint\+CHAR(\begin{DoxyParamCaption}\item[{}]{expr }\end{DoxyParamCaption})~printf(\#expr \char`\"{} = \%c\textbackslash{}n\char`\"{}, expr)}
 
 
 
-Definition at line \mbox{\hyperlink{Almog__String__Manipulation_8h_source_l00012}{12}} of file \mbox{\hyperlink{Almog__String__Manipulation_8h_source}{Almog\+\_\+\+String\+\_\+\+Manipulation.\+h}}.
-
-\mbox{\Hypertarget{Almog__String__Manipulation_8h_ad6ee5604ae166c2578fb919ba8047d32}\label{Almog__String__Manipulation_8h_ad6ee5604ae166c2578fb919ba8047d32}} 
-\index{Almog\_String\_Manipulation.h@{Almog\_String\_Manipulation.h}!dprintINT@{dprintINT}}
-\index{dprintINT@{dprintINT}!Almog\_String\_Manipulation.h@{Almog\_String\_Manipulation.h}}
-\doxysubsubsection{\texorpdfstring{dprintINT}{dprintINT}}
-{\footnotesize\ttfamily \#define dprint\+INT(\begin{DoxyParamCaption}\item[{}]{expr }\end{DoxyParamCaption})~printf(\#expr \char`\"{} = \%d\textbackslash{}n\char`\"{}, expr)}
+Debug print a character expression as \char`\"{}expr = c\textbackslash{}n\char`\"{}. 
 
 
-
-Definition at line \mbox{\hyperlink{Almog__String__Manipulation_8h_source_l00013}{13}} of file \mbox{\hyperlink{Almog__String__Manipulation_8h_source}{Almog\+\_\+\+String\+\_\+\+Manipulation.\+h}}.
-
-\mbox{\Hypertarget{Almog__String__Manipulation_8h_a44ef8de62cc4802e6e2d52716d9ea342}\label{Almog__String__Manipulation_8h_a44ef8de62cc4802e6e2d52716d9ea342}} 
-\index{Almog\_String\_Manipulation.h@{Almog\_String\_Manipulation.h}!dprintSIZE\_T@{dprintSIZE\_T}}
-\index{dprintSIZE\_T@{dprintSIZE\_T}!Almog\_String\_Manipulation.h@{Almog\_String\_Manipulation.h}}
-\doxysubsubsection{\texorpdfstring{dprintSIZE\_T}{dprintSIZE\_T}}
-{\footnotesize\ttfamily \#define dprint\+SIZE\+\_\+T(\begin{DoxyParamCaption}\item[{}]{expr }\end{DoxyParamCaption})~printf(\#expr \char`\"{} = \%zu\textbackslash{}n\char`\"{}, expr)}
+\begin{DoxyParams}{Parameters}
+{\em expr} & An expression that yields a character promoted to int. \\
+\hline
+\end{DoxyParams}
 
 
+Definition at line \mbox{\hyperlink{Almog__String__Manipulation_8h_source_l00072}{72}} of file \mbox{\hyperlink{Almog__String__Manipulation_8h_source}{Almog\+\_\+\+String\+\_\+\+Manipulation.\+h}}.
 
-Definition at line \mbox{\hyperlink{Almog__String__Manipulation_8h_source_l00014}{14}} of file \mbox{\hyperlink{Almog__String__Manipulation_8h_source}{Almog\+\_\+\+String\+\_\+\+Manipulation.\+h}}.
-
-\mbox{\Hypertarget{Almog__String__Manipulation_8h_a8a10eb1b51de8ec7f32760fc42a499d3}\label{Almog__String__Manipulation_8h_a8a10eb1b51de8ec7f32760fc42a499d3}} 
-\index{Almog\_String\_Manipulation.h@{Almog\_String\_Manipulation.h}!dprintSTRING@{dprintSTRING}}
-\index{dprintSTRING@{dprintSTRING}!Almog\_String\_Manipulation.h@{Almog\_String\_Manipulation.h}}
-\doxysubsubsection{\texorpdfstring{dprintSTRING}{dprintSTRING}}
-{\footnotesize\ttfamily \#define dprint\+STRING(\begin{DoxyParamCaption}\item[{}]{expr }\end{DoxyParamCaption})~printf(\#expr \char`\"{} = \%s\textbackslash{}n\char`\"{}, expr)}
+\mbox{\Hypertarget{Almog__String__Manipulation_8h_af5e587f47be67febd1b05cdbbbd5327e}\label{Almog__String__Manipulation_8h_af5e587f47be67febd1b05cdbbbd5327e}} 
+\index{Almog\_String\_Manipulation.h@{Almog\_String\_Manipulation.h}!asm\_dprintINT@{asm\_dprintINT}}
+\index{asm\_dprintINT@{asm\_dprintINT}!Almog\_String\_Manipulation.h@{Almog\_String\_Manipulation.h}}
+\doxysubsubsection{\texorpdfstring{asm\_dprintINT}{asm\_dprintINT}}
+{\footnotesize\ttfamily \#define asm\+\_\+dprint\+INT(\begin{DoxyParamCaption}\item[{}]{expr }\end{DoxyParamCaption})~printf(\#expr \char`\"{} = \%d\textbackslash{}n\char`\"{}, expr)}
 
 
 
-Definition at line \mbox{\hyperlink{Almog__String__Manipulation_8h_source_l00011}{11}} of file \mbox{\hyperlink{Almog__String__Manipulation_8h_source}{Almog\+\_\+\+String\+\_\+\+Manipulation.\+h}}.
-
-\mbox{\Hypertarget{Almog__String__Manipulation_8h_a076fd3c5ba5ac7c6bbedb64c188565f3}\label{Almog__String__Manipulation_8h_a076fd3c5ba5ac7c6bbedb64c188565f3}} 
-\index{Almog\_String\_Manipulation.h@{Almog\_String\_Manipulation.h}!MAX\_LEN\_LINE@{MAX\_LEN\_LINE}}
-\index{MAX\_LEN\_LINE@{MAX\_LEN\_LINE}!Almog\_String\_Manipulation.h@{Almog\_String\_Manipulation.h}}
-\doxysubsubsection{\texorpdfstring{MAX\_LEN\_LINE}{MAX\_LEN\_LINE}}
-{\footnotesize\ttfamily \#define MAX\+\_\+\+LEN\+\_\+\+LINE~(int)1e3}
+Debug print an integer expression as \char`\"{}expr = n\textbackslash{}n\char`\"{}. 
 
 
-
-Definition at line \mbox{\hyperlink{Almog__String__Manipulation_8h_source_l00010}{10}} of file \mbox{\hyperlink{Almog__String__Manipulation_8h_source}{Almog\+\_\+\+String\+\_\+\+Manipulation.\+h}}.
-
-\mbox{\Hypertarget{Almog__String__Manipulation_8h_a18dca71f9c1cfae749d91ee885e5d0b3}\label{Almog__String__Manipulation_8h_a18dca71f9c1cfae749d91ee885e5d0b3}} 
-\index{Almog\_String\_Manipulation.h@{Almog\_String\_Manipulation.h}!MAXDIR@{MAXDIR}}
-\index{MAXDIR@{MAXDIR}!Almog\_String\_Manipulation.h@{Almog\_String\_Manipulation.h}}
-\doxysubsubsection{\texorpdfstring{MAXDIR}{MAXDIR}}
-{\footnotesize\ttfamily \#define MAXDIR~100}
+\begin{DoxyParams}{Parameters}
+{\em expr} & An expression that yields an int. \\
+\hline
+\end{DoxyParams}
 
 
+Definition at line \mbox{\hyperlink{Almog__String__Manipulation_8h_source_l00079}{79}} of file \mbox{\hyperlink{Almog__String__Manipulation_8h_source}{Almog\+\_\+\+String\+\_\+\+Manipulation.\+h}}.
 
-Definition at line \mbox{\hyperlink{Almog__String__Manipulation_8h_source_l00009}{9}} of file \mbox{\hyperlink{Almog__String__Manipulation_8h_source}{Almog\+\_\+\+String\+\_\+\+Manipulation.\+h}}.
+\mbox{\Hypertarget{Almog__String__Manipulation_8h_af9f72a9942a8366000e5bded5cfefa17}\label{Almog__String__Manipulation_8h_af9f72a9942a8366000e5bded5cfefa17}} 
+\index{Almog\_String\_Manipulation.h@{Almog\_String\_Manipulation.h}!asm\_dprintSIZE\_T@{asm\_dprintSIZE\_T}}
+\index{asm\_dprintSIZE\_T@{asm\_dprintSIZE\_T}!Almog\_String\_Manipulation.h@{Almog\_String\_Manipulation.h}}
+\doxysubsubsection{\texorpdfstring{asm\_dprintSIZE\_T}{asm\_dprintSIZE\_T}}
+{\footnotesize\ttfamily \#define asm\+\_\+dprint\+SIZE\+\_\+T(\begin{DoxyParamCaption}\item[{}]{expr }\end{DoxyParamCaption})~printf(\#expr \char`\"{} = \%zu\textbackslash{}n\char`\"{}, expr)}
+
+
+
+Debug print a size\+\_\+t expression as \char`\"{}expr = n\textbackslash{}n\char`\"{}. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em expr} & An expression that yields a size\+\_\+t. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line \mbox{\hyperlink{Almog__String__Manipulation_8h_source_l00086}{86}} of file \mbox{\hyperlink{Almog__String__Manipulation_8h_source}{Almog\+\_\+\+String\+\_\+\+Manipulation.\+h}}.
+
+\mbox{\Hypertarget{Almog__String__Manipulation_8h_aca98d8d2a0e5e0c21dc1b8b7f8d577c2}\label{Almog__String__Manipulation_8h_aca98d8d2a0e5e0c21dc1b8b7f8d577c2}} 
+\index{Almog\_String\_Manipulation.h@{Almog\_String\_Manipulation.h}!asm\_dprintSTRING@{asm\_dprintSTRING}}
+\index{asm\_dprintSTRING@{asm\_dprintSTRING}!Almog\_String\_Manipulation.h@{Almog\_String\_Manipulation.h}}
+\doxysubsubsection{\texorpdfstring{asm\_dprintSTRING}{asm\_dprintSTRING}}
+{\footnotesize\ttfamily \#define asm\+\_\+dprint\+STRING(\begin{DoxyParamCaption}\item[{}]{expr }\end{DoxyParamCaption})~printf(\#expr \char`\"{} = \%s\textbackslash{}n\char`\"{}, expr)}
+
+
+
+Debug print a C string expression as \char`\"{}expr = value\textbackslash{}n\char`\"{}. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em expr} & An expression that yields a pointer to char (const or non-\/const). \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line \mbox{\hyperlink{Almog__String__Manipulation_8h_source_l00065}{65}} of file \mbox{\hyperlink{Almog__String__Manipulation_8h_source}{Almog\+\_\+\+String\+\_\+\+Manipulation.\+h}}.
+
+\mbox{\Hypertarget{Almog__String__Manipulation_8h_a0b297f6220bd049e02b3fb6ea0b8e6a9}\label{Almog__String__Manipulation_8h_a0b297f6220bd049e02b3fb6ea0b8e6a9}} 
+\index{Almog\_String\_Manipulation.h@{Almog\_String\_Manipulation.h}!ASM\_MAX\_LEN\_LINE@{ASM\_MAX\_LEN\_LINE}}
+\index{ASM\_MAX\_LEN\_LINE@{ASM\_MAX\_LEN\_LINE}!Almog\_String\_Manipulation.h@{Almog\_String\_Manipulation.h}}
+\doxysubsubsection{\texorpdfstring{ASM\_MAX\_LEN\_LINE}{ASM\_MAX\_LEN\_LINE}}
+{\footnotesize\ttfamily \#define ASM\+\_\+\+MAX\+\_\+\+LEN\+\_\+\+LINE~(int)1e3}
+
+
+
+Maximum number of characters read by asm\+\_\+get\+\_\+line (excluding the terminating null). 
+
+If an input line exceeds this value before encountering \textquotesingle{}~\newline
+\textquotesingle{} or EOF, asm\+\_\+get\+\_\+line prints an error to stderr and terminates the process with exit(1). 
+
+Definition at line \mbox{\hyperlink{Almog__String__Manipulation_8h_source_l00058}{58}} of file \mbox{\hyperlink{Almog__String__Manipulation_8h_source}{Almog\+\_\+\+String\+\_\+\+Manipulation.\+h}}.
+
+\mbox{\Hypertarget{Almog__String__Manipulation_8h_ad471820dd5c75f65ca43362259b08c59}\label{Almog__String__Manipulation_8h_ad471820dd5c75f65ca43362259b08c59}} 
+\index{Almog\_String\_Manipulation.h@{Almog\_String\_Manipulation.h}!ASM\_MAXDIR@{ASM\_MAXDIR}}
+\index{ASM\_MAXDIR@{ASM\_MAXDIR}!Almog\_String\_Manipulation.h@{Almog\_String\_Manipulation.h}}
+\doxysubsubsection{\texorpdfstring{ASM\_MAXDIR}{ASM\_MAXDIR}}
+{\footnotesize\ttfamily \#define ASM\+\_\+\+MAXDIR~100}
+
+
+
+Generic maximum directory length constant (not used by the functions in this header but available to callers). 
+
+
+
+Definition at line \mbox{\hyperlink{Almog__String__Manipulation_8h_source_l00047}{47}} of file \mbox{\hyperlink{Almog__String__Manipulation_8h_source}{Almog\+\_\+\+String\+\_\+\+Manipulation.\+h}}.
 
 
 
 \doxysubsection{Function Documentation}
-\mbox{\Hypertarget{Almog__String__Manipulation_8h_ab9b15c7b736606880f1545ef527748ce}\label{Almog__String__Manipulation_8h_ab9b15c7b736606880f1545ef527748ce}} 
-\index{Almog\_String\_Manipulation.h@{Almog\_String\_Manipulation.h}!asm\_copy\_arry\_by\_indesies@{asm\_copy\_arry\_by\_indesies}}
-\index{asm\_copy\_arry\_by\_indesies@{asm\_copy\_arry\_by\_indesies}!Almog\_String\_Manipulation.h@{Almog\_String\_Manipulation.h}}
-\doxysubsubsection{\texorpdfstring{asm\_copy\_arry\_by\_indesies()}{asm\_copy\_arry\_by\_indesies()}}
-{\footnotesize\ttfamily void asm\+\_\+copy\+\_\+arry\+\_\+by\+\_\+indesies (\begin{DoxyParamCaption}\item[{char $\ast$}]{target,  }\item[{int}]{start,  }\item[{int}]{end,  }\item[{char $\ast$}]{src }\end{DoxyParamCaption})}
+\mbox{\Hypertarget{Almog__String__Manipulation_8h_a6678a45a71470d241c237d5203047448}\label{Almog__String__Manipulation_8h_a6678a45a71470d241c237d5203047448}} 
+\index{Almog\_String\_Manipulation.h@{Almog\_String\_Manipulation.h}!asm\_copy\_array\_by\_indesies@{asm\_copy\_array\_by\_indesies}}
+\index{asm\_copy\_array\_by\_indesies@{asm\_copy\_array\_by\_indesies}!Almog\_String\_Manipulation.h@{Almog\_String\_Manipulation.h}}
+\doxysubsubsection{\texorpdfstring{asm\_copy\_array\_by\_indesies()}{asm\_copy\_array\_by\_indesies()}}
+{\footnotesize\ttfamily void asm\+\_\+copy\+\_\+array\+\_\+by\+\_\+indesies (\begin{DoxyParamCaption}\item[{char $\ast$}]{target,  }\item[{int}]{start,  }\item[{int}]{end,  }\item[{char $\ast$}]{src }\end{DoxyParamCaption})}
+
+
+
+Copy a substring \mbox{[}start, end) from src into target and null-\/terminate. 
+
+Copies characters with indices i = start, start+1, ..., end-\/1 from src into target, then writes a terminating \textquotesingle{}\textbackslash{}0\textquotesingle{}.
+
+
+\begin{DoxyParams}{Parameters}
+{\em target} & Destination buffer. Must be large enough to hold (end -\/ start) characters plus the null terminator. \\
+\hline
+{\em start} & Inclusive start index within src (0-\/based). \\
+\hline
+{\em end} & Exclusive end index within src (must satisfy end $>$= start). \\
+\hline
+{\em src} & Source string buffer.\\
+\hline
+\end{DoxyParams}
+\begin{DoxyWarning}{Warning}
+No bounds checking is performed. The caller must ensure valid indices and sufficient target capacity. 
+\end{DoxyWarning}
+\begin{DoxyNote}{Note}
+This routine supports in-\/place \char`\"{}left-\/shift\char`\"{} usage where target == src and start $>$ 0 (used by asm\+\_\+get\+\_\+word\+\_\+and\+\_\+cut). 
+\end{DoxyNote}
+
+
+Definition at line \mbox{\hyperlink{Almog__String__Manipulation_8h_source_l00232}{232}} of file \mbox{\hyperlink{Almog__String__Manipulation_8h_source}{Almog\+\_\+\+String\+\_\+\+Manipulation.\+h}}.
+
+
+
+Referenced by \mbox{\hyperlink{Almog__String__Manipulation_8h_source_l00260}{asm\+\_\+get\+\_\+word\+\_\+and\+\_\+cut()}}.
 
 \mbox{\Hypertarget{Almog__String__Manipulation_8h_a8f808979502627a0266c0e374f6e1641}\label{Almog__String__Manipulation_8h_a8f808979502627a0266c0e374f6e1641}} 
 \index{Almog\_String\_Manipulation.h@{Almog\_String\_Manipulation.h}!asm\_get\_line@{asm\_get\_line}}
 \index{asm\_get\_line@{asm\_get\_line}!Almog\_String\_Manipulation.h@{Almog\_String\_Manipulation.h}}
 \doxysubsubsection{\texorpdfstring{asm\_get\_line()}{asm\_get\_line()}}
 {\footnotesize\ttfamily int asm\+\_\+get\+\_\+line (\begin{DoxyParamCaption}\item[{FILE $\ast$}]{fp,  }\item[{char $\ast$}]{dst }\end{DoxyParamCaption})}
+
+
+
+Read a single line from a stream into a buffer. 
+
+Reads characters from the FILE stream until a newline (\textquotesingle{}~\newline
+\textquotesingle{}) or EOF is encountered. The newline, if present, is not copied. The result is always null-\/terminated.
+
+
+\begin{DoxyParams}{Parameters}
+{\em fp} & Input stream (must be non-\/\+NULL). \\
+\hline
+{\em dst} & Destination buffer. Must have capacity of at least MAX\+\_\+\+LEN\+\_\+\+LINE + 1 bytes. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Number of characters stored in dst (excluding the terminating null). 
+\end{DoxyReturn}
+
+\begin{DoxyRetVals}{Return values}
+{\em -\/1} & EOF was encountered before any character was read.\\
+\hline
+\end{DoxyRetVals}
+\begin{DoxyNote}{Note}
+If the line exceeds MAX\+\_\+\+LEN\+\_\+\+LINE characters before a newline or EOF, the function prints an error and calls exit(1). 
+
+An empty line returns 0 (not -\/1). 
+\end{DoxyNote}
+
+
+Definition at line \mbox{\hyperlink{Almog__String__Manipulation_8h_source_l00119}{119}} of file \mbox{\hyperlink{Almog__String__Manipulation_8h_source}{Almog\+\_\+\+String\+\_\+\+Manipulation.\+h}}.
+
+
+
+References \mbox{\hyperlink{Almog__String__Manipulation_8h_source_l00058}{ASM\+\_\+\+MAX\+\_\+\+LEN\+\_\+\+LINE}}.
 
 
 
@@ -142,13 +288,82 @@ Referenced by \mbox{\hyperlink{Almog__Engine_8h_source_l00540}{ae\+\_\+tri\+\_\+
 
 
 
-Referenced by \mbox{\hyperlink{Almog__Engine_8h_source_l00540}{ae\+\_\+tri\+\_\+mesh\+\_\+get\+\_\+from\+\_\+obj\+\_\+file()}}.
+Extract the next word from a line without modifying the source. 
+
+Skips leading whitespace in src (as determined by isspace), then copies characters into dst until one of the following is seen\+: the separator, a newline (\textquotesingle{}~\newline
+\textquotesingle{}), or the string terminator (\textquotesingle{}\textbackslash{}0\textquotesingle{}). The copied word in dst is null-\/terminated and is never empty on success.
+
+Special case\+:
+\begin{DoxyItemize}
+\item If the very first character in src (at index 0, without leading whitespace) is the separator, \textquotesingle{}~\newline
+\textquotesingle{}, or \textquotesingle{}\textbackslash{}0\textquotesingle{}, that single character is returned as a one-\/character \char`\"{}word\char`\"{}.
+\end{DoxyItemize}
+
+
+\begin{DoxyParams}{Parameters}
+{\em dst} & Destination buffer for the extracted word. Must be large enough to hold the token plus the null terminator. \\
+\hline
+{\em src} & Source C string to parse (not modified by this function). \\
+\hline
+{\em seperator} & Separator character to stop at (spelling as in the API). \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+The number of characters consumed from src (i.\+e., the index of the first unconsumed character). 
+\end{DoxyReturn}
+
+\begin{DoxyRetVals}{Return values}
+{\em -\/1} & No word was found (e.\+g., only whitespace before a delimiter or end-\/of-\/string).\\
+\hline
+\end{DoxyRetVals}
+\begin{DoxyNote}{Note}
+The source buffer is not altered. To both extract and advance/cut the source, see asm\+\_\+get\+\_\+word\+\_\+and\+\_\+cut. 
+\end{DoxyNote}
+
+
+Definition at line \mbox{\hyperlink{Almog__String__Manipulation_8h_source_l00182}{182}} of file \mbox{\hyperlink{Almog__String__Manipulation_8h_source}{Almog\+\_\+\+String\+\_\+\+Manipulation.\+h}}.
+
+
+
+Referenced by \mbox{\hyperlink{Almog__Engine_8h_source_l00540}{ae\+\_\+tri\+\_\+mesh\+\_\+get\+\_\+from\+\_\+obj\+\_\+file()}}, and \mbox{\hyperlink{Almog__String__Manipulation_8h_source_l00260}{asm\+\_\+get\+\_\+word\+\_\+and\+\_\+cut()}}.
 
 \mbox{\Hypertarget{Almog__String__Manipulation_8h_a1eed5e458a06330f12a09ed0c8b9d77d}\label{Almog__String__Manipulation_8h_a1eed5e458a06330f12a09ed0c8b9d77d}} 
 \index{Almog\_String\_Manipulation.h@{Almog\_String\_Manipulation.h}!asm\_get\_word\_and\_cut@{asm\_get\_word\_and\_cut}}
 \index{asm\_get\_word\_and\_cut@{asm\_get\_word\_and\_cut}!Almog\_String\_Manipulation.h@{Almog\_String\_Manipulation.h}}
 \doxysubsubsection{\texorpdfstring{asm\_get\_word\_and\_cut()}{asm\_get\_word\_and\_cut()}}
 {\footnotesize\ttfamily int asm\+\_\+get\+\_\+word\+\_\+and\+\_\+cut (\begin{DoxyParamCaption}\item[{char $\ast$}]{dst,  }\item[{char $\ast$}]{src,  }\item[{char}]{seperator }\end{DoxyParamCaption})}
+
+
+
+Get the next word and cut the source string at that point. 
+
+Extracts the next word from src (per asm\+\_\+get\+\_\+next\+\_\+word\+\_\+from\+\_\+line semantics) into dst. On success, src is modified in-\/place to remove the consumed prefix. The new src begins at the stopping character (the separator, newline, or terminator).
+
+Example\+: For src = \char`\"{}abc,def\char`\"{}, separator = \textquotesingle{},\textquotesingle{}
+\begin{DoxyItemize}
+\item dst becomes \char`\"{}abc\char`\"{}
+\item src becomes \char`\"{},def\char`\"{} (note the leading separator remains)
+\end{DoxyItemize}
+
+
+\begin{DoxyParams}{Parameters}
+{\em dst} & Destination buffer for the extracted word (large enough for the token and terminating null). \\
+\hline
+{\em src} & Source buffer. Modified in-\/place if a word is found. \\
+\hline
+{\em seperator} & Separator character to stop at (spelling as in the API). \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+1 if a word was extracted and src adjusted, 0 otherwise. 
+\end{DoxyReturn}
+
+
+Definition at line \mbox{\hyperlink{Almog__String__Manipulation_8h_source_l00260}{260}} of file \mbox{\hyperlink{Almog__String__Manipulation_8h_source}{Almog\+\_\+\+String\+\_\+\+Manipulation.\+h}}.
+
+
+
+References \mbox{\hyperlink{Almog__String__Manipulation_8h_source_l00232}{asm\+\_\+copy\+\_\+array\+\_\+by\+\_\+indesies()}}, \mbox{\hyperlink{Almog__String__Manipulation_8h_source_l00182}{asm\+\_\+get\+\_\+next\+\_\+word\+\_\+from\+\_\+line()}}, and \mbox{\hyperlink{Almog__String__Manipulation_8h_source_l00146}{asm\+\_\+length()}}.
 
 
 
@@ -162,13 +377,53 @@ Referenced by \mbox{\hyperlink{Almog__Engine_8h_source_l00816}{ae\+\_\+tri\+\_\+
 
 
 
-Referenced by \mbox{\hyperlink{Almog__Engine_8h_source_l00540}{ae\+\_\+tri\+\_\+mesh\+\_\+get\+\_\+from\+\_\+obj\+\_\+file()}}.
+Compute the length of a null-\/terminated C string. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em str} & Null-\/terminated string (must be non-\/\+NULL). \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+The number of characters before the terminating null byte. 
+\end{DoxyReturn}
+
+
+Definition at line \mbox{\hyperlink{Almog__String__Manipulation_8h_source_l00146}{146}} of file \mbox{\hyperlink{Almog__String__Manipulation_8h_source}{Almog\+\_\+\+String\+\_\+\+Manipulation.\+h}}.
+
+
+
+Referenced by \mbox{\hyperlink{Almog__Engine_8h_source_l00540}{ae\+\_\+tri\+\_\+mesh\+\_\+get\+\_\+from\+\_\+obj\+\_\+file()}}, \mbox{\hyperlink{Almog__String__Manipulation_8h_source_l00260}{asm\+\_\+get\+\_\+word\+\_\+and\+\_\+cut()}}, and \mbox{\hyperlink{Almog__String__Manipulation_8h_source_l00285}{asm\+\_\+str\+\_\+in\+\_\+str()}}.
 
 \mbox{\Hypertarget{Almog__String__Manipulation_8h_a929b5505a3cdb1796f2865b25b3bc92a}\label{Almog__String__Manipulation_8h_a929b5505a3cdb1796f2865b25b3bc92a}} 
 \index{Almog\_String\_Manipulation.h@{Almog\_String\_Manipulation.h}!asm\_str\_in\_str@{asm\_str\_in\_str}}
 \index{asm\_str\_in\_str@{asm\_str\_in\_str}!Almog\_String\_Manipulation.h@{Almog\_String\_Manipulation.h}}
 \doxysubsubsection{\texorpdfstring{asm\_str\_in\_str()}{asm\_str\_in\_str()}}
 {\footnotesize\ttfamily int asm\+\_\+str\+\_\+in\+\_\+str (\begin{DoxyParamCaption}\item[{char $\ast$}]{src,  }\item[{char $\ast$}]{word2search }\end{DoxyParamCaption})}
+
+
+
+Count occurrences of a substring within a string. 
+
+Counts how many times word2search appears in src. Occurrences may overlap.
+
+
+\begin{DoxyParams}{Parameters}
+{\em src} & The string to search in (must be null-\/terminated). \\
+\hline
+{\em word2search} & The substring to find (must be null-\/terminated). \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+The number of (possibly overlapping) occurrences found. 
+\end{DoxyReturn}
+
+
+Definition at line \mbox{\hyperlink{Almog__String__Manipulation_8h_source_l00285}{285}} of file \mbox{\hyperlink{Almog__String__Manipulation_8h_source}{Almog\+\_\+\+String\+\_\+\+Manipulation.\+h}}.
+
+
+
+References \mbox{\hyperlink{Almog__String__Manipulation_8h_source_l00146}{asm\+\_\+length()}}, and \mbox{\hyperlink{Almog__String__Manipulation_8h_source_l00310}{asm\+\_\+strncmp()}}.
 
 
 
@@ -179,4 +434,30 @@ Referenced by \mbox{\hyperlink{Almog__Engine_8h_source_l00816}{ae\+\_\+tri\+\_\+
 \index{asm\_strncmp@{asm\_strncmp}!Almog\_String\_Manipulation.h@{Almog\_String\_Manipulation.h}}
 \doxysubsubsection{\texorpdfstring{asm\_strncmp()}{asm\_strncmp()}}
 {\footnotesize\ttfamily int asm\+\_\+strncmp (\begin{DoxyParamCaption}\item[{const char $\ast$}]{s1,  }\item[{const char $\ast$}]{s2,  }\item[{const int}]{N }\end{DoxyParamCaption})}
+
+
+
+Compare up to N characters for equality (boolean result). 
+
+Returns 1 if the first N characters of s1 and s2 are all equal; otherwise returns 0. Unlike the standard C strncmp, which returns 0 on equality and a non-\/zero value on inequality/order, this function returns a boolean-\/like result (1 == equal, 0 == different).
+
+
+\begin{DoxyParams}{Parameters}
+{\em s1} & First string (may be shorter than N). \\
+\hline
+{\em s2} & Second string (may be shorter than N). \\
+\hline
+{\em N} & Number of characters to compare. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+1 if equal for the first N characters, 0 otherwise. 
+\end{DoxyReturn}
+
+
+Definition at line \mbox{\hyperlink{Almog__String__Manipulation_8h_source_l00310}{310}} of file \mbox{\hyperlink{Almog__String__Manipulation_8h_source}{Almog\+\_\+\+String\+\_\+\+Manipulation.\+h}}.
+
+
+
+Referenced by \mbox{\hyperlink{Almog__String__Manipulation_8h_source_l00285}{asm\+\_\+str\+\_\+in\+\_\+str()}}.
 

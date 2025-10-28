@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['green_5fhexargb_546',['GREEN_hexARGB',['../Almog__Draw__Library_8h.html#a2573b865d687b5dcfe3d091f1a645921',1,'Almog_Draw_Library.h']]]
+  ['fps_549',['FPS',['../display_8c.html#ac92ca5ab87034a348decad7ee8d4bd1b',1,'display.c']]],
+  ['frame_5ftarget_5ftime_550',['FRAME_TARGET_TIME',['../display_8c.html#ad9bc53a358319625d023bee296e683f9',1,'display.c']]]
 ];

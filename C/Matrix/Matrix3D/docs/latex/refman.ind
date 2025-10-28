@@ -1,0 +1,88 @@
+\begin{theindex}
+
+  \item {cols}
+    \subitem {Mat3D}, \hyperpage{5}
+
+  \indexspace
+
+  \item {elements}
+    \subitem {Mat3D}, \hyperpage{6}
+
+  \indexspace
+
+  \item {layers}
+    \subitem {Mat3D}, \hyperpage{6}
+
+  \indexspace
+
+  \item {main}
+    \subitem {temp.c}, \hyperpage{19}
+  \item {Mat3D}, \hyperpage{5}
+    \subitem {cols}, \hyperpage{5}
+    \subitem {elements}, \hyperpage{6}
+    \subitem {layers}, \hyperpage{6}
+    \subitem {rows}, \hyperpage{6}
+    \subitem {stride}, \hyperpage{6}
+  \item {mat3D\_alloc}
+    \subitem {Matrix3D.h}, \hyperpage{11}
+  \item {MAT3D\_AT}
+    \subitem {Matrix3D.h}, \hyperpage{9}
+  \item {mat3D\_copy}
+    \subitem {Matrix3D.h}, \hyperpage{12}
+  \item {mat3D\_fill}
+    \subitem {Matrix3D.h}, \hyperpage{12}
+  \item {mat3D\_free}
+    \subitem {Matrix3D.h}, \hyperpage{13}
+  \item {mat3D\_identity\_mat}
+    \subitem {Matrix3D.h}, \hyperpage{13}
+  \item {mat3D\_mult}
+    \subitem {Matrix3D.h}, \hyperpage{14}
+  \item {MAT3D\_PRINT}
+    \subitem {Matrix3D.h}, \hyperpage{10}
+  \item {mat3D\_print}
+    \subitem {Matrix3D.h}, \hyperpage{14}
+  \item {mat3D\_rand}
+    \subitem {Matrix3D.h}, \hyperpage{15}
+  \item {mat3D\_rand\_float}
+    \subitem {Matrix3D.h}, \hyperpage{15}
+  \item {mat3D\_sum}
+    \subitem {Matrix3D.h}, \hyperpage{15}
+  \item {Matrix3D.h}, \hyperpage{7}
+    \subitem {mat3D\_alloc}, \hyperpage{11}
+    \subitem {MAT3D\_AT}, \hyperpage{9}
+    \subitem {mat3D\_copy}, \hyperpage{12}
+    \subitem {mat3D\_fill}, \hyperpage{12}
+    \subitem {mat3D\_free}, \hyperpage{13}
+    \subitem {mat3D\_identity\_mat}, \hyperpage{13}
+    \subitem {mat3D\_mult}, \hyperpage{14}
+    \subitem {MAT3D\_PRINT}, \hyperpage{10}
+    \subitem {mat3D\_print}, \hyperpage{14}
+    \subitem {mat3D\_rand}, \hyperpage{15}
+    \subitem {mat3D\_rand\_float}, \hyperpage{15}
+    \subitem {mat3D\_sum}, \hyperpage{15}
+    \subitem {MATRIX3D\_ASSERT}, \hyperpage{10}
+    \subitem {MATRIX3D\_MALLOC}, \hyperpage{10}
+  \item {MATRIX3D\_ASSERT}
+    \subitem {Matrix3D.h}, \hyperpage{10}
+  \item {MATRIX3D\_IMPLEMENTATION}
+    \subitem {temp.c}, \hyperpage{19}
+  \item {MATRIX3D\_MALLOC}
+    \subitem {Matrix3D.h}, \hyperpage{10}
+
+  \indexspace
+
+  \item {rows}
+    \subitem {Mat3D}, \hyperpage{6}
+
+  \indexspace
+
+  \item {stride}
+    \subitem {Mat3D}, \hyperpage{6}
+
+  \indexspace
+
+  \item {temp.c}, \hyperpage{18}
+    \subitem {main}, \hyperpage{19}
+    \subitem {MATRIX3D\_IMPLEMENTATION}, \hyperpage{19}
+
+\end{theindex}

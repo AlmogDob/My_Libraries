@@ -1,5 +1,5 @@
 <map id="src/include/Almog_Dynamic_Array.h" name="src/include/Almog_Dynamic_Array.h">
-<area shape="rect" id="node1" title=" " alt="" coords="89,5,292,47"/>
+<area shape="rect" id="node1" title="Header&#45;only C macros that implement a simple dynamic array." alt="" coords="89,5,292,47"/>
 <area shape="rect" id="node2" href="$Almog__Draw__Library_8h.html" title="Immediate&#45;mode 2D/3D raster helpers for drawing onto Mat2D_uint32 pixel buffers." alt="" coords="39,95,217,136"/>
 <area shape="rect" id="node4" href="$Almog__Engine_8h.html" title="Software 3D rendering and scene utilities for meshes, camera, and projection." alt="" coords="154,184,355,211"/>
 <area shape="rect" id="node3" href="$grid__example_8c.html" title=" " alt="" coords="193,333,338,360"/>
