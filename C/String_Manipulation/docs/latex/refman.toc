@@ -1,0 +1,29 @@
+\@ifundefined {etoctocstyle}{\let \etoc@startlocaltoc \@gobble \let \etoc@settocdepth \@gobble \let \etoc@depthtag \@gobble \let \etoc@setlocaltop \@gobble }{}
+\contentsline {chapter}{\numberline {1}File Index}{1}{chapter.1}%
+\contentsline {section}{\numberline {1.1}File List}{1}{section.1.1}%
+\contentsline {chapter}{\numberline {2}File Documentation}{3}{chapter.2}%
+\contentsline {section}{\numberline {2.1}Almog\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}\_\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}String\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}\_\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}Manipulation.\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}h File Reference}{3}{section.2.1}%
+\contentsline {subsection}{\numberline {2.1.1}Detailed Description}{4}{subsection.2.1.1}%
+\contentsline {subsection}{\numberline {2.1.2}Macro Definition Documentation}{5}{subsection.2.1.2}%
+\contentsline {subsubsection}{\numberline {2.1.2.1}asm\_dprintCHAR}{5}{subsubsection.2.1.2.1}%
+\contentsline {subsubsection}{\numberline {2.1.2.2}asm\_dprintINT}{5}{subsubsection.2.1.2.2}%
+\contentsline {subsubsection}{\numberline {2.1.2.3}asm\_dprintSIZE\_T}{6}{subsubsection.2.1.2.3}%
+\contentsline {subsubsection}{\numberline {2.1.2.4}asm\_dprintSTRING}{6}{subsubsection.2.1.2.4}%
+\contentsline {subsubsection}{\numberline {2.1.2.5}ASM\_MAX\_LEN\_LINE}{6}{subsubsection.2.1.2.5}%
+\contentsline {subsubsection}{\numberline {2.1.2.6}ASM\_MAXDIR}{7}{subsubsection.2.1.2.6}%
+\contentsline {subsection}{\numberline {2.1.3}Function Documentation}{7}{subsection.2.1.3}%
+\contentsline {subsubsection}{\numberline {2.1.3.1}asm\_copy\_array\_by\_indesies()}{7}{subsubsection.2.1.3.1}%
+\contentsline {subsubsection}{\numberline {2.1.3.2}asm\_get\_line()}{8}{subsubsection.2.1.3.2}%
+\contentsline {subsubsection}{\numberline {2.1.3.3}asm\_get\_next\_word\_from\_line()}{8}{subsubsection.2.1.3.3}%
+\contentsline {subsubsection}{\numberline {2.1.3.4}asm\_get\_word\_and\_cut()}{9}{subsubsection.2.1.3.4}%
+\contentsline {subsubsection}{\numberline {2.1.3.5}asm\_length()}{10}{subsubsection.2.1.3.5}%
+\contentsline {subsubsection}{\numberline {2.1.3.6}asm\_str\_in\_str()}{10}{subsubsection.2.1.3.6}%
+\contentsline {subsubsection}{\numberline {2.1.3.7}asm\_strncmp()}{11}{subsubsection.2.1.3.7}%
+\contentsline {section}{\numberline {2.2}Almog\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}\_\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}String\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}\_\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}Manipulation.\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}h}{11}{section.2.2}%
+\contentsline {section}{\numberline {2.3}temp.\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}c File Reference}{13}{section.2.3}%
+\contentsline {subsection}{\numberline {2.3.1}Macro Definition Documentation}{14}{subsection.2.3.1}%
+\contentsline {subsubsection}{\numberline {2.3.1.1}ALMOG\_STRING\_MANIPULATION\_IMPLEMENTATION}{14}{subsubsection.2.3.1.1}%
+\contentsline {subsection}{\numberline {2.3.2}Function Documentation}{14}{subsection.2.3.2}%
+\contentsline {subsubsection}{\numberline {2.3.2.1}main()}{14}{subsubsection.2.3.2.1}%
+\contentsline {section}{\numberline {2.4}temp.\discretionary {\mbox {\scriptsize $\hookleftarrow $}}{}{}c}{15}{section.2.4}%
+\contentsline {chapter}{Index}{17}{section*.8}%

@@ -2510,7 +2510,7 @@ int as_tri_edge_implicit_mesh_check_edge_is_locally_Delaunay(Tri_edge_implicit_m
 
     float tri2_out_p_and_center_dis = as_points_distance(tri2_outside_p, circumcenter_1);
 
-    if (tri2_out_p_and_center_dis >= r1) return 1;
+    if (tri2_out_p_and_center_dis > r1) return 1;
 
     return 0;
 }

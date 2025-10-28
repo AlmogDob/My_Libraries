@@ -24,13 +24,14 @@ void setup(game_state_t *game_state)
 
     ada_init_array(Tri, proj_mesh);
 
-    // Curve c = as_curve_create_random_points(70, -2, 2, -2, 2, 0, 0, 20);
-    Curve c = as_curve_create_random_points(1000, -2, 2, -2, 2, 0, 0, time(NULL));
+    // Curve c = as_curve_create_random_points(500, -2, 2, -2, 2, 0, 0, 20);
+    Curve c = as_curve_create_random_points(1000, -2, 2, -2, 2, 0, 0, 20);
 
     Tri_edge_implicit_mesh tei_mesh = as_tri_edge_implicit_mesh_make_Delaunay_triangulation_flip_algorithm(c.elements, c.length);
+    // Tri_edge_implicit_mesh tei_mesh = as_tri_edge_implicit_mesh_make_Delaunay_triangulation_flip_algorithm_fixed_iterations(c.elements, c.length);
 
-    size_t p1_index = 10;
-    size_t p2_index = 950;
+    // size_t p1_index = 10;
+    // size_t p2_index = 950;
     // as_tri_edge_implicit_mesh_insert_segment(&tei_mesh, tei_mesh.points.elements[p1_index], tei_mesh.points.elements[p2_index]);
 
     AS_TRI_EDGE_IMPLICIT_MESH_PRINT_SEGMENTS(tei_mesh);
@@ -87,6 +88,13 @@ void render(game_state_t *game_state)
 {
     adl_tri_mesh_fill_Pinedas_rasterizer(game_state->window_pixels_mat, game_state->inv_z_buffer_mat, proj_mesh, 0xffffffff, ADL_DEFAULT_OFFSET_ZOOM);
     adl_tri_mesh_draw(game_state->window_pixels_mat, proj_mesh, 0xff000000, ADL_DEFAULT_OFFSET_ZOOM);
+
+    for (size_t i = 0; i < proj_mesh.length; i++) {
+        Tri current_tri = proj_mesh.elements[i];
+        for (int j = 0; j < 3; j++) {
+            adl_circle_fill(game_state->window_pixels_mat, current_tri.points[j].x, current_tri.points[j].y, 4, 0xffff0000, ADL_DEFAULT_OFFSET_ZOOM);
+        }
+    }
 
     for (size_t i = 0; i < proj_circles.length; i++) {
         adl_lines_loop_draw(game_state->window_pixels_mat, proj_circles.elements[i].elements, proj_circles.elements[i].length, proj_circles.elements[i].color, ADL_DEFAULT_OFFSET_ZOOM);
