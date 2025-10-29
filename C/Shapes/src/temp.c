@@ -9,8 +9,8 @@
 #include "./include/Almog_Engine.h"
 #define MATRIX2D_IMPLEMENTATION
 #include "./include/Matrix2D.h"
-#define ALMOG_SHAPES_IMPLEMENTATION
-#include "./include/Almog_Shapes.h"
+#define ALMOG_DELAUNAY_TRIANGULATION_IMPLEMENTATION
+#include "./include/Almog_Delaunay_Triangulation.h"
 
 #include <time.h>
 
@@ -24,26 +24,36 @@ void setup(game_state_t *game_state)
 
     ada_init_array(Tri, proj_mesh);
 
-    // Curve c = as_curve_create_random_points(500, -2, 2, -2, 2, 0, 0, 20);
-    Curve c = as_curve_create_random_points(1000, -2, 2, -2, 2, 0, 0, 20);
+    Curve c = as_curve_create_random_points(50, -2, 2, -2, 2, 0, 0, 20);
 
-    Tri_edge_implicit_mesh tei_mesh = as_tri_edge_implicit_mesh_make_Delaunay_triangulation_flip_algorithm(c.elements, c.length);
-    // Tri_edge_implicit_mesh tei_mesh = as_tri_edge_implicit_mesh_make_Delaunay_triangulation_flip_algorithm_fixed_iterations(c.elements, c.length);
+    Point p1 = (Point){0,1,0,0};
+    ada_appand(Point, c, p1);
+    Point p2 = (Point){0,0,0,0};
+    ada_appand(Point, c, p2);
+    Point p3 = (Point){0,-1,0,0};
+    ada_appand(Point, c, p3);
+    Point p4 = c.elements[4];
 
-    // size_t p1_index = 10;
-    // size_t p2_index = 950;
-    // as_tri_edge_implicit_mesh_insert_segment(&tei_mesh, tei_mesh.points.elements[p1_index], tei_mesh.points.elements[p2_index]);
+    Point p5 = (Point){-0.03,1.5,0,0};
+    ada_appand(Point, c, p5);
+
+    // AS_CURVE_PRINT(c);
+
+    Tri_edge_implicit_mesh tei_mesh = adt_tri_edge_implicit_mesh_make_Delaunay_triangulation_flip_algorithm(c.elements, c.length);
+
+
+    float eps = 1e-6;
+
+    adt_tri_edge_implicit_mesh_insert_segment(&tei_mesh, p3, p4, eps);
 
     AS_TRI_EDGE_IMPLICIT_MESH_PRINT_SEGMENTS(tei_mesh);
 
-    dprintINT(as_tri_edge_implicit_mesh_check_Delaunay(tei_mesh));
+    dprintINT(adt_tri_edge_implicit_mesh_check_Delaunay(tei_mesh));
 
 
     mesh = as_tri_edge_implicit_mesh_to_tri_mesh(tei_mesh, 1, 0xffffffff);
 
 
-
-    // mesh = as_tri_implicit_mesh_to_tri_mesh(temp_implicit_mesh, 1, 0xffffffff);
 
     ada_init_array(Curve, circles);
     ada_init_array(Curve, proj_circles);
@@ -63,7 +73,7 @@ void setup(game_state_t *game_state)
     //     Tri tri = mesh.elements[i];
     //     Point center = {0};
     //     float r = 0;
-    //     as_tri_get_circumcircle(tri.points[0], tri.points[1], tri.points[2], "xy", &center, &r);
+    //     adt_tri_get_circumcircle(tri.points[0], tri.points[1], tri.points[2], "xy", &center, &r);
     //     Curve temp_curve = as_circle_curve_create(center, r, 500, RGBA_hexARGB(255.0f * t, 255 * (1-t1), 255 * (t2), 255), "xy");
     //     Curve temp_proj_curve = as_circle_curve_create(center, r, 500, RGBA_hexARGB(255.0f * t, 255 * (1-t1), 255 * (t2), 255), "xy");
     //     ada_appand(Curve, circles, temp_curve);

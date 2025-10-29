@@ -3,21 +3,32 @@
  * @brief Immediate-mode 2D/3D raster helpers for drawing onto
  *        Mat2D_uint32 pixel buffers.
  *
- * Conventions
- * - Pixel buffer: Mat2D_uint32 with elements encoded as ARGB 0xAARRGGBB.
- * - Coordinates: x grows to the right, y grows downward; origin is the
- *   top-left corner of the destination buffer.
- * - Depth: Functions that accept inv_z_buffer perform a depth test using
- *   inverse-Z (larger values are closer). The buffer stores doubles.
- * - Transform: Most drawing functions accept an Offset_zoom_param
- *   describing a pan/zoom transform that is applied about the screen
- *   center. Use ADL_DEFAULT_OFFSET_ZOOM for identity.
- * - Colors: Unless noted otherwise, colors are ARGB in 0xAARRGGBB format.
- * - Alpha: adl_point_draw alpha-blends source over destination and writes
- *   an opaque result (A = 255) to the pixel buffer.
+ * This single-header library provides a minimal software rasterizer for
+ * drawing into a 32-bit ARGB pixel buffer (Mat2D_uint32). It supports:
+ * - Points, lines, circles, triangles and quads (wire and filled)
+ * - Z-buffered triangle/quad rasterization (inverse-Z convention)
+ * - Per-vertex color and simple light-intensity interpolation
+ * - Basic vector-text drawing (ASCII subset)
+ * - Plotting helper types (Figure) and utilities for curve plots and
+ *   2D scalar-field visualization using perceptual color interpolation
+ *   in the OKLab/OKLch color spaces
+ * - Cartesian grid generation in common planes
  *
- * This header contains function declarations and optional implementations
- * (guarded by ALMOG_DRAW_LIBRARY_IMPLEMENTATION).
+ * All draw calls may accept an Offset_zoom_param that enables simple
+ * pan/zoom behavior around the screen center.
+ *
+ * Types Mat2D and Mat2D_uint32 are provided by Matrix2D.h.
+ * 
+ * Usage:
+ * - Include this header wherever you use the API.
+ * - In exactly one translation unit (source file) define
+ *   ALMOG_DRAW_LIBRARY_IMPLEMENTATION before including this header to
+ *   compile the function definitions.
+ *
+ * @note
+ * - Colors are ARGB in 0xAARRGGBB packed 32-bit format.
+ * - Z buffering uses an inverse-Z buffer (bigger is closer).
+ * - The OKLab/OKLch conversions here assume linear sRGB channels.
  */
 
 #ifndef ALMOG_DRAW_LIBRARY_H_
@@ -32,121 +43,177 @@
 #include "./Matrix2D.h"
 #include "./Almog_Dynamic_Array.h"
 
+/**
+ * @def ADL_ASSERT
+ * @brief Assertion macro used by this header (defaults to assert).
+ *
+ * Define ADL_ASSERT before including this file to override. When NDEBUG is
+ * defined, standard assert() is disabled.
+ */
 #ifndef ADL_ASSERT
 #include <assert.h>
 #define ADL_ASSERT assert
 #endif
 
+/**
+ * @brief Pan/zoom parameters relative to screen center.
+ *
+ * The coordinates are shifted by (offset_x, offset_y) and scaled by
+ * zoom_multiplier about the screen center. The mouse fields are optional
+ * and can be used by UI code that updates the pan/zoom.
+ */
 typedef struct {
-    float zoom_multiplier;
-    float offset_x;
-    float offset_y;
-    int mouse_x;
-    int mouse_y;
+    float zoom_multiplier; /**< Zoom scale factor (>0). */
+    float offset_x;        /**< Horizontal pan offset (pixels). */
+    float offset_y;        /**< Vertical pan offset (pixels). */
+    int mouse_x;           /**< Optional: last mouse x (pixels). */
+    int mouse_y;           /**< Optional: last mouse y (pixels). */
 } Offset_zoom_param;
 
 #ifndef POINT
 #define POINT
+/**
+ * @brief Homogeneous 2D/3D point with per-vertex depth (z) and w.
+ *
+ * x,y are screen-space coordinates for rasterization. z,w are used for
+ * perspective-correct interpolation via inverse-Z buffering.
+ */
 typedef struct {
-    float x;
-    float y;
-    float z;
-    float w;
+    float x; /**< X coordinate (pixels). */
+    float y; /**< Y coordinate (pixels). */
+    float z; /**< Depth value. */
+    float w; /**< Homogeneous w. */
 } Point ;
 #endif
 
 #ifndef CURVE
 #define CURVE
+/**
+ * @brief Polyline of points with a uniform color.
+ */
 typedef struct {
-    uint32_t color;
-    size_t length;
-    size_t capacity;
-    Point *elements;
+    uint32_t color;  /**< ARGB color (0xAARRGGBB) for the entire curve. */
+    size_t length;   /**< Number of points used. */
+    size_t capacity; /**< Allocated capacity. */
+    Point *elements; /**< Point array. */
 } Curve;
 #endif
 
 #ifndef CURVE_ADA
 #define CURVE_ADA
+/**
+ * @brief Dynamic array of curves (polyline container).
+ */
 typedef struct {
-    size_t length;
-    size_t capacity;
-    Curve *elements;
+    size_t length;   /**< Number of curves used. */
+    size_t capacity; /**< Allocated capacity. */
+    Curve *elements; /**< Curves array. */
 } Curve_ada;
 #endif
 
 #ifndef TRI
 #define TRI
+/**
+ * @brief Triangle primitive with optional per-vertex attributes.
+ */
 typedef struct {
-    Point points[3];
-    Point tex_points[3];
-    Point normals[3];
-    uint32_t colors[3];
-    bool to_draw;
-    float light_intensity[3];
+    Point points[3];          /**< Triangle vertices. */
+    Point tex_points[3];      /**< Optional texture coordinates (unused here). */
+    Point normals[3];         /**< Optional normals (unused here). */
+    uint32_t colors[3];       /**< Optional per-vertex ARGB colors. */
+    bool to_draw;             /**< Whether to include in rendering. */
+    float light_intensity[3]; /**< Per-vertex light intensity multiplier. */
 } Tri;
 #endif
 
 #ifndef QUAD
 #define QUAD
+/**
+ * @brief Quad primitive with optional per-vertex attributes.
+ */
 typedef struct {
-    Point points[4];
-    Point normals[4];
-    uint32_t colors[4];
-    bool to_draw;
-    float light_intensity[4];
+    Point points[4];          /**< Quad vertices (0..3 order). */
+    Point normals[4];         /**< Optional normals (unused here). */
+    uint32_t colors[4];       /**< Optional per-vertex ARGB colors. */
+    bool to_draw;             /**< Whether to include in rendering. */
+    float light_intensity[4]; /**< Per-vertex light intensity multiplier. */
 } Quad;
 #endif
 
 #ifndef TRI_MESH
 #define TRI_MESH
+/**
+ * @brief Dynamic array of triangles (triangle mesh).
+ */
 typedef struct {
-    size_t length;
-    size_t capacity;
-    Tri *elements;
+    size_t length;  /**< Number of triangles used. */
+    size_t capacity;/**< Allocated capacity. */
+    Tri *elements;  /**< Triangle array. */
 } Tri_mesh; /* Tri ada array */
 #endif
 
 #ifndef QUAD_MESH
 #define QUAD_MESH
+/**
+ * @brief Dynamic array of quads (quad mesh).
+ */
 typedef struct {
-    size_t length;
-    size_t capacity;
-    Quad *elements;
+    size_t length;  /**< Number of quads used. */
+    size_t capacity;/**< Allocated capacity. */
+    Quad *elements; /**< Quad array. */
 } Quad_mesh; /* Quad ada array */
 #endif
 
+/**
+ * @brief Plotting figure holding a pixel buffer, z-buffer and plot state.
+ *
+ * A Figure owns an internal pixel buffer and an inverse-Z buffer used by
+ * the plotting utilities. It also stores axis extents, paddings and
+ * appearance flags.
+ */
 typedef struct {
-    int min_x_pixel;
-    int max_x_pixel;
-    int min_y_pixel;
-    int max_y_pixel;
-    float min_x;
-    float max_x;
-    float min_y;
-    float max_y;
-    int x_axis_head_size;
-    int y_axis_head_size;
-    Offset_zoom_param offset_zoom_param;
-    Curve_ada src_curve_array;
-    Point top_left_position;
-    Mat2D_uint32 pixels_mat;
-    Mat2D inv_z_buffer_mat;
-    uint32_t background_color;
-    bool to_draw_axis;
-    bool to_draw_max_min_values;
+    int min_x_pixel; /**< Left padding (pixel space). */
+    int max_x_pixel; /**< Right bound (pixel space). */
+    int min_y_pixel; /**< Top padding (pixel space). */
+    int max_y_pixel; /**< Bottom bound (pixel space). */
+
+    float min_x; /**< Min X value in source data. */
+    float max_x; /**< Max X value in source data. */
+    float min_y; /**< Min Y value in source data. */
+    float max_y; /**< Max Y value in source data. */
+
+    int x_axis_head_size; /**< Computed X-axis arrow head size (px). */
+    int y_axis_head_size; /**< Computed Y-axis arrow head size (px). */
+
+    Offset_zoom_param offset_zoom_param; /**< Pan/zoom parameters. */
+    Curve_ada src_curve_array;           /**< Curves to plot. */
+    Point top_left_position;             /**< On-screen copy position. */
+
+    Mat2D_uint32 pixels_mat; /**< Owned ARGB pixel buffer. */
+    Mat2D inv_z_buffer_mat;  /**< Owned inverse-Z buffer (double). */
+
+    uint32_t background_color;    /**< Clear color for figure. */
+    bool to_draw_axis;            /**< Draw axes when plotting. */
+    bool to_draw_max_min_values;  /**< Draw min/max labels. */
 } Figure;
 
+/**
+ * @brief Grid definition (as lines) in a chosen plane.
+ */
 typedef struct {
-    Curve_ada curves;
-    float min_e1;
-    float max_e1;
-    float min_e2;
-    float max_e2;
-    int num_samples_e1;
-    int num_samples_e2;
-    float de1;
-    float de2;
-    char plane[3];
+    Curve_ada curves; /**< Line segments implementing the grid. */
+
+    float min_e1; /**< Axis 1 min. */
+    float max_e1; /**< Axis 1 max. */
+    float min_e2; /**< Axis 2 min. */
+    float max_e2; /**< Axis 2 max. */
+
+    int num_samples_e1; /**< Number of divisions along axis 1. */
+    int num_samples_e2; /**< Number of divisions along axis 2. */
+    float de1;          /**< Step size along axis 1. */
+    float de2;          /**< Step size along axis 2. */
+
+    char plane[3]; /**< Plane tag: "XY","XZ","YZ","YX","ZX","ZY". */
 } Grid; /* direction: e1, e2 */
 
 

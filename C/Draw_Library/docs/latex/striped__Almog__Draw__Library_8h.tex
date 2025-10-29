@@ -1,0 +1,1357 @@
+\hypertarget{striped__Almog__Draw__Library_8h}{}\doxysection{striped\+\_\+\+Almog\+\_\+\+Draw\+\_\+\+Library.\+h File Reference}
+\label{striped__Almog__Draw__Library_8h}\index{striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}}
+{\ttfamily \#include $<$math.\+h$>$}\newline
+{\ttfamily \#include $<$stdint.\+h$>$}\newline
+{\ttfamily \#include $<$limits.\+h$>$}\newline
+{\ttfamily \#include $<$string.\+h$>$}\newline
+{\ttfamily \#include $<$float.\+h$>$}\newline
+{\ttfamily \#include \char`\"{}./\+Matrix2\+D.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}./\+Almog\+\_\+\+Dynamic\+\_\+\+Array.\+h\char`\"{}}\newline
+{\ttfamily \#include $<$assert.\+h$>$}\newline
+Include dependency graph for striped\+\_\+\+Almog\+\_\+\+Draw\+\_\+\+Library.\+h\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{striped__Almog__Draw__Library_8h__incl}
+\end{center}
+\end{figure}
+\doxysubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+struct \mbox{\hyperlink{structOffset__zoom__param}{Offset\+\_\+zoom\+\_\+param}}
+\item 
+struct \mbox{\hyperlink{structPoint}{Point}}
+\item 
+struct \mbox{\hyperlink{structCurve}{Curve}}
+\item 
+struct \mbox{\hyperlink{structCurve__ada}{Curve\+\_\+ada}}
+\item 
+struct \mbox{\hyperlink{structTri}{Tri}}
+\item 
+struct \mbox{\hyperlink{structQuad}{Quad}}
+\item 
+struct \mbox{\hyperlink{structTri__mesh}{Tri\+\_\+mesh}}
+\item 
+struct \mbox{\hyperlink{structQuad__mesh}{Quad\+\_\+mesh}}
+\item 
+struct \mbox{\hyperlink{structFigure}{Figure}}
+\item 
+struct \mbox{\hyperlink{structGrid}{Grid}}
+\end{DoxyCompactItemize}
+\doxysubsection*{Macros}
+\begin{DoxyCompactItemize}
+\item 
+\#define \mbox{\hyperlink{striped__Almog__Draw__Library_8h_ab53d37129b3720c9cacd86a962ef97e4}{ADL\+\_\+\+ASSERT}}~assert
+\item 
+\#define \mbox{\hyperlink{striped__Almog__Draw__Library_8h_a43011aabc923f9b33f1f51dc03b23539}{POINT}}
+\item 
+\#define \mbox{\hyperlink{striped__Almog__Draw__Library_8h_a5e84628ccf5bc23ccfac181b077616ae}{CURVE}}
+\item 
+\#define \mbox{\hyperlink{striped__Almog__Draw__Library_8h_ace0f6a8e1ada03316b02203e2a6f90dc}{CURVE\+\_\+\+ADA}}
+\item 
+\#define \mbox{\hyperlink{striped__Almog__Draw__Library_8h_af6427767938abfcff7c07db4a3020f6a}{TRI}}
+\item 
+\#define \mbox{\hyperlink{striped__Almog__Draw__Library_8h_ac7252422b84a98d876dbc47ed5c0b5af}{QUAD}}
+\item 
+\#define \mbox{\hyperlink{striped__Almog__Draw__Library_8h_abb9096632f751c821ce5591ee8751c8d}{TRI\+\_\+\+MESH}}
+\item 
+\#define \mbox{\hyperlink{striped__Almog__Draw__Library_8h_acb965f71620fd961ec18e95511671cf2}{QUAD\+\_\+\+MESH}}
+\item 
+\#define \mbox{\hyperlink{striped__Almog__Draw__Library_8h_a96d19b5694505d2bcea416c9771bb31b}{Hex\+ARGB\+\_\+\+RGBA}}(x)~((x)$>$$>$(8$\ast$2)\&0x\+FF), ((x)$>$$>$(8$\ast$1)\&0x\+FF), ((x)$>$$>$(8$\ast$0)\&0x\+FF), ((x)$>$$>$(8$\ast$3)\&0x\+FF)
+\item 
+\#define \mbox{\hyperlink{striped__Almog__Draw__Library_8h_a1e38982ab1aaaae615016576f660dff1}{Hex\+ARGB\+\_\+\+RGB\+\_\+\+VAR}}(x,  r,  g,  b)~r = ((x)$>$$>$(8$\ast$2)\&0x\+FF); g = ((x)$>$$>$(8$\ast$1)\&0x\+FF); b = ((x)$>$$>$(8$\ast$0)\&0x\+FF);
+\item 
+\#define \mbox{\hyperlink{striped__Almog__Draw__Library_8h_ad02384d393ba960796c2471b74350c2d}{Hex\+ARGB\+\_\+\+RGBA\+\_\+\+VAR}}(x,  r,  g,  b,  a)~r = ((x)$>$$>$(8$\ast$2)\&0x\+FF); g = ((x)$>$$>$(8$\ast$1)\&0x\+FF); b = ((x)$>$$>$(8$\ast$0)\&0x\+FF); a = ((x)$>$$>$(8$\ast$3)\&0x\+FF)
+\item 
+\#define \mbox{\hyperlink{striped__Almog__Draw__Library_8h_ae5c9bd99d773c485b76cef79ced9ef29}{RGB\+\_\+hex\+RGB}}(r,  g,  b)~(int)(0x010000$\ast$(int)(r) + 0x000100$\ast$(int)(g) + 0x000001$\ast$(int)(b))
+\item 
+\#define \mbox{\hyperlink{striped__Almog__Draw__Library_8h_af2a5454da38824700317a8dbcab92f1b}{RGBA\+\_\+hex\+ARGB}}(r,  g,  b,  a)~(int)(0x01000000l$\ast$(int)(fminf(a, 255)) + 0x010000$\ast$(int)(r) + 0x000100$\ast$(int)(g) + 0x000001$\ast$(int)(b))
+\item 
+\#define \mbox{\hyperlink{striped__Almog__Draw__Library_8h_a18d40dca86bc96286a6b4e865ff1bcc9}{RED\+\_\+hex\+ARGB}}~0x\+FFFF0000
+\item 
+\#define \mbox{\hyperlink{striped__Almog__Draw__Library_8h_a2573b865d687b5dcfe3d091f1a645921}{GREEN\+\_\+hex\+ARGB}}~0x\+FF00\+FF00
+\item 
+\#define \mbox{\hyperlink{striped__Almog__Draw__Library_8h_a67e07b663a3d67ae90629b85a6b6b67a}{BLUE\+\_\+hex\+ARGB}}~0x\+FF0000\+FF
+\item 
+\#define \mbox{\hyperlink{striped__Almog__Draw__Library_8h_a80fe53ef28c00cbaaffe5afbcf3ffefb}{PURPLE\+\_\+hex\+ARGB}}~0x\+FFFF00\+FF
+\item 
+\#define \mbox{\hyperlink{striped__Almog__Draw__Library_8h_a6d8c2ab7022b2d51dea282a81209c575}{CYAN\+\_\+hex\+ARGB}}~0x\+FF00\+FFFF
+\item 
+\#define \mbox{\hyperlink{striped__Almog__Draw__Library_8h_a2c08d20a50ce1fb32f381d143a1940d4}{YELLOW\+\_\+hex\+ARGB}}~0x\+FFFFFF00
+\item 
+\#define \mbox{\hyperlink{striped__Almog__Draw__Library_8h_a6da6a8f68ff61bf4850d903390c0c690}{edge\+\_\+cross\+\_\+point}}(a1,  b,  a2,  p)~(b.\+x-\/a1.\+x)$\ast$(p.\+y-\/a2.\+y)-\/(b.\+y-\/a1.\+y)$\ast$(p.\+x-\/a2.\+x)
+\item 
+\#define \mbox{\hyperlink{striped__Almog__Draw__Library_8h_a4a44974f1e3313a1951dab5533e6156e}{is\+\_\+top\+\_\+edge}}(x,  y)~(y == 0 \&\& x $>$ 0)
+\item 
+\#define \mbox{\hyperlink{striped__Almog__Draw__Library_8h_a28aba875656d27a94a74f19eef7065e1}{is\+\_\+left\+\_\+edge}}(x,  y)~(y $<$ 0)
+\item 
+\#define \mbox{\hyperlink{striped__Almog__Draw__Library_8h_a4684a6b9c18ba630636b7407653e1057}{is\+\_\+top\+\_\+left}}(ps,  pe)~(\mbox{\hyperlink{striped__Almog__Draw__Library_8h_a4a44974f1e3313a1951dab5533e6156e}{is\+\_\+top\+\_\+edge}}(pe.\+x-\/ps.\+x, pe.\+y-\/ps.\+y) $\vert$$\vert$ \mbox{\hyperlink{striped__Almog__Draw__Library_8h_a28aba875656d27a94a74f19eef7065e1}{is\+\_\+left\+\_\+edge}}(pe.\+x-\/ps.\+x, pe.\+y-\/ps.\+y))
+\item 
+\#define \mbox{\hyperlink{striped__Almog__Draw__Library_8h_ae97139b075eaa718f014c948491ab92d}{ADL\+\_\+\+MAX\+\_\+\+POINT\+\_\+\+VAL}}~1e5
+\item 
+\#define \mbox{\hyperlink{striped__Almog__Draw__Library_8h_ab415130f9b85c4f2c037d2b9b13bb8b8}{adl\+\_\+assert\+\_\+point\+\_\+is\+\_\+valid}}(p)~\mbox{\hyperlink{striped__Almog__Draw__Library_8h_ab53d37129b3720c9cacd86a962ef97e4}{ADL\+\_\+\+ASSERT}}(isfinite(p.\+x) \&\& isfinite(p.\+y) \&\& isfinite(p.\+z) \&\& isfinite(p.\+w))
+\item 
+\#define \mbox{\hyperlink{striped__Almog__Draw__Library_8h_a58394344ea3ceebf0dd0844705496f80}{adl\+\_\+assert\+\_\+tri\+\_\+is\+\_\+valid}}(\mbox{\hyperlink{temp_8c_a360d71388a48208d12e037f8f047cb54}{tri}})
+\item 
+\#define \mbox{\hyperlink{striped__Almog__Draw__Library_8h_a1f9ea71569480b40da0e2b219b3f463b}{adl\+\_\+assert\+\_\+quad\+\_\+is\+\_\+valid}}(quad)
+\item 
+\#define \mbox{\hyperlink{striped__Almog__Draw__Library_8h_a54e82322b28b1c262afd8d1adc9c19e1}{ADL\+\_\+\+FIGURE\+\_\+\+PADDING\+\_\+\+PRECENTAGE}}~20
+\item 
+\#define \mbox{\hyperlink{striped__Almog__Draw__Library_8h_aa42e8177fad6734d06b4aaf130b720f9}{ADL\+\_\+\+MAX\+\_\+\+FIGURE\+\_\+\+PADDING}}~70
+\item 
+\#define \mbox{\hyperlink{striped__Almog__Draw__Library_8h_ae2371d03305558f02f66d4aaf6b759f6}{ADL\+\_\+\+MIN\+\_\+\+FIGURE\+\_\+\+PADDING}}~20
+\item 
+\#define \mbox{\hyperlink{striped__Almog__Draw__Library_8h_a8e7248b317d93a1a00e3e618f102f100}{ADL\+\_\+\+MAX\+\_\+\+HEAD\+\_\+\+SIZE}}~15
+\item 
+\#define \mbox{\hyperlink{striped__Almog__Draw__Library_8h_a3f26eabe1877247429119a10112f2881}{ADL\+\_\+\+FIGURE\+\_\+\+HEAD\+\_\+\+ANGLE\+\_\+\+DEG}}~30
+\item 
+\#define \mbox{\hyperlink{striped__Almog__Draw__Library_8h_a77211f974fe0cf3332cb2c61fb7b7e44}{ADL\+\_\+\+FIGURE\+\_\+\+AXIS\+\_\+\+COLOR}}~0xff000000
+\item 
+\#define \mbox{\hyperlink{striped__Almog__Draw__Library_8h_a128b1d8598cf5029a776147a5aefdfc1}{ADL\+\_\+\+MAX\+\_\+\+CHARACTER\+\_\+\+OFFSET}}~10
+\item 
+\#define \mbox{\hyperlink{striped__Almog__Draw__Library_8h_a32da7d322db71482aa10f1f285832596}{ADL\+\_\+\+MIN\+\_\+\+CHARACTER\+\_\+\+OFFSET}}~5
+\item 
+\#define \mbox{\hyperlink{striped__Almog__Draw__Library_8h_a8cbb9cde6eaf54e71d2bbb7af7ef5b15}{ADL\+\_\+\+MAX\+\_\+\+SENTENCE\+\_\+\+LEN}}~256
+\item 
+\#define \mbox{\hyperlink{striped__Almog__Draw__Library_8h_aa5dfb68d20a2d9a61fcc51827477e574}{ADL\+\_\+\+MAX\+\_\+\+ZOOM}}~1e3
+\item 
+\#define \mbox{\hyperlink{striped__Almog__Draw__Library_8h_a92a254e8a4472cd8a3ba7d797e73f1ad}{ADL\+\_\+\+DEFAULT\+\_\+\+OFFSET\+\_\+\+ZOOM}}~(\mbox{\hyperlink{structOffset__zoom__param}{Offset\+\_\+zoom\+\_\+param}})\{1,0,0,0,0\}
+\item 
+\#define \mbox{\hyperlink{striped__Almog__Draw__Library_8h_a1ef6e1a6824a0f9a11d684ad1e214ed1}{adl\+\_\+offset\+\_\+zoom\+\_\+point}}(p,  window\+\_\+w,  window\+\_\+h,  offset\+\_\+zoom\+\_\+param)
+\item 
+\#define \mbox{\hyperlink{striped__Almog__Draw__Library_8h_addf9b1bd275a08b9810e80acd6f96d2a}{adl\+\_\+offset2d}}(i,  j,  ni)~(j) $\ast$ (ni) + (i)
+\end{DoxyCompactItemize}
+\doxysubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \mbox{\hyperlink{striped__Almog__Draw__Library_8h_ac6d67525504b37ac96fb3d44c2ead3b8}{adl\+\_\+point\+\_\+draw}} (\mbox{\hyperlink{structMat2D__uint32}{Mat2\+D\+\_\+uint32}} screen\+\_\+mat, int x, int y, uint32\+\_\+t color, \mbox{\hyperlink{structOffset__zoom__param}{Offset\+\_\+zoom\+\_\+param}} offset\+\_\+zoom\+\_\+param)
+\item 
+void \mbox{\hyperlink{striped__Almog__Draw__Library_8h_af7e7461e6fb1932220e4309f69c21902}{adl\+\_\+line\+\_\+draw}} (\mbox{\hyperlink{structMat2D__uint32}{Mat2\+D\+\_\+uint32}} screen\+\_\+mat, const float x1\+\_\+input, const float y1\+\_\+input, const float x2\+\_\+input, const float y2\+\_\+input, uint32\+\_\+t color, \mbox{\hyperlink{structOffset__zoom__param}{Offset\+\_\+zoom\+\_\+param}} offset\+\_\+zoom\+\_\+param)
+\item 
+void \mbox{\hyperlink{striped__Almog__Draw__Library_8h_a29ef1322c0f599a2dbdf46b7d1af2ec1}{adl\+\_\+lines\+\_\+draw}} (const \mbox{\hyperlink{structMat2D__uint32}{Mat2\+D\+\_\+uint32}} screen\+\_\+mat, const \mbox{\hyperlink{structPoint}{Point}} $\ast$\mbox{\hyperlink{example1_8c_a565469c5f3d6bff4e57ad215aaa22359}{points}}, const size\+\_\+t len, const uint32\+\_\+t color, \mbox{\hyperlink{structOffset__zoom__param}{Offset\+\_\+zoom\+\_\+param}} offset\+\_\+zoom\+\_\+param)
+\item 
+void \mbox{\hyperlink{striped__Almog__Draw__Library_8h_ac366785eb87bf751a0638a54c6308c08}{adl\+\_\+lines\+\_\+loop\+\_\+draw}} (const \mbox{\hyperlink{structMat2D__uint32}{Mat2\+D\+\_\+uint32}} screen\+\_\+mat, const \mbox{\hyperlink{structPoint}{Point}} $\ast$\mbox{\hyperlink{example1_8c_a565469c5f3d6bff4e57ad215aaa22359}{points}}, const size\+\_\+t len, const uint32\+\_\+t color, \mbox{\hyperlink{structOffset__zoom__param}{Offset\+\_\+zoom\+\_\+param}} offset\+\_\+zoom\+\_\+param)
+\item 
+void \mbox{\hyperlink{striped__Almog__Draw__Library_8h_a1617ac2a87b7135e826e98aebecf9820}{adl\+\_\+arrow\+\_\+draw}} (\mbox{\hyperlink{structMat2D__uint32}{Mat2\+D\+\_\+uint32}} screen\+\_\+mat, int xs, int ys, int xe, int ye, float head\+\_\+size, float angle\+\_\+deg, uint32\+\_\+t color, \mbox{\hyperlink{structOffset__zoom__param}{Offset\+\_\+zoom\+\_\+param}} offset\+\_\+zoom\+\_\+param)
+\item 
+void \mbox{\hyperlink{striped__Almog__Draw__Library_8h_a564ae7f54068af11cb6d79ea7449a038}{adl\+\_\+character\+\_\+draw}} (\mbox{\hyperlink{structMat2D__uint32}{Mat2\+D\+\_\+uint32}} screen\+\_\+mat, char c, int width\+\_\+pixel, int hight\+\_\+pixel, int x\+\_\+top\+\_\+left, int y\+\_\+top\+\_\+left, uint32\+\_\+t color, \mbox{\hyperlink{structOffset__zoom__param}{Offset\+\_\+zoom\+\_\+param}} offset\+\_\+zoom\+\_\+param)
+\item 
+void \mbox{\hyperlink{striped__Almog__Draw__Library_8h_a52b749446ced6fda478879fccb410e21}{adl\+\_\+sentence\+\_\+draw}} (\mbox{\hyperlink{structMat2D__uint32}{Mat2\+D\+\_\+uint32}} screen\+\_\+mat, const char sentence\mbox{[}$\,$\mbox{]}, size\+\_\+t len, const int x\+\_\+top\+\_\+left, const int y\+\_\+top\+\_\+left, const int hight\+\_\+pixel, const uint32\+\_\+t color, \mbox{\hyperlink{structOffset__zoom__param}{Offset\+\_\+zoom\+\_\+param}} offset\+\_\+zoom\+\_\+param)
+\item 
+void \mbox{\hyperlink{striped__Almog__Draw__Library_8h_abe9a6b09bc6c969c76f4ba1f8b571994}{adl\+\_\+rectangle\+\_\+draw\+\_\+min\+\_\+max}} (\mbox{\hyperlink{structMat2D__uint32}{Mat2\+D\+\_\+uint32}} screen\+\_\+mat, int min\+\_\+x, int max\+\_\+x, int min\+\_\+y, int max\+\_\+y, uint32\+\_\+t color, \mbox{\hyperlink{structOffset__zoom__param}{Offset\+\_\+zoom\+\_\+param}} offset\+\_\+zoom\+\_\+param)
+\item 
+void \mbox{\hyperlink{striped__Almog__Draw__Library_8h_a199833640d6ac9a1ca51bdae6c94f5a6}{adl\+\_\+rectangle\+\_\+fill\+\_\+min\+\_\+max}} (\mbox{\hyperlink{structMat2D__uint32}{Mat2\+D\+\_\+uint32}} screen\+\_\+mat, int min\+\_\+x, int max\+\_\+x, int min\+\_\+y, int max\+\_\+y, uint32\+\_\+t color, \mbox{\hyperlink{structOffset__zoom__param}{Offset\+\_\+zoom\+\_\+param}} offset\+\_\+zoom\+\_\+param)
+\item 
+void \mbox{\hyperlink{striped__Almog__Draw__Library_8h_a09f2306858f567227738692f35db1568}{adl\+\_\+quad\+\_\+draw}} (\mbox{\hyperlink{structMat2D__uint32}{Mat2\+D\+\_\+uint32}} screen\+\_\+mat, \mbox{\hyperlink{structMat2D}{Mat2D}} inv\+\_\+z\+\_\+buffer, \mbox{\hyperlink{structQuad}{Quad}} quad, uint32\+\_\+t color, \mbox{\hyperlink{structOffset__zoom__param}{Offset\+\_\+zoom\+\_\+param}} offset\+\_\+zoom\+\_\+param)
+\item 
+void \mbox{\hyperlink{striped__Almog__Draw__Library_8h_af659c05ddcc48d7ee2ecaf31a03f7934}{adl\+\_\+quad\+\_\+fill}} (\mbox{\hyperlink{structMat2D__uint32}{Mat2\+D\+\_\+uint32}} screen\+\_\+mat, \mbox{\hyperlink{structMat2D}{Mat2D}} inv\+\_\+z\+\_\+buffer, \mbox{\hyperlink{structQuad}{Quad}} quad, uint32\+\_\+t color, \mbox{\hyperlink{structOffset__zoom__param}{Offset\+\_\+zoom\+\_\+param}} offset\+\_\+zoom\+\_\+param)
+\item 
+void \mbox{\hyperlink{striped__Almog__Draw__Library_8h_a02b757ea6368bac7965e0e9c46596187}{adl\+\_\+quad\+\_\+fill\+\_\+interpolate\+\_\+normal\+\_\+mean\+\_\+value}} (\mbox{\hyperlink{structMat2D__uint32}{Mat2\+D\+\_\+uint32}} screen\+\_\+mat, \mbox{\hyperlink{structMat2D}{Mat2D}} inv\+\_\+z\+\_\+buffer, \mbox{\hyperlink{structQuad}{Quad}} quad, uint32\+\_\+t color, \mbox{\hyperlink{structOffset__zoom__param}{Offset\+\_\+zoom\+\_\+param}} offset\+\_\+zoom\+\_\+param)
+\item 
+void \mbox{\hyperlink{striped__Almog__Draw__Library_8h_a1d1000820ecf55d6af697fc8cde8d169}{adl\+\_\+quad\+\_\+fill\+\_\+interpolate\+\_\+color\+\_\+mean\+\_\+value}} (\mbox{\hyperlink{structMat2D__uint32}{Mat2\+D\+\_\+uint32}} screen\+\_\+mat, \mbox{\hyperlink{structMat2D}{Mat2D}} inv\+\_\+z\+\_\+buffer, \mbox{\hyperlink{structQuad}{Quad}} quad, \mbox{\hyperlink{structOffset__zoom__param}{Offset\+\_\+zoom\+\_\+param}} offset\+\_\+zoom\+\_\+param)
+\item 
+void \mbox{\hyperlink{striped__Almog__Draw__Library_8h_ac0eca30966484b4ecf9388d09f66625f}{adl\+\_\+quad\+\_\+mesh\+\_\+draw}} (\mbox{\hyperlink{structMat2D__uint32}{Mat2\+D\+\_\+uint32}} screen\+\_\+mat, \mbox{\hyperlink{structMat2D}{Mat2D}} inv\+\_\+z\+\_\+buffer\+\_\+mat, \mbox{\hyperlink{structQuad__mesh}{Quad\+\_\+mesh}} mesh, uint32\+\_\+t color, \mbox{\hyperlink{structOffset__zoom__param}{Offset\+\_\+zoom\+\_\+param}} offset\+\_\+zoom\+\_\+param)
+\item 
+void \mbox{\hyperlink{striped__Almog__Draw__Library_8h_ad01062c2953db3ff85bff2697a90112e}{adl\+\_\+quad\+\_\+mesh\+\_\+fill}} (\mbox{\hyperlink{structMat2D__uint32}{Mat2\+D\+\_\+uint32}} screen\+\_\+mat, \mbox{\hyperlink{structMat2D}{Mat2D}} inv\+\_\+z\+\_\+buffer\+\_\+mat, \mbox{\hyperlink{structQuad__mesh}{Quad\+\_\+mesh}} mesh, uint32\+\_\+t color, \mbox{\hyperlink{structOffset__zoom__param}{Offset\+\_\+zoom\+\_\+param}} offset\+\_\+zoom\+\_\+param)
+\item 
+void \mbox{\hyperlink{striped__Almog__Draw__Library_8h_a54b9c681d8fb3935e70ee617056d2997}{adl\+\_\+quad\+\_\+mesh\+\_\+fill\+\_\+interpolate\+\_\+normal}} (\mbox{\hyperlink{structMat2D__uint32}{Mat2\+D\+\_\+uint32}} screen\+\_\+mat, \mbox{\hyperlink{structMat2D}{Mat2D}} inv\+\_\+z\+\_\+buffer\+\_\+mat, \mbox{\hyperlink{structQuad__mesh}{Quad\+\_\+mesh}} mesh, uint32\+\_\+t color, \mbox{\hyperlink{structOffset__zoom__param}{Offset\+\_\+zoom\+\_\+param}} offset\+\_\+zoom\+\_\+param)
+\item 
+void \mbox{\hyperlink{striped__Almog__Draw__Library_8h_ae7d3b419a822c0cbaaf6a6a0be3df866}{adl\+\_\+quad\+\_\+mesh\+\_\+fill\+\_\+interpolate\+\_\+color}} (\mbox{\hyperlink{structMat2D__uint32}{Mat2\+D\+\_\+uint32}} screen\+\_\+mat, \mbox{\hyperlink{structMat2D}{Mat2D}} inv\+\_\+z\+\_\+buffer\+\_\+mat, \mbox{\hyperlink{structQuad__mesh}{Quad\+\_\+mesh}} mesh, \mbox{\hyperlink{structOffset__zoom__param}{Offset\+\_\+zoom\+\_\+param}} offset\+\_\+zoom\+\_\+param)
+\item 
+void \mbox{\hyperlink{striped__Almog__Draw__Library_8h_a3be1fd0bccc0820e85cf23455d28b8e1}{adl\+\_\+circle\+\_\+draw}} (\mbox{\hyperlink{structMat2D__uint32}{Mat2\+D\+\_\+uint32}} screen\+\_\+mat, float center\+\_\+x, float center\+\_\+y, float r, uint32\+\_\+t color, \mbox{\hyperlink{structOffset__zoom__param}{Offset\+\_\+zoom\+\_\+param}} offset\+\_\+zoom\+\_\+param)
+\item 
+void \mbox{\hyperlink{striped__Almog__Draw__Library_8h_acb7eaed26707a5f8f90117f6cf8f267a}{adl\+\_\+circle\+\_\+fill}} (\mbox{\hyperlink{structMat2D__uint32}{Mat2\+D\+\_\+uint32}} screen\+\_\+mat, float center\+\_\+x, float center\+\_\+y, float r, uint32\+\_\+t color, \mbox{\hyperlink{structOffset__zoom__param}{Offset\+\_\+zoom\+\_\+param}} offset\+\_\+zoom\+\_\+param)
+\item 
+void \mbox{\hyperlink{striped__Almog__Draw__Library_8h_aabb99bac9cc725476ee838fdf178cf84}{adl\+\_\+tri\+\_\+draw}} (\mbox{\hyperlink{structMat2D__uint32}{Mat2\+D\+\_\+uint32}} screen\+\_\+mat, \mbox{\hyperlink{structTri}{Tri}} \mbox{\hyperlink{temp_8c_a360d71388a48208d12e037f8f047cb54}{tri}}, uint32\+\_\+t color, \mbox{\hyperlink{structOffset__zoom__param}{Offset\+\_\+zoom\+\_\+param}} offset\+\_\+zoom\+\_\+param)
+\item 
+void \mbox{\hyperlink{striped__Almog__Draw__Library_8h_a16218e4728c782ee363b404f50042080}{adl\+\_\+tri\+\_\+fill\+\_\+\+Pinedas\+\_\+rasterizer}} (\mbox{\hyperlink{structMat2D__uint32}{Mat2\+D\+\_\+uint32}} screen\+\_\+mat, \mbox{\hyperlink{structMat2D}{Mat2D}} inv\+\_\+z\+\_\+buffer, \mbox{\hyperlink{structTri}{Tri}} \mbox{\hyperlink{temp_8c_a360d71388a48208d12e037f8f047cb54}{tri}}, uint32\+\_\+t color, \mbox{\hyperlink{structOffset__zoom__param}{Offset\+\_\+zoom\+\_\+param}} offset\+\_\+zoom\+\_\+param)
+\item 
+void \mbox{\hyperlink{striped__Almog__Draw__Library_8h_a6a7ba7ceddb6c584866563d918e90651}{adl\+\_\+tri\+\_\+fill\+\_\+\+Pinedas\+\_\+rasterizer\+\_\+interpolate\+\_\+color}} (\mbox{\hyperlink{structMat2D__uint32}{Mat2\+D\+\_\+uint32}} screen\+\_\+mat, \mbox{\hyperlink{structMat2D}{Mat2D}} inv\+\_\+z\+\_\+buffer, \mbox{\hyperlink{structTri}{Tri}} \mbox{\hyperlink{temp_8c_a360d71388a48208d12e037f8f047cb54}{tri}}, \mbox{\hyperlink{structOffset__zoom__param}{Offset\+\_\+zoom\+\_\+param}} offset\+\_\+zoom\+\_\+param)
+\item 
+void \mbox{\hyperlink{striped__Almog__Draw__Library_8h_a322a6fe3e2cf14474917879eb41318dd}{adl\+\_\+tri\+\_\+fill\+\_\+\+Pinedas\+\_\+rasterizer\+\_\+interpolate\+\_\+normal}} (\mbox{\hyperlink{structMat2D__uint32}{Mat2\+D\+\_\+uint32}} screen\+\_\+mat, \mbox{\hyperlink{structMat2D}{Mat2D}} inv\+\_\+z\+\_\+buffer, \mbox{\hyperlink{structTri}{Tri}} \mbox{\hyperlink{temp_8c_a360d71388a48208d12e037f8f047cb54}{tri}}, uint32\+\_\+t color, \mbox{\hyperlink{structOffset__zoom__param}{Offset\+\_\+zoom\+\_\+param}} offset\+\_\+zoom\+\_\+param)
+\item 
+void \mbox{\hyperlink{striped__Almog__Draw__Library_8h_a21a4c53fb533f0990d6f46017a4d3263}{adl\+\_\+tri\+\_\+mesh\+\_\+draw}} (\mbox{\hyperlink{structMat2D__uint32}{Mat2\+D\+\_\+uint32}} screen\+\_\+mat, \mbox{\hyperlink{structTri__mesh}{Tri\+\_\+mesh}} mesh, uint32\+\_\+t color, \mbox{\hyperlink{structOffset__zoom__param}{Offset\+\_\+zoom\+\_\+param}} offset\+\_\+zoom\+\_\+param)
+\item 
+void \mbox{\hyperlink{striped__Almog__Draw__Library_8h_a29e38c19b3a2c0f8c4d8dfefa8004125}{adl\+\_\+tri\+\_\+mesh\+\_\+fill\+\_\+\+Pinedas\+\_\+rasterizer}} (\mbox{\hyperlink{structMat2D__uint32}{Mat2\+D\+\_\+uint32}} screen\+\_\+mat, \mbox{\hyperlink{structMat2D}{Mat2D}} inv\+\_\+z\+\_\+buffer\+\_\+mat, \mbox{\hyperlink{structTri__mesh}{Tri\+\_\+mesh}} mesh, uint32\+\_\+t color, \mbox{\hyperlink{structOffset__zoom__param}{Offset\+\_\+zoom\+\_\+param}} offset\+\_\+zoom\+\_\+param)
+\item 
+void \mbox{\hyperlink{striped__Almog__Draw__Library_8h_a2c525ee6f335d0b7843df39e404c7dc3}{adl\+\_\+tri\+\_\+mesh\+\_\+fill\+\_\+\+Pinedas\+\_\+rasterizer\+\_\+interpolate\+\_\+color}} (\mbox{\hyperlink{structMat2D__uint32}{Mat2\+D\+\_\+uint32}} screen\+\_\+mat, \mbox{\hyperlink{structMat2D}{Mat2D}} inv\+\_\+z\+\_\+buffer\+\_\+mat, \mbox{\hyperlink{structTri__mesh}{Tri\+\_\+mesh}} mesh, \mbox{\hyperlink{structOffset__zoom__param}{Offset\+\_\+zoom\+\_\+param}} offset\+\_\+zoom\+\_\+param)
+\item 
+void \mbox{\hyperlink{striped__Almog__Draw__Library_8h_ab49bb632b6db243a86b95af128e0466a}{adl\+\_\+tri\+\_\+mesh\+\_\+fill\+\_\+\+Pinedas\+\_\+rasterizer\+\_\+interpolate\+\_\+normal}} (\mbox{\hyperlink{structMat2D__uint32}{Mat2\+D\+\_\+uint32}} screen\+\_\+mat, \mbox{\hyperlink{structMat2D}{Mat2D}} inv\+\_\+z\+\_\+buffer\+\_\+mat, \mbox{\hyperlink{structTri__mesh}{Tri\+\_\+mesh}} mesh, uint32\+\_\+t color, \mbox{\hyperlink{structOffset__zoom__param}{Offset\+\_\+zoom\+\_\+param}} offset\+\_\+zoom\+\_\+param)
+\item 
+float \mbox{\hyperlink{striped__Almog__Draw__Library_8h_a329be648e79affb9836f58c3b8cf397b}{adl\+\_\+tan\+\_\+half\+\_\+angle}} (\mbox{\hyperlink{structPoint}{Point}} vi, \mbox{\hyperlink{structPoint}{Point}} vj, \mbox{\hyperlink{structPoint}{Point}} p, float li, float lj)
+\item 
+float \mbox{\hyperlink{striped__Almog__Draw__Library_8h_a066db889cc3479d4ef8392316880d238}{adl\+\_\+linear\+\_\+map}} (float s, float min\+\_\+in, float max\+\_\+in, float min\+\_\+out, float max\+\_\+out)
+\item 
+void \mbox{\hyperlink{striped__Almog__Draw__Library_8h_af8c6b6d3616a8589e7d3697b416b11f6}{adl\+\_\+quad2tris}} (\mbox{\hyperlink{structQuad}{Quad}} quad, \mbox{\hyperlink{structTri}{Tri}} $\ast$tri1, \mbox{\hyperlink{structTri}{Tri}} $\ast$tri2, char split\+\_\+line\mbox{[}$\,$\mbox{]})
+\item 
+void \mbox{\hyperlink{striped__Almog__Draw__Library_8h_a172ac07a2203f34c47a6eca21fcbcdca}{adl\+\_\+linear\+\_\+s\+RGB\+\_\+to\+\_\+ok\+Lab}} (uint32\+\_\+t hex\+\_\+\+ARGB, float $\ast$L, float $\ast$a, float $\ast$b)
+\item 
+void \mbox{\hyperlink{striped__Almog__Draw__Library_8h_ac0cffe3ca4ae8551726963d9f9b659e2}{adl\+\_\+ok\+Lab\+\_\+to\+\_\+linear\+\_\+s\+RGB}} (float L, float a, float b, uint32\+\_\+t $\ast$hex\+\_\+\+ARGB)
+\item 
+void \mbox{\hyperlink{striped__Almog__Draw__Library_8h_a2ba74070e06ac04189646b642b754471}{adl\+\_\+linear\+\_\+s\+RGB\+\_\+to\+\_\+ok\+Lch}} (uint32\+\_\+t hex\+\_\+\+ARGB, float $\ast$L, float $\ast$c, float $\ast$h\+\_\+deg)
+\item 
+void \mbox{\hyperlink{striped__Almog__Draw__Library_8h_a21c808de9cd7dc6fb270af0e8f1acbdc}{adl\+\_\+ok\+Lch\+\_\+to\+\_\+linear\+\_\+s\+RGB}} (float L, float c, float h\+\_\+deg, uint32\+\_\+t $\ast$hex\+\_\+\+ARGB)
+\item 
+void \mbox{\hyperlink{striped__Almog__Draw__Library_8h_a5022b219117fcb7cd7083ec6cf6c92a3}{adl\+\_\+interpolate\+\_\+\+ARGBcolor\+\_\+on\+\_\+ok\+Lch}} (uint32\+\_\+t color1, uint32\+\_\+t color2, float t, float num\+\_\+of\+\_\+rotations, uint32\+\_\+t $\ast$color\+\_\+out)
+\item 
+\mbox{\hyperlink{structFigure}{Figure}} \mbox{\hyperlink{striped__Almog__Draw__Library_8h_ac203ae7ef724e00cd6af36b03fef5d9b}{adl\+\_\+figure\+\_\+alloc}} (size\+\_\+t rows, size\+\_\+t cols, \mbox{\hyperlink{structPoint}{Point}} top\+\_\+left\+\_\+position)
+\item 
+void \mbox{\hyperlink{striped__Almog__Draw__Library_8h_a8a1311121d79e59a57b050377c304eaf}{adl\+\_\+figure\+\_\+copy\+\_\+to\+\_\+screen}} (\mbox{\hyperlink{structMat2D__uint32}{Mat2\+D\+\_\+uint32}} screen\+\_\+mat, \mbox{\hyperlink{structFigure}{Figure}} figure)
+\item 
+void \mbox{\hyperlink{striped__Almog__Draw__Library_8h_a8e326591323a76c262e0d46ce3f054fa}{adl\+\_\+axis\+\_\+draw\+\_\+on\+\_\+figure}} (\mbox{\hyperlink{structFigure}{Figure}} $\ast$figure)
+\item 
+void \mbox{\hyperlink{striped__Almog__Draw__Library_8h_a06a18de7604450f9d64c9739f248655c}{adl\+\_\+max\+\_\+min\+\_\+values\+\_\+draw\+\_\+on\+\_\+figure}} (\mbox{\hyperlink{structFigure}{Figure}} figure)
+\item 
+void \mbox{\hyperlink{striped__Almog__Draw__Library_8h_ae8db36021fe2217185f3038fe43f5848}{adl\+\_\+curve\+\_\+add\+\_\+to\+\_\+figure}} (\mbox{\hyperlink{structFigure}{Figure}} $\ast$figure, \mbox{\hyperlink{structPoint}{Point}} $\ast$src\+\_\+points, size\+\_\+t src\+\_\+len, uint32\+\_\+t color)
+\item 
+void \mbox{\hyperlink{striped__Almog__Draw__Library_8h_a6716d416690b2cbeabe46077cf9c1d52}{adl\+\_\+curves\+\_\+plot\+\_\+on\+\_\+figure}} (\mbox{\hyperlink{structFigure}{Figure}} figure)
+\item 
+void \mbox{\hyperlink{striped__Almog__Draw__Library_8h_a364f08103fb80cf8a5d51d75202fde91}{adl\+\_\+2\+Dscalar\+\_\+interp\+\_\+on\+\_\+figure}} (\mbox{\hyperlink{structFigure}{Figure}} figure, double $\ast$x\+\_\+2\+Dmat, double $\ast$y\+\_\+2\+Dmat, double $\ast$scalar\+\_\+2\+Dmat, int ni, int nj, char color\+\_\+scale\mbox{[}$\,$\mbox{]}, float num\+\_\+of\+\_\+rotations)
+\item 
+\mbox{\hyperlink{structGrid}{Grid}} \mbox{\hyperlink{striped__Almog__Draw__Library_8h_a528e02e59b65d796f62605e231904a47}{adl\+\_\+cartesian\+\_\+grid\+\_\+create}} (float min\+\_\+e1, float max\+\_\+e1, float min\+\_\+e2, float max\+\_\+e2, int num\+\_\+samples\+\_\+e1, int num\+\_\+samples\+\_\+e2, char plane\mbox{[}$\,$\mbox{]}, float third\+\_\+direction\+\_\+position)
+\item 
+void \mbox{\hyperlink{striped__Almog__Draw__Library_8h_a45f92dc1aa2afc7012d0eead6b95f4ff}{adl\+\_\+grid\+\_\+draw}} (\mbox{\hyperlink{structMat2D__uint32}{Mat2\+D\+\_\+uint32}} screen\+\_\+mat, \mbox{\hyperlink{structGrid}{Grid}} grid, uint32\+\_\+t color, \mbox{\hyperlink{structOffset__zoom__param}{Offset\+\_\+zoom\+\_\+param}} offset\+\_\+zoom\+\_\+param)
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Macro Definition Documentation}
+\mbox{\Hypertarget{striped__Almog__Draw__Library_8h_ab53d37129b3720c9cacd86a962ef97e4}\label{striped__Almog__Draw__Library_8h_ab53d37129b3720c9cacd86a962ef97e4}} 
+\index{striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}!ADL\_ASSERT@{ADL\_ASSERT}}
+\index{ADL\_ASSERT@{ADL\_ASSERT}!striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}}
+\doxysubsubsection{\texorpdfstring{ADL\_ASSERT}{ADL\_ASSERT}}
+{\footnotesize\ttfamily \#define ADL\+\_\+\+ASSERT~assert}
+
+
+
+Definition at line \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00012}{12}} of file \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source}{striped\+\_\+\+Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+
+\mbox{\Hypertarget{striped__Almog__Draw__Library_8h_ab415130f9b85c4f2c037d2b9b13bb8b8}\label{striped__Almog__Draw__Library_8h_ab415130f9b85c4f2c037d2b9b13bb8b8}} 
+\index{striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}!adl\_assert\_point\_is\_valid@{adl\_assert\_point\_is\_valid}}
+\index{adl\_assert\_point\_is\_valid@{adl\_assert\_point\_is\_valid}!striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}}
+\doxysubsubsection{\texorpdfstring{adl\_assert\_point\_is\_valid}{adl\_assert\_point\_is\_valid}}
+{\footnotesize\ttfamily \#define adl\+\_\+assert\+\_\+point\+\_\+is\+\_\+valid(\begin{DoxyParamCaption}\item[{}]{p }\end{DoxyParamCaption})~\mbox{\hyperlink{striped__Almog__Draw__Library_8h_ab53d37129b3720c9cacd86a962ef97e4}{ADL\+\_\+\+ASSERT}}(isfinite(p.\+x) \&\& isfinite(p.\+y) \&\& isfinite(p.\+z) \&\& isfinite(p.\+w))}
+
+
+
+Definition at line \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00189}{189}} of file \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source}{striped\+\_\+\+Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+
+\mbox{\Hypertarget{striped__Almog__Draw__Library_8h_a1f9ea71569480b40da0e2b219b3f463b}\label{striped__Almog__Draw__Library_8h_a1f9ea71569480b40da0e2b219b3f463b}} 
+\index{striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}!adl\_assert\_quad\_is\_valid@{adl\_assert\_quad\_is\_valid}}
+\index{adl\_assert\_quad\_is\_valid@{adl\_assert\_quad\_is\_valid}!striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}}
+\doxysubsubsection{\texorpdfstring{adl\_assert\_quad\_is\_valid}{adl\_assert\_quad\_is\_valid}}
+{\footnotesize\ttfamily \#define adl\+\_\+assert\+\_\+quad\+\_\+is\+\_\+valid(\begin{DoxyParamCaption}\item[{}]{quad }\end{DoxyParamCaption})}
+
+{\bfseries Value\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{        \mbox{\hyperlink{striped__Almog__Draw__Library_8h_ab415130f9b85c4f2c037d2b9b13bb8b8}{adl\_assert\_point\_is\_valid}}(quad.points[0]); \(\backslash\)}
+\DoxyCodeLine{        adl\_assert\_point\_is\_valid(quad.points[1]); \(\backslash\)}
+\DoxyCodeLine{        adl\_assert\_point\_is\_valid(quad.points[2]); \(\backslash\)}
+\DoxyCodeLine{        adl\_assert\_point\_is\_valid(quad.points[3])}
+
+\end{DoxyCode}
+
+
+Definition at line \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00193}{193}} of file \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source}{striped\+\_\+\+Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+
+\mbox{\Hypertarget{striped__Almog__Draw__Library_8h_a58394344ea3ceebf0dd0844705496f80}\label{striped__Almog__Draw__Library_8h_a58394344ea3ceebf0dd0844705496f80}} 
+\index{striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}!adl\_assert\_tri\_is\_valid@{adl\_assert\_tri\_is\_valid}}
+\index{adl\_assert\_tri\_is\_valid@{adl\_assert\_tri\_is\_valid}!striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}}
+\doxysubsubsection{\texorpdfstring{adl\_assert\_tri\_is\_valid}{adl\_assert\_tri\_is\_valid}}
+{\footnotesize\ttfamily \#define adl\+\_\+assert\+\_\+tri\+\_\+is\+\_\+valid(\begin{DoxyParamCaption}\item[{}]{\mbox{\hyperlink{temp_8c_a360d71388a48208d12e037f8f047cb54}{tri}} }\end{DoxyParamCaption})}
+
+{\bfseries Value\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{        \mbox{\hyperlink{striped__Almog__Draw__Library_8h_ab415130f9b85c4f2c037d2b9b13bb8b8}{adl\_assert\_point\_is\_valid}}(\mbox{\hyperlink{temp_8c_a360d71388a48208d12e037f8f047cb54}{tri}}.\mbox{\hyperlink{structTri_ae564e9956704086df2ada614e8854f15}{points}}[0]); \(\backslash\)}
+\DoxyCodeLine{        adl\_assert\_point\_is\_valid(\mbox{\hyperlink{temp_8c_a360d71388a48208d12e037f8f047cb54}{tri}}.\mbox{\hyperlink{structTri_ae564e9956704086df2ada614e8854f15}{points}}[1]); \(\backslash\)}
+\DoxyCodeLine{        adl\_assert\_point\_is\_valid(\mbox{\hyperlink{temp_8c_a360d71388a48208d12e037f8f047cb54}{tri}}.\mbox{\hyperlink{structTri_ae564e9956704086df2ada614e8854f15}{points}}[2])}
+
+\end{DoxyCode}
+
+
+Definition at line \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00190}{190}} of file \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source}{striped\+\_\+\+Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+
+\mbox{\Hypertarget{striped__Almog__Draw__Library_8h_a92a254e8a4472cd8a3ba7d797e73f1ad}\label{striped__Almog__Draw__Library_8h_a92a254e8a4472cd8a3ba7d797e73f1ad}} 
+\index{striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}!ADL\_DEFAULT\_OFFSET\_ZOOM@{ADL\_DEFAULT\_OFFSET\_ZOOM}}
+\index{ADL\_DEFAULT\_OFFSET\_ZOOM@{ADL\_DEFAULT\_OFFSET\_ZOOM}!striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}}
+\doxysubsubsection{\texorpdfstring{ADL\_DEFAULT\_OFFSET\_ZOOM}{ADL\_DEFAULT\_OFFSET\_ZOOM}}
+{\footnotesize\ttfamily \#define ADL\+\_\+\+DEFAULT\+\_\+\+OFFSET\+\_\+\+ZOOM~(\mbox{\hyperlink{structOffset__zoom__param}{Offset\+\_\+zoom\+\_\+param}})\{1,0,0,0,0\}}
+
+
+
+Definition at line \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00207}{207}} of file \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source}{striped\+\_\+\+Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+
+\mbox{\Hypertarget{striped__Almog__Draw__Library_8h_a77211f974fe0cf3332cb2c61fb7b7e44}\label{striped__Almog__Draw__Library_8h_a77211f974fe0cf3332cb2c61fb7b7e44}} 
+\index{striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}!ADL\_FIGURE\_AXIS\_COLOR@{ADL\_FIGURE\_AXIS\_COLOR}}
+\index{ADL\_FIGURE\_AXIS\_COLOR@{ADL\_FIGURE\_AXIS\_COLOR}!striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}}
+\doxysubsubsection{\texorpdfstring{ADL\_FIGURE\_AXIS\_COLOR}{ADL\_FIGURE\_AXIS\_COLOR}}
+{\footnotesize\ttfamily \#define ADL\+\_\+\+FIGURE\+\_\+\+AXIS\+\_\+\+COLOR~0xff000000}
+
+
+
+Definition at line \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00202}{202}} of file \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source}{striped\+\_\+\+Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+
+\mbox{\Hypertarget{striped__Almog__Draw__Library_8h_a3f26eabe1877247429119a10112f2881}\label{striped__Almog__Draw__Library_8h_a3f26eabe1877247429119a10112f2881}} 
+\index{striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}!ADL\_FIGURE\_HEAD\_ANGLE\_DEG@{ADL\_FIGURE\_HEAD\_ANGLE\_DEG}}
+\index{ADL\_FIGURE\_HEAD\_ANGLE\_DEG@{ADL\_FIGURE\_HEAD\_ANGLE\_DEG}!striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}}
+\doxysubsubsection{\texorpdfstring{ADL\_FIGURE\_HEAD\_ANGLE\_DEG}{ADL\_FIGURE\_HEAD\_ANGLE\_DEG}}
+{\footnotesize\ttfamily \#define ADL\+\_\+\+FIGURE\+\_\+\+HEAD\+\_\+\+ANGLE\+\_\+\+DEG~30}
+
+
+
+Definition at line \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00201}{201}} of file \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source}{striped\+\_\+\+Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+
+\mbox{\Hypertarget{striped__Almog__Draw__Library_8h_a54e82322b28b1c262afd8d1adc9c19e1}\label{striped__Almog__Draw__Library_8h_a54e82322b28b1c262afd8d1adc9c19e1}} 
+\index{striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}!ADL\_FIGURE\_PADDING\_PRECENTAGE@{ADL\_FIGURE\_PADDING\_PRECENTAGE}}
+\index{ADL\_FIGURE\_PADDING\_PRECENTAGE@{ADL\_FIGURE\_PADDING\_PRECENTAGE}!striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}}
+\doxysubsubsection{\texorpdfstring{ADL\_FIGURE\_PADDING\_PRECENTAGE}{ADL\_FIGURE\_PADDING\_PRECENTAGE}}
+{\footnotesize\ttfamily \#define ADL\+\_\+\+FIGURE\+\_\+\+PADDING\+\_\+\+PRECENTAGE~20}
+
+
+
+Definition at line \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00197}{197}} of file \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source}{striped\+\_\+\+Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+
+\mbox{\Hypertarget{striped__Almog__Draw__Library_8h_a128b1d8598cf5029a776147a5aefdfc1}\label{striped__Almog__Draw__Library_8h_a128b1d8598cf5029a776147a5aefdfc1}} 
+\index{striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}!ADL\_MAX\_CHARACTER\_OFFSET@{ADL\_MAX\_CHARACTER\_OFFSET}}
+\index{ADL\_MAX\_CHARACTER\_OFFSET@{ADL\_MAX\_CHARACTER\_OFFSET}!striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}}
+\doxysubsubsection{\texorpdfstring{ADL\_MAX\_CHARACTER\_OFFSET}{ADL\_MAX\_CHARACTER\_OFFSET}}
+{\footnotesize\ttfamily \#define ADL\+\_\+\+MAX\+\_\+\+CHARACTER\+\_\+\+OFFSET~10}
+
+
+
+Definition at line \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00203}{203}} of file \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source}{striped\+\_\+\+Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+
+\mbox{\Hypertarget{striped__Almog__Draw__Library_8h_aa42e8177fad6734d06b4aaf130b720f9}\label{striped__Almog__Draw__Library_8h_aa42e8177fad6734d06b4aaf130b720f9}} 
+\index{striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}!ADL\_MAX\_FIGURE\_PADDING@{ADL\_MAX\_FIGURE\_PADDING}}
+\index{ADL\_MAX\_FIGURE\_PADDING@{ADL\_MAX\_FIGURE\_PADDING}!striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}}
+\doxysubsubsection{\texorpdfstring{ADL\_MAX\_FIGURE\_PADDING}{ADL\_MAX\_FIGURE\_PADDING}}
+{\footnotesize\ttfamily \#define ADL\+\_\+\+MAX\+\_\+\+FIGURE\+\_\+\+PADDING~70}
+
+
+
+Definition at line \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00198}{198}} of file \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source}{striped\+\_\+\+Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+
+\mbox{\Hypertarget{striped__Almog__Draw__Library_8h_a8e7248b317d93a1a00e3e618f102f100}\label{striped__Almog__Draw__Library_8h_a8e7248b317d93a1a00e3e618f102f100}} 
+\index{striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}!ADL\_MAX\_HEAD\_SIZE@{ADL\_MAX\_HEAD\_SIZE}}
+\index{ADL\_MAX\_HEAD\_SIZE@{ADL\_MAX\_HEAD\_SIZE}!striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}}
+\doxysubsubsection{\texorpdfstring{ADL\_MAX\_HEAD\_SIZE}{ADL\_MAX\_HEAD\_SIZE}}
+{\footnotesize\ttfamily \#define ADL\+\_\+\+MAX\+\_\+\+HEAD\+\_\+\+SIZE~15}
+
+
+
+Definition at line \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00200}{200}} of file \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source}{striped\+\_\+\+Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+
+\mbox{\Hypertarget{striped__Almog__Draw__Library_8h_ae97139b075eaa718f014c948491ab92d}\label{striped__Almog__Draw__Library_8h_ae97139b075eaa718f014c948491ab92d}} 
+\index{striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}!ADL\_MAX\_POINT\_VAL@{ADL\_MAX\_POINT\_VAL}}
+\index{ADL\_MAX\_POINT\_VAL@{ADL\_MAX\_POINT\_VAL}!striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}}
+\doxysubsubsection{\texorpdfstring{ADL\_MAX\_POINT\_VAL}{ADL\_MAX\_POINT\_VAL}}
+{\footnotesize\ttfamily \#define ADL\+\_\+\+MAX\+\_\+\+POINT\+\_\+\+VAL~1e5}
+
+
+
+Definition at line \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00188}{188}} of file \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source}{striped\+\_\+\+Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+
+\mbox{\Hypertarget{striped__Almog__Draw__Library_8h_a8cbb9cde6eaf54e71d2bbb7af7ef5b15}\label{striped__Almog__Draw__Library_8h_a8cbb9cde6eaf54e71d2bbb7af7ef5b15}} 
+\index{striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}!ADL\_MAX\_SENTENCE\_LEN@{ADL\_MAX\_SENTENCE\_LEN}}
+\index{ADL\_MAX\_SENTENCE\_LEN@{ADL\_MAX\_SENTENCE\_LEN}!striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}}
+\doxysubsubsection{\texorpdfstring{ADL\_MAX\_SENTENCE\_LEN}{ADL\_MAX\_SENTENCE\_LEN}}
+{\footnotesize\ttfamily \#define ADL\+\_\+\+MAX\+\_\+\+SENTENCE\+\_\+\+LEN~256}
+
+
+
+Definition at line \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00205}{205}} of file \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source}{striped\+\_\+\+Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+
+\mbox{\Hypertarget{striped__Almog__Draw__Library_8h_aa5dfb68d20a2d9a61fcc51827477e574}\label{striped__Almog__Draw__Library_8h_aa5dfb68d20a2d9a61fcc51827477e574}} 
+\index{striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}!ADL\_MAX\_ZOOM@{ADL\_MAX\_ZOOM}}
+\index{ADL\_MAX\_ZOOM@{ADL\_MAX\_ZOOM}!striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}}
+\doxysubsubsection{\texorpdfstring{ADL\_MAX\_ZOOM}{ADL\_MAX\_ZOOM}}
+{\footnotesize\ttfamily \#define ADL\+\_\+\+MAX\+\_\+\+ZOOM~1e3}
+
+
+
+Definition at line \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00206}{206}} of file \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source}{striped\+\_\+\+Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+
+\mbox{\Hypertarget{striped__Almog__Draw__Library_8h_a32da7d322db71482aa10f1f285832596}\label{striped__Almog__Draw__Library_8h_a32da7d322db71482aa10f1f285832596}} 
+\index{striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}!ADL\_MIN\_CHARACTER\_OFFSET@{ADL\_MIN\_CHARACTER\_OFFSET}}
+\index{ADL\_MIN\_CHARACTER\_OFFSET@{ADL\_MIN\_CHARACTER\_OFFSET}!striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}}
+\doxysubsubsection{\texorpdfstring{ADL\_MIN\_CHARACTER\_OFFSET}{ADL\_MIN\_CHARACTER\_OFFSET}}
+{\footnotesize\ttfamily \#define ADL\+\_\+\+MIN\+\_\+\+CHARACTER\+\_\+\+OFFSET~5}
+
+
+
+Definition at line \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00204}{204}} of file \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source}{striped\+\_\+\+Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+
+\mbox{\Hypertarget{striped__Almog__Draw__Library_8h_ae2371d03305558f02f66d4aaf6b759f6}\label{striped__Almog__Draw__Library_8h_ae2371d03305558f02f66d4aaf6b759f6}} 
+\index{striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}!ADL\_MIN\_FIGURE\_PADDING@{ADL\_MIN\_FIGURE\_PADDING}}
+\index{ADL\_MIN\_FIGURE\_PADDING@{ADL\_MIN\_FIGURE\_PADDING}!striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}}
+\doxysubsubsection{\texorpdfstring{ADL\_MIN\_FIGURE\_PADDING}{ADL\_MIN\_FIGURE\_PADDING}}
+{\footnotesize\ttfamily \#define ADL\+\_\+\+MIN\+\_\+\+FIGURE\+\_\+\+PADDING~20}
+
+
+
+Definition at line \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00199}{199}} of file \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source}{striped\+\_\+\+Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+
+\mbox{\Hypertarget{striped__Almog__Draw__Library_8h_addf9b1bd275a08b9810e80acd6f96d2a}\label{striped__Almog__Draw__Library_8h_addf9b1bd275a08b9810e80acd6f96d2a}} 
+\index{striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}!adl\_offset2d@{adl\_offset2d}}
+\index{adl\_offset2d@{adl\_offset2d}!striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}}
+\doxysubsubsection{\texorpdfstring{adl\_offset2d}{adl\_offset2d}}
+{\footnotesize\ttfamily \#define adl\+\_\+offset2d(\begin{DoxyParamCaption}\item[{}]{i,  }\item[{}]{j,  }\item[{}]{ni }\end{DoxyParamCaption})~(j) $\ast$ (ni) + (i)}
+
+
+
+Definition at line \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l01423}{1423}} of file \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source}{striped\+\_\+\+Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+
+\mbox{\Hypertarget{striped__Almog__Draw__Library_8h_a1ef6e1a6824a0f9a11d684ad1e214ed1}\label{striped__Almog__Draw__Library_8h_a1ef6e1a6824a0f9a11d684ad1e214ed1}} 
+\index{striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}!adl\_offset\_zoom\_point@{adl\_offset\_zoom\_point}}
+\index{adl\_offset\_zoom\_point@{adl\_offset\_zoom\_point}!striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}}
+\doxysubsubsection{\texorpdfstring{adl\_offset\_zoom\_point}{adl\_offset\_zoom\_point}}
+{\footnotesize\ttfamily \#define adl\+\_\+offset\+\_\+zoom\+\_\+point(\begin{DoxyParamCaption}\item[{}]{p,  }\item[{}]{window\+\_\+w,  }\item[{}]{window\+\_\+h,  }\item[{}]{offset\+\_\+zoom\+\_\+param }\end{DoxyParamCaption})}
+
+{\bfseries Value\+:}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{    (p).x = ((p).x -\/ (window\_w)/2 + offset\_zoom\_param.offset\_x) * offset\_zoom\_param.zoom\_multiplier + (window\_w)/2; \(\backslash\)}
+\DoxyCodeLine{    (p).y = ((p).y -\/ (window\_h)/2 + offset\_zoom\_param.offset\_y) * offset\_zoom\_param.zoom\_multiplier + (window\_h)/2}
+
+\end{DoxyCode}
+
+
+Definition at line \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00208}{208}} of file \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source}{striped\+\_\+\+Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+
+\mbox{\Hypertarget{striped__Almog__Draw__Library_8h_a67e07b663a3d67ae90629b85a6b6b67a}\label{striped__Almog__Draw__Library_8h_a67e07b663a3d67ae90629b85a6b6b67a}} 
+\index{striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}!BLUE\_hexARGB@{BLUE\_hexARGB}}
+\index{BLUE\_hexARGB@{BLUE\_hexARGB}!striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}}
+\doxysubsubsection{\texorpdfstring{BLUE\_hexARGB}{BLUE\_hexARGB}}
+{\footnotesize\ttfamily \#define BLUE\+\_\+hex\+ARGB~0x\+FF0000\+FF}
+
+
+
+Definition at line \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00180}{180}} of file \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source}{striped\+\_\+\+Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+
+\mbox{\Hypertarget{striped__Almog__Draw__Library_8h_a5e84628ccf5bc23ccfac181b077616ae}\label{striped__Almog__Draw__Library_8h_a5e84628ccf5bc23ccfac181b077616ae}} 
+\index{striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}!CURVE@{CURVE}}
+\index{CURVE@{CURVE}!striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}}
+\doxysubsubsection{\texorpdfstring{CURVE}{CURVE}}
+{\footnotesize\ttfamily \#define CURVE}
+
+
+
+Definition at line \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00031}{31}} of file \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source}{striped\+\_\+\+Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+
+\mbox{\Hypertarget{striped__Almog__Draw__Library_8h_ace0f6a8e1ada03316b02203e2a6f90dc}\label{striped__Almog__Draw__Library_8h_ace0f6a8e1ada03316b02203e2a6f90dc}} 
+\index{striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}!CURVE\_ADA@{CURVE\_ADA}}
+\index{CURVE\_ADA@{CURVE\_ADA}!striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}}
+\doxysubsubsection{\texorpdfstring{CURVE\_ADA}{CURVE\_ADA}}
+{\footnotesize\ttfamily \#define CURVE\+\_\+\+ADA}
+
+
+
+Definition at line \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00040}{40}} of file \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source}{striped\+\_\+\+Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+
+\mbox{\Hypertarget{striped__Almog__Draw__Library_8h_a6d8c2ab7022b2d51dea282a81209c575}\label{striped__Almog__Draw__Library_8h_a6d8c2ab7022b2d51dea282a81209c575}} 
+\index{striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}!CYAN\_hexARGB@{CYAN\_hexARGB}}
+\index{CYAN\_hexARGB@{CYAN\_hexARGB}!striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}}
+\doxysubsubsection{\texorpdfstring{CYAN\_hexARGB}{CYAN\_hexARGB}}
+{\footnotesize\ttfamily \#define CYAN\+\_\+hex\+ARGB~0x\+FF00\+FFFF}
+
+
+
+Definition at line \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00182}{182}} of file \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source}{striped\+\_\+\+Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+
+\mbox{\Hypertarget{striped__Almog__Draw__Library_8h_a6da6a8f68ff61bf4850d903390c0c690}\label{striped__Almog__Draw__Library_8h_a6da6a8f68ff61bf4850d903390c0c690}} 
+\index{striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}!edge\_cross\_point@{edge\_cross\_point}}
+\index{edge\_cross\_point@{edge\_cross\_point}!striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}}
+\doxysubsubsection{\texorpdfstring{edge\_cross\_point}{edge\_cross\_point}}
+{\footnotesize\ttfamily \#define edge\+\_\+cross\+\_\+point(\begin{DoxyParamCaption}\item[{}]{a1,  }\item[{}]{b,  }\item[{}]{a2,  }\item[{}]{p }\end{DoxyParamCaption})~(b.\+x-\/a1.\+x)$\ast$(p.\+y-\/a2.\+y)-\/(b.\+y-\/a1.\+y)$\ast$(p.\+x-\/a2.\+x)}
+
+
+
+Definition at line \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00184}{184}} of file \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source}{striped\+\_\+\+Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+
+\mbox{\Hypertarget{striped__Almog__Draw__Library_8h_a2573b865d687b5dcfe3d091f1a645921}\label{striped__Almog__Draw__Library_8h_a2573b865d687b5dcfe3d091f1a645921}} 
+\index{striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}!GREEN\_hexARGB@{GREEN\_hexARGB}}
+\index{GREEN\_hexARGB@{GREEN\_hexARGB}!striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}}
+\doxysubsubsection{\texorpdfstring{GREEN\_hexARGB}{GREEN\_hexARGB}}
+{\footnotesize\ttfamily \#define GREEN\+\_\+hex\+ARGB~0x\+FF00\+FF00}
+
+
+
+Definition at line \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00179}{179}} of file \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source}{striped\+\_\+\+Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+
+\mbox{\Hypertarget{striped__Almog__Draw__Library_8h_a1e38982ab1aaaae615016576f660dff1}\label{striped__Almog__Draw__Library_8h_a1e38982ab1aaaae615016576f660dff1}} 
+\index{striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}!HexARGB\_RGB\_VAR@{HexARGB\_RGB\_VAR}}
+\index{HexARGB\_RGB\_VAR@{HexARGB\_RGB\_VAR}!striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}}
+\doxysubsubsection{\texorpdfstring{HexARGB\_RGB\_VAR}{HexARGB\_RGB\_VAR}}
+{\footnotesize\ttfamily \#define Hex\+ARGB\+\_\+\+RGB\+\_\+\+VAR(\begin{DoxyParamCaption}\item[{}]{x,  }\item[{}]{r,  }\item[{}]{g,  }\item[{}]{b }\end{DoxyParamCaption})~r = ((x)$>$$>$(8$\ast$2)\&0x\+FF); g = ((x)$>$$>$(8$\ast$1)\&0x\+FF); b = ((x)$>$$>$(8$\ast$0)\&0x\+FF);}
+
+
+
+Definition at line \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00120}{120}} of file \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source}{striped\+\_\+\+Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+
+\mbox{\Hypertarget{striped__Almog__Draw__Library_8h_a96d19b5694505d2bcea416c9771bb31b}\label{striped__Almog__Draw__Library_8h_a96d19b5694505d2bcea416c9771bb31b}} 
+\index{striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}!HexARGB\_RGBA@{HexARGB\_RGBA}}
+\index{HexARGB\_RGBA@{HexARGB\_RGBA}!striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}}
+\doxysubsubsection{\texorpdfstring{HexARGB\_RGBA}{HexARGB\_RGBA}}
+{\footnotesize\ttfamily \#define Hex\+ARGB\+\_\+\+RGBA(\begin{DoxyParamCaption}\item[{}]{x }\end{DoxyParamCaption})~((x)$>$$>$(8$\ast$2)\&0x\+FF), ((x)$>$$>$(8$\ast$1)\&0x\+FF), ((x)$>$$>$(8$\ast$0)\&0x\+FF), ((x)$>$$>$(8$\ast$3)\&0x\+FF)}
+
+
+
+Definition at line \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00117}{117}} of file \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source}{striped\+\_\+\+Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+
+\mbox{\Hypertarget{striped__Almog__Draw__Library_8h_ad02384d393ba960796c2471b74350c2d}\label{striped__Almog__Draw__Library_8h_ad02384d393ba960796c2471b74350c2d}} 
+\index{striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}!HexARGB\_RGBA\_VAR@{HexARGB\_RGBA\_VAR}}
+\index{HexARGB\_RGBA\_VAR@{HexARGB\_RGBA\_VAR}!striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}}
+\doxysubsubsection{\texorpdfstring{HexARGB\_RGBA\_VAR}{HexARGB\_RGBA\_VAR}}
+{\footnotesize\ttfamily \#define Hex\+ARGB\+\_\+\+RGBA\+\_\+\+VAR(\begin{DoxyParamCaption}\item[{}]{x,  }\item[{}]{r,  }\item[{}]{g,  }\item[{}]{b,  }\item[{}]{a }\end{DoxyParamCaption})~r = ((x)$>$$>$(8$\ast$2)\&0x\+FF); g = ((x)$>$$>$(8$\ast$1)\&0x\+FF); b = ((x)$>$$>$(8$\ast$0)\&0x\+FF); a = ((x)$>$$>$(8$\ast$3)\&0x\+FF)}
+
+
+
+Definition at line \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00123}{123}} of file \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source}{striped\+\_\+\+Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+
+\mbox{\Hypertarget{striped__Almog__Draw__Library_8h_a28aba875656d27a94a74f19eef7065e1}\label{striped__Almog__Draw__Library_8h_a28aba875656d27a94a74f19eef7065e1}} 
+\index{striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}!is\_left\_edge@{is\_left\_edge}}
+\index{is\_left\_edge@{is\_left\_edge}!striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}}
+\doxysubsubsection{\texorpdfstring{is\_left\_edge}{is\_left\_edge}}
+{\footnotesize\ttfamily \#define is\+\_\+left\+\_\+edge(\begin{DoxyParamCaption}\item[{}]{x,  }\item[{}]{y }\end{DoxyParamCaption})~(y $<$ 0)}
+
+
+
+Definition at line \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00186}{186}} of file \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source}{striped\+\_\+\+Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+
+\mbox{\Hypertarget{striped__Almog__Draw__Library_8h_a4a44974f1e3313a1951dab5533e6156e}\label{striped__Almog__Draw__Library_8h_a4a44974f1e3313a1951dab5533e6156e}} 
+\index{striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}!is\_top\_edge@{is\_top\_edge}}
+\index{is\_top\_edge@{is\_top\_edge}!striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}}
+\doxysubsubsection{\texorpdfstring{is\_top\_edge}{is\_top\_edge}}
+{\footnotesize\ttfamily \#define is\+\_\+top\+\_\+edge(\begin{DoxyParamCaption}\item[{}]{x,  }\item[{}]{y }\end{DoxyParamCaption})~(y == 0 \&\& x $>$ 0)}
+
+
+
+Definition at line \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00185}{185}} of file \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source}{striped\+\_\+\+Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+
+\mbox{\Hypertarget{striped__Almog__Draw__Library_8h_a4684a6b9c18ba630636b7407653e1057}\label{striped__Almog__Draw__Library_8h_a4684a6b9c18ba630636b7407653e1057}} 
+\index{striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}!is\_top\_left@{is\_top\_left}}
+\index{is\_top\_left@{is\_top\_left}!striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}}
+\doxysubsubsection{\texorpdfstring{is\_top\_left}{is\_top\_left}}
+{\footnotesize\ttfamily \#define is\+\_\+top\+\_\+left(\begin{DoxyParamCaption}\item[{}]{ps,  }\item[{}]{pe }\end{DoxyParamCaption})~(\mbox{\hyperlink{striped__Almog__Draw__Library_8h_a4a44974f1e3313a1951dab5533e6156e}{is\+\_\+top\+\_\+edge}}(pe.\+x-\/ps.\+x, pe.\+y-\/ps.\+y) $\vert$$\vert$ \mbox{\hyperlink{striped__Almog__Draw__Library_8h_a28aba875656d27a94a74f19eef7065e1}{is\+\_\+left\+\_\+edge}}(pe.\+x-\/ps.\+x, pe.\+y-\/ps.\+y))}
+
+
+
+Definition at line \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00187}{187}} of file \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source}{striped\+\_\+\+Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+
+\mbox{\Hypertarget{striped__Almog__Draw__Library_8h_a43011aabc923f9b33f1f51dc03b23539}\label{striped__Almog__Draw__Library_8h_a43011aabc923f9b33f1f51dc03b23539}} 
+\index{striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}!POINT@{POINT}}
+\index{POINT@{POINT}!striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}}
+\doxysubsubsection{\texorpdfstring{POINT}{POINT}}
+{\footnotesize\ttfamily \#define POINT}
+
+
+
+Definition at line \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00022}{22}} of file \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source}{striped\+\_\+\+Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+
+\mbox{\Hypertarget{striped__Almog__Draw__Library_8h_a80fe53ef28c00cbaaffe5afbcf3ffefb}\label{striped__Almog__Draw__Library_8h_a80fe53ef28c00cbaaffe5afbcf3ffefb}} 
+\index{striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}!PURPLE\_hexARGB@{PURPLE\_hexARGB}}
+\index{PURPLE\_hexARGB@{PURPLE\_hexARGB}!striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}}
+\doxysubsubsection{\texorpdfstring{PURPLE\_hexARGB}{PURPLE\_hexARGB}}
+{\footnotesize\ttfamily \#define PURPLE\+\_\+hex\+ARGB~0x\+FFFF00\+FF}
+
+
+
+Definition at line \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00181}{181}} of file \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source}{striped\+\_\+\+Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+
+\mbox{\Hypertarget{striped__Almog__Draw__Library_8h_ac7252422b84a98d876dbc47ed5c0b5af}\label{striped__Almog__Draw__Library_8h_ac7252422b84a98d876dbc47ed5c0b5af}} 
+\index{striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}!QUAD@{QUAD}}
+\index{QUAD@{QUAD}!striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}}
+\doxysubsubsection{\texorpdfstring{QUAD}{QUAD}}
+{\footnotesize\ttfamily \#define QUAD}
+
+
+
+Definition at line \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00059}{59}} of file \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source}{striped\+\_\+\+Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+
+\mbox{\Hypertarget{striped__Almog__Draw__Library_8h_acb965f71620fd961ec18e95511671cf2}\label{striped__Almog__Draw__Library_8h_acb965f71620fd961ec18e95511671cf2}} 
+\index{striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}!QUAD\_MESH@{QUAD\_MESH}}
+\index{QUAD\_MESH@{QUAD\_MESH}!striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}}
+\doxysubsubsection{\texorpdfstring{QUAD\_MESH}{QUAD\_MESH}}
+{\footnotesize\ttfamily \#define QUAD\+\_\+\+MESH}
+
+
+
+Definition at line \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00077}{77}} of file \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source}{striped\+\_\+\+Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+
+\mbox{\Hypertarget{striped__Almog__Draw__Library_8h_a18d40dca86bc96286a6b4e865ff1bcc9}\label{striped__Almog__Draw__Library_8h_a18d40dca86bc96286a6b4e865ff1bcc9}} 
+\index{striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}!RED\_hexARGB@{RED\_hexARGB}}
+\index{RED\_hexARGB@{RED\_hexARGB}!striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}}
+\doxysubsubsection{\texorpdfstring{RED\_hexARGB}{RED\_hexARGB}}
+{\footnotesize\ttfamily \#define RED\+\_\+hex\+ARGB~0x\+FFFF0000}
+
+
+
+Definition at line \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00178}{178}} of file \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source}{striped\+\_\+\+Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+
+\mbox{\Hypertarget{striped__Almog__Draw__Library_8h_ae5c9bd99d773c485b76cef79ced9ef29}\label{striped__Almog__Draw__Library_8h_ae5c9bd99d773c485b76cef79ced9ef29}} 
+\index{striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}!RGB\_hexRGB@{RGB\_hexRGB}}
+\index{RGB\_hexRGB@{RGB\_hexRGB}!striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}}
+\doxysubsubsection{\texorpdfstring{RGB\_hexRGB}{RGB\_hexRGB}}
+{\footnotesize\ttfamily \#define RGB\+\_\+hex\+RGB(\begin{DoxyParamCaption}\item[{}]{r,  }\item[{}]{g,  }\item[{}]{b }\end{DoxyParamCaption})~(int)(0x010000$\ast$(int)(r) + 0x000100$\ast$(int)(g) + 0x000001$\ast$(int)(b))}
+
+
+
+Definition at line \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00126}{126}} of file \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source}{striped\+\_\+\+Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+
+\mbox{\Hypertarget{striped__Almog__Draw__Library_8h_af2a5454da38824700317a8dbcab92f1b}\label{striped__Almog__Draw__Library_8h_af2a5454da38824700317a8dbcab92f1b}} 
+\index{striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}!RGBA\_hexARGB@{RGBA\_hexARGB}}
+\index{RGBA\_hexARGB@{RGBA\_hexARGB}!striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}}
+\doxysubsubsection{\texorpdfstring{RGBA\_hexARGB}{RGBA\_hexARGB}}
+{\footnotesize\ttfamily \#define RGBA\+\_\+hex\+ARGB(\begin{DoxyParamCaption}\item[{}]{r,  }\item[{}]{g,  }\item[{}]{b,  }\item[{}]{a }\end{DoxyParamCaption})~(int)(0x01000000l$\ast$(int)(fminf(a, 255)) + 0x010000$\ast$(int)(r) + 0x000100$\ast$(int)(g) + 0x000001$\ast$(int)(b))}
+
+
+
+Definition at line \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00129}{129}} of file \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source}{striped\+\_\+\+Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+
+\mbox{\Hypertarget{striped__Almog__Draw__Library_8h_af6427767938abfcff7c07db4a3020f6a}\label{striped__Almog__Draw__Library_8h_af6427767938abfcff7c07db4a3020f6a}} 
+\index{striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}!TRI@{TRI}}
+\index{TRI@{TRI}!striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}}
+\doxysubsubsection{\texorpdfstring{TRI}{TRI}}
+{\footnotesize\ttfamily \#define TRI}
+
+
+
+Definition at line \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00048}{48}} of file \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source}{striped\+\_\+\+Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+
+\mbox{\Hypertarget{striped__Almog__Draw__Library_8h_abb9096632f751c821ce5591ee8751c8d}\label{striped__Almog__Draw__Library_8h_abb9096632f751c821ce5591ee8751c8d}} 
+\index{striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}!TRI\_MESH@{TRI\_MESH}}
+\index{TRI\_MESH@{TRI\_MESH}!striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}}
+\doxysubsubsection{\texorpdfstring{TRI\_MESH}{TRI\_MESH}}
+{\footnotesize\ttfamily \#define TRI\+\_\+\+MESH}
+
+
+
+Definition at line \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00069}{69}} of file \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source}{striped\+\_\+\+Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+
+\mbox{\Hypertarget{striped__Almog__Draw__Library_8h_a2c08d20a50ce1fb32f381d143a1940d4}\label{striped__Almog__Draw__Library_8h_a2c08d20a50ce1fb32f381d143a1940d4}} 
+\index{striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}!YELLOW\_hexARGB@{YELLOW\_hexARGB}}
+\index{YELLOW\_hexARGB@{YELLOW\_hexARGB}!striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}}
+\doxysubsubsection{\texorpdfstring{YELLOW\_hexARGB}{YELLOW\_hexARGB}}
+{\footnotesize\ttfamily \#define YELLOW\+\_\+hex\+ARGB~0x\+FFFFFF00}
+
+
+
+Definition at line \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00183}{183}} of file \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source}{striped\+\_\+\+Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+
+
+
+\doxysubsection{Function Documentation}
+\mbox{\Hypertarget{striped__Almog__Draw__Library_8h_a364f08103fb80cf8a5d51d75202fde91}\label{striped__Almog__Draw__Library_8h_a364f08103fb80cf8a5d51d75202fde91}} 
+\index{striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}!adl\_2Dscalar\_interp\_on\_figure@{adl\_2Dscalar\_interp\_on\_figure}}
+\index{adl\_2Dscalar\_interp\_on\_figure@{adl\_2Dscalar\_interp\_on\_figure}!striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}}
+\doxysubsubsection{\texorpdfstring{adl\_2Dscalar\_interp\_on\_figure()}{adl\_2Dscalar\_interp\_on\_figure()}}
+{\footnotesize\ttfamily void adl\+\_\+2\+Dscalar\+\_\+interp\+\_\+on\+\_\+figure (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structFigure}{Figure}}}]{figure,  }\item[{double $\ast$}]{x\+\_\+2\+Dmat,  }\item[{double $\ast$}]{y\+\_\+2\+Dmat,  }\item[{double $\ast$}]{scalar\+\_\+2\+Dmat,  }\item[{int}]{ni,  }\item[{int}]{nj,  }\item[{char}]{color\+\_\+scale\mbox{[}$\,$\mbox{]},  }\item[{float}]{num\+\_\+of\+\_\+rotations }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l01424}{1424}} of file \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source}{striped\+\_\+\+Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+
+
+
+References \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l01329}{adl\+\_\+axis\+\_\+draw\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00207}{ADL\+\_\+\+DEFAULT\+\_\+\+OFFSET\+\_\+\+ZOOM}}, \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l01281}{adl\+\_\+interpolate\+\_\+\+ARGBcolor\+\_\+on\+\_\+ok\+Lch()}}, \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l01184}{adl\+\_\+linear\+\_\+map()}}, \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l01342}{adl\+\_\+max\+\_\+min\+\_\+values\+\_\+draw\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l01423}{adl\+\_\+offset2d}}, \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00208}{adl\+\_\+offset\+\_\+zoom\+\_\+point}}, \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00832}{adl\+\_\+quad\+\_\+fill\+\_\+interpolate\+\_\+color\+\_\+mean\+\_\+value()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00145}{Figure\+::background\+\_\+color}}, \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00180}{BLUE\+\_\+hex\+ARGB}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00105}{Quad\+::colors}}, \mbox{\hyperlink{Matrix2D_8h_source_l00083}{Mat2\+D\+::cols}}, \mbox{\hyperlink{Matrix2D_8h_source_l00100}{Mat2\+D\+\_\+uint32\+::cols}}, \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00182}{CYAN\+\_\+hex\+ARGB}}, \mbox{\hyperlink{Matrix2D_8h_source_l00085}{Mat2\+D\+::elements}}, \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00179}{GREEN\+\_\+hex\+ARGB}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00144}{Figure\+::inv\+\_\+z\+\_\+buffer\+\_\+mat}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00107}{Quad\+::light\+\_\+intensity}}, \mbox{\hyperlink{Matrix2D_8h_source_l00391}{mat2\+D\+\_\+fill\+\_\+uint32()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00135}{Figure\+::max\+\_\+x}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00131}{Figure\+::max\+\_\+x\+\_\+pixel}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00137}{Figure\+::max\+\_\+y}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00133}{Figure\+::max\+\_\+y\+\_\+pixel}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00134}{Figure\+::min\+\_\+x}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00130}{Figure\+::min\+\_\+x\+\_\+pixel}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00136}{Figure\+::min\+\_\+y}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00132}{Figure\+::min\+\_\+y\+\_\+pixel}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00140}{Figure\+::offset\+\_\+zoom\+\_\+param}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00143}{Figure\+::pixels\+\_\+mat}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00103}{Quad\+::points}}, \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00181}{PURPLE\+\_\+hex\+ARGB}}, \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00178}{RED\+\_\+hex\+ARGB}}, \mbox{\hyperlink{Matrix2D_8h_source_l00082}{Mat2\+D\+::rows}}, \mbox{\hyperlink{Matrix2D_8h_source_l00099}{Mat2\+D\+\_\+uint32\+::rows}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00106}{Quad\+::to\+\_\+draw}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00146}{Figure\+::to\+\_\+draw\+\_\+axis}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00147}{Figure\+::to\+\_\+draw\+\_\+max\+\_\+min\+\_\+values}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00065}{Point\+::w}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00062}{Point\+::x}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00063}{Point\+::y}}, \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00183}{YELLOW\+\_\+hex\+ARGB}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00064}{Point\+::z}}.
+
+\mbox{\Hypertarget{striped__Almog__Draw__Library_8h_a1617ac2a87b7135e826e98aebecf9820}\label{striped__Almog__Draw__Library_8h_a1617ac2a87b7135e826e98aebecf9820}} 
+\index{striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}!adl\_arrow\_draw@{adl\_arrow\_draw}}
+\index{adl\_arrow\_draw@{adl\_arrow\_draw}!striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}}
+\doxysubsubsection{\texorpdfstring{adl\_arrow\_draw()}{adl\_arrow\_draw()}}
+{\footnotesize\ttfamily void adl\+\_\+arrow\+\_\+draw (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structMat2D__uint32}{Mat2\+D\+\_\+uint32}}}]{screen\+\_\+mat,  }\item[{int}]{xs,  }\item[{int}]{ys,  }\item[{int}]{xe,  }\item[{int}]{ye,  }\item[{float}]{head\+\_\+size,  }\item[{float}]{angle\+\_\+deg,  }\item[{uint32\+\_\+t}]{color,  }\item[{\mbox{\hyperlink{structOffset__zoom__param}{Offset\+\_\+zoom\+\_\+param}}}]{offset\+\_\+zoom\+\_\+param }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00303}{303}} of file \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source}{striped\+\_\+\+Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+
+
+
+References \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00226}{adl\+\_\+line\+\_\+draw()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00496}{mat2\+D\+\_\+add()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00278}{mat2\+D\+\_\+alloc()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00145}{MAT2\+D\+\_\+\+AT}}, \mbox{\hyperlink{Matrix2D_8h_source_l00768}{mat2\+D\+\_\+copy()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00424}{mat2\+D\+\_\+dot()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00362}{mat2\+D\+\_\+fill()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00314}{mat2\+D\+\_\+free()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00723}{mat2\+D\+\_\+set\+\_\+rot\+\_\+mat\+\_\+z()}}, and \mbox{\hyperlink{Matrix2D_8h_source_l00527}{mat2\+D\+\_\+sub()}}.
+
+
+
+Referenced by \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l01329}{adl\+\_\+axis\+\_\+draw\+\_\+on\+\_\+figure()}}.
+
+\mbox{\Hypertarget{striped__Almog__Draw__Library_8h_a8e326591323a76c262e0d46ce3f054fa}\label{striped__Almog__Draw__Library_8h_a8e326591323a76c262e0d46ce3f054fa}} 
+\index{striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}!adl\_axis\_draw\_on\_figure@{adl\_axis\_draw\_on\_figure}}
+\index{adl\_axis\_draw\_on\_figure@{adl\_axis\_draw\_on\_figure}!striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}}
+\doxysubsubsection{\texorpdfstring{adl\_axis\_draw\_on\_figure()}{adl\_axis\_draw\_on\_figure()}}
+{\footnotesize\ttfamily void adl\+\_\+axis\+\_\+draw\+\_\+on\+\_\+figure (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structFigure}{Figure}} $\ast$}]{figure }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l01329}{1329}} of file \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source}{striped\+\_\+\+Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+
+
+
+References \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00303}{adl\+\_\+arrow\+\_\+draw()}}, \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00202}{ADL\+\_\+\+FIGURE\+\_\+\+AXIS\+\_\+\+COLOR}}, \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00201}{ADL\+\_\+\+FIGURE\+\_\+\+HEAD\+\_\+\+ANGLE\+\_\+\+DEG}}, \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00197}{ADL\+\_\+\+FIGURE\+\_\+\+PADDING\+\_\+\+PRECENTAGE}}, \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00198}{ADL\+\_\+\+MAX\+\_\+\+FIGURE\+\_\+\+PADDING}}, \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00200}{ADL\+\_\+\+MAX\+\_\+\+HEAD\+\_\+\+SIZE}}, \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00199}{ADL\+\_\+\+MIN\+\_\+\+FIGURE\+\_\+\+PADDING}}, \mbox{\hyperlink{Matrix2D_8h_source_l00100}{Mat2\+D\+\_\+uint32\+::cols}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00131}{Figure\+::max\+\_\+x\+\_\+pixel}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00133}{Figure\+::max\+\_\+y\+\_\+pixel}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00130}{Figure\+::min\+\_\+x\+\_\+pixel}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00132}{Figure\+::min\+\_\+y\+\_\+pixel}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00140}{Figure\+::offset\+\_\+zoom\+\_\+param}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00143}{Figure\+::pixels\+\_\+mat}}, \mbox{\hyperlink{Matrix2D_8h_source_l00099}{Mat2\+D\+\_\+uint32\+::rows}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00138}{Figure\+::x\+\_\+axis\+\_\+head\+\_\+size}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00139}{Figure\+::y\+\_\+axis\+\_\+head\+\_\+size}}.
+
+
+
+Referenced by \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l01424}{adl\+\_\+2\+Dscalar\+\_\+interp\+\_\+on\+\_\+figure()}}, and \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l01401}{adl\+\_\+curves\+\_\+plot\+\_\+on\+\_\+figure()}}.
+
+\mbox{\Hypertarget{striped__Almog__Draw__Library_8h_a528e02e59b65d796f62605e231904a47}\label{striped__Almog__Draw__Library_8h_a528e02e59b65d796f62605e231904a47}} 
+\index{striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}!adl\_cartesian\_grid\_create@{adl\_cartesian\_grid\_create}}
+\index{adl\_cartesian\_grid\_create@{adl\_cartesian\_grid\_create}!striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}}
+\doxysubsubsection{\texorpdfstring{adl\_cartesian\_grid\_create()}{adl\_cartesian\_grid\_create()}}
+{\footnotesize\ttfamily \mbox{\hyperlink{structGrid}{Grid}} adl\+\_\+cartesian\+\_\+grid\+\_\+create (\begin{DoxyParamCaption}\item[{float}]{min\+\_\+e1,  }\item[{float}]{max\+\_\+e1,  }\item[{float}]{min\+\_\+e2,  }\item[{float}]{max\+\_\+e2,  }\item[{int}]{num\+\_\+samples\+\_\+e1,  }\item[{int}]{num\+\_\+samples\+\_\+e2,  }\item[{char}]{plane\mbox{[}$\,$\mbox{]},  }\item[{float}]{third\+\_\+direction\+\_\+position }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l01569}{1569}} of file \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source}{striped\+\_\+\+Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+
+
+
+References \mbox{\hyperlink{Almog__Dynamic__Array_8h_source_l00169}{ada\+\_\+appand}}, \mbox{\hyperlink{Almog__Dynamic__Array_8h_source_l00120}{ada\+\_\+init\+\_\+array}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00151}{Grid\+::curves}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00158}{Grid\+::de1}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00159}{Grid\+::de2}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00153}{Grid\+::max\+\_\+e1}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00155}{Grid\+::max\+\_\+e2}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00152}{Grid\+::min\+\_\+e1}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00154}{Grid\+::min\+\_\+e2}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00156}{Grid\+::num\+\_\+samples\+\_\+e1}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00157}{Grid\+::num\+\_\+samples\+\_\+e2}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00160}{Grid\+::plane}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00065}{Point\+::w}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00062}{Point\+::x}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00063}{Point\+::y}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00064}{Point\+::z}}.
+
+\mbox{\Hypertarget{striped__Almog__Draw__Library_8h_a564ae7f54068af11cb6d79ea7449a038}\label{striped__Almog__Draw__Library_8h_a564ae7f54068af11cb6d79ea7449a038}} 
+\index{striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}!adl\_character\_draw@{adl\_character\_draw}}
+\index{adl\_character\_draw@{adl\_character\_draw}!striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}}
+\doxysubsubsection{\texorpdfstring{adl\_character\_draw()}{adl\_character\_draw()}}
+{\footnotesize\ttfamily void adl\+\_\+character\+\_\+draw (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structMat2D__uint32}{Mat2\+D\+\_\+uint32}}}]{screen\+\_\+mat,  }\item[{char}]{c,  }\item[{int}]{width\+\_\+pixel,  }\item[{int}]{hight\+\_\+pixel,  }\item[{int}]{x\+\_\+top\+\_\+left,  }\item[{int}]{y\+\_\+top\+\_\+left,  }\item[{uint32\+\_\+t}]{color,  }\item[{\mbox{\hyperlink{structOffset__zoom__param}{Offset\+\_\+zoom\+\_\+param}}}]{offset\+\_\+zoom\+\_\+param }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00346}{346}} of file \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source}{striped\+\_\+\+Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+
+
+
+References \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00226}{adl\+\_\+line\+\_\+draw()}}, \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00685}{adl\+\_\+rectangle\+\_\+draw\+\_\+min\+\_\+max()}}, and \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00692}{adl\+\_\+rectangle\+\_\+fill\+\_\+min\+\_\+max()}}.
+
+
+
+Referenced by \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00675}{adl\+\_\+sentence\+\_\+draw()}}.
+
+\mbox{\Hypertarget{striped__Almog__Draw__Library_8h_a3be1fd0bccc0820e85cf23455d28b8e1}\label{striped__Almog__Draw__Library_8h_a3be1fd0bccc0820e85cf23455d28b8e1}} 
+\index{striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}!adl\_circle\_draw@{adl\_circle\_draw}}
+\index{adl\_circle\_draw@{adl\_circle\_draw}!striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}}
+\doxysubsubsection{\texorpdfstring{adl\_circle\_draw()}{adl\_circle\_draw()}}
+{\footnotesize\ttfamily void adl\+\_\+circle\+\_\+draw (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structMat2D__uint32}{Mat2\+D\+\_\+uint32}}}]{screen\+\_\+mat,  }\item[{float}]{center\+\_\+x,  }\item[{float}]{center\+\_\+y,  }\item[{float}]{r,  }\item[{uint32\+\_\+t}]{color,  }\item[{\mbox{\hyperlink{structOffset__zoom__param}{Offset\+\_\+zoom\+\_\+param}}}]{offset\+\_\+zoom\+\_\+param }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00947}{947}} of file \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source}{striped\+\_\+\+Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+
+
+
+References \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00211}{adl\+\_\+point\+\_\+draw()}}.
+
+\mbox{\Hypertarget{striped__Almog__Draw__Library_8h_acb7eaed26707a5f8f90117f6cf8f267a}\label{striped__Almog__Draw__Library_8h_acb7eaed26707a5f8f90117f6cf8f267a}} 
+\index{striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}!adl\_circle\_fill@{adl\_circle\_fill}}
+\index{adl\_circle\_fill@{adl\_circle\_fill}!striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}}
+\doxysubsubsection{\texorpdfstring{adl\_circle\_fill()}{adl\_circle\_fill()}}
+{\footnotesize\ttfamily void adl\+\_\+circle\+\_\+fill (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structMat2D__uint32}{Mat2\+D\+\_\+uint32}}}]{screen\+\_\+mat,  }\item[{float}]{center\+\_\+x,  }\item[{float}]{center\+\_\+y,  }\item[{float}]{r,  }\item[{uint32\+\_\+t}]{color,  }\item[{\mbox{\hyperlink{structOffset__zoom__param}{Offset\+\_\+zoom\+\_\+param}}}]{offset\+\_\+zoom\+\_\+param }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00958}{958}} of file \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source}{striped\+\_\+\+Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+
+
+
+References \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00211}{adl\+\_\+point\+\_\+draw()}}.
+
+\mbox{\Hypertarget{striped__Almog__Draw__Library_8h_ae8db36021fe2217185f3038fe43f5848}\label{striped__Almog__Draw__Library_8h_ae8db36021fe2217185f3038fe43f5848}} 
+\index{striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}!adl\_curve\_add\_to\_figure@{adl\_curve\_add\_to\_figure}}
+\index{adl\_curve\_add\_to\_figure@{adl\_curve\_add\_to\_figure}!striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}}
+\doxysubsubsection{\texorpdfstring{adl\_curve\_add\_to\_figure()}{adl\_curve\_add\_to\_figure()}}
+{\footnotesize\ttfamily void adl\+\_\+curve\+\_\+add\+\_\+to\+\_\+figure (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structFigure}{Figure}} $\ast$}]{figure,  }\item[{\mbox{\hyperlink{structPoint}{Point}} $\ast$}]{src\+\_\+points,  }\item[{size\+\_\+t}]{src\+\_\+len,  }\item[{uint32\+\_\+t}]{color }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l01378}{1378}} of file \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source}{striped\+\_\+\+Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+
+
+
+References \mbox{\hyperlink{Almog__Dynamic__Array_8h_source_l00169}{ada\+\_\+appand}}, \mbox{\hyperlink{Almog__Dynamic__Array_8h_source_l00120}{ada\+\_\+init\+\_\+array}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00072}{Curve\+::color}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00135}{Figure\+::max\+\_\+x}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00137}{Figure\+::max\+\_\+y}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00134}{Figure\+::min\+\_\+x}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00136}{Figure\+::min\+\_\+y}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00141}{Figure\+::src\+\_\+curve\+\_\+array}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00062}{Point\+::x}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00063}{Point\+::y}}.
+
+\mbox{\Hypertarget{striped__Almog__Draw__Library_8h_a6716d416690b2cbeabe46077cf9c1d52}\label{striped__Almog__Draw__Library_8h_a6716d416690b2cbeabe46077cf9c1d52}} 
+\index{striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}!adl\_curves\_plot\_on\_figure@{adl\_curves\_plot\_on\_figure}}
+\index{adl\_curves\_plot\_on\_figure@{adl\_curves\_plot\_on\_figure}!striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}}
+\doxysubsubsection{\texorpdfstring{adl\_curves\_plot\_on\_figure()}{adl\_curves\_plot\_on\_figure()}}
+{\footnotesize\ttfamily void adl\+\_\+curves\+\_\+plot\+\_\+on\+\_\+figure (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structFigure}{Figure}}}]{figure }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l01401}{1401}} of file \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source}{striped\+\_\+\+Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+
+
+
+References \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l01329}{adl\+\_\+axis\+\_\+draw\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00226}{adl\+\_\+line\+\_\+draw()}}, \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l01184}{adl\+\_\+linear\+\_\+map()}}, \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l01342}{adl\+\_\+max\+\_\+min\+\_\+values\+\_\+draw\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00145}{Figure\+::background\+\_\+color}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00072}{Curve\+::color}}, \mbox{\hyperlink{Matrix2D_8h_source_l00083}{Mat2\+D\+::cols}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00075}{Curve\+::elements}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00084}{Curve\+\_\+ada\+::elements}}, \mbox{\hyperlink{Matrix2D_8h_source_l00085}{Mat2\+D\+::elements}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00144}{Figure\+::inv\+\_\+z\+\_\+buffer\+\_\+mat}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00073}{Curve\+::length}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00082}{Curve\+\_\+ada\+::length}}, \mbox{\hyperlink{Matrix2D_8h_source_l00391}{mat2\+D\+\_\+fill\+\_\+uint32()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00135}{Figure\+::max\+\_\+x}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00131}{Figure\+::max\+\_\+x\+\_\+pixel}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00137}{Figure\+::max\+\_\+y}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00133}{Figure\+::max\+\_\+y\+\_\+pixel}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00134}{Figure\+::min\+\_\+x}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00130}{Figure\+::min\+\_\+x\+\_\+pixel}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00136}{Figure\+::min\+\_\+y}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00132}{Figure\+::min\+\_\+y\+\_\+pixel}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00140}{Figure\+::offset\+\_\+zoom\+\_\+param}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00143}{Figure\+::pixels\+\_\+mat}}, \mbox{\hyperlink{Matrix2D_8h_source_l00082}{Mat2\+D\+::rows}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00141}{Figure\+::src\+\_\+curve\+\_\+array}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00146}{Figure\+::to\+\_\+draw\+\_\+axis}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00147}{Figure\+::to\+\_\+draw\+\_\+max\+\_\+min\+\_\+values}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00062}{Point\+::x}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00063}{Point\+::y}}.
+
+\mbox{\Hypertarget{striped__Almog__Draw__Library_8h_ac203ae7ef724e00cd6af36b03fef5d9b}\label{striped__Almog__Draw__Library_8h_ac203ae7ef724e00cd6af36b03fef5d9b}} 
+\index{striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}!adl\_figure\_alloc@{adl\_figure\_alloc}}
+\index{adl\_figure\_alloc@{adl\_figure\_alloc}!striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}}
+\doxysubsubsection{\texorpdfstring{adl\_figure\_alloc()}{adl\_figure\_alloc()}}
+{\footnotesize\ttfamily \mbox{\hyperlink{structFigure}{Figure}} adl\+\_\+figure\+\_\+alloc (\begin{DoxyParamCaption}\item[{size\+\_\+t}]{rows,  }\item[{size\+\_\+t}]{cols,  }\item[{\mbox{\hyperlink{structPoint}{Point}}}]{top\+\_\+left\+\_\+position }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l01294}{1294}} of file \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source}{striped\+\_\+\+Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+
+
+
+References \mbox{\hyperlink{Almog__Dynamic__Array_8h_source_l00120}{ada\+\_\+init\+\_\+array}}, \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00012}{ADL\+\_\+\+ASSERT}}, \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00189}{adl\+\_\+assert\+\_\+point\+\_\+is\+\_\+valid}}, \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00207}{ADL\+\_\+\+DEFAULT\+\_\+\+OFFSET\+\_\+\+ZOOM}}, \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00197}{ADL\+\_\+\+FIGURE\+\_\+\+PADDING\+\_\+\+PRECENTAGE}}, \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00198}{ADL\+\_\+\+MAX\+\_\+\+FIGURE\+\_\+\+PADDING}}, \mbox{\hyperlink{Matrix2D_8h_source_l00083}{Mat2\+D\+::cols}}, \mbox{\hyperlink{Matrix2D_8h_source_l00100}{Mat2\+D\+\_\+uint32\+::cols}}, \mbox{\hyperlink{Matrix2D_8h_source_l00085}{Mat2\+D\+::elements}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00144}{Figure\+::inv\+\_\+z\+\_\+buffer\+\_\+mat}}, \mbox{\hyperlink{Matrix2D_8h_source_l00278}{mat2\+D\+\_\+alloc()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00297}{mat2\+D\+\_\+alloc\+\_\+uint32()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00135}{Figure\+::max\+\_\+x}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00131}{Figure\+::max\+\_\+x\+\_\+pixel}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00137}{Figure\+::max\+\_\+y}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00133}{Figure\+::max\+\_\+y\+\_\+pixel}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00134}{Figure\+::min\+\_\+x}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00130}{Figure\+::min\+\_\+x\+\_\+pixel}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00136}{Figure\+::min\+\_\+y}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00132}{Figure\+::min\+\_\+y\+\_\+pixel}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00140}{Figure\+::offset\+\_\+zoom\+\_\+param}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00143}{Figure\+::pixels\+\_\+mat}}, \mbox{\hyperlink{Matrix2D_8h_source_l00082}{Mat2\+D\+::rows}}, \mbox{\hyperlink{Matrix2D_8h_source_l00099}{Mat2\+D\+\_\+uint32\+::rows}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00141}{Figure\+::src\+\_\+curve\+\_\+array}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00142}{Figure\+::top\+\_\+left\+\_\+position}}.
+
+\mbox{\Hypertarget{striped__Almog__Draw__Library_8h_a8a1311121d79e59a57b050377c304eaf}\label{striped__Almog__Draw__Library_8h_a8a1311121d79e59a57b050377c304eaf}} 
+\index{striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}!adl\_figure\_copy\_to\_screen@{adl\_figure\_copy\_to\_screen}}
+\index{adl\_figure\_copy\_to\_screen@{adl\_figure\_copy\_to\_screen}!striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}}
+\doxysubsubsection{\texorpdfstring{adl\_figure\_copy\_to\_screen()}{adl\_figure\_copy\_to\_screen()}}
+{\footnotesize\ttfamily void adl\+\_\+figure\+\_\+copy\+\_\+to\+\_\+screen (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structMat2D__uint32}{Mat2\+D\+\_\+uint32}}}]{screen\+\_\+mat,  }\item[{\mbox{\hyperlink{structFigure}{Figure}}}]{figure }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l01319}{1319}} of file \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source}{striped\+\_\+\+Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+
+
+
+References \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00211}{adl\+\_\+point\+\_\+draw()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00100}{Mat2\+D\+\_\+uint32\+::cols}}, \mbox{\hyperlink{Matrix2D_8h_source_l00146}{MAT2\+D\+\_\+\+AT\+\_\+\+UINT32}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00143}{Figure\+::pixels\+\_\+mat}}, \mbox{\hyperlink{Matrix2D_8h_source_l00099}{Mat2\+D\+\_\+uint32\+::rows}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00142}{Figure\+::top\+\_\+left\+\_\+position}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00062}{Point\+::x}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00063}{Point\+::y}}.
+
+\mbox{\Hypertarget{striped__Almog__Draw__Library_8h_a45f92dc1aa2afc7012d0eead6b95f4ff}\label{striped__Almog__Draw__Library_8h_a45f92dc1aa2afc7012d0eead6b95f4ff}} 
+\index{striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}!adl\_grid\_draw@{adl\_grid\_draw}}
+\index{adl\_grid\_draw@{adl\_grid\_draw}!striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}}
+\doxysubsubsection{\texorpdfstring{adl\_grid\_draw()}{adl\_grid\_draw()}}
+{\footnotesize\ttfamily void adl\+\_\+grid\+\_\+draw (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structMat2D__uint32}{Mat2\+D\+\_\+uint32}}}]{screen\+\_\+mat,  }\item[{\mbox{\hyperlink{structGrid}{Grid}}}]{grid,  }\item[{uint32\+\_\+t}]{color,  }\item[{\mbox{\hyperlink{structOffset__zoom__param}{Offset\+\_\+zoom\+\_\+param}}}]{offset\+\_\+zoom\+\_\+param }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l01785}{1785}} of file \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source}{striped\+\_\+\+Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+
+
+
+References \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00288}{adl\+\_\+lines\+\_\+draw()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00151}{Grid\+::curves}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00075}{Curve\+::elements}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00084}{Curve\+\_\+ada\+::elements}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00073}{Curve\+::length}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00082}{Curve\+\_\+ada\+::length}}.
+
+\mbox{\Hypertarget{striped__Almog__Draw__Library_8h_a5022b219117fcb7cd7083ec6cf6c92a3}\label{striped__Almog__Draw__Library_8h_a5022b219117fcb7cd7083ec6cf6c92a3}} 
+\index{striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}!adl\_interpolate\_ARGBcolor\_on\_okLch@{adl\_interpolate\_ARGBcolor\_on\_okLch}}
+\index{adl\_interpolate\_ARGBcolor\_on\_okLch@{adl\_interpolate\_ARGBcolor\_on\_okLch}!striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}}
+\doxysubsubsection{\texorpdfstring{adl\_interpolate\_ARGBcolor\_on\_okLch()}{adl\_interpolate\_ARGBcolor\_on\_okLch()}}
+{\footnotesize\ttfamily void adl\+\_\+interpolate\+\_\+\+ARGBcolor\+\_\+on\+\_\+ok\+Lch (\begin{DoxyParamCaption}\item[{uint32\+\_\+t}]{color1,  }\item[{uint32\+\_\+t}]{color2,  }\item[{float}]{t,  }\item[{float}]{num\+\_\+of\+\_\+rotations,  }\item[{uint32\+\_\+t $\ast$}]{color\+\_\+out }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l01281}{1281}} of file \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source}{striped\+\_\+\+Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+
+
+
+References \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l01267}{adl\+\_\+linear\+\_\+s\+RGB\+\_\+to\+\_\+ok\+Lch()}}, and \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l01274}{adl\+\_\+ok\+Lch\+\_\+to\+\_\+linear\+\_\+s\+RGB()}}.
+
+
+
+Referenced by \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l01424}{adl\+\_\+2\+Dscalar\+\_\+interp\+\_\+on\+\_\+figure()}}.
+
+\mbox{\Hypertarget{striped__Almog__Draw__Library_8h_af7e7461e6fb1932220e4309f69c21902}\label{striped__Almog__Draw__Library_8h_af7e7461e6fb1932220e4309f69c21902}} 
+\index{striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}!adl\_line\_draw@{adl\_line\_draw}}
+\index{adl\_line\_draw@{adl\_line\_draw}!striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}}
+\doxysubsubsection{\texorpdfstring{adl\_line\_draw()}{adl\_line\_draw()}}
+{\footnotesize\ttfamily void adl\+\_\+line\+\_\+draw (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structMat2D__uint32}{Mat2\+D\+\_\+uint32}}}]{screen\+\_\+mat,  }\item[{const float}]{x1\+\_\+input,  }\item[{const float}]{y1\+\_\+input,  }\item[{const float}]{x2\+\_\+input,  }\item[{const float}]{y2\+\_\+input,  }\item[{uint32\+\_\+t}]{color,  }\item[{\mbox{\hyperlink{structOffset__zoom__param}{Offset\+\_\+zoom\+\_\+param}}}]{offset\+\_\+zoom\+\_\+param }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00226}{226}} of file \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source}{striped\+\_\+\+Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+
+
+
+References \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00012}{ADL\+\_\+\+ASSERT}}, \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00188}{ADL\+\_\+\+MAX\+\_\+\+POINT\+\_\+\+VAL}}, \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00211}{adl\+\_\+point\+\_\+draw()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00100}{Mat2\+D\+\_\+uint32\+::cols}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00053}{Offset\+\_\+zoom\+\_\+param\+::offset\+\_\+x}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00054}{Offset\+\_\+zoom\+\_\+param\+::offset\+\_\+y}}, \mbox{\hyperlink{Matrix2D_8h_source_l00099}{Mat2\+D\+\_\+uint32\+::rows}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00052}{Offset\+\_\+zoom\+\_\+param\+::zoom\+\_\+multiplier}}.
+
+
+
+Referenced by \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00303}{adl\+\_\+arrow\+\_\+draw()}}, \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00346}{adl\+\_\+character\+\_\+draw()}}, \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l01401}{adl\+\_\+curves\+\_\+plot\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00288}{adl\+\_\+lines\+\_\+draw()}}, \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00295}{adl\+\_\+lines\+\_\+loop\+\_\+draw()}}, \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00685}{adl\+\_\+rectangle\+\_\+draw\+\_\+min\+\_\+max()}}, \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00692}{adl\+\_\+rectangle\+\_\+fill\+\_\+min\+\_\+max()}}, and \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00969}{adl\+\_\+tri\+\_\+draw()}}.
+
+\mbox{\Hypertarget{striped__Almog__Draw__Library_8h_a066db889cc3479d4ef8392316880d238}\label{striped__Almog__Draw__Library_8h_a066db889cc3479d4ef8392316880d238}} 
+\index{striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}!adl\_linear\_map@{adl\_linear\_map}}
+\index{adl\_linear\_map@{adl\_linear\_map}!striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}}
+\doxysubsubsection{\texorpdfstring{adl\_linear\_map()}{adl\_linear\_map()}}
+{\footnotesize\ttfamily float adl\+\_\+linear\+\_\+map (\begin{DoxyParamCaption}\item[{float}]{s,  }\item[{float}]{min\+\_\+in,  }\item[{float}]{max\+\_\+in,  }\item[{float}]{min\+\_\+out,  }\item[{float}]{max\+\_\+out }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l01184}{1184}} of file \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source}{striped\+\_\+\+Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+
+
+
+Referenced by \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l01424}{adl\+\_\+2\+Dscalar\+\_\+interp\+\_\+on\+\_\+figure()}}, and \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l01401}{adl\+\_\+curves\+\_\+plot\+\_\+on\+\_\+figure()}}.
+
+\mbox{\Hypertarget{striped__Almog__Draw__Library_8h_a172ac07a2203f34c47a6eca21fcbcdca}\label{striped__Almog__Draw__Library_8h_a172ac07a2203f34c47a6eca21fcbcdca}} 
+\index{striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}!adl\_linear\_sRGB\_to\_okLab@{adl\_linear\_sRGB\_to\_okLab}}
+\index{adl\_linear\_sRGB\_to\_okLab@{adl\_linear\_sRGB\_to\_okLab}!striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}}
+\doxysubsubsection{\texorpdfstring{adl\_linear\_sRGB\_to\_okLab()}{adl\_linear\_sRGB\_to\_okLab()}}
+{\footnotesize\ttfamily void adl\+\_\+linear\+\_\+s\+RGB\+\_\+to\+\_\+ok\+Lab (\begin{DoxyParamCaption}\item[{uint32\+\_\+t}]{hex\+\_\+\+ARGB,  }\item[{float $\ast$}]{L,  }\item[{float $\ast$}]{a,  }\item[{float $\ast$}]{b }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l01234}{1234}} of file \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source}{striped\+\_\+\+Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+
+
+
+References \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00120}{Hex\+ARGB\+\_\+\+RGB\+\_\+\+VAR}}.
+
+
+
+Referenced by \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l01267}{adl\+\_\+linear\+\_\+s\+RGB\+\_\+to\+\_\+ok\+Lch()}}.
+
+\mbox{\Hypertarget{striped__Almog__Draw__Library_8h_a2ba74070e06ac04189646b642b754471}\label{striped__Almog__Draw__Library_8h_a2ba74070e06ac04189646b642b754471}} 
+\index{striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}!adl\_linear\_sRGB\_to\_okLch@{adl\_linear\_sRGB\_to\_okLch}}
+\index{adl\_linear\_sRGB\_to\_okLch@{adl\_linear\_sRGB\_to\_okLch}!striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}}
+\doxysubsubsection{\texorpdfstring{adl\_linear\_sRGB\_to\_okLch()}{adl\_linear\_sRGB\_to\_okLch()}}
+{\footnotesize\ttfamily void adl\+\_\+linear\+\_\+s\+RGB\+\_\+to\+\_\+ok\+Lch (\begin{DoxyParamCaption}\item[{uint32\+\_\+t}]{hex\+\_\+\+ARGB,  }\item[{float $\ast$}]{L,  }\item[{float $\ast$}]{c,  }\item[{float $\ast$}]{h\+\_\+deg }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l01267}{1267}} of file \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source}{striped\+\_\+\+Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+
+
+
+References \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l01234}{adl\+\_\+linear\+\_\+s\+RGB\+\_\+to\+\_\+ok\+Lab()}}, and \mbox{\hyperlink{Matrix2D_8h_source_l00154}{PI}}.
+
+
+
+Referenced by \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l01281}{adl\+\_\+interpolate\+\_\+\+ARGBcolor\+\_\+on\+\_\+ok\+Lch()}}.
+
+\mbox{\Hypertarget{striped__Almog__Draw__Library_8h_a29ef1322c0f599a2dbdf46b7d1af2ec1}\label{striped__Almog__Draw__Library_8h_a29ef1322c0f599a2dbdf46b7d1af2ec1}} 
+\index{striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}!adl\_lines\_draw@{adl\_lines\_draw}}
+\index{adl\_lines\_draw@{adl\_lines\_draw}!striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}}
+\doxysubsubsection{\texorpdfstring{adl\_lines\_draw()}{adl\_lines\_draw()}}
+{\footnotesize\ttfamily void adl\+\_\+lines\+\_\+draw (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{structMat2D__uint32}{Mat2\+D\+\_\+uint32}}}]{screen\+\_\+mat,  }\item[{const \mbox{\hyperlink{structPoint}{Point}} $\ast$}]{points,  }\item[{const size\+\_\+t}]{len,  }\item[{const uint32\+\_\+t}]{color,  }\item[{\mbox{\hyperlink{structOffset__zoom__param}{Offset\+\_\+zoom\+\_\+param}}}]{offset\+\_\+zoom\+\_\+param }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00288}{288}} of file \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source}{striped\+\_\+\+Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+
+
+
+References \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00226}{adl\+\_\+line\+\_\+draw()}}, and \mbox{\hyperlink{example1_8c_source_l00013}{points}}.
+
+
+
+Referenced by \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l01785}{adl\+\_\+grid\+\_\+draw()}}.
+
+\mbox{\Hypertarget{striped__Almog__Draw__Library_8h_ac366785eb87bf751a0638a54c6308c08}\label{striped__Almog__Draw__Library_8h_ac366785eb87bf751a0638a54c6308c08}} 
+\index{striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}!adl\_lines\_loop\_draw@{adl\_lines\_loop\_draw}}
+\index{adl\_lines\_loop\_draw@{adl\_lines\_loop\_draw}!striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}}
+\doxysubsubsection{\texorpdfstring{adl\_lines\_loop\_draw()}{adl\_lines\_loop\_draw()}}
+{\footnotesize\ttfamily void adl\+\_\+lines\+\_\+loop\+\_\+draw (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{structMat2D__uint32}{Mat2\+D\+\_\+uint32}}}]{screen\+\_\+mat,  }\item[{const \mbox{\hyperlink{structPoint}{Point}} $\ast$}]{points,  }\item[{const size\+\_\+t}]{len,  }\item[{const uint32\+\_\+t}]{color,  }\item[{\mbox{\hyperlink{structOffset__zoom__param}{Offset\+\_\+zoom\+\_\+param}}}]{offset\+\_\+zoom\+\_\+param }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00295}{295}} of file \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source}{striped\+\_\+\+Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+
+
+
+References \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00226}{adl\+\_\+line\+\_\+draw()}}, and \mbox{\hyperlink{example1_8c_source_l00013}{points}}.
+
+
+
+Referenced by \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00698}{adl\+\_\+quad\+\_\+draw()}}.
+
+\mbox{\Hypertarget{striped__Almog__Draw__Library_8h_a06a18de7604450f9d64c9739f248655c}\label{striped__Almog__Draw__Library_8h_a06a18de7604450f9d64c9739f248655c}} 
+\index{striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}!adl\_max\_min\_values\_draw\_on\_figure@{adl\_max\_min\_values\_draw\_on\_figure}}
+\index{adl\_max\_min\_values\_draw\_on\_figure@{adl\_max\_min\_values\_draw\_on\_figure}!striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}}
+\doxysubsubsection{\texorpdfstring{adl\_max\_min\_values\_draw\_on\_figure()}{adl\_max\_min\_values\_draw\_on\_figure()}}
+{\footnotesize\ttfamily void adl\+\_\+max\+\_\+min\+\_\+values\+\_\+draw\+\_\+on\+\_\+figure (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structFigure}{Figure}}}]{figure }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l01342}{1342}} of file \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source}{striped\+\_\+\+Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+
+
+
+References \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00202}{ADL\+\_\+\+FIGURE\+\_\+\+AXIS\+\_\+\+COLOR}}, \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00203}{ADL\+\_\+\+MAX\+\_\+\+CHARACTER\+\_\+\+OFFSET}}, \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00204}{ADL\+\_\+\+MIN\+\_\+\+CHARACTER\+\_\+\+OFFSET}}, \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00675}{adl\+\_\+sentence\+\_\+draw()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00135}{Figure\+::max\+\_\+x}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00131}{Figure\+::max\+\_\+x\+\_\+pixel}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00137}{Figure\+::max\+\_\+y}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00133}{Figure\+::max\+\_\+y\+\_\+pixel}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00134}{Figure\+::min\+\_\+x}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00130}{Figure\+::min\+\_\+x\+\_\+pixel}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00136}{Figure\+::min\+\_\+y}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00132}{Figure\+::min\+\_\+y\+\_\+pixel}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00140}{Figure\+::offset\+\_\+zoom\+\_\+param}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00143}{Figure\+::pixels\+\_\+mat}}, \mbox{\hyperlink{Matrix2D_8h_source_l00099}{Mat2\+D\+\_\+uint32\+::rows}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00138}{Figure\+::x\+\_\+axis\+\_\+head\+\_\+size}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00139}{Figure\+::y\+\_\+axis\+\_\+head\+\_\+size}}.
+
+
+
+Referenced by \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l01424}{adl\+\_\+2\+Dscalar\+\_\+interp\+\_\+on\+\_\+figure()}}, and \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l01401}{adl\+\_\+curves\+\_\+plot\+\_\+on\+\_\+figure()}}.
+
+\mbox{\Hypertarget{striped__Almog__Draw__Library_8h_ac0cffe3ca4ae8551726963d9f9b659e2}\label{striped__Almog__Draw__Library_8h_ac0cffe3ca4ae8551726963d9f9b659e2}} 
+\index{striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}!adl\_okLab\_to\_linear\_sRGB@{adl\_okLab\_to\_linear\_sRGB}}
+\index{adl\_okLab\_to\_linear\_sRGB@{adl\_okLab\_to\_linear\_sRGB}!striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}}
+\doxysubsubsection{\texorpdfstring{adl\_okLab\_to\_linear\_sRGB()}{adl\_okLab\_to\_linear\_sRGB()}}
+{\footnotesize\ttfamily void adl\+\_\+ok\+Lab\+\_\+to\+\_\+linear\+\_\+s\+RGB (\begin{DoxyParamCaption}\item[{float}]{L,  }\item[{float}]{a,  }\item[{float}]{b,  }\item[{uint32\+\_\+t $\ast$}]{hex\+\_\+\+ARGB }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l01251}{1251}} of file \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source}{striped\+\_\+\+Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+
+
+
+References \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00129}{RGBA\+\_\+hex\+ARGB}}.
+
+
+
+Referenced by \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l01274}{adl\+\_\+ok\+Lch\+\_\+to\+\_\+linear\+\_\+s\+RGB()}}.
+
+\mbox{\Hypertarget{striped__Almog__Draw__Library_8h_a21c808de9cd7dc6fb270af0e8f1acbdc}\label{striped__Almog__Draw__Library_8h_a21c808de9cd7dc6fb270af0e8f1acbdc}} 
+\index{striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}!adl\_okLch\_to\_linear\_sRGB@{adl\_okLch\_to\_linear\_sRGB}}
+\index{adl\_okLch\_to\_linear\_sRGB@{adl\_okLch\_to\_linear\_sRGB}!striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}}
+\doxysubsubsection{\texorpdfstring{adl\_okLch\_to\_linear\_sRGB()}{adl\_okLch\_to\_linear\_sRGB()}}
+{\footnotesize\ttfamily void adl\+\_\+ok\+Lch\+\_\+to\+\_\+linear\+\_\+s\+RGB (\begin{DoxyParamCaption}\item[{float}]{L,  }\item[{float}]{c,  }\item[{float}]{h\+\_\+deg,  }\item[{uint32\+\_\+t $\ast$}]{hex\+\_\+\+ARGB }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l01274}{1274}} of file \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source}{striped\+\_\+\+Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+
+
+
+References \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l01251}{adl\+\_\+ok\+Lab\+\_\+to\+\_\+linear\+\_\+s\+RGB()}}, and \mbox{\hyperlink{Matrix2D_8h_source_l00154}{PI}}.
+
+
+
+Referenced by \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l01281}{adl\+\_\+interpolate\+\_\+\+ARGBcolor\+\_\+on\+\_\+ok\+Lch()}}.
+
+\mbox{\Hypertarget{striped__Almog__Draw__Library_8h_ac6d67525504b37ac96fb3d44c2ead3b8}\label{striped__Almog__Draw__Library_8h_ac6d67525504b37ac96fb3d44c2ead3b8}} 
+\index{striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}!adl\_point\_draw@{adl\_point\_draw}}
+\index{adl\_point\_draw@{adl\_point\_draw}!striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}}
+\doxysubsubsection{\texorpdfstring{adl\_point\_draw()}{adl\_point\_draw()}}
+{\footnotesize\ttfamily void adl\+\_\+point\+\_\+draw (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structMat2D__uint32}{Mat2\+D\+\_\+uint32}}}]{screen\+\_\+mat,  }\item[{int}]{x,  }\item[{int}]{y,  }\item[{uint32\+\_\+t}]{color,  }\item[{\mbox{\hyperlink{structOffset__zoom__param}{Offset\+\_\+zoom\+\_\+param}}}]{offset\+\_\+zoom\+\_\+param }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00211}{211}} of file \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source}{striped\+\_\+\+Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+
+
+
+References \mbox{\hyperlink{Matrix2D_8h_source_l00100}{Mat2\+D\+\_\+uint32\+::cols}}, \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00123}{Hex\+ARGB\+\_\+\+RGBA\+\_\+\+VAR}}, \mbox{\hyperlink{Matrix2D_8h_source_l00146}{MAT2\+D\+\_\+\+AT\+\_\+\+UINT32}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00053}{Offset\+\_\+zoom\+\_\+param\+::offset\+\_\+x}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00054}{Offset\+\_\+zoom\+\_\+param\+::offset\+\_\+y}}, \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00129}{RGBA\+\_\+hex\+ARGB}}, \mbox{\hyperlink{Matrix2D_8h_source_l00099}{Mat2\+D\+\_\+uint32\+::rows}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00052}{Offset\+\_\+zoom\+\_\+param\+::zoom\+\_\+multiplier}}.
+
+
+
+Referenced by \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00947}{adl\+\_\+circle\+\_\+draw()}}, \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00958}{adl\+\_\+circle\+\_\+fill()}}, \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l01319}{adl\+\_\+figure\+\_\+copy\+\_\+to\+\_\+screen()}}, \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00226}{adl\+\_\+line\+\_\+draw()}}, \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00703}{adl\+\_\+quad\+\_\+fill()}}, \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00832}{adl\+\_\+quad\+\_\+fill\+\_\+interpolate\+\_\+color\+\_\+mean\+\_\+value()}}, \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00768}{adl\+\_\+quad\+\_\+fill\+\_\+interpolate\+\_\+normal\+\_\+mean\+\_\+value()}}, \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00975}{adl\+\_\+tri\+\_\+fill\+\_\+\+Pinedas\+\_\+rasterizer()}}, \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l01027}{adl\+\_\+tri\+\_\+fill\+\_\+\+Pinedas\+\_\+rasterizer\+\_\+interpolate\+\_\+color()}}, and \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l01087}{adl\+\_\+tri\+\_\+fill\+\_\+\+Pinedas\+\_\+rasterizer\+\_\+interpolate\+\_\+normal()}}.
+
+\mbox{\Hypertarget{striped__Almog__Draw__Library_8h_af8c6b6d3616a8589e7d3697b416b11f6}\label{striped__Almog__Draw__Library_8h_af8c6b6d3616a8589e7d3697b416b11f6}} 
+\index{striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}!adl\_quad2tris@{adl\_quad2tris}}
+\index{adl\_quad2tris@{adl\_quad2tris}!striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}}
+\doxysubsubsection{\texorpdfstring{adl\_quad2tris()}{adl\_quad2tris()}}
+{\footnotesize\ttfamily void adl\+\_\+quad2tris (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structQuad}{Quad}}}]{quad,  }\item[{\mbox{\hyperlink{structTri}{Tri}} $\ast$}]{tri1,  }\item[{\mbox{\hyperlink{structTri}{Tri}} $\ast$}]{tri2,  }\item[{char}]{split\+\_\+line\mbox{[}$\,$\mbox{]} }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l01188}{1188}} of file \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source}{striped\+\_\+\+Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+
+
+
+References \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00094}{Tri\+::colors}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00105}{Quad\+::colors}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00096}{Tri\+::light\+\_\+intensity}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00107}{Quad\+::light\+\_\+intensity}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00091}{Tri\+::points}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00103}{Quad\+::points}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00095}{Tri\+::to\+\_\+draw}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00106}{Quad\+::to\+\_\+draw}}.
+
+\mbox{\Hypertarget{striped__Almog__Draw__Library_8h_a09f2306858f567227738692f35db1568}\label{striped__Almog__Draw__Library_8h_a09f2306858f567227738692f35db1568}} 
+\index{striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}!adl\_quad\_draw@{adl\_quad\_draw}}
+\index{adl\_quad\_draw@{adl\_quad\_draw}!striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}}
+\doxysubsubsection{\texorpdfstring{adl\_quad\_draw()}{adl\_quad\_draw()}}
+{\footnotesize\ttfamily void adl\+\_\+quad\+\_\+draw (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structMat2D__uint32}{Mat2\+D\+\_\+uint32}}}]{screen\+\_\+mat,  }\item[{\mbox{\hyperlink{structMat2D}{Mat2D}}}]{inv\+\_\+z\+\_\+buffer,  }\item[{\mbox{\hyperlink{structQuad}{Quad}}}]{quad,  }\item[{uint32\+\_\+t}]{color,  }\item[{\mbox{\hyperlink{structOffset__zoom__param}{Offset\+\_\+zoom\+\_\+param}}}]{offset\+\_\+zoom\+\_\+param }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00698}{698}} of file \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source}{striped\+\_\+\+Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+
+
+
+References \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00295}{adl\+\_\+lines\+\_\+loop\+\_\+draw()}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00103}{Quad\+::points}}.
+
+
+
+Referenced by \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00906}{adl\+\_\+quad\+\_\+mesh\+\_\+draw()}}.
+
+\mbox{\Hypertarget{striped__Almog__Draw__Library_8h_af659c05ddcc48d7ee2ecaf31a03f7934}\label{striped__Almog__Draw__Library_8h_af659c05ddcc48d7ee2ecaf31a03f7934}} 
+\index{striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}!adl\_quad\_fill@{adl\_quad\_fill}}
+\index{adl\_quad\_fill@{adl\_quad\_fill}!striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}}
+\doxysubsubsection{\texorpdfstring{adl\_quad\_fill()}{adl\_quad\_fill()}}
+{\footnotesize\ttfamily void adl\+\_\+quad\+\_\+fill (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structMat2D__uint32}{Mat2\+D\+\_\+uint32}}}]{screen\+\_\+mat,  }\item[{\mbox{\hyperlink{structMat2D}{Mat2D}}}]{inv\+\_\+z\+\_\+buffer,  }\item[{\mbox{\hyperlink{structQuad}{Quad}}}]{quad,  }\item[{uint32\+\_\+t}]{color,  }\item[{\mbox{\hyperlink{structOffset__zoom__param}{Offset\+\_\+zoom\+\_\+param}}}]{offset\+\_\+zoom\+\_\+param }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00703}{703}} of file \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source}{striped\+\_\+\+Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+
+
+
+References \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00211}{adl\+\_\+point\+\_\+draw()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00100}{Mat2\+D\+\_\+uint32\+::cols}}, \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00184}{edge\+\_\+cross\+\_\+point}}, \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00123}{Hex\+ARGB\+\_\+\+RGBA\+\_\+\+VAR}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00107}{Quad\+::light\+\_\+intensity}}, \mbox{\hyperlink{Matrix2D_8h_source_l00145}{MAT2\+D\+\_\+\+AT}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00103}{Quad\+::points}}, \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00129}{RGBA\+\_\+hex\+ARGB}}, \mbox{\hyperlink{Matrix2D_8h_source_l00099}{Mat2\+D\+\_\+uint32\+::rows}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00065}{Point\+::w}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00062}{Point\+::x}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00063}{Point\+::y}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00064}{Point\+::z}}.
+
+
+
+Referenced by \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00915}{adl\+\_\+quad\+\_\+mesh\+\_\+fill()}}.
+
+\mbox{\Hypertarget{striped__Almog__Draw__Library_8h_a1d1000820ecf55d6af697fc8cde8d169}\label{striped__Almog__Draw__Library_8h_a1d1000820ecf55d6af697fc8cde8d169}} 
+\index{striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}!adl\_quad\_fill\_interpolate\_color\_mean\_value@{adl\_quad\_fill\_interpolate\_color\_mean\_value}}
+\index{adl\_quad\_fill\_interpolate\_color\_mean\_value@{adl\_quad\_fill\_interpolate\_color\_mean\_value}!striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}}
+\doxysubsubsection{\texorpdfstring{adl\_quad\_fill\_interpolate\_color\_mean\_value()}{adl\_quad\_fill\_interpolate\_color\_mean\_value()}}
+{\footnotesize\ttfamily void adl\+\_\+quad\+\_\+fill\+\_\+interpolate\+\_\+color\+\_\+mean\+\_\+value (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structMat2D__uint32}{Mat2\+D\+\_\+uint32}}}]{screen\+\_\+mat,  }\item[{\mbox{\hyperlink{structMat2D}{Mat2D}}}]{inv\+\_\+z\+\_\+buffer,  }\item[{\mbox{\hyperlink{structQuad}{Quad}}}]{quad,  }\item[{\mbox{\hyperlink{structOffset__zoom__param}{Offset\+\_\+zoom\+\_\+param}}}]{offset\+\_\+zoom\+\_\+param }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00832}{832}} of file \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source}{striped\+\_\+\+Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+
+
+
+References \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00211}{adl\+\_\+point\+\_\+draw()}}, \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l01175}{adl\+\_\+tan\+\_\+half\+\_\+angle()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00105}{Quad\+::colors}}, \mbox{\hyperlink{Matrix2D_8h_source_l00100}{Mat2\+D\+\_\+uint32\+::cols}}, \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00184}{edge\+\_\+cross\+\_\+point}}, \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00123}{Hex\+ARGB\+\_\+\+RGBA\+\_\+\+VAR}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00107}{Quad\+::light\+\_\+intensity}}, \mbox{\hyperlink{Matrix2D_8h_source_l00145}{MAT2\+D\+\_\+\+AT}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00103}{Quad\+::points}}, \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00129}{RGBA\+\_\+hex\+ARGB}}, \mbox{\hyperlink{Matrix2D_8h_source_l00099}{Mat2\+D\+\_\+uint32\+::rows}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00065}{Point\+::w}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00062}{Point\+::x}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00063}{Point\+::y}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00064}{Point\+::z}}.
+
+
+
+Referenced by \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l01424}{adl\+\_\+2\+Dscalar\+\_\+interp\+\_\+on\+\_\+figure()}}, and \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00938}{adl\+\_\+quad\+\_\+mesh\+\_\+fill\+\_\+interpolate\+\_\+color()}}.
+
+\mbox{\Hypertarget{striped__Almog__Draw__Library_8h_a02b757ea6368bac7965e0e9c46596187}\label{striped__Almog__Draw__Library_8h_a02b757ea6368bac7965e0e9c46596187}} 
+\index{striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}!adl\_quad\_fill\_interpolate\_normal\_mean\_value@{adl\_quad\_fill\_interpolate\_normal\_mean\_value}}
+\index{adl\_quad\_fill\_interpolate\_normal\_mean\_value@{adl\_quad\_fill\_interpolate\_normal\_mean\_value}!striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}}
+\doxysubsubsection{\texorpdfstring{adl\_quad\_fill\_interpolate\_normal\_mean\_value()}{adl\_quad\_fill\_interpolate\_normal\_mean\_value()}}
+{\footnotesize\ttfamily void adl\+\_\+quad\+\_\+fill\+\_\+interpolate\+\_\+normal\+\_\+mean\+\_\+value (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structMat2D__uint32}{Mat2\+D\+\_\+uint32}}}]{screen\+\_\+mat,  }\item[{\mbox{\hyperlink{structMat2D}{Mat2D}}}]{inv\+\_\+z\+\_\+buffer,  }\item[{\mbox{\hyperlink{structQuad}{Quad}}}]{quad,  }\item[{uint32\+\_\+t}]{color,  }\item[{\mbox{\hyperlink{structOffset__zoom__param}{Offset\+\_\+zoom\+\_\+param}}}]{offset\+\_\+zoom\+\_\+param }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00768}{768}} of file \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source}{striped\+\_\+\+Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+
+
+
+References \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00211}{adl\+\_\+point\+\_\+draw()}}, \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l01175}{adl\+\_\+tan\+\_\+half\+\_\+angle()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00100}{Mat2\+D\+\_\+uint32\+::cols}}, \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00184}{edge\+\_\+cross\+\_\+point}}, \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00123}{Hex\+ARGB\+\_\+\+RGBA\+\_\+\+VAR}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00107}{Quad\+::light\+\_\+intensity}}, \mbox{\hyperlink{Matrix2D_8h_source_l00145}{MAT2\+D\+\_\+\+AT}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00103}{Quad\+::points}}, \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00129}{RGBA\+\_\+hex\+ARGB}}, \mbox{\hyperlink{Matrix2D_8h_source_l00099}{Mat2\+D\+\_\+uint32\+::rows}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00065}{Point\+::w}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00062}{Point\+::x}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00063}{Point\+::y}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00064}{Point\+::z}}.
+
+
+
+Referenced by \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00924}{adl\+\_\+quad\+\_\+mesh\+\_\+fill\+\_\+interpolate\+\_\+normal()}}.
+
+\mbox{\Hypertarget{striped__Almog__Draw__Library_8h_ac0eca30966484b4ecf9388d09f66625f}\label{striped__Almog__Draw__Library_8h_ac0eca30966484b4ecf9388d09f66625f}} 
+\index{striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}!adl\_quad\_mesh\_draw@{adl\_quad\_mesh\_draw}}
+\index{adl\_quad\_mesh\_draw@{adl\_quad\_mesh\_draw}!striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}}
+\doxysubsubsection{\texorpdfstring{adl\_quad\_mesh\_draw()}{adl\_quad\_mesh\_draw()}}
+{\footnotesize\ttfamily void adl\+\_\+quad\+\_\+mesh\+\_\+draw (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structMat2D__uint32}{Mat2\+D\+\_\+uint32}}}]{screen\+\_\+mat,  }\item[{\mbox{\hyperlink{structMat2D}{Mat2D}}}]{inv\+\_\+z\+\_\+buffer\+\_\+mat,  }\item[{\mbox{\hyperlink{structQuad__mesh}{Quad\+\_\+mesh}}}]{mesh,  }\item[{uint32\+\_\+t}]{color,  }\item[{\mbox{\hyperlink{structOffset__zoom__param}{Offset\+\_\+zoom\+\_\+param}}}]{offset\+\_\+zoom\+\_\+param }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00906}{906}} of file \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source}{striped\+\_\+\+Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+
+
+
+References \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00193}{adl\+\_\+assert\+\_\+quad\+\_\+is\+\_\+valid}}, \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00698}{adl\+\_\+quad\+\_\+draw()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00125}{Quad\+\_\+mesh\+::elements}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00123}{Quad\+\_\+mesh\+::length}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00106}{Quad\+::to\+\_\+draw}}.
+
+\mbox{\Hypertarget{striped__Almog__Draw__Library_8h_ad01062c2953db3ff85bff2697a90112e}\label{striped__Almog__Draw__Library_8h_ad01062c2953db3ff85bff2697a90112e}} 
+\index{striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}!adl\_quad\_mesh\_fill@{adl\_quad\_mesh\_fill}}
+\index{adl\_quad\_mesh\_fill@{adl\_quad\_mesh\_fill}!striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}}
+\doxysubsubsection{\texorpdfstring{adl\_quad\_mesh\_fill()}{adl\_quad\_mesh\_fill()}}
+{\footnotesize\ttfamily void adl\+\_\+quad\+\_\+mesh\+\_\+fill (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structMat2D__uint32}{Mat2\+D\+\_\+uint32}}}]{screen\+\_\+mat,  }\item[{\mbox{\hyperlink{structMat2D}{Mat2D}}}]{inv\+\_\+z\+\_\+buffer\+\_\+mat,  }\item[{\mbox{\hyperlink{structQuad__mesh}{Quad\+\_\+mesh}}}]{mesh,  }\item[{uint32\+\_\+t}]{color,  }\item[{\mbox{\hyperlink{structOffset__zoom__param}{Offset\+\_\+zoom\+\_\+param}}}]{offset\+\_\+zoom\+\_\+param }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00915}{915}} of file \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source}{striped\+\_\+\+Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+
+
+
+References \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00193}{adl\+\_\+assert\+\_\+quad\+\_\+is\+\_\+valid}}, \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00703}{adl\+\_\+quad\+\_\+fill()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00125}{Quad\+\_\+mesh\+::elements}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00123}{Quad\+\_\+mesh\+::length}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00106}{Quad\+::to\+\_\+draw}}.
+
+\mbox{\Hypertarget{striped__Almog__Draw__Library_8h_ae7d3b419a822c0cbaaf6a6a0be3df866}\label{striped__Almog__Draw__Library_8h_ae7d3b419a822c0cbaaf6a6a0be3df866}} 
+\index{striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}!adl\_quad\_mesh\_fill\_interpolate\_color@{adl\_quad\_mesh\_fill\_interpolate\_color}}
+\index{adl\_quad\_mesh\_fill\_interpolate\_color@{adl\_quad\_mesh\_fill\_interpolate\_color}!striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}}
+\doxysubsubsection{\texorpdfstring{adl\_quad\_mesh\_fill\_interpolate\_color()}{adl\_quad\_mesh\_fill\_interpolate\_color()}}
+{\footnotesize\ttfamily void adl\+\_\+quad\+\_\+mesh\+\_\+fill\+\_\+interpolate\+\_\+color (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structMat2D__uint32}{Mat2\+D\+\_\+uint32}}}]{screen\+\_\+mat,  }\item[{\mbox{\hyperlink{structMat2D}{Mat2D}}}]{inv\+\_\+z\+\_\+buffer\+\_\+mat,  }\item[{\mbox{\hyperlink{structQuad__mesh}{Quad\+\_\+mesh}}}]{mesh,  }\item[{\mbox{\hyperlink{structOffset__zoom__param}{Offset\+\_\+zoom\+\_\+param}}}]{offset\+\_\+zoom\+\_\+param }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00938}{938}} of file \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source}{striped\+\_\+\+Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+
+
+
+References \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00193}{adl\+\_\+assert\+\_\+quad\+\_\+is\+\_\+valid}}, \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00832}{adl\+\_\+quad\+\_\+fill\+\_\+interpolate\+\_\+color\+\_\+mean\+\_\+value()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00125}{Quad\+\_\+mesh\+::elements}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00123}{Quad\+\_\+mesh\+::length}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00106}{Quad\+::to\+\_\+draw}}.
+
+\mbox{\Hypertarget{striped__Almog__Draw__Library_8h_a54b9c681d8fb3935e70ee617056d2997}\label{striped__Almog__Draw__Library_8h_a54b9c681d8fb3935e70ee617056d2997}} 
+\index{striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}!adl\_quad\_mesh\_fill\_interpolate\_normal@{adl\_quad\_mesh\_fill\_interpolate\_normal}}
+\index{adl\_quad\_mesh\_fill\_interpolate\_normal@{adl\_quad\_mesh\_fill\_interpolate\_normal}!striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}}
+\doxysubsubsection{\texorpdfstring{adl\_quad\_mesh\_fill\_interpolate\_normal()}{adl\_quad\_mesh\_fill\_interpolate\_normal()}}
+{\footnotesize\ttfamily void adl\+\_\+quad\+\_\+mesh\+\_\+fill\+\_\+interpolate\+\_\+normal (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structMat2D__uint32}{Mat2\+D\+\_\+uint32}}}]{screen\+\_\+mat,  }\item[{\mbox{\hyperlink{structMat2D}{Mat2D}}}]{inv\+\_\+z\+\_\+buffer\+\_\+mat,  }\item[{\mbox{\hyperlink{structQuad__mesh}{Quad\+\_\+mesh}}}]{mesh,  }\item[{uint32\+\_\+t}]{color,  }\item[{\mbox{\hyperlink{structOffset__zoom__param}{Offset\+\_\+zoom\+\_\+param}}}]{offset\+\_\+zoom\+\_\+param }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00924}{924}} of file \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source}{striped\+\_\+\+Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+
+
+
+References \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00193}{adl\+\_\+assert\+\_\+quad\+\_\+is\+\_\+valid}}, \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00768}{adl\+\_\+quad\+\_\+fill\+\_\+interpolate\+\_\+normal\+\_\+mean\+\_\+value()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00125}{Quad\+\_\+mesh\+::elements}}, \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00123}{Hex\+ARGB\+\_\+\+RGBA\+\_\+\+VAR}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00123}{Quad\+\_\+mesh\+::length}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00106}{Quad\+::to\+\_\+draw}}.
+
+\mbox{\Hypertarget{striped__Almog__Draw__Library_8h_abe9a6b09bc6c969c76f4ba1f8b571994}\label{striped__Almog__Draw__Library_8h_abe9a6b09bc6c969c76f4ba1f8b571994}} 
+\index{striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}!adl\_rectangle\_draw\_min\_max@{adl\_rectangle\_draw\_min\_max}}
+\index{adl\_rectangle\_draw\_min\_max@{adl\_rectangle\_draw\_min\_max}!striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}}
+\doxysubsubsection{\texorpdfstring{adl\_rectangle\_draw\_min\_max()}{adl\_rectangle\_draw\_min\_max()}}
+{\footnotesize\ttfamily void adl\+\_\+rectangle\+\_\+draw\+\_\+min\+\_\+max (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structMat2D__uint32}{Mat2\+D\+\_\+uint32}}}]{screen\+\_\+mat,  }\item[{int}]{min\+\_\+x,  }\item[{int}]{max\+\_\+x,  }\item[{int}]{min\+\_\+y,  }\item[{int}]{max\+\_\+y,  }\item[{uint32\+\_\+t}]{color,  }\item[{\mbox{\hyperlink{structOffset__zoom__param}{Offset\+\_\+zoom\+\_\+param}}}]{offset\+\_\+zoom\+\_\+param }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00685}{685}} of file \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source}{striped\+\_\+\+Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+
+
+
+References \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00226}{adl\+\_\+line\+\_\+draw()}}.
+
+
+
+Referenced by \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00346}{adl\+\_\+character\+\_\+draw()}}.
+
+\mbox{\Hypertarget{striped__Almog__Draw__Library_8h_a199833640d6ac9a1ca51bdae6c94f5a6}\label{striped__Almog__Draw__Library_8h_a199833640d6ac9a1ca51bdae6c94f5a6}} 
+\index{striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}!adl\_rectangle\_fill\_min\_max@{adl\_rectangle\_fill\_min\_max}}
+\index{adl\_rectangle\_fill\_min\_max@{adl\_rectangle\_fill\_min\_max}!striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}}
+\doxysubsubsection{\texorpdfstring{adl\_rectangle\_fill\_min\_max()}{adl\_rectangle\_fill\_min\_max()}}
+{\footnotesize\ttfamily void adl\+\_\+rectangle\+\_\+fill\+\_\+min\+\_\+max (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structMat2D__uint32}{Mat2\+D\+\_\+uint32}}}]{screen\+\_\+mat,  }\item[{int}]{min\+\_\+x,  }\item[{int}]{max\+\_\+x,  }\item[{int}]{min\+\_\+y,  }\item[{int}]{max\+\_\+y,  }\item[{uint32\+\_\+t}]{color,  }\item[{\mbox{\hyperlink{structOffset__zoom__param}{Offset\+\_\+zoom\+\_\+param}}}]{offset\+\_\+zoom\+\_\+param }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00692}{692}} of file \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source}{striped\+\_\+\+Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+
+
+
+References \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00226}{adl\+\_\+line\+\_\+draw()}}.
+
+
+
+Referenced by \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00346}{adl\+\_\+character\+\_\+draw()}}.
+
+\mbox{\Hypertarget{striped__Almog__Draw__Library_8h_a52b749446ced6fda478879fccb410e21}\label{striped__Almog__Draw__Library_8h_a52b749446ced6fda478879fccb410e21}} 
+\index{striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}!adl\_sentence\_draw@{adl\_sentence\_draw}}
+\index{adl\_sentence\_draw@{adl\_sentence\_draw}!striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}}
+\doxysubsubsection{\texorpdfstring{adl\_sentence\_draw()}{adl\_sentence\_draw()}}
+{\footnotesize\ttfamily void adl\+\_\+sentence\+\_\+draw (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structMat2D__uint32}{Mat2\+D\+\_\+uint32}}}]{screen\+\_\+mat,  }\item[{const char}]{sentence\mbox{[}$\,$\mbox{]},  }\item[{size\+\_\+t}]{len,  }\item[{const int}]{x\+\_\+top\+\_\+left,  }\item[{const int}]{y\+\_\+top\+\_\+left,  }\item[{const int}]{hight\+\_\+pixel,  }\item[{const uint32\+\_\+t}]{color,  }\item[{\mbox{\hyperlink{structOffset__zoom__param}{Offset\+\_\+zoom\+\_\+param}}}]{offset\+\_\+zoom\+\_\+param }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00675}{675}} of file \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source}{striped\+\_\+\+Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+
+
+
+References \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00346}{adl\+\_\+character\+\_\+draw()}}, \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00203}{ADL\+\_\+\+MAX\+\_\+\+CHARACTER\+\_\+\+OFFSET}}, and \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00204}{ADL\+\_\+\+MIN\+\_\+\+CHARACTER\+\_\+\+OFFSET}}.
+
+
+
+Referenced by \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l01342}{adl\+\_\+max\+\_\+min\+\_\+values\+\_\+draw\+\_\+on\+\_\+figure()}}.
+
+\mbox{\Hypertarget{striped__Almog__Draw__Library_8h_a329be648e79affb9836f58c3b8cf397b}\label{striped__Almog__Draw__Library_8h_a329be648e79affb9836f58c3b8cf397b}} 
+\index{striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}!adl\_tan\_half\_angle@{adl\_tan\_half\_angle}}
+\index{adl\_tan\_half\_angle@{adl\_tan\_half\_angle}!striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}}
+\doxysubsubsection{\texorpdfstring{adl\_tan\_half\_angle()}{adl\_tan\_half\_angle()}}
+{\footnotesize\ttfamily float adl\+\_\+tan\+\_\+half\+\_\+angle (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structPoint}{Point}}}]{vi,  }\item[{\mbox{\hyperlink{structPoint}{Point}}}]{vj,  }\item[{\mbox{\hyperlink{structPoint}{Point}}}]{p,  }\item[{float}]{li,  }\item[{float}]{lj }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l01175}{1175}} of file \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source}{striped\+\_\+\+Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+
+
+
+References \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00062}{Point\+::x}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00063}{Point\+::y}}.
+
+
+
+Referenced by \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00832}{adl\+\_\+quad\+\_\+fill\+\_\+interpolate\+\_\+color\+\_\+mean\+\_\+value()}}, and \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00768}{adl\+\_\+quad\+\_\+fill\+\_\+interpolate\+\_\+normal\+\_\+mean\+\_\+value()}}.
+
+\mbox{\Hypertarget{striped__Almog__Draw__Library_8h_aabb99bac9cc725476ee838fdf178cf84}\label{striped__Almog__Draw__Library_8h_aabb99bac9cc725476ee838fdf178cf84}} 
+\index{striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}!adl\_tri\_draw@{adl\_tri\_draw}}
+\index{adl\_tri\_draw@{adl\_tri\_draw}!striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}}
+\doxysubsubsection{\texorpdfstring{adl\_tri\_draw()}{adl\_tri\_draw()}}
+{\footnotesize\ttfamily void adl\+\_\+tri\+\_\+draw (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structMat2D__uint32}{Mat2\+D\+\_\+uint32}}}]{screen\+\_\+mat,  }\item[{\mbox{\hyperlink{structTri}{Tri}}}]{tri,  }\item[{uint32\+\_\+t}]{color,  }\item[{\mbox{\hyperlink{structOffset__zoom__param}{Offset\+\_\+zoom\+\_\+param}}}]{offset\+\_\+zoom\+\_\+param }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00969}{969}} of file \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source}{striped\+\_\+\+Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+
+
+
+References \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00226}{adl\+\_\+line\+\_\+draw()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00091}{Tri\+::points}}, \mbox{\hyperlink{temp_8c_source_l00011}{tri}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00062}{Point\+::x}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00063}{Point\+::y}}.
+
+
+
+Referenced by \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l01139}{adl\+\_\+tri\+\_\+mesh\+\_\+draw()}}.
+
+\mbox{\Hypertarget{striped__Almog__Draw__Library_8h_a16218e4728c782ee363b404f50042080}\label{striped__Almog__Draw__Library_8h_a16218e4728c782ee363b404f50042080}} 
+\index{striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}!adl\_tri\_fill\_Pinedas\_rasterizer@{adl\_tri\_fill\_Pinedas\_rasterizer}}
+\index{adl\_tri\_fill\_Pinedas\_rasterizer@{adl\_tri\_fill\_Pinedas\_rasterizer}!striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}}
+\doxysubsubsection{\texorpdfstring{adl\_tri\_fill\_Pinedas\_rasterizer()}{adl\_tri\_fill\_Pinedas\_rasterizer()}}
+{\footnotesize\ttfamily void adl\+\_\+tri\+\_\+fill\+\_\+\+Pinedas\+\_\+rasterizer (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structMat2D__uint32}{Mat2\+D\+\_\+uint32}}}]{screen\+\_\+mat,  }\item[{\mbox{\hyperlink{structMat2D}{Mat2D}}}]{inv\+\_\+z\+\_\+buffer,  }\item[{\mbox{\hyperlink{structTri}{Tri}}}]{tri,  }\item[{uint32\+\_\+t}]{color,  }\item[{\mbox{\hyperlink{structOffset__zoom__param}{Offset\+\_\+zoom\+\_\+param}}}]{offset\+\_\+zoom\+\_\+param }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00975}{975}} of file \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source}{striped\+\_\+\+Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+
+
+
+References \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00211}{adl\+\_\+point\+\_\+draw()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00100}{Mat2\+D\+\_\+uint32\+::cols}}, \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00184}{edge\+\_\+cross\+\_\+point}}, \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00123}{Hex\+ARGB\+\_\+\+RGBA\+\_\+\+VAR}}, \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00187}{is\+\_\+top\+\_\+left}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00096}{Tri\+::light\+\_\+intensity}}, \mbox{\hyperlink{Matrix2D_8h_source_l00145}{MAT2\+D\+\_\+\+AT}}, \mbox{\hyperlink{Matrix2D_8h_source_l00068}{MATRIX2\+D\+\_\+\+ASSERT}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00091}{Tri\+::points}}, \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00129}{RGBA\+\_\+hex\+ARGB}}, \mbox{\hyperlink{Matrix2D_8h_source_l00099}{Mat2\+D\+\_\+uint32\+::rows}}, \mbox{\hyperlink{temp_8c_source_l00011}{tri}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00065}{Point\+::w}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00062}{Point\+::x}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00063}{Point\+::y}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00064}{Point\+::z}}.
+
+
+
+Referenced by \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l01148}{adl\+\_\+tri\+\_\+mesh\+\_\+fill\+\_\+\+Pinedas\+\_\+rasterizer()}}.
+
+\mbox{\Hypertarget{striped__Almog__Draw__Library_8h_a6a7ba7ceddb6c584866563d918e90651}\label{striped__Almog__Draw__Library_8h_a6a7ba7ceddb6c584866563d918e90651}} 
+\index{striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}!adl\_tri\_fill\_Pinedas\_rasterizer\_interpolate\_color@{adl\_tri\_fill\_Pinedas\_rasterizer\_interpolate\_color}}
+\index{adl\_tri\_fill\_Pinedas\_rasterizer\_interpolate\_color@{adl\_tri\_fill\_Pinedas\_rasterizer\_interpolate\_color}!striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}}
+\doxysubsubsection{\texorpdfstring{adl\_tri\_fill\_Pinedas\_rasterizer\_interpolate\_color()}{adl\_tri\_fill\_Pinedas\_rasterizer\_interpolate\_color()}}
+{\footnotesize\ttfamily void adl\+\_\+tri\+\_\+fill\+\_\+\+Pinedas\+\_\+rasterizer\+\_\+interpolate\+\_\+color (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structMat2D__uint32}{Mat2\+D\+\_\+uint32}}}]{screen\+\_\+mat,  }\item[{\mbox{\hyperlink{structMat2D}{Mat2D}}}]{inv\+\_\+z\+\_\+buffer,  }\item[{\mbox{\hyperlink{structTri}{Tri}}}]{tri,  }\item[{\mbox{\hyperlink{structOffset__zoom__param}{Offset\+\_\+zoom\+\_\+param}}}]{offset\+\_\+zoom\+\_\+param }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l01027}{1027}} of file \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source}{striped\+\_\+\+Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+
+
+
+References \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00211}{adl\+\_\+point\+\_\+draw()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00094}{Tri\+::colors}}, \mbox{\hyperlink{Matrix2D_8h_source_l00100}{Mat2\+D\+\_\+uint32\+::cols}}, \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00184}{edge\+\_\+cross\+\_\+point}}, \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00123}{Hex\+ARGB\+\_\+\+RGBA\+\_\+\+VAR}}, \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00187}{is\+\_\+top\+\_\+left}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00096}{Tri\+::light\+\_\+intensity}}, \mbox{\hyperlink{Matrix2D_8h_source_l00145}{MAT2\+D\+\_\+\+AT}}, \mbox{\hyperlink{Matrix2D_8h_source_l00068}{MATRIX2\+D\+\_\+\+ASSERT}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00091}{Tri\+::points}}, \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00129}{RGBA\+\_\+hex\+ARGB}}, \mbox{\hyperlink{Matrix2D_8h_source_l00099}{Mat2\+D\+\_\+uint32\+::rows}}, \mbox{\hyperlink{temp_8c_source_l00011}{tri}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00065}{Point\+::w}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00062}{Point\+::x}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00063}{Point\+::y}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00064}{Point\+::z}}.
+
+
+
+Referenced by \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l01157}{adl\+\_\+tri\+\_\+mesh\+\_\+fill\+\_\+\+Pinedas\+\_\+rasterizer\+\_\+interpolate\+\_\+color()}}.
+
+\mbox{\Hypertarget{striped__Almog__Draw__Library_8h_a322a6fe3e2cf14474917879eb41318dd}\label{striped__Almog__Draw__Library_8h_a322a6fe3e2cf14474917879eb41318dd}} 
+\index{striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}!adl\_tri\_fill\_Pinedas\_rasterizer\_interpolate\_normal@{adl\_tri\_fill\_Pinedas\_rasterizer\_interpolate\_normal}}
+\index{adl\_tri\_fill\_Pinedas\_rasterizer\_interpolate\_normal@{adl\_tri\_fill\_Pinedas\_rasterizer\_interpolate\_normal}!striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}}
+\doxysubsubsection{\texorpdfstring{adl\_tri\_fill\_Pinedas\_rasterizer\_interpolate\_normal()}{adl\_tri\_fill\_Pinedas\_rasterizer\_interpolate\_normal()}}
+{\footnotesize\ttfamily void adl\+\_\+tri\+\_\+fill\+\_\+\+Pinedas\+\_\+rasterizer\+\_\+interpolate\+\_\+normal (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structMat2D__uint32}{Mat2\+D\+\_\+uint32}}}]{screen\+\_\+mat,  }\item[{\mbox{\hyperlink{structMat2D}{Mat2D}}}]{inv\+\_\+z\+\_\+buffer,  }\item[{\mbox{\hyperlink{structTri}{Tri}}}]{tri,  }\item[{uint32\+\_\+t}]{color,  }\item[{\mbox{\hyperlink{structOffset__zoom__param}{Offset\+\_\+zoom\+\_\+param}}}]{offset\+\_\+zoom\+\_\+param }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l01087}{1087}} of file \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source}{striped\+\_\+\+Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+
+
+
+References \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00211}{adl\+\_\+point\+\_\+draw()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00100}{Mat2\+D\+\_\+uint32\+::cols}}, \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00184}{edge\+\_\+cross\+\_\+point}}, \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00123}{Hex\+ARGB\+\_\+\+RGBA\+\_\+\+VAR}}, \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00187}{is\+\_\+top\+\_\+left}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00096}{Tri\+::light\+\_\+intensity}}, \mbox{\hyperlink{Matrix2D_8h_source_l00145}{MAT2\+D\+\_\+\+AT}}, \mbox{\hyperlink{Matrix2D_8h_source_l00068}{MATRIX2\+D\+\_\+\+ASSERT}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00091}{Tri\+::points}}, \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00129}{RGBA\+\_\+hex\+ARGB}}, \mbox{\hyperlink{Matrix2D_8h_source_l00099}{Mat2\+D\+\_\+uint32\+::rows}}, \mbox{\hyperlink{temp_8c_source_l00011}{tri}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00065}{Point\+::w}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00062}{Point\+::x}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00063}{Point\+::y}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00064}{Point\+::z}}.
+
+
+
+Referenced by \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l01166}{adl\+\_\+tri\+\_\+mesh\+\_\+fill\+\_\+\+Pinedas\+\_\+rasterizer\+\_\+interpolate\+\_\+normal()}}.
+
+\mbox{\Hypertarget{striped__Almog__Draw__Library_8h_a21a4c53fb533f0990d6f46017a4d3263}\label{striped__Almog__Draw__Library_8h_a21a4c53fb533f0990d6f46017a4d3263}} 
+\index{striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}!adl\_tri\_mesh\_draw@{adl\_tri\_mesh\_draw}}
+\index{adl\_tri\_mesh\_draw@{adl\_tri\_mesh\_draw}!striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}}
+\doxysubsubsection{\texorpdfstring{adl\_tri\_mesh\_draw()}{adl\_tri\_mesh\_draw()}}
+{\footnotesize\ttfamily void adl\+\_\+tri\+\_\+mesh\+\_\+draw (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structMat2D__uint32}{Mat2\+D\+\_\+uint32}}}]{screen\+\_\+mat,  }\item[{\mbox{\hyperlink{structTri__mesh}{Tri\+\_\+mesh}}}]{mesh,  }\item[{uint32\+\_\+t}]{color,  }\item[{\mbox{\hyperlink{structOffset__zoom__param}{Offset\+\_\+zoom\+\_\+param}}}]{offset\+\_\+zoom\+\_\+param }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l01139}{1139}} of file \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source}{striped\+\_\+\+Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+
+
+
+References \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00969}{adl\+\_\+tri\+\_\+draw()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00116}{Tri\+\_\+mesh\+::elements}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00114}{Tri\+\_\+mesh\+::length}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00095}{Tri\+::to\+\_\+draw}}, and \mbox{\hyperlink{temp_8c_source_l00011}{tri}}.
+
+\mbox{\Hypertarget{striped__Almog__Draw__Library_8h_a29e38c19b3a2c0f8c4d8dfefa8004125}\label{striped__Almog__Draw__Library_8h_a29e38c19b3a2c0f8c4d8dfefa8004125}} 
+\index{striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}!adl\_tri\_mesh\_fill\_Pinedas\_rasterizer@{adl\_tri\_mesh\_fill\_Pinedas\_rasterizer}}
+\index{adl\_tri\_mesh\_fill\_Pinedas\_rasterizer@{adl\_tri\_mesh\_fill\_Pinedas\_rasterizer}!striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}}
+\doxysubsubsection{\texorpdfstring{adl\_tri\_mesh\_fill\_Pinedas\_rasterizer()}{adl\_tri\_mesh\_fill\_Pinedas\_rasterizer()}}
+{\footnotesize\ttfamily void adl\+\_\+tri\+\_\+mesh\+\_\+fill\+\_\+\+Pinedas\+\_\+rasterizer (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structMat2D__uint32}{Mat2\+D\+\_\+uint32}}}]{screen\+\_\+mat,  }\item[{\mbox{\hyperlink{structMat2D}{Mat2D}}}]{inv\+\_\+z\+\_\+buffer\+\_\+mat,  }\item[{\mbox{\hyperlink{structTri__mesh}{Tri\+\_\+mesh}}}]{mesh,  }\item[{uint32\+\_\+t}]{color,  }\item[{\mbox{\hyperlink{structOffset__zoom__param}{Offset\+\_\+zoom\+\_\+param}}}]{offset\+\_\+zoom\+\_\+param }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l01148}{1148}} of file \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source}{striped\+\_\+\+Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+
+
+
+References \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00190}{adl\+\_\+assert\+\_\+tri\+\_\+is\+\_\+valid}}, \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00975}{adl\+\_\+tri\+\_\+fill\+\_\+\+Pinedas\+\_\+rasterizer()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00116}{Tri\+\_\+mesh\+::elements}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00114}{Tri\+\_\+mesh\+::length}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00095}{Tri\+::to\+\_\+draw}}, and \mbox{\hyperlink{temp_8c_source_l00011}{tri}}.
+
+\mbox{\Hypertarget{striped__Almog__Draw__Library_8h_a2c525ee6f335d0b7843df39e404c7dc3}\label{striped__Almog__Draw__Library_8h_a2c525ee6f335d0b7843df39e404c7dc3}} 
+\index{striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}!adl\_tri\_mesh\_fill\_Pinedas\_rasterizer\_interpolate\_color@{adl\_tri\_mesh\_fill\_Pinedas\_rasterizer\_interpolate\_color}}
+\index{adl\_tri\_mesh\_fill\_Pinedas\_rasterizer\_interpolate\_color@{adl\_tri\_mesh\_fill\_Pinedas\_rasterizer\_interpolate\_color}!striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}}
+\doxysubsubsection{\texorpdfstring{adl\_tri\_mesh\_fill\_Pinedas\_rasterizer\_interpolate\_color()}{adl\_tri\_mesh\_fill\_Pinedas\_rasterizer\_interpolate\_color()}}
+{\footnotesize\ttfamily void adl\+\_\+tri\+\_\+mesh\+\_\+fill\+\_\+\+Pinedas\+\_\+rasterizer\+\_\+interpolate\+\_\+color (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structMat2D__uint32}{Mat2\+D\+\_\+uint32}}}]{screen\+\_\+mat,  }\item[{\mbox{\hyperlink{structMat2D}{Mat2D}}}]{inv\+\_\+z\+\_\+buffer\+\_\+mat,  }\item[{\mbox{\hyperlink{structTri__mesh}{Tri\+\_\+mesh}}}]{mesh,  }\item[{\mbox{\hyperlink{structOffset__zoom__param}{Offset\+\_\+zoom\+\_\+param}}}]{offset\+\_\+zoom\+\_\+param }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l01157}{1157}} of file \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source}{striped\+\_\+\+Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+
+
+
+References \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00190}{adl\+\_\+assert\+\_\+tri\+\_\+is\+\_\+valid}}, \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l01027}{adl\+\_\+tri\+\_\+fill\+\_\+\+Pinedas\+\_\+rasterizer\+\_\+interpolate\+\_\+color()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00116}{Tri\+\_\+mesh\+::elements}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00114}{Tri\+\_\+mesh\+::length}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00095}{Tri\+::to\+\_\+draw}}, and \mbox{\hyperlink{temp_8c_source_l00011}{tri}}.
+
+\mbox{\Hypertarget{striped__Almog__Draw__Library_8h_ab49bb632b6db243a86b95af128e0466a}\label{striped__Almog__Draw__Library_8h_ab49bb632b6db243a86b95af128e0466a}} 
+\index{striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}!adl\_tri\_mesh\_fill\_Pinedas\_rasterizer\_interpolate\_normal@{adl\_tri\_mesh\_fill\_Pinedas\_rasterizer\_interpolate\_normal}}
+\index{adl\_tri\_mesh\_fill\_Pinedas\_rasterizer\_interpolate\_normal@{adl\_tri\_mesh\_fill\_Pinedas\_rasterizer\_interpolate\_normal}!striped\_Almog\_Draw\_Library.h@{striped\_Almog\_Draw\_Library.h}}
+\doxysubsubsection{\texorpdfstring{adl\_tri\_mesh\_fill\_Pinedas\_rasterizer\_interpolate\_normal()}{adl\_tri\_mesh\_fill\_Pinedas\_rasterizer\_interpolate\_normal()}}
+{\footnotesize\ttfamily void adl\+\_\+tri\+\_\+mesh\+\_\+fill\+\_\+\+Pinedas\+\_\+rasterizer\+\_\+interpolate\+\_\+normal (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{structMat2D__uint32}{Mat2\+D\+\_\+uint32}}}]{screen\+\_\+mat,  }\item[{\mbox{\hyperlink{structMat2D}{Mat2D}}}]{inv\+\_\+z\+\_\+buffer\+\_\+mat,  }\item[{\mbox{\hyperlink{structTri__mesh}{Tri\+\_\+mesh}}}]{mesh,  }\item[{uint32\+\_\+t}]{color,  }\item[{\mbox{\hyperlink{structOffset__zoom__param}{Offset\+\_\+zoom\+\_\+param}}}]{offset\+\_\+zoom\+\_\+param }\end{DoxyParamCaption})}
+
+
+
+Definition at line \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l01166}{1166}} of file \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source}{striped\+\_\+\+Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+
+
+
+References \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l00190}{adl\+\_\+assert\+\_\+tri\+\_\+is\+\_\+valid}}, \mbox{\hyperlink{striped__Almog__Draw__Library_8h_source_l01087}{adl\+\_\+tri\+\_\+fill\+\_\+\+Pinedas\+\_\+rasterizer\+\_\+interpolate\+\_\+normal()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00116}{Tri\+\_\+mesh\+::elements}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00114}{Tri\+\_\+mesh\+::length}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00095}{Tri\+::to\+\_\+draw}}, and \mbox{\hyperlink{temp_8c_source_l00011}{tri}}.
+

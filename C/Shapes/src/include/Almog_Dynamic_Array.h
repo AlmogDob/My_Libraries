@@ -52,7 +52,6 @@
 #define ALMOG_DYNAMIC_ARRAY_H_
 
 #include <stdlib.h>
-#include <assert.h>
 
 
 /**

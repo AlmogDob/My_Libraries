@@ -2,6 +2,11 @@
 \label{structFigure}\index{Figure@{Figure}}
 
 
+Plotting figure holding a pixel buffer, z-\/buffer and plot state.  
+
+
+
+
 {\ttfamily \#include $<$Almog\+\_\+\+Draw\+\_\+\+Library.\+h$>$}
 
 
@@ -56,9 +61,11 @@ bool \mbox{\hyperlink{structFigure_a7f66a8ce46b8c425daba96a9434aef86}{to\+\_\+dr
 
 
 \doxysubsection{Detailed Description}
+Plotting figure holding a pixel buffer, z-\/buffer and plot state. 
 
+A \mbox{\hyperlink{structFigure}{Figure}} owns an internal pixel buffer and an inverse-\/Z buffer used by the plotting utilities. It also stores axis extents, paddings and appearance flags. 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00118}{118}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00174}{174}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 
 
@@ -69,13 +76,13 @@ Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00118}{118}}
 \doxysubsubsection{\texorpdfstring{background\_color}{background\_color}}
 {\footnotesize\ttfamily uint32\+\_\+t Figure\+::background\+\_\+color}
 
+Clear color for figure. 
+
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00195}{195}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00134}{134}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
-
-
-Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02247}{adl\+\_\+2\+Dscalar\+\_\+interp\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02198}{adl\+\_\+curves\+\_\+plot\+\_\+on\+\_\+figure()}}, and \mbox{\hyperlink{example1_8c_source_l00015}{setup()}}.
+Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02314}{adl\+\_\+2\+Dscalar\+\_\+interp\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02265}{adl\+\_\+curves\+\_\+plot\+\_\+on\+\_\+figure()}}, and \mbox{\hyperlink{example1_8c_source_l00015}{setup()}}.
 
 \mbox{\Hypertarget{structFigure_a2180487b859992214c60f9ea798611a1}\label{structFigure_a2180487b859992214c60f9ea798611a1}} 
 \index{Figure@{Figure}!inv\_z\_buffer\_mat@{inv\_z\_buffer\_mat}}
@@ -83,13 +90,13 @@ Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02247}{adl\+\_\+2
 \doxysubsubsection{\texorpdfstring{inv\_z\_buffer\_mat}{inv\_z\_buffer\_mat}}
 {\footnotesize\ttfamily \mbox{\hyperlink{structMat2D}{Mat2D}} Figure\+::inv\+\_\+z\+\_\+buffer\+\_\+mat}
 
+Owned inverse-\/Z buffer (double). 
+
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00193}{193}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00133}{133}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
-
-
-Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02247}{adl\+\_\+2\+Dscalar\+\_\+interp\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02198}{adl\+\_\+curves\+\_\+plot\+\_\+on\+\_\+figure()}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02014}{adl\+\_\+figure\+\_\+alloc()}}.
+Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02314}{adl\+\_\+2\+Dscalar\+\_\+interp\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02265}{adl\+\_\+curves\+\_\+plot\+\_\+on\+\_\+figure()}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02081}{adl\+\_\+figure\+\_\+alloc()}}.
 
 \mbox{\Hypertarget{structFigure_a04b0cd78909e889f72ccda9cae2f587d}\label{structFigure_a04b0cd78909e889f72ccda9cae2f587d}} 
 \index{Figure@{Figure}!max\_x@{max\_x}}
@@ -97,13 +104,13 @@ Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02247}{adl\+\_\+2
 \doxysubsubsection{\texorpdfstring{max\_x}{max\_x}}
 {\footnotesize\ttfamily float Figure\+::max\+\_\+x}
 
+Max X value in source data. 
+
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00181}{181}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00124}{124}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
-
-
-Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02247}{adl\+\_\+2\+Dscalar\+\_\+interp\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02163}{adl\+\_\+curve\+\_\+add\+\_\+to\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02198}{adl\+\_\+curves\+\_\+plot\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02014}{adl\+\_\+figure\+\_\+alloc()}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02103}{adl\+\_\+max\+\_\+min\+\_\+values\+\_\+draw\+\_\+on\+\_\+figure()}}.
+Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02314}{adl\+\_\+2\+Dscalar\+\_\+interp\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02230}{adl\+\_\+curve\+\_\+add\+\_\+to\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02265}{adl\+\_\+curves\+\_\+plot\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02081}{adl\+\_\+figure\+\_\+alloc()}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02170}{adl\+\_\+max\+\_\+min\+\_\+values\+\_\+draw\+\_\+on\+\_\+figure()}}.
 
 \mbox{\Hypertarget{structFigure_a9c7294fdd75654cfecc82dd87d0b9565}\label{structFigure_a9c7294fdd75654cfecc82dd87d0b9565}} 
 \index{Figure@{Figure}!max\_x\_pixel@{max\_x\_pixel}}
@@ -111,13 +118,13 @@ Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02247}{adl\+\_\+2
 \doxysubsubsection{\texorpdfstring{max\_x\_pixel}{max\_x\_pixel}}
 {\footnotesize\ttfamily int Figure\+::max\+\_\+x\+\_\+pixel}
 
+Right bound (pixel space). 
+
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00176}{176}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00120}{120}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
-
-
-Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02247}{adl\+\_\+2\+Dscalar\+\_\+interp\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02077}{adl\+\_\+axis\+\_\+draw\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02198}{adl\+\_\+curves\+\_\+plot\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02014}{adl\+\_\+figure\+\_\+alloc()}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02103}{adl\+\_\+max\+\_\+min\+\_\+values\+\_\+draw\+\_\+on\+\_\+figure()}}.
+Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02314}{adl\+\_\+2\+Dscalar\+\_\+interp\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02144}{adl\+\_\+axis\+\_\+draw\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02265}{adl\+\_\+curves\+\_\+plot\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02081}{adl\+\_\+figure\+\_\+alloc()}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02170}{adl\+\_\+max\+\_\+min\+\_\+values\+\_\+draw\+\_\+on\+\_\+figure()}}.
 
 \mbox{\Hypertarget{structFigure_a07084b1a547206f641fd030bfcba19cf}\label{structFigure_a07084b1a547206f641fd030bfcba19cf}} 
 \index{Figure@{Figure}!max\_y@{max\_y}}
@@ -125,13 +132,13 @@ Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02247}{adl\+\_\+2
 \doxysubsubsection{\texorpdfstring{max\_y}{max\_y}}
 {\footnotesize\ttfamily float Figure\+::max\+\_\+y}
 
+Max Y value in source data. 
+
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00183}{183}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00126}{126}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
-
-
-Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02247}{adl\+\_\+2\+Dscalar\+\_\+interp\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02163}{adl\+\_\+curve\+\_\+add\+\_\+to\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02198}{adl\+\_\+curves\+\_\+plot\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02014}{adl\+\_\+figure\+\_\+alloc()}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02103}{adl\+\_\+max\+\_\+min\+\_\+values\+\_\+draw\+\_\+on\+\_\+figure()}}.
+Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02314}{adl\+\_\+2\+Dscalar\+\_\+interp\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02230}{adl\+\_\+curve\+\_\+add\+\_\+to\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02265}{adl\+\_\+curves\+\_\+plot\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02081}{adl\+\_\+figure\+\_\+alloc()}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02170}{adl\+\_\+max\+\_\+min\+\_\+values\+\_\+draw\+\_\+on\+\_\+figure()}}.
 
 \mbox{\Hypertarget{structFigure_a027aa449853e7dc2904eb1af89047826}\label{structFigure_a027aa449853e7dc2904eb1af89047826}} 
 \index{Figure@{Figure}!max\_y\_pixel@{max\_y\_pixel}}
@@ -139,13 +146,13 @@ Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02247}{adl\+\_\+2
 \doxysubsubsection{\texorpdfstring{max\_y\_pixel}{max\_y\_pixel}}
 {\footnotesize\ttfamily int Figure\+::max\+\_\+y\+\_\+pixel}
 
+Bottom bound (pixel space). 
+
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00178}{178}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00122}{122}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
-
-
-Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02247}{adl\+\_\+2\+Dscalar\+\_\+interp\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02077}{adl\+\_\+axis\+\_\+draw\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02198}{adl\+\_\+curves\+\_\+plot\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02014}{adl\+\_\+figure\+\_\+alloc()}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02103}{adl\+\_\+max\+\_\+min\+\_\+values\+\_\+draw\+\_\+on\+\_\+figure()}}.
+Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02314}{adl\+\_\+2\+Dscalar\+\_\+interp\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02144}{adl\+\_\+axis\+\_\+draw\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02265}{adl\+\_\+curves\+\_\+plot\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02081}{adl\+\_\+figure\+\_\+alloc()}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02170}{adl\+\_\+max\+\_\+min\+\_\+values\+\_\+draw\+\_\+on\+\_\+figure()}}.
 
 \mbox{\Hypertarget{structFigure_a82a4c07b41dcf71f4dd2be1b6eab3947}\label{structFigure_a82a4c07b41dcf71f4dd2be1b6eab3947}} 
 \index{Figure@{Figure}!min\_x@{min\_x}}
@@ -153,13 +160,13 @@ Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02247}{adl\+\_\+2
 \doxysubsubsection{\texorpdfstring{min\_x}{min\_x}}
 {\footnotesize\ttfamily float Figure\+::min\+\_\+x}
 
+Min X value in source data. 
+
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00180}{180}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00123}{123}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
-
-
-Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02247}{adl\+\_\+2\+Dscalar\+\_\+interp\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02163}{adl\+\_\+curve\+\_\+add\+\_\+to\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02198}{adl\+\_\+curves\+\_\+plot\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02014}{adl\+\_\+figure\+\_\+alloc()}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02103}{adl\+\_\+max\+\_\+min\+\_\+values\+\_\+draw\+\_\+on\+\_\+figure()}}.
+Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02314}{adl\+\_\+2\+Dscalar\+\_\+interp\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02230}{adl\+\_\+curve\+\_\+add\+\_\+to\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02265}{adl\+\_\+curves\+\_\+plot\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02081}{adl\+\_\+figure\+\_\+alloc()}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02170}{adl\+\_\+max\+\_\+min\+\_\+values\+\_\+draw\+\_\+on\+\_\+figure()}}.
 
 \mbox{\Hypertarget{structFigure_a7e96634286299e545bf4d604d72c78d5}\label{structFigure_a7e96634286299e545bf4d604d72c78d5}} 
 \index{Figure@{Figure}!min\_x\_pixel@{min\_x\_pixel}}
@@ -167,13 +174,13 @@ Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02247}{adl\+\_\+2
 \doxysubsubsection{\texorpdfstring{min\_x\_pixel}{min\_x\_pixel}}
 {\footnotesize\ttfamily int Figure\+::min\+\_\+x\+\_\+pixel}
 
+Left padding (pixel space). 
+
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00175}{175}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00119}{119}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
-
-
-Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02247}{adl\+\_\+2\+Dscalar\+\_\+interp\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02077}{adl\+\_\+axis\+\_\+draw\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02198}{adl\+\_\+curves\+\_\+plot\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02014}{adl\+\_\+figure\+\_\+alloc()}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02103}{adl\+\_\+max\+\_\+min\+\_\+values\+\_\+draw\+\_\+on\+\_\+figure()}}.
+Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02314}{adl\+\_\+2\+Dscalar\+\_\+interp\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02144}{adl\+\_\+axis\+\_\+draw\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02265}{adl\+\_\+curves\+\_\+plot\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02081}{adl\+\_\+figure\+\_\+alloc()}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02170}{adl\+\_\+max\+\_\+min\+\_\+values\+\_\+draw\+\_\+on\+\_\+figure()}}.
 
 \mbox{\Hypertarget{structFigure_abe06bfc82b8c2cc4675e3d45273e6609}\label{structFigure_abe06bfc82b8c2cc4675e3d45273e6609}} 
 \index{Figure@{Figure}!min\_y@{min\_y}}
@@ -181,13 +188,13 @@ Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02247}{adl\+\_\+2
 \doxysubsubsection{\texorpdfstring{min\_y}{min\_y}}
 {\footnotesize\ttfamily float Figure\+::min\+\_\+y}
 
+Min Y value in source data. 
+
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00182}{182}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00125}{125}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
-
-
-Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02247}{adl\+\_\+2\+Dscalar\+\_\+interp\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02163}{adl\+\_\+curve\+\_\+add\+\_\+to\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02198}{adl\+\_\+curves\+\_\+plot\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02014}{adl\+\_\+figure\+\_\+alloc()}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02103}{adl\+\_\+max\+\_\+min\+\_\+values\+\_\+draw\+\_\+on\+\_\+figure()}}.
+Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02314}{adl\+\_\+2\+Dscalar\+\_\+interp\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02230}{adl\+\_\+curve\+\_\+add\+\_\+to\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02265}{adl\+\_\+curves\+\_\+plot\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02081}{adl\+\_\+figure\+\_\+alloc()}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02170}{adl\+\_\+max\+\_\+min\+\_\+values\+\_\+draw\+\_\+on\+\_\+figure()}}.
 
 \mbox{\Hypertarget{structFigure_adf68b7066f21045fc4e367dbffc00243}\label{structFigure_adf68b7066f21045fc4e367dbffc00243}} 
 \index{Figure@{Figure}!min\_y\_pixel@{min\_y\_pixel}}
@@ -195,13 +202,13 @@ Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02247}{adl\+\_\+2
 \doxysubsubsection{\texorpdfstring{min\_y\_pixel}{min\_y\_pixel}}
 {\footnotesize\ttfamily int Figure\+::min\+\_\+y\+\_\+pixel}
 
+Top padding (pixel space). 
+
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00177}{177}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00121}{121}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
-
-
-Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02247}{adl\+\_\+2\+Dscalar\+\_\+interp\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02077}{adl\+\_\+axis\+\_\+draw\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02198}{adl\+\_\+curves\+\_\+plot\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02014}{adl\+\_\+figure\+\_\+alloc()}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02103}{adl\+\_\+max\+\_\+min\+\_\+values\+\_\+draw\+\_\+on\+\_\+figure()}}.
+Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02314}{adl\+\_\+2\+Dscalar\+\_\+interp\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02144}{adl\+\_\+axis\+\_\+draw\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02265}{adl\+\_\+curves\+\_\+plot\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02081}{adl\+\_\+figure\+\_\+alloc()}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02170}{adl\+\_\+max\+\_\+min\+\_\+values\+\_\+draw\+\_\+on\+\_\+figure()}}.
 
 \mbox{\Hypertarget{structFigure_a0cfd42fb62501fe81affa560b8a9be78}\label{structFigure_a0cfd42fb62501fe81affa560b8a9be78}} 
 \index{Figure@{Figure}!offset\_zoom\_param@{offset\_zoom\_param}}
@@ -209,13 +216,13 @@ Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02247}{adl\+\_\+2
 \doxysubsubsection{\texorpdfstring{offset\_zoom\_param}{offset\_zoom\_param}}
 {\footnotesize\ttfamily \mbox{\hyperlink{structOffset__zoom__param}{Offset\+\_\+zoom\+\_\+param}} Figure\+::offset\+\_\+zoom\+\_\+param}
 
+Pan/zoom parameters. 
+
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00188}{188}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00129}{129}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
-
-
-Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02247}{adl\+\_\+2\+Dscalar\+\_\+interp\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02077}{adl\+\_\+axis\+\_\+draw\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02198}{adl\+\_\+curves\+\_\+plot\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02014}{adl\+\_\+figure\+\_\+alloc()}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02103}{adl\+\_\+max\+\_\+min\+\_\+values\+\_\+draw\+\_\+on\+\_\+figure()}}.
+Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02314}{adl\+\_\+2\+Dscalar\+\_\+interp\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02144}{adl\+\_\+axis\+\_\+draw\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02265}{adl\+\_\+curves\+\_\+plot\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02081}{adl\+\_\+figure\+\_\+alloc()}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02170}{adl\+\_\+max\+\_\+min\+\_\+values\+\_\+draw\+\_\+on\+\_\+figure()}}.
 
 \mbox{\Hypertarget{structFigure_a3b5295186bb66df83e4e41b8f2d93eaf}\label{structFigure_a3b5295186bb66df83e4e41b8f2d93eaf}} 
 \index{Figure@{Figure}!pixels\_mat@{pixels\_mat}}
@@ -223,13 +230,13 @@ Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02247}{adl\+\_\+2
 \doxysubsubsection{\texorpdfstring{pixels\_mat}{pixels\_mat}}
 {\footnotesize\ttfamily \mbox{\hyperlink{structMat2D__uint32}{Mat2\+D\+\_\+uint32}} Figure\+::pixels\+\_\+mat}
 
+Owned ARGB pixel buffer. 
+
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00192}{192}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00132}{132}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
-
-
-Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02247}{adl\+\_\+2\+Dscalar\+\_\+interp\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02077}{adl\+\_\+axis\+\_\+draw\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02198}{adl\+\_\+curves\+\_\+plot\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02014}{adl\+\_\+figure\+\_\+alloc()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02057}{adl\+\_\+figure\+\_\+copy\+\_\+to\+\_\+screen()}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02103}{adl\+\_\+max\+\_\+min\+\_\+values\+\_\+draw\+\_\+on\+\_\+figure()}}.
+Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02314}{adl\+\_\+2\+Dscalar\+\_\+interp\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02144}{adl\+\_\+axis\+\_\+draw\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02265}{adl\+\_\+curves\+\_\+plot\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02081}{adl\+\_\+figure\+\_\+alloc()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02124}{adl\+\_\+figure\+\_\+copy\+\_\+to\+\_\+screen()}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02170}{adl\+\_\+max\+\_\+min\+\_\+values\+\_\+draw\+\_\+on\+\_\+figure()}}.
 
 \mbox{\Hypertarget{structFigure_a88975f23da9504f729460f036c6e6036}\label{structFigure_a88975f23da9504f729460f036c6e6036}} 
 \index{Figure@{Figure}!src\_curve\_array@{src\_curve\_array}}
@@ -237,13 +244,13 @@ Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02247}{adl\+\_\+2
 \doxysubsubsection{\texorpdfstring{src\_curve\_array}{src\_curve\_array}}
 {\footnotesize\ttfamily \mbox{\hyperlink{structCurve__ada}{Curve\+\_\+ada}} Figure\+::src\+\_\+curve\+\_\+array}
 
+Curves to plot. 
+
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00189}{189}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00130}{130}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
-
-
-Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02163}{adl\+\_\+curve\+\_\+add\+\_\+to\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02198}{adl\+\_\+curves\+\_\+plot\+\_\+on\+\_\+figure()}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02014}{adl\+\_\+figure\+\_\+alloc()}}.
+Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02230}{adl\+\_\+curve\+\_\+add\+\_\+to\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02265}{adl\+\_\+curves\+\_\+plot\+\_\+on\+\_\+figure()}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02081}{adl\+\_\+figure\+\_\+alloc()}}.
 
 \mbox{\Hypertarget{structFigure_a75c652f6b62b3df640251c53a56c8641}\label{structFigure_a75c652f6b62b3df640251c53a56c8641}} 
 \index{Figure@{Figure}!to\_draw\_axis@{to\_draw\_axis}}
@@ -251,13 +258,13 @@ Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02163}{adl\+\_\+c
 \doxysubsubsection{\texorpdfstring{to\_draw\_axis}{to\_draw\_axis}}
 {\footnotesize\ttfamily bool Figure\+::to\+\_\+draw\+\_\+axis}
 
+Draw axes when plotting. 
+
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00196}{196}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00135}{135}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
-
-
-Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02247}{adl\+\_\+2\+Dscalar\+\_\+interp\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02198}{adl\+\_\+curves\+\_\+plot\+\_\+on\+\_\+figure()}}, and \mbox{\hyperlink{example1_8c_source_l00015}{setup()}}.
+Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02314}{adl\+\_\+2\+Dscalar\+\_\+interp\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02265}{adl\+\_\+curves\+\_\+plot\+\_\+on\+\_\+figure()}}, and \mbox{\hyperlink{example1_8c_source_l00015}{setup()}}.
 
 \mbox{\Hypertarget{structFigure_a7f66a8ce46b8c425daba96a9434aef86}\label{structFigure_a7f66a8ce46b8c425daba96a9434aef86}} 
 \index{Figure@{Figure}!to\_draw\_max\_min\_values@{to\_draw\_max\_min\_values}}
@@ -265,13 +272,13 @@ Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02247}{adl\+\_\+2
 \doxysubsubsection{\texorpdfstring{to\_draw\_max\_min\_values}{to\_draw\_max\_min\_values}}
 {\footnotesize\ttfamily bool Figure\+::to\+\_\+draw\+\_\+max\+\_\+min\+\_\+values}
 
+Draw min/max labels. 
+
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00197}{197}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00136}{136}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
-
-
-Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02247}{adl\+\_\+2\+Dscalar\+\_\+interp\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02198}{adl\+\_\+curves\+\_\+plot\+\_\+on\+\_\+figure()}}, and \mbox{\hyperlink{example1_8c_source_l00015}{setup()}}.
+Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02314}{adl\+\_\+2\+Dscalar\+\_\+interp\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02265}{adl\+\_\+curves\+\_\+plot\+\_\+on\+\_\+figure()}}, and \mbox{\hyperlink{example1_8c_source_l00015}{setup()}}.
 
 \mbox{\Hypertarget{structFigure_a279b7ab9f8ea06a497f4b638f443f4e7}\label{structFigure_a279b7ab9f8ea06a497f4b638f443f4e7}} 
 \index{Figure@{Figure}!top\_left\_position@{top\_left\_position}}
@@ -279,13 +286,13 @@ Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02247}{adl\+\_\+2
 \doxysubsubsection{\texorpdfstring{top\_left\_position}{top\_left\_position}}
 {\footnotesize\ttfamily \mbox{\hyperlink{structPoint}{Point}} Figure\+::top\+\_\+left\+\_\+position}
 
+On-\/screen copy position. 
+
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00190}{190}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00131}{131}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
-
-
-Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02014}{adl\+\_\+figure\+\_\+alloc()}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02057}{adl\+\_\+figure\+\_\+copy\+\_\+to\+\_\+screen()}}.
+Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02081}{adl\+\_\+figure\+\_\+alloc()}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02124}{adl\+\_\+figure\+\_\+copy\+\_\+to\+\_\+screen()}}.
 
 \mbox{\Hypertarget{structFigure_a7c5c1d2482da592efb349f95fa86ccd3}\label{structFigure_a7c5c1d2482da592efb349f95fa86ccd3}} 
 \index{Figure@{Figure}!x\_axis\_head\_size@{x\_axis\_head\_size}}
@@ -293,13 +300,13 @@ Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02014}{adl\+\_\+f
 \doxysubsubsection{\texorpdfstring{x\_axis\_head\_size}{x\_axis\_head\_size}}
 {\footnotesize\ttfamily int Figure\+::x\+\_\+axis\+\_\+head\+\_\+size}
 
+Computed X-\/axis arrow head size (px). 
+
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00185}{185}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00127}{127}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
-
-
-Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02077}{adl\+\_\+axis\+\_\+draw\+\_\+on\+\_\+figure()}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02103}{adl\+\_\+max\+\_\+min\+\_\+values\+\_\+draw\+\_\+on\+\_\+figure()}}.
+Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02144}{adl\+\_\+axis\+\_\+draw\+\_\+on\+\_\+figure()}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02170}{adl\+\_\+max\+\_\+min\+\_\+values\+\_\+draw\+\_\+on\+\_\+figure()}}.
 
 \mbox{\Hypertarget{structFigure_a93fb83221c702899f524e808eb4cd3be}\label{structFigure_a93fb83221c702899f524e808eb4cd3be}} 
 \index{Figure@{Figure}!y\_axis\_head\_size@{y\_axis\_head\_size}}
@@ -307,13 +314,13 @@ Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02077}{adl\+\_\+a
 \doxysubsubsection{\texorpdfstring{y\_axis\_head\_size}{y\_axis\_head\_size}}
 {\footnotesize\ttfamily int Figure\+::y\+\_\+axis\+\_\+head\+\_\+size}
 
+Computed Y-\/axis arrow head size (px). 
+
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00186}{186}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00128}{128}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
-
-
-Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02077}{adl\+\_\+axis\+\_\+draw\+\_\+on\+\_\+figure()}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02103}{adl\+\_\+max\+\_\+min\+\_\+values\+\_\+draw\+\_\+on\+\_\+figure()}}.
+Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02144}{adl\+\_\+axis\+\_\+draw\+\_\+on\+\_\+figure()}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02170}{adl\+\_\+max\+\_\+min\+\_\+values\+\_\+draw\+\_\+on\+\_\+figure()}}.
 
 
 

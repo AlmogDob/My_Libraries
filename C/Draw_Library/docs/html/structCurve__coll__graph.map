@@ -1,4 +1,4 @@
 <map id="Curve" name="Curve">
-<area shape="rect" id="node1" title=" " alt="" coords="5,95,65,121"/>
-<area shape="rect" id="node2" href="$structPoint.html" title=" " alt="" coords="8,5,63,32"/>
+<area shape="rect" id="node1" title="Polyline of points with a uniform color." alt="" coords="5,95,65,121"/>
+<area shape="rect" id="node2" href="$structPoint.html" title="Homogeneous 2D/3D point with per&#45;vertex depth (z) and w." alt="" coords="8,5,63,32"/>
 </map>

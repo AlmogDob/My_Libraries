@@ -49,3 +49,7 @@ debug_example1: debug_build_example1
 debug_build_example1: ./example1.c
 	@echo [INFO] building example1
 	gcc ./example1.c $(CFLAGS) -ggdb -o ./example1
+
+########################################
+strip_comments_Almog_Draw_Library.h: ./Almog_Draw_Library.h
+	gcc -fpreprocessed -dD -E -P ./Almog_Draw_Library.h > striped_Almog_Draw_Library.h

@@ -9,8 +9,8 @@
 #include "../include/Almog_Engine.h"
 #define MATRIX2D_IMPLEMENTATION
 #include "../include/Matrix2D.h"
-#define ALMOG_SHAPES_IMPLEMENTATION
-#include "../include/Almog_Shapes.h"
+#define ALMOG_DELAUNAY_TRIANGULATION_IMPLEMENTATION
+#include "../include/Almog_Delaunay_Triangulation.h"
 
 #include <time.h>
 
@@ -26,15 +26,38 @@ void setup(game_state_t *game_state)
 
     Curve c = as_curve_create_random_points(1000, -2, 2, -2, 2, 0, 0, time(NULL));
 
-    Tri_edge_implicit_mesh tei_mesh = as_tri_edge_implicit_mesh_make_Delaunay_triangulation_flip_algorithm(c.elements, c.length);
+    Tri_edge_implicit_mesh tei_mesh = adt_tri_edge_implicit_mesh_make_Delaunay_triangulation_flip_algorithm(c.elements, c.length);
 
-    size_t p1_index = 10;
-    size_t p2_index = 950;
-    as_tri_edge_implicit_mesh_insert_segment(&tei_mesh, tei_mesh.points.elements[p1_index], tei_mesh.points.elements[p2_index]);
+    Edge_ada edge_list = {0};
+    ada_init_array(Edge, edge_list);
 
-    AS_TRI_EDGE_IMPLICIT_MESH_PRINT_SEGMENTS(tei_mesh);
+    size_t p1_index = 1;
+    size_t p2_index = 100;
+    Edge edge = (Edge){(Point)tei_mesh.points.elements[p1_index], (Point)tei_mesh.points.elements[p2_index], 0};
+    ada_appand(Edge, edge_list, edge);
 
-    dprintINT(as_tri_edge_implicit_mesh_check_Delaunay(tei_mesh));
+    p1_index = 100;
+    p2_index = 500;
+    edge = (Edge){(Point)tei_mesh.points.elements[p1_index], (Point)tei_mesh.points.elements[p2_index], 0};
+    ada_appand(Edge, edge_list, edge);
+
+    p1_index = 500;
+    p2_index = 900;
+    edge = (Edge){(Point)tei_mesh.points.elements[p1_index], (Point)tei_mesh.points.elements[p2_index], 0};
+    ada_appand(Edge, edge_list, edge);
+
+    p1_index = 900;
+    p2_index = 1;
+    edge = (Edge){(Point)tei_mesh.points.elements[p1_index], (Point)tei_mesh.points.elements[p2_index], 0};
+    ada_appand(Edge, edge_list, edge);
+
+    adt_tri_edge_implicit_mesh_insert_segment_array(&tei_mesh, edge_list.elements, edge_list.length, AS_EPSILON);
+
+    free(edge_list.elements);
+
+    // AS_TRI_EDGE_IMPLICIT_MESH_PRINT_SEGMENTS(tei_mesh);
+
+    dprintINT(adt_tri_edge_implicit_mesh_check_Delaunay(tei_mesh));
 
 
     mesh = as_tri_edge_implicit_mesh_to_tri_mesh(tei_mesh, 1, 0xffffffff);

@@ -13,16 +13,14 @@ Immediate-\/mode 2D/3D raster helpers for drawing onto \mbox{\hyperlink{structMa
 {\ttfamily \#include \char`\"{}./\+Matrix2\+D.\+h\char`\"{}}\newline
 {\ttfamily \#include \char`\"{}./\+Almog\+\_\+\+Dynamic\+\_\+\+Array.\+h\char`\"{}}\newline
 {\ttfamily \#include $<$assert.\+h$>$}\newline
-Include dependency graph for Almog\+\_\+\+Draw\+\_\+\+Library.\+h\+:
-\nopagebreak
+Include dependency graph for Almog\+\_\+\+Draw\+\_\+\+Library.\+h\+:\nopagebreak
 \begin{figure}[H]
 \begin{center}
 \leavevmode
 \includegraphics[width=350pt]{Almog__Draw__Library_8h__incl}
 \end{center}
 \end{figure}
-This graph shows which files directly or indirectly include this file\+:
-\nopagebreak
+This graph shows which files directly or indirectly include this file\+:\nopagebreak
 \begin{figure}[H]
 \begin{center}
 \leavevmode
@@ -33,30 +31,30 @@ This graph shows which files directly or indirectly include this file\+:
 \begin{DoxyCompactItemize}
 \item 
 struct \mbox{\hyperlink{structOffset__zoom__param}{Offset\+\_\+zoom\+\_\+param}}
-\item 
+\begin{DoxyCompactList}\small\item\em Pan/zoom parameters relative to screen center. \end{DoxyCompactList}\item 
 struct \mbox{\hyperlink{structPoint}{Point}}
-\item 
+\begin{DoxyCompactList}\small\item\em Homogeneous 2D/3D point with per-\/vertex depth (z) and w. \end{DoxyCompactList}\item 
 struct \mbox{\hyperlink{structCurve}{Curve}}
-\item 
+\begin{DoxyCompactList}\small\item\em Polyline of points with a uniform color. \end{DoxyCompactList}\item 
 struct \mbox{\hyperlink{structCurve__ada}{Curve\+\_\+ada}}
-\item 
+\begin{DoxyCompactList}\small\item\em Dynamic array of curves (polyline container). \end{DoxyCompactList}\item 
 struct \mbox{\hyperlink{structTri}{Tri}}
-\item 
+\begin{DoxyCompactList}\small\item\em Triangle primitive with optional per-\/vertex attributes. \end{DoxyCompactList}\item 
 struct \mbox{\hyperlink{structQuad}{Quad}}
-\item 
+\begin{DoxyCompactList}\small\item\em \mbox{\hyperlink{structQuad}{Quad}} primitive with optional per-\/vertex attributes. \end{DoxyCompactList}\item 
 struct \mbox{\hyperlink{structTri__mesh}{Tri\+\_\+mesh}}
-\item 
+\begin{DoxyCompactList}\small\item\em Dynamic array of triangles (triangle mesh). \end{DoxyCompactList}\item 
 struct \mbox{\hyperlink{structQuad__mesh}{Quad\+\_\+mesh}}
-\item 
+\begin{DoxyCompactList}\small\item\em Dynamic array of quads (quad mesh). \end{DoxyCompactList}\item 
 struct \mbox{\hyperlink{structFigure}{Figure}}
-\item 
+\begin{DoxyCompactList}\small\item\em Plotting figure holding a pixel buffer, z-\/buffer and plot state. \end{DoxyCompactList}\item 
 struct \mbox{\hyperlink{structGrid}{Grid}}
-\end{DoxyCompactItemize}
+\begin{DoxyCompactList}\small\item\em \mbox{\hyperlink{structGrid}{Grid}} definition (as lines) in a chosen plane. \end{DoxyCompactList}\end{DoxyCompactItemize}
 \doxysubsection*{Macros}
 \begin{DoxyCompactItemize}
 \item 
 \#define \mbox{\hyperlink{Almog__Draw__Library_8h_ab53d37129b3720c9cacd86a962ef97e4}{ADL\+\_\+\+ASSERT}}~assert
-\item 
+\begin{DoxyCompactList}\small\item\em Assertion macro used by this header (defaults to assert). \end{DoxyCompactList}\item 
 \#define \mbox{\hyperlink{Almog__Draw__Library_8h_a43011aabc923f9b33f1f51dc03b23539}{POINT}}
 \item 
 \#define \mbox{\hyperlink{Almog__Draw__Library_8h_a5e84628ccf5bc23ccfac181b077616ae}{CURVE}}
@@ -231,17 +229,35 @@ void \mbox{\hyperlink{Almog__Draw__Library_8h_a45f92dc1aa2afc7012d0eead6b95f4ff}
 \doxysubsection{Detailed Description}
 Immediate-\/mode 2D/3D raster helpers for drawing onto \mbox{\hyperlink{structMat2D__uint32}{Mat2\+D\+\_\+uint32}} pixel buffers. 
 
-Conventions
+This single-\/header library provides a minimal software rasterizer for drawing into a 32-\/bit ARGB pixel buffer (\mbox{\hyperlink{structMat2D__uint32}{Mat2\+D\+\_\+uint32}}). It supports\+:
 \begin{DoxyItemize}
-\item Pixel buffer\+: \mbox{\hyperlink{structMat2D__uint32}{Mat2\+D\+\_\+uint32}} with elements encoded as ARGB 0x\+AARRGGBB.
-\item Coordinates\+: x grows to the right, y grows downward; origin is the top-\/left corner of the destination buffer.
-\item Depth\+: Functions that accept inv\+\_\+z\+\_\+buffer perform a depth test using inverse-\/Z (larger values are closer). The buffer stores doubles.
-\item Transform\+: Most drawing functions accept an \mbox{\hyperlink{structOffset__zoom__param}{Offset\+\_\+zoom\+\_\+param}} describing a pan/zoom transform that is applied about the screen center. Use ADL\+\_\+\+DEFAULT\+\_\+\+OFFSET\+\_\+\+ZOOM for identity.
-\item Colors\+: Unless noted otherwise, colors are ARGB in 0x\+AARRGGBB format.
-\item Alpha\+: adl\+\_\+point\+\_\+draw alpha-\/blends source over destination and writes an opaque result (A = 255) to the pixel buffer.
+\item Points, lines, circles, triangles and quads (wire and filled)
+\item Z-\/buffered triangle/quad rasterization (inverse-\/Z convention)
+\item Per-\/vertex color and simple light-\/intensity interpolation
+\item Basic vector-\/text drawing (ASCII subset)
+\item Plotting helper types (\mbox{\hyperlink{structFigure}{Figure}}) and utilities for curve plots and 2D scalar-\/field visualization using perceptual color interpolation in the OKLab/\+OKLch color spaces
+\item Cartesian grid generation in common planes
 \end{DoxyItemize}
 
-This header contains function declarations and optional implementations (guarded by ALMOG\+\_\+\+DRAW\+\_\+\+LIBRARY\+\_\+\+IMPLEMENTATION). 
+All draw calls may accept an \mbox{\hyperlink{structOffset__zoom__param}{Offset\+\_\+zoom\+\_\+param}} that enables simple pan/zoom behavior around the screen center.
+
+Types \mbox{\hyperlink{structMat2D}{Mat2D}} and \mbox{\hyperlink{structMat2D__uint32}{Mat2\+D\+\_\+uint32}} are provided by \mbox{\hyperlink{Matrix2D_8h}{Matrix2\+D.\+h}}.
+
+Usage\+:
+\begin{DoxyItemize}
+\item Include this header wherever you use the API.
+\item In exactly one translation unit (source file) define ALMOG\+\_\+\+DRAW\+\_\+\+LIBRARY\+\_\+\+IMPLEMENTATION before including this header to compile the function definitions.
+\end{DoxyItemize}
+
+\begin{DoxyNote}{Note}
+
+\begin{DoxyItemize}
+\item Colors are ARGB in 0x\+AARRGGBB packed 32-\/bit format.
+\item Z buffering uses an inverse-\/Z buffer (bigger is closer).
+\item The OKLab/\+OKLch conversions here assume linear s\+RGB channels. 
+\end{DoxyItemize}
+\end{DoxyNote}
+
 
 Definition in file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
@@ -256,7 +272,11 @@ Definition in file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\
 
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00037}{37}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Assertion macro used by this header (defaults to assert). 
+
+Define ADL\+\_\+\+ASSERT before including this file to override. When NDEBUG is defined, standard assert() is disabled. 
+
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00055}{55}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 \mbox{\Hypertarget{Almog__Draw__Library_8h_ab415130f9b85c4f2c037d2b9b13bb8b8}\label{Almog__Draw__Library_8h_ab415130f9b85c4f2c037d2b9b13bb8b8}} 
 \index{Almog\_Draw\_Library.h@{Almog\_Draw\_Library.h}!adl\_assert\_point\_is\_valid@{adl\_assert\_point\_is\_valid}}
@@ -266,7 +286,7 @@ Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00037}{37}} 
 
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00243}{243}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00310}{310}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 \mbox{\Hypertarget{Almog__Draw__Library_8h_a1f9ea71569480b40da0e2b219b3f463b}\label{Almog__Draw__Library_8h_a1f9ea71569480b40da0e2b219b3f463b}} 
 \index{Almog\_Draw\_Library.h@{Almog\_Draw\_Library.h}!adl\_assert\_quad\_is\_valid@{adl\_assert\_quad\_is\_valid}}
@@ -284,7 +304,7 @@ Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00243}{243}}
 \end{DoxyCode}
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00247}{247}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00314}{314}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 \mbox{\Hypertarget{Almog__Draw__Library_8h_a58394344ea3ceebf0dd0844705496f80}\label{Almog__Draw__Library_8h_a58394344ea3ceebf0dd0844705496f80}} 
 \index{Almog\_Draw\_Library.h@{Almog\_Draw\_Library.h}!adl\_assert\_tri\_is\_valid@{adl\_assert\_tri\_is\_valid}}
@@ -301,7 +321,7 @@ Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00247}{247}}
 \end{DoxyCode}
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00244}{244}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00311}{311}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 \mbox{\Hypertarget{Almog__Draw__Library_8h_a92a254e8a4472cd8a3ba7d797e73f1ad}\label{Almog__Draw__Library_8h_a92a254e8a4472cd8a3ba7d797e73f1ad}} 
 \index{Almog\_Draw\_Library.h@{Almog\_Draw\_Library.h}!ADL\_DEFAULT\_OFFSET\_ZOOM@{ADL\_DEFAULT\_OFFSET\_ZOOM}}
@@ -311,7 +331,7 @@ Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00244}{244}}
 
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00264}{264}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00331}{331}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 \mbox{\Hypertarget{Almog__Draw__Library_8h_a77211f974fe0cf3332cb2c61fb7b7e44}\label{Almog__Draw__Library_8h_a77211f974fe0cf3332cb2c61fb7b7e44}} 
 \index{Almog\_Draw\_Library.h@{Almog\_Draw\_Library.h}!ADL\_FIGURE\_AXIS\_COLOR@{ADL\_FIGURE\_AXIS\_COLOR}}
@@ -321,7 +341,7 @@ Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00264}{264}}
 
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00257}{257}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00324}{324}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 \mbox{\Hypertarget{Almog__Draw__Library_8h_a3f26eabe1877247429119a10112f2881}\label{Almog__Draw__Library_8h_a3f26eabe1877247429119a10112f2881}} 
 \index{Almog\_Draw\_Library.h@{Almog\_Draw\_Library.h}!ADL\_FIGURE\_HEAD\_ANGLE\_DEG@{ADL\_FIGURE\_HEAD\_ANGLE\_DEG}}
@@ -331,7 +351,7 @@ Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00257}{257}}
 
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00256}{256}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00323}{323}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 \mbox{\Hypertarget{Almog__Draw__Library_8h_a54e82322b28b1c262afd8d1adc9c19e1}\label{Almog__Draw__Library_8h_a54e82322b28b1c262afd8d1adc9c19e1}} 
 \index{Almog\_Draw\_Library.h@{Almog\_Draw\_Library.h}!ADL\_FIGURE\_PADDING\_PRECENTAGE@{ADL\_FIGURE\_PADDING\_PRECENTAGE}}
@@ -341,7 +361,7 @@ Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00256}{256}}
 
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00252}{252}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00319}{319}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 \mbox{\Hypertarget{Almog__Draw__Library_8h_a128b1d8598cf5029a776147a5aefdfc1}\label{Almog__Draw__Library_8h_a128b1d8598cf5029a776147a5aefdfc1}} 
 \index{Almog\_Draw\_Library.h@{Almog\_Draw\_Library.h}!ADL\_MAX\_CHARACTER\_OFFSET@{ADL\_MAX\_CHARACTER\_OFFSET}}
@@ -351,7 +371,7 @@ Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00252}{252}}
 
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00259}{259}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00326}{326}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 \mbox{\Hypertarget{Almog__Draw__Library_8h_aa42e8177fad6734d06b4aaf130b720f9}\label{Almog__Draw__Library_8h_aa42e8177fad6734d06b4aaf130b720f9}} 
 \index{Almog\_Draw\_Library.h@{Almog\_Draw\_Library.h}!ADL\_MAX\_FIGURE\_PADDING@{ADL\_MAX\_FIGURE\_PADDING}}
@@ -361,7 +381,7 @@ Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00259}{259}}
 
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00253}{253}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00320}{320}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 \mbox{\Hypertarget{Almog__Draw__Library_8h_a8e7248b317d93a1a00e3e618f102f100}\label{Almog__Draw__Library_8h_a8e7248b317d93a1a00e3e618f102f100}} 
 \index{Almog\_Draw\_Library.h@{Almog\_Draw\_Library.h}!ADL\_MAX\_HEAD\_SIZE@{ADL\_MAX\_HEAD\_SIZE}}
@@ -371,7 +391,7 @@ Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00253}{253}}
 
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00255}{255}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00322}{322}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 \mbox{\Hypertarget{Almog__Draw__Library_8h_ae97139b075eaa718f014c948491ab92d}\label{Almog__Draw__Library_8h_ae97139b075eaa718f014c948491ab92d}} 
 \index{Almog\_Draw\_Library.h@{Almog\_Draw\_Library.h}!ADL\_MAX\_POINT\_VAL@{ADL\_MAX\_POINT\_VAL}}
@@ -381,7 +401,7 @@ Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00255}{255}}
 
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00242}{242}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00309}{309}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 \mbox{\Hypertarget{Almog__Draw__Library_8h_a8cbb9cde6eaf54e71d2bbb7af7ef5b15}\label{Almog__Draw__Library_8h_a8cbb9cde6eaf54e71d2bbb7af7ef5b15}} 
 \index{Almog\_Draw\_Library.h@{Almog\_Draw\_Library.h}!ADL\_MAX\_SENTENCE\_LEN@{ADL\_MAX\_SENTENCE\_LEN}}
@@ -391,7 +411,7 @@ Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00242}{242}}
 
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00261}{261}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00328}{328}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 \mbox{\Hypertarget{Almog__Draw__Library_8h_aa5dfb68d20a2d9a61fcc51827477e574}\label{Almog__Draw__Library_8h_aa5dfb68d20a2d9a61fcc51827477e574}} 
 \index{Almog\_Draw\_Library.h@{Almog\_Draw\_Library.h}!ADL\_MAX\_ZOOM@{ADL\_MAX\_ZOOM}}
@@ -401,7 +421,7 @@ Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00261}{261}}
 
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00262}{262}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00329}{329}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 \mbox{\Hypertarget{Almog__Draw__Library_8h_a32da7d322db71482aa10f1f285832596}\label{Almog__Draw__Library_8h_a32da7d322db71482aa10f1f285832596}} 
 \index{Almog\_Draw\_Library.h@{Almog\_Draw\_Library.h}!ADL\_MIN\_CHARACTER\_OFFSET@{ADL\_MIN\_CHARACTER\_OFFSET}}
@@ -411,7 +431,7 @@ Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00262}{262}}
 
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00260}{260}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00327}{327}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 \mbox{\Hypertarget{Almog__Draw__Library_8h_ae2371d03305558f02f66d4aaf6b759f6}\label{Almog__Draw__Library_8h_ae2371d03305558f02f66d4aaf6b759f6}} 
 \index{Almog\_Draw\_Library.h@{Almog\_Draw\_Library.h}!ADL\_MIN\_FIGURE\_PADDING@{ADL\_MIN\_FIGURE\_PADDING}}
@@ -421,7 +441,7 @@ Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00260}{260}}
 
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00254}{254}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00321}{321}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 \mbox{\Hypertarget{Almog__Draw__Library_8h_addf9b1bd275a08b9810e80acd6f96d2a}\label{Almog__Draw__Library_8h_addf9b1bd275a08b9810e80acd6f96d2a}} 
 \index{Almog\_Draw\_Library.h@{Almog\_Draw\_Library.h}!adl\_offset2d@{adl\_offset2d}}
@@ -431,7 +451,7 @@ Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00254}{254}}
 
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02227}{2227}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02294}{2294}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 \mbox{\Hypertarget{Almog__Draw__Library_8h_a1ef6e1a6824a0f9a11d684ad1e214ed1}\label{Almog__Draw__Library_8h_a1ef6e1a6824a0f9a11d684ad1e214ed1}} 
 \index{Almog\_Draw\_Library.h@{Almog\_Draw\_Library.h}!adl\_offset\_zoom\_point@{adl\_offset\_zoom\_point}}
@@ -447,7 +467,7 @@ Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02227}{2227}
 \end{DoxyCode}
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00265}{265}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00332}{332}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 \mbox{\Hypertarget{Almog__Draw__Library_8h_a67e07b663a3d67ae90629b85a6b6b67a}\label{Almog__Draw__Library_8h_a67e07b663a3d67ae90629b85a6b6b67a}} 
 \index{Almog\_Draw\_Library.h@{Almog\_Draw\_Library.h}!BLUE\_hexARGB@{BLUE\_hexARGB}}
@@ -457,7 +477,7 @@ Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00265}{265}}
 
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00232}{232}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00299}{299}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 \mbox{\Hypertarget{Almog__Draw__Library_8h_a5e84628ccf5bc23ccfac181b077616ae}\label{Almog__Draw__Library_8h_a5e84628ccf5bc23ccfac181b077616ae}} 
 \index{Almog\_Draw\_Library.h@{Almog\_Draw\_Library.h}!CURVE@{CURVE}}
@@ -467,7 +487,7 @@ Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00232}{232}}
 
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00059}{59}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00090}{90}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 \mbox{\Hypertarget{Almog__Draw__Library_8h_ace0f6a8e1ada03316b02203e2a6f90dc}\label{Almog__Draw__Library_8h_ace0f6a8e1ada03316b02203e2a6f90dc}} 
 \index{Almog\_Draw\_Library.h@{Almog\_Draw\_Library.h}!CURVE\_ADA@{CURVE\_ADA}}
@@ -477,7 +497,7 @@ Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00059}{59}} 
 
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00069}{69}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00103}{103}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 \mbox{\Hypertarget{Almog__Draw__Library_8h_a6d8c2ab7022b2d51dea282a81209c575}\label{Almog__Draw__Library_8h_a6d8c2ab7022b2d51dea282a81209c575}} 
 \index{Almog\_Draw\_Library.h@{Almog\_Draw\_Library.h}!CYAN\_hexARGB@{CYAN\_hexARGB}}
@@ -487,7 +507,7 @@ Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00069}{69}} 
 
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00234}{234}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00301}{301}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 \mbox{\Hypertarget{Almog__Draw__Library_8h_a6da6a8f68ff61bf4850d903390c0c690}\label{Almog__Draw__Library_8h_a6da6a8f68ff61bf4850d903390c0c690}} 
 \index{Almog\_Draw\_Library.h@{Almog\_Draw\_Library.h}!edge\_cross\_point@{edge\_cross\_point}}
@@ -497,7 +517,7 @@ Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00234}{234}}
 
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00237}{237}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00304}{304}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 \mbox{\Hypertarget{Almog__Draw__Library_8h_a2573b865d687b5dcfe3d091f1a645921}\label{Almog__Draw__Library_8h_a2573b865d687b5dcfe3d091f1a645921}} 
 \index{Almog\_Draw\_Library.h@{Almog\_Draw\_Library.h}!GREEN\_hexARGB@{GREEN\_hexARGB}}
@@ -507,7 +527,7 @@ Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00237}{237}}
 
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00231}{231}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00298}{298}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 \mbox{\Hypertarget{Almog__Draw__Library_8h_a1e38982ab1aaaae615016576f660dff1}\label{Almog__Draw__Library_8h_a1e38982ab1aaaae615016576f660dff1}} 
 \index{Almog\_Draw\_Library.h@{Almog\_Draw\_Library.h}!HexARGB\_RGB\_VAR@{HexARGB\_RGB\_VAR}}
@@ -517,7 +537,7 @@ Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00231}{231}}
 
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00157}{157}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00224}{224}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 \mbox{\Hypertarget{Almog__Draw__Library_8h_a96d19b5694505d2bcea416c9771bb31b}\label{Almog__Draw__Library_8h_a96d19b5694505d2bcea416c9771bb31b}} 
 \index{Almog\_Draw\_Library.h@{Almog\_Draw\_Library.h}!HexARGB\_RGBA@{HexARGB\_RGBA}}
@@ -527,7 +547,7 @@ Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00157}{157}}
 
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00154}{154}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00221}{221}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 \mbox{\Hypertarget{Almog__Draw__Library_8h_ad02384d393ba960796c2471b74350c2d}\label{Almog__Draw__Library_8h_ad02384d393ba960796c2471b74350c2d}} 
 \index{Almog\_Draw\_Library.h@{Almog\_Draw\_Library.h}!HexARGB\_RGBA\_VAR@{HexARGB\_RGBA\_VAR}}
@@ -537,7 +557,7 @@ Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00154}{154}}
 
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00160}{160}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00227}{227}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 \mbox{\Hypertarget{Almog__Draw__Library_8h_a28aba875656d27a94a74f19eef7065e1}\label{Almog__Draw__Library_8h_a28aba875656d27a94a74f19eef7065e1}} 
 \index{Almog\_Draw\_Library.h@{Almog\_Draw\_Library.h}!is\_left\_edge@{is\_left\_edge}}
@@ -547,7 +567,7 @@ Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00160}{160}}
 
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00239}{239}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00306}{306}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 \mbox{\Hypertarget{Almog__Draw__Library_8h_a4a44974f1e3313a1951dab5533e6156e}\label{Almog__Draw__Library_8h_a4a44974f1e3313a1951dab5533e6156e}} 
 \index{Almog\_Draw\_Library.h@{Almog\_Draw\_Library.h}!is\_top\_edge@{is\_top\_edge}}
@@ -557,7 +577,7 @@ Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00239}{239}}
 
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00238}{238}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00305}{305}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 \mbox{\Hypertarget{Almog__Draw__Library_8h_a4684a6b9c18ba630636b7407653e1057}\label{Almog__Draw__Library_8h_a4684a6b9c18ba630636b7407653e1057}} 
 \index{Almog\_Draw\_Library.h@{Almog\_Draw\_Library.h}!is\_top\_left@{is\_top\_left}}
@@ -567,7 +587,7 @@ Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00238}{238}}
 
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00240}{240}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00307}{307}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 \mbox{\Hypertarget{Almog__Draw__Library_8h_a43011aabc923f9b33f1f51dc03b23539}\label{Almog__Draw__Library_8h_a43011aabc923f9b33f1f51dc03b23539}} 
 \index{Almog\_Draw\_Library.h@{Almog\_Draw\_Library.h}!POINT@{POINT}}
@@ -577,7 +597,7 @@ Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00240}{240}}
 
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00049}{49}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00074}{74}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 \mbox{\Hypertarget{Almog__Draw__Library_8h_a80fe53ef28c00cbaaffe5afbcf3ffefb}\label{Almog__Draw__Library_8h_a80fe53ef28c00cbaaffe5afbcf3ffefb}} 
 \index{Almog\_Draw\_Library.h@{Almog\_Draw\_Library.h}!PURPLE\_hexARGB@{PURPLE\_hexARGB}}
@@ -587,7 +607,7 @@ Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00049}{49}} 
 
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00233}{233}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00300}{300}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 \mbox{\Hypertarget{Almog__Draw__Library_8h_ac7252422b84a98d876dbc47ed5c0b5af}\label{Almog__Draw__Library_8h_ac7252422b84a98d876dbc47ed5c0b5af}} 
 \index{Almog\_Draw\_Library.h@{Almog\_Draw\_Library.h}!QUAD@{QUAD}}
@@ -597,7 +617,7 @@ Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00233}{233}}
 
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00090}{90}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00130}{130}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 \mbox{\Hypertarget{Almog__Draw__Library_8h_acb965f71620fd961ec18e95511671cf2}\label{Almog__Draw__Library_8h_acb965f71620fd961ec18e95511671cf2}} 
 \index{Almog\_Draw\_Library.h@{Almog\_Draw\_Library.h}!QUAD\_MESH@{QUAD\_MESH}}
@@ -607,7 +627,7 @@ Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00090}{90}} 
 
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00110}{110}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00156}{156}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 \mbox{\Hypertarget{Almog__Draw__Library_8h_a18d40dca86bc96286a6b4e865ff1bcc9}\label{Almog__Draw__Library_8h_a18d40dca86bc96286a6b4e865ff1bcc9}} 
 \index{Almog\_Draw\_Library.h@{Almog\_Draw\_Library.h}!RED\_hexARGB@{RED\_hexARGB}}
@@ -617,7 +637,7 @@ Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00110}{110}}
 
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00230}{230}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00297}{297}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 \mbox{\Hypertarget{Almog__Draw__Library_8h_ae5c9bd99d773c485b76cef79ced9ef29}\label{Almog__Draw__Library_8h_ae5c9bd99d773c485b76cef79ced9ef29}} 
 \index{Almog\_Draw\_Library.h@{Almog\_Draw\_Library.h}!RGB\_hexRGB@{RGB\_hexRGB}}
@@ -627,7 +647,7 @@ Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00230}{230}}
 
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00163}{163}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00230}{230}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 \mbox{\Hypertarget{Almog__Draw__Library_8h_af2a5454da38824700317a8dbcab92f1b}\label{Almog__Draw__Library_8h_af2a5454da38824700317a8dbcab92f1b}} 
 \index{Almog\_Draw\_Library.h@{Almog\_Draw\_Library.h}!RGBA\_hexARGB@{RGBA\_hexARGB}}
@@ -637,7 +657,7 @@ Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00163}{163}}
 
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00166}{166}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00233}{233}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 \mbox{\Hypertarget{Almog__Draw__Library_8h_af6427767938abfcff7c07db4a3020f6a}\label{Almog__Draw__Library_8h_af6427767938abfcff7c07db4a3020f6a}} 
 \index{Almog\_Draw\_Library.h@{Almog\_Draw\_Library.h}!TRI@{TRI}}
@@ -647,7 +667,7 @@ Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00166}{166}}
 
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00078}{78}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00115}{115}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 \mbox{\Hypertarget{Almog__Draw__Library_8h_abb9096632f751c821ce5591ee8751c8d}\label{Almog__Draw__Library_8h_abb9096632f751c821ce5591ee8751c8d}} 
 \index{Almog\_Draw\_Library.h@{Almog\_Draw\_Library.h}!TRI\_MESH@{TRI\_MESH}}
@@ -657,7 +677,7 @@ Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00078}{78}} 
 
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00101}{101}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00144}{144}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 \mbox{\Hypertarget{Almog__Draw__Library_8h_a2c08d20a50ce1fb32f381d143a1940d4}\label{Almog__Draw__Library_8h_a2c08d20a50ce1fb32f381d143a1940d4}} 
 \index{Almog\_Draw\_Library.h@{Almog\_Draw\_Library.h}!YELLOW\_hexARGB@{YELLOW\_hexARGB}}
@@ -667,7 +687,7 @@ Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00101}{101}}
 
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00235}{235}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00302}{302}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 
 
@@ -705,11 +725,11 @@ Treats x\+\_\+2\+Dmat and y\+\_\+2\+Dmat as a structured 2D grid of positions (c
 \end{DoxyParams}
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02247}{2247}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02314}{2314}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 
 
-References \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02077}{adl\+\_\+axis\+\_\+draw\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00264}{ADL\+\_\+\+DEFAULT\+\_\+\+OFFSET\+\_\+\+ZOOM}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01986}{adl\+\_\+interpolate\+\_\+\+ARGBcolor\+\_\+on\+\_\+ok\+Lch()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01798}{adl\+\_\+linear\+\_\+map()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02103}{adl\+\_\+max\+\_\+min\+\_\+values\+\_\+draw\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02227}{adl\+\_\+offset2d}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00265}{adl\+\_\+offset\+\_\+zoom\+\_\+point}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01149}{adl\+\_\+quad\+\_\+fill\+\_\+interpolate\+\_\+color\+\_\+mean\+\_\+value()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00134}{Figure\+::background\+\_\+color}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00232}{BLUE\+\_\+hex\+ARGB}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00094}{Quad\+::colors}}, \mbox{\hyperlink{Matrix2D_8h_source_l00083}{Mat2\+D\+::cols}}, \mbox{\hyperlink{Matrix2D_8h_source_l00100}{Mat2\+D\+\_\+uint32\+::cols}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00234}{CYAN\+\_\+hex\+ARGB}}, \mbox{\hyperlink{Matrix2D_8h_source_l00085}{Mat2\+D\+::elements}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00231}{GREEN\+\_\+hex\+ARGB}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00133}{Figure\+::inv\+\_\+z\+\_\+buffer\+\_\+mat}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00096}{Quad\+::light\+\_\+intensity}}, \mbox{\hyperlink{Matrix2D_8h_source_l00391}{mat2\+D\+\_\+fill\+\_\+uint32()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00124}{Figure\+::max\+\_\+x}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00120}{Figure\+::max\+\_\+x\+\_\+pixel}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00126}{Figure\+::max\+\_\+y}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00122}{Figure\+::max\+\_\+y\+\_\+pixel}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00123}{Figure\+::min\+\_\+x}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00119}{Figure\+::min\+\_\+x\+\_\+pixel}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00125}{Figure\+::min\+\_\+y}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00121}{Figure\+::min\+\_\+y\+\_\+pixel}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00129}{Figure\+::offset\+\_\+zoom\+\_\+param}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00132}{Figure\+::pixels\+\_\+mat}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00092}{Quad\+::points}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00233}{PURPLE\+\_\+hex\+ARGB}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00230}{RED\+\_\+hex\+ARGB}}, \mbox{\hyperlink{Matrix2D_8h_source_l00082}{Mat2\+D\+::rows}}, \mbox{\hyperlink{Matrix2D_8h_source_l00099}{Mat2\+D\+\_\+uint32\+::rows}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00095}{Quad\+::to\+\_\+draw}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00135}{Figure\+::to\+\_\+draw\+\_\+axis}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00136}{Figure\+::to\+\_\+draw\+\_\+max\+\_\+min\+\_\+values}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00054}{Point\+::w}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00051}{Point\+::x}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00052}{Point\+::y}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00235}{YELLOW\+\_\+hex\+ARGB}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00053}{Point\+::z}}.
+References \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02144}{adl\+\_\+axis\+\_\+draw\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00331}{ADL\+\_\+\+DEFAULT\+\_\+\+OFFSET\+\_\+\+ZOOM}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02053}{adl\+\_\+interpolate\+\_\+\+ARGBcolor\+\_\+on\+\_\+ok\+Lch()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01865}{adl\+\_\+linear\+\_\+map()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02170}{adl\+\_\+max\+\_\+min\+\_\+values\+\_\+draw\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02294}{adl\+\_\+offset2d}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00332}{adl\+\_\+offset\+\_\+zoom\+\_\+point}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01216}{adl\+\_\+quad\+\_\+fill\+\_\+interpolate\+\_\+color\+\_\+mean\+\_\+value()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00195}{Figure\+::background\+\_\+color}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00299}{BLUE\+\_\+hex\+ARGB}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00137}{Quad\+::colors}}, \mbox{\hyperlink{Matrix2D_8h_source_l00083}{Mat2\+D\+::cols}}, \mbox{\hyperlink{Matrix2D_8h_source_l00100}{Mat2\+D\+\_\+uint32\+::cols}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00301}{CYAN\+\_\+hex\+ARGB}}, \mbox{\hyperlink{Matrix2D_8h_source_l00085}{Mat2\+D\+::elements}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00298}{GREEN\+\_\+hex\+ARGB}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00193}{Figure\+::inv\+\_\+z\+\_\+buffer\+\_\+mat}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00139}{Quad\+::light\+\_\+intensity}}, \mbox{\hyperlink{Matrix2D_8h_source_l00391}{mat2\+D\+\_\+fill\+\_\+uint32()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00181}{Figure\+::max\+\_\+x}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00176}{Figure\+::max\+\_\+x\+\_\+pixel}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00183}{Figure\+::max\+\_\+y}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00178}{Figure\+::max\+\_\+y\+\_\+pixel}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00180}{Figure\+::min\+\_\+x}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00175}{Figure\+::min\+\_\+x\+\_\+pixel}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00182}{Figure\+::min\+\_\+y}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00177}{Figure\+::min\+\_\+y\+\_\+pixel}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00188}{Figure\+::offset\+\_\+zoom\+\_\+param}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00192}{Figure\+::pixels\+\_\+mat}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00135}{Quad\+::points}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00300}{PURPLE\+\_\+hex\+ARGB}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00297}{RED\+\_\+hex\+ARGB}}, \mbox{\hyperlink{Matrix2D_8h_source_l00082}{Mat2\+D\+::rows}}, \mbox{\hyperlink{Matrix2D_8h_source_l00099}{Mat2\+D\+\_\+uint32\+::rows}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00138}{Quad\+::to\+\_\+draw}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00196}{Figure\+::to\+\_\+draw\+\_\+axis}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00197}{Figure\+::to\+\_\+draw\+\_\+max\+\_\+min\+\_\+values}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00085}{Point\+::w}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00082}{Point\+::x}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00083}{Point\+::y}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00302}{YELLOW\+\_\+hex\+ARGB}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00084}{Point\+::z}}.
 
 \mbox{\Hypertarget{Almog__Draw__Library_8h_a1617ac2a87b7135e826e98aebecf9820}\label{Almog__Draw__Library_8h_a1617ac2a87b7135e826e98aebecf9820}} 
 \index{Almog\_Draw\_Library.h@{Almog\_Draw\_Library.h}!adl\_arrow\_draw@{adl\_arrow\_draw}}
@@ -749,15 +769,15 @@ The head is constructed by rotating around the arrow tip by +/-\/ angle\+\_\+deg
 \end{DoxyParams}
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00451}{451}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00518}{518}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 
 
-References \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00316}{adl\+\_\+line\+\_\+draw()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00496}{mat2\+D\+\_\+add()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00278}{mat2\+D\+\_\+alloc()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00145}{MAT2\+D\+\_\+\+AT}}, \mbox{\hyperlink{Matrix2D_8h_source_l00768}{mat2\+D\+\_\+copy()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00424}{mat2\+D\+\_\+dot()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00362}{mat2\+D\+\_\+fill()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00314}{mat2\+D\+\_\+free()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00723}{mat2\+D\+\_\+set\+\_\+rot\+\_\+mat\+\_\+z()}}, and \mbox{\hyperlink{Matrix2D_8h_source_l00527}{mat2\+D\+\_\+sub()}}.
+References \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00383}{adl\+\_\+line\+\_\+draw()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00496}{mat2\+D\+\_\+add()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00278}{mat2\+D\+\_\+alloc()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00145}{MAT2\+D\+\_\+\+AT}}, \mbox{\hyperlink{Matrix2D_8h_source_l00768}{mat2\+D\+\_\+copy()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00424}{mat2\+D\+\_\+dot()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00362}{mat2\+D\+\_\+fill()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00314}{mat2\+D\+\_\+free()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00723}{mat2\+D\+\_\+set\+\_\+rot\+\_\+mat\+\_\+z()}}, and \mbox{\hyperlink{Matrix2D_8h_source_l00527}{mat2\+D\+\_\+sub()}}.
 
 
 
-Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02077}{adl\+\_\+axis\+\_\+draw\+\_\+on\+\_\+figure()}}.
+Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02144}{adl\+\_\+axis\+\_\+draw\+\_\+on\+\_\+figure()}}.
 
 \mbox{\Hypertarget{Almog__Draw__Library_8h_a8e326591323a76c262e0d46ce3f054fa}\label{Almog__Draw__Library_8h_a8e326591323a76c262e0d46ce3f054fa}} 
 \index{Almog\_Draw\_Library.h@{Almog\_Draw\_Library.h}!adl\_axis\_draw\_on\_figure@{adl\_axis\_draw\_on\_figure}}
@@ -778,15 +798,15 @@ Uses the current figure\textquotesingle{}s pixel extents and padding to place ax
 \end{DoxyParams}
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02077}{2077}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02144}{2144}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 
 
-References \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00451}{adl\+\_\+arrow\+\_\+draw()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00257}{ADL\+\_\+\+FIGURE\+\_\+\+AXIS\+\_\+\+COLOR}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00256}{ADL\+\_\+\+FIGURE\+\_\+\+HEAD\+\_\+\+ANGLE\+\_\+\+DEG}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00252}{ADL\+\_\+\+FIGURE\+\_\+\+PADDING\+\_\+\+PRECENTAGE}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00253}{ADL\+\_\+\+MAX\+\_\+\+FIGURE\+\_\+\+PADDING}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00255}{ADL\+\_\+\+MAX\+\_\+\+HEAD\+\_\+\+SIZE}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00254}{ADL\+\_\+\+MIN\+\_\+\+FIGURE\+\_\+\+PADDING}}, \mbox{\hyperlink{Matrix2D_8h_source_l00100}{Mat2\+D\+\_\+uint32\+::cols}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00120}{Figure\+::max\+\_\+x\+\_\+pixel}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00122}{Figure\+::max\+\_\+y\+\_\+pixel}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00119}{Figure\+::min\+\_\+x\+\_\+pixel}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00121}{Figure\+::min\+\_\+y\+\_\+pixel}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00129}{Figure\+::offset\+\_\+zoom\+\_\+param}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00132}{Figure\+::pixels\+\_\+mat}}, \mbox{\hyperlink{Matrix2D_8h_source_l00099}{Mat2\+D\+\_\+uint32\+::rows}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00127}{Figure\+::x\+\_\+axis\+\_\+head\+\_\+size}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00128}{Figure\+::y\+\_\+axis\+\_\+head\+\_\+size}}.
+References \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00518}{adl\+\_\+arrow\+\_\+draw()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00324}{ADL\+\_\+\+FIGURE\+\_\+\+AXIS\+\_\+\+COLOR}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00323}{ADL\+\_\+\+FIGURE\+\_\+\+HEAD\+\_\+\+ANGLE\+\_\+\+DEG}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00319}{ADL\+\_\+\+FIGURE\+\_\+\+PADDING\+\_\+\+PRECENTAGE}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00320}{ADL\+\_\+\+MAX\+\_\+\+FIGURE\+\_\+\+PADDING}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00322}{ADL\+\_\+\+MAX\+\_\+\+HEAD\+\_\+\+SIZE}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00321}{ADL\+\_\+\+MIN\+\_\+\+FIGURE\+\_\+\+PADDING}}, \mbox{\hyperlink{Matrix2D_8h_source_l00100}{Mat2\+D\+\_\+uint32\+::cols}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00176}{Figure\+::max\+\_\+x\+\_\+pixel}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00178}{Figure\+::max\+\_\+y\+\_\+pixel}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00175}{Figure\+::min\+\_\+x\+\_\+pixel}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00177}{Figure\+::min\+\_\+y\+\_\+pixel}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00188}{Figure\+::offset\+\_\+zoom\+\_\+param}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00192}{Figure\+::pixels\+\_\+mat}}, \mbox{\hyperlink{Matrix2D_8h_source_l00099}{Mat2\+D\+\_\+uint32\+::rows}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00185}{Figure\+::x\+\_\+axis\+\_\+head\+\_\+size}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00186}{Figure\+::y\+\_\+axis\+\_\+head\+\_\+size}}.
 
 
 
-Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02247}{adl\+\_\+2\+Dscalar\+\_\+interp\+\_\+on\+\_\+figure()}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02198}{adl\+\_\+curves\+\_\+plot\+\_\+on\+\_\+figure()}}.
+Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02314}{adl\+\_\+2\+Dscalar\+\_\+interp\+\_\+on\+\_\+figure()}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02265}{adl\+\_\+curves\+\_\+plot\+\_\+on\+\_\+figure()}}.
 
 \mbox{\Hypertarget{Almog__Draw__Library_8h_a528e02e59b65d796f62605e231904a47}\label{Almog__Draw__Library_8h_a528e02e59b65d796f62605e231904a47}} 
 \index{Almog\_Draw\_Library.h@{Almog\_Draw\_Library.h}!adl\_cartesian\_grid\_create@{adl\_cartesian\_grid\_create}}
@@ -824,11 +844,11 @@ Supported planes (case-\/insensitive)\+: \char`\"{}\+XY\char`\"{},\char`\"{}xy\c
 \end{DoxyReturn}
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02446}{2446}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02513}{2513}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 
 
-References \mbox{\hyperlink{Almog__Dynamic__Array_8h_source_l00169}{ada\+\_\+appand}}, \mbox{\hyperlink{Almog__Dynamic__Array_8h_source_l00120}{ada\+\_\+init\+\_\+array}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00140}{Grid\+::curves}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00147}{Grid\+::de1}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00148}{Grid\+::de2}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00142}{Grid\+::max\+\_\+e1}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00144}{Grid\+::max\+\_\+e2}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00141}{Grid\+::min\+\_\+e1}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00143}{Grid\+::min\+\_\+e2}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00145}{Grid\+::num\+\_\+samples\+\_\+e1}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00146}{Grid\+::num\+\_\+samples\+\_\+e2}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00149}{Grid\+::plane}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00054}{Point\+::w}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00051}{Point\+::x}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00052}{Point\+::y}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00053}{Point\+::z}}.
+References \mbox{\hyperlink{Almog__Dynamic__Array_8h_source_l00169}{ada\+\_\+appand}}, \mbox{\hyperlink{Almog__Dynamic__Array_8h_source_l00120}{ada\+\_\+init\+\_\+array}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00204}{Grid\+::curves}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00213}{Grid\+::de1}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00214}{Grid\+::de2}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00207}{Grid\+::max\+\_\+e1}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00209}{Grid\+::max\+\_\+e2}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00206}{Grid\+::min\+\_\+e1}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00208}{Grid\+::min\+\_\+e2}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00211}{Grid\+::num\+\_\+samples\+\_\+e1}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00212}{Grid\+::num\+\_\+samples\+\_\+e2}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00216}{Grid\+::plane}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00085}{Point\+::w}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00082}{Point\+::x}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00083}{Point\+::y}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00084}{Point\+::z}}.
 
 \mbox{\Hypertarget{Almog__Draw__Library_8h_a564ae7f54068af11cb6d79ea7449a038}\label{Almog__Draw__Library_8h_a564ae7f54068af11cb6d79ea7449a038}} 
 \index{Almog\_Draw\_Library.h@{Almog\_Draw\_Library.h}!adl\_character\_draw@{adl\_character\_draw}}
@@ -863,15 +883,15 @@ Only a limited set of characters is supported (A–Z, a–z, 0–9, space, \text
 \end{DoxyParams}
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00519}{519}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00586}{586}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 
 
-References \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00316}{adl\+\_\+line\+\_\+draw()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00906}{adl\+\_\+rectangle\+\_\+draw\+\_\+min\+\_\+max()}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00925}{adl\+\_\+rectangle\+\_\+fill\+\_\+min\+\_\+max()}}.
+References \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00383}{adl\+\_\+line\+\_\+draw()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00973}{adl\+\_\+rectangle\+\_\+draw\+\_\+min\+\_\+max()}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00992}{adl\+\_\+rectangle\+\_\+fill\+\_\+min\+\_\+max()}}.
 
 
 
-Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00882}{adl\+\_\+sentence\+\_\+draw()}}, and \mbox{\hyperlink{example1_8c_source_l00064}{render()}}.
+Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00949}{adl\+\_\+sentence\+\_\+draw()}}, and \mbox{\hyperlink{example1_8c_source_l00064}{render()}}.
 
 \mbox{\Hypertarget{Almog__Draw__Library_8h_a3be1fd0bccc0820e85cf23455d28b8e1}\label{Almog__Draw__Library_8h_a3be1fd0bccc0820e85cf23455d28b8e1}} 
 \index{Almog\_Draw\_Library.h@{Almog\_Draw\_Library.h}!adl\_circle\_draw@{adl\_circle\_draw}}
@@ -902,11 +922,11 @@ The outline is approximated on the integer grid by sampling a band around radius
 \end{DoxyParams}
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01360}{1360}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01427}{1427}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 
 
-References \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00283}{adl\+\_\+point\+\_\+draw()}}.
+References \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00350}{adl\+\_\+point\+\_\+draw()}}.
 
 \mbox{\Hypertarget{Almog__Draw__Library_8h_acb7eaed26707a5f8f90117f6cf8f267a}\label{Almog__Draw__Library_8h_acb7eaed26707a5f8f90117f6cf8f267a}} 
 \index{Almog\_Draw\_Library.h@{Almog\_Draw\_Library.h}!adl\_circle\_fill@{adl\_circle\_fill}}
@@ -935,11 +955,11 @@ Fill a circle.
 \end{DoxyParams}
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01382}{1382}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01449}{1449}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 
 
-References \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00283}{adl\+\_\+point\+\_\+draw()}}.
+References \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00350}{adl\+\_\+point\+\_\+draw()}}.
 
 \mbox{\Hypertarget{Almog__Draw__Library_8h_ae8db36021fe2217185f3038fe43f5848}\label{Almog__Draw__Library_8h_ae8db36021fe2217185f3038fe43f5848}} 
 \index{Almog\_Draw\_Library.h@{Almog\_Draw\_Library.h}!adl\_curve\_add\_to\_figure@{adl\_curve\_add\_to\_figure}}
@@ -966,11 +986,11 @@ The input points are copied into the figure\textquotesingle{}s source curve arra
 \end{DoxyParams}
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02163}{2163}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02230}{2230}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 
 
-References \mbox{\hyperlink{Almog__Dynamic__Array_8h_source_l00169}{ada\+\_\+appand}}, \mbox{\hyperlink{Almog__Dynamic__Array_8h_source_l00120}{ada\+\_\+init\+\_\+array}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00061}{Curve\+::color}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00124}{Figure\+::max\+\_\+x}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00126}{Figure\+::max\+\_\+y}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00123}{Figure\+::min\+\_\+x}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00125}{Figure\+::min\+\_\+y}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00130}{Figure\+::src\+\_\+curve\+\_\+array}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00051}{Point\+::x}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00052}{Point\+::y}}.
+References \mbox{\hyperlink{Almog__Dynamic__Array_8h_source_l00169}{ada\+\_\+appand}}, \mbox{\hyperlink{Almog__Dynamic__Array_8h_source_l00120}{ada\+\_\+init\+\_\+array}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00095}{Curve\+::color}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00181}{Figure\+::max\+\_\+x}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00183}{Figure\+::max\+\_\+y}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00180}{Figure\+::min\+\_\+x}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00182}{Figure\+::min\+\_\+y}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00189}{Figure\+::src\+\_\+curve\+\_\+array}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00082}{Point\+::x}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00083}{Point\+::y}}.
 
 
 
@@ -995,11 +1015,11 @@ Clears the pixel buffer to background\+\_\+color, draws axes if enabled, maps da
 \end{DoxyParams}
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02198}{2198}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02265}{2265}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 
 
-References \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02077}{adl\+\_\+axis\+\_\+draw\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00316}{adl\+\_\+line\+\_\+draw()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01798}{adl\+\_\+linear\+\_\+map()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02103}{adl\+\_\+max\+\_\+min\+\_\+values\+\_\+draw\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00134}{Figure\+::background\+\_\+color}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00061}{Curve\+::color}}, \mbox{\hyperlink{Matrix2D_8h_source_l00083}{Mat2\+D\+::cols}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00064}{Curve\+::elements}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00073}{Curve\+\_\+ada\+::elements}}, \mbox{\hyperlink{Matrix2D_8h_source_l00085}{Mat2\+D\+::elements}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00133}{Figure\+::inv\+\_\+z\+\_\+buffer\+\_\+mat}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00062}{Curve\+::length}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00071}{Curve\+\_\+ada\+::length}}, \mbox{\hyperlink{Matrix2D_8h_source_l00391}{mat2\+D\+\_\+fill\+\_\+uint32()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00124}{Figure\+::max\+\_\+x}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00120}{Figure\+::max\+\_\+x\+\_\+pixel}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00126}{Figure\+::max\+\_\+y}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00122}{Figure\+::max\+\_\+y\+\_\+pixel}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00123}{Figure\+::min\+\_\+x}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00119}{Figure\+::min\+\_\+x\+\_\+pixel}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00125}{Figure\+::min\+\_\+y}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00121}{Figure\+::min\+\_\+y\+\_\+pixel}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00129}{Figure\+::offset\+\_\+zoom\+\_\+param}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00132}{Figure\+::pixels\+\_\+mat}}, \mbox{\hyperlink{Matrix2D_8h_source_l00082}{Mat2\+D\+::rows}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00130}{Figure\+::src\+\_\+curve\+\_\+array}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00135}{Figure\+::to\+\_\+draw\+\_\+axis}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00136}{Figure\+::to\+\_\+draw\+\_\+max\+\_\+min\+\_\+values}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00051}{Point\+::x}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00052}{Point\+::y}}.
+References \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02144}{adl\+\_\+axis\+\_\+draw\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00383}{adl\+\_\+line\+\_\+draw()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01865}{adl\+\_\+linear\+\_\+map()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02170}{adl\+\_\+max\+\_\+min\+\_\+values\+\_\+draw\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00195}{Figure\+::background\+\_\+color}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00095}{Curve\+::color}}, \mbox{\hyperlink{Matrix2D_8h_source_l00083}{Mat2\+D\+::cols}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00098}{Curve\+::elements}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00110}{Curve\+\_\+ada\+::elements}}, \mbox{\hyperlink{Matrix2D_8h_source_l00085}{Mat2\+D\+::elements}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00193}{Figure\+::inv\+\_\+z\+\_\+buffer\+\_\+mat}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00096}{Curve\+::length}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00108}{Curve\+\_\+ada\+::length}}, \mbox{\hyperlink{Matrix2D_8h_source_l00391}{mat2\+D\+\_\+fill\+\_\+uint32()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00181}{Figure\+::max\+\_\+x}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00176}{Figure\+::max\+\_\+x\+\_\+pixel}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00183}{Figure\+::max\+\_\+y}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00178}{Figure\+::max\+\_\+y\+\_\+pixel}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00180}{Figure\+::min\+\_\+x}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00175}{Figure\+::min\+\_\+x\+\_\+pixel}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00182}{Figure\+::min\+\_\+y}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00177}{Figure\+::min\+\_\+y\+\_\+pixel}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00188}{Figure\+::offset\+\_\+zoom\+\_\+param}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00192}{Figure\+::pixels\+\_\+mat}}, \mbox{\hyperlink{Matrix2D_8h_source_l00082}{Mat2\+D\+::rows}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00189}{Figure\+::src\+\_\+curve\+\_\+array}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00196}{Figure\+::to\+\_\+draw\+\_\+axis}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00197}{Figure\+::to\+\_\+draw\+\_\+max\+\_\+min\+\_\+values}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00082}{Point\+::x}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00083}{Point\+::y}}.
 
 
 
@@ -1031,11 +1051,11 @@ A new \mbox{\hyperlink{structFigure}{Figure}} with allocated buffers.
 \end{DoxyReturn}
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02014}{2014}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02081}{2081}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 
 
-References \mbox{\hyperlink{Almog__Dynamic__Array_8h_source_l00120}{ada\+\_\+init\+\_\+array}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00037}{ADL\+\_\+\+ASSERT}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00243}{adl\+\_\+assert\+\_\+point\+\_\+is\+\_\+valid}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00264}{ADL\+\_\+\+DEFAULT\+\_\+\+OFFSET\+\_\+\+ZOOM}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00252}{ADL\+\_\+\+FIGURE\+\_\+\+PADDING\+\_\+\+PRECENTAGE}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00253}{ADL\+\_\+\+MAX\+\_\+\+FIGURE\+\_\+\+PADDING}}, \mbox{\hyperlink{Matrix2D_8h_source_l00083}{Mat2\+D\+::cols}}, \mbox{\hyperlink{Matrix2D_8h_source_l00100}{Mat2\+D\+\_\+uint32\+::cols}}, \mbox{\hyperlink{Matrix2D_8h_source_l00085}{Mat2\+D\+::elements}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00133}{Figure\+::inv\+\_\+z\+\_\+buffer\+\_\+mat}}, \mbox{\hyperlink{Matrix2D_8h_source_l00278}{mat2\+D\+\_\+alloc()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00297}{mat2\+D\+\_\+alloc\+\_\+uint32()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00124}{Figure\+::max\+\_\+x}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00120}{Figure\+::max\+\_\+x\+\_\+pixel}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00126}{Figure\+::max\+\_\+y}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00122}{Figure\+::max\+\_\+y\+\_\+pixel}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00123}{Figure\+::min\+\_\+x}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00119}{Figure\+::min\+\_\+x\+\_\+pixel}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00125}{Figure\+::min\+\_\+y}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00121}{Figure\+::min\+\_\+y\+\_\+pixel}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00129}{Figure\+::offset\+\_\+zoom\+\_\+param}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00132}{Figure\+::pixels\+\_\+mat}}, \mbox{\hyperlink{Matrix2D_8h_source_l00082}{Mat2\+D\+::rows}}, \mbox{\hyperlink{Matrix2D_8h_source_l00099}{Mat2\+D\+\_\+uint32\+::rows}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00130}{Figure\+::src\+\_\+curve\+\_\+array}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00131}{Figure\+::top\+\_\+left\+\_\+position}}.
+References \mbox{\hyperlink{Almog__Dynamic__Array_8h_source_l00120}{ada\+\_\+init\+\_\+array}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00055}{ADL\+\_\+\+ASSERT}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00310}{adl\+\_\+assert\+\_\+point\+\_\+is\+\_\+valid}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00331}{ADL\+\_\+\+DEFAULT\+\_\+\+OFFSET\+\_\+\+ZOOM}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00319}{ADL\+\_\+\+FIGURE\+\_\+\+PADDING\+\_\+\+PRECENTAGE}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00320}{ADL\+\_\+\+MAX\+\_\+\+FIGURE\+\_\+\+PADDING}}, \mbox{\hyperlink{Matrix2D_8h_source_l00083}{Mat2\+D\+::cols}}, \mbox{\hyperlink{Matrix2D_8h_source_l00100}{Mat2\+D\+\_\+uint32\+::cols}}, \mbox{\hyperlink{Matrix2D_8h_source_l00085}{Mat2\+D\+::elements}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00193}{Figure\+::inv\+\_\+z\+\_\+buffer\+\_\+mat}}, \mbox{\hyperlink{Matrix2D_8h_source_l00278}{mat2\+D\+\_\+alloc()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00297}{mat2\+D\+\_\+alloc\+\_\+uint32()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00181}{Figure\+::max\+\_\+x}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00176}{Figure\+::max\+\_\+x\+\_\+pixel}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00183}{Figure\+::max\+\_\+y}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00178}{Figure\+::max\+\_\+y\+\_\+pixel}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00180}{Figure\+::min\+\_\+x}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00175}{Figure\+::min\+\_\+x\+\_\+pixel}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00182}{Figure\+::min\+\_\+y}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00177}{Figure\+::min\+\_\+y\+\_\+pixel}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00188}{Figure\+::offset\+\_\+zoom\+\_\+param}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00192}{Figure\+::pixels\+\_\+mat}}, \mbox{\hyperlink{Matrix2D_8h_source_l00082}{Mat2\+D\+::rows}}, \mbox{\hyperlink{Matrix2D_8h_source_l00099}{Mat2\+D\+\_\+uint32\+::rows}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00189}{Figure\+::src\+\_\+curve\+\_\+array}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00190}{Figure\+::top\+\_\+left\+\_\+position}}.
 
 
 
@@ -1062,11 +1082,11 @@ Performs per-\/pixel blending using adl\+\_\+point\+\_\+draw and the identity tr
 \end{DoxyParams}
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02057}{2057}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02124}{2124}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 
 
-References \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00283}{adl\+\_\+point\+\_\+draw()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00100}{Mat2\+D\+\_\+uint32\+::cols}}, \mbox{\hyperlink{Matrix2D_8h_source_l00146}{MAT2\+D\+\_\+\+AT\+\_\+\+UINT32}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00132}{Figure\+::pixels\+\_\+mat}}, \mbox{\hyperlink{Matrix2D_8h_source_l00099}{Mat2\+D\+\_\+uint32\+::rows}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00131}{Figure\+::top\+\_\+left\+\_\+position}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00051}{Point\+::x}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00052}{Point\+::y}}.
+References \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00350}{adl\+\_\+point\+\_\+draw()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00100}{Mat2\+D\+\_\+uint32\+::cols}}, \mbox{\hyperlink{Matrix2D_8h_source_l00146}{MAT2\+D\+\_\+\+AT\+\_\+\+UINT32}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00192}{Figure\+::pixels\+\_\+mat}}, \mbox{\hyperlink{Matrix2D_8h_source_l00099}{Mat2\+D\+\_\+uint32\+::rows}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00190}{Figure\+::top\+\_\+left\+\_\+position}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00082}{Point\+::x}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00083}{Point\+::y}}.
 
 
 
@@ -1095,11 +1115,11 @@ Draw a previously created \mbox{\hyperlink{structGrid}{Grid}} as line segments.
 \end{DoxyParams}
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02724}{2724}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02791}{2791}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 
 
-References \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00403}{adl\+\_\+lines\+\_\+draw()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00140}{Grid\+::curves}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00064}{Curve\+::elements}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00073}{Curve\+\_\+ada\+::elements}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00062}{Curve\+::length}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00071}{Curve\+\_\+ada\+::length}}.
+References \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00470}{adl\+\_\+lines\+\_\+draw()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00204}{Grid\+::curves}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00098}{Curve\+::elements}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00110}{Curve\+\_\+ada\+::elements}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00096}{Curve\+::length}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00108}{Curve\+\_\+ada\+::length}}.
 
 \mbox{\Hypertarget{Almog__Draw__Library_8h_a5022b219117fcb7cd7083ec6cf6c92a3}\label{Almog__Draw__Library_8h_a5022b219117fcb7cd7083ec6cf6c92a3}} 
 \index{Almog\_Draw\_Library.h@{Almog\_Draw\_Library.h}!adl\_interpolate\_ARGBcolor\_on\_okLch@{adl\_interpolate\_ARGBcolor\_on\_okLch}}
@@ -1128,15 +1148,15 @@ Lightness and chroma are interpolated linearly. Hue is interpolated in degrees a
 \end{DoxyParams}
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01986}{1986}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02053}{2053}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 
 
-References \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01945}{adl\+\_\+linear\+\_\+s\+RGB\+\_\+to\+\_\+ok\+Lch()}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01964}{adl\+\_\+ok\+Lch\+\_\+to\+\_\+linear\+\_\+s\+RGB()}}.
+References \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02012}{adl\+\_\+linear\+\_\+s\+RGB\+\_\+to\+\_\+ok\+Lch()}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02031}{adl\+\_\+ok\+Lch\+\_\+to\+\_\+linear\+\_\+s\+RGB()}}.
 
 
 
-Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02247}{adl\+\_\+2\+Dscalar\+\_\+interp\+\_\+on\+\_\+figure()}}.
+Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02314}{adl\+\_\+2\+Dscalar\+\_\+interp\+\_\+on\+\_\+figure()}}.
 
 \mbox{\Hypertarget{Almog__Draw__Library_8h_af7e7461e6fb1932220e4309f69c21902}\label{Almog__Draw__Library_8h_af7e7461e6fb1932220e4309f69c21902}} 
 \index{Almog\_Draw\_Library.h@{Almog\_Draw\_Library.h}!adl\_line\_draw@{adl\_line\_draw}}
@@ -1169,15 +1189,15 @@ The line is rasterized with a simple integer-\/span approach. Pan/zoom is applie
 \end{DoxyParams}
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00316}{316}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00383}{383}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 
 
-References \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00037}{ADL\+\_\+\+ASSERT}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00242}{ADL\+\_\+\+MAX\+\_\+\+POINT\+\_\+\+VAL}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00283}{adl\+\_\+point\+\_\+draw()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00100}{Mat2\+D\+\_\+uint32\+::cols}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00042}{Offset\+\_\+zoom\+\_\+param\+::offset\+\_\+x}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00043}{Offset\+\_\+zoom\+\_\+param\+::offset\+\_\+y}}, \mbox{\hyperlink{Matrix2D_8h_source_l00099}{Mat2\+D\+\_\+uint32\+::rows}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00041}{Offset\+\_\+zoom\+\_\+param\+::zoom\+\_\+multiplier}}.
+References \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00055}{ADL\+\_\+\+ASSERT}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00309}{ADL\+\_\+\+MAX\+\_\+\+POINT\+\_\+\+VAL}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00350}{adl\+\_\+point\+\_\+draw()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00100}{Mat2\+D\+\_\+uint32\+::cols}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00067}{Offset\+\_\+zoom\+\_\+param\+::offset\+\_\+x}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00068}{Offset\+\_\+zoom\+\_\+param\+::offset\+\_\+y}}, \mbox{\hyperlink{Matrix2D_8h_source_l00099}{Mat2\+D\+\_\+uint32\+::rows}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00066}{Offset\+\_\+zoom\+\_\+param\+::zoom\+\_\+multiplier}}.
 
 
 
-Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00451}{adl\+\_\+arrow\+\_\+draw()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00519}{adl\+\_\+character\+\_\+draw()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02198}{adl\+\_\+curves\+\_\+plot\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00403}{adl\+\_\+lines\+\_\+draw()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00423}{adl\+\_\+lines\+\_\+loop\+\_\+draw()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00906}{adl\+\_\+rectangle\+\_\+draw\+\_\+min\+\_\+max()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00925}{adl\+\_\+rectangle\+\_\+fill\+\_\+min\+\_\+max()}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01402}{adl\+\_\+tri\+\_\+draw()}}.
+Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00518}{adl\+\_\+arrow\+\_\+draw()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00586}{adl\+\_\+character\+\_\+draw()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02265}{adl\+\_\+curves\+\_\+plot\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00470}{adl\+\_\+lines\+\_\+draw()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00490}{adl\+\_\+lines\+\_\+loop\+\_\+draw()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00973}{adl\+\_\+rectangle\+\_\+draw\+\_\+min\+\_\+max()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00992}{adl\+\_\+rectangle\+\_\+fill\+\_\+min\+\_\+max()}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01469}{adl\+\_\+tri\+\_\+draw()}}.
 
 \mbox{\Hypertarget{Almog__Draw__Library_8h_a066db889cc3479d4ef8392316880d238}\label{Almog__Draw__Library_8h_a066db889cc3479d4ef8392316880d238}} 
 \index{Almog\_Draw\_Library.h@{Almog\_Draw\_Library.h}!adl\_linear\_map@{adl\_linear\_map}}
@@ -1207,11 +1227,11 @@ Mapped value in the output range (may exceed if s is out-\/of-\/range).
 \end{DoxyReturn}
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01798}{1798}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01865}{1865}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 
 
-Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02247}{adl\+\_\+2\+Dscalar\+\_\+interp\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02198}{adl\+\_\+curves\+\_\+plot\+\_\+on\+\_\+figure()}}, and \mbox{\hyperlink{temp_8c_source_l00050}{render()}}.
+Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02314}{adl\+\_\+2\+Dscalar\+\_\+interp\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02265}{adl\+\_\+curves\+\_\+plot\+\_\+on\+\_\+figure()}}, and \mbox{\hyperlink{temp_8c_source_l00050}{render()}}.
 
 \mbox{\Hypertarget{Almog__Draw__Library_8h_a172ac07a2203f34c47a6eca21fcbcdca}\label{Almog__Draw__Library_8h_a172ac07a2203f34c47a6eca21fcbcdca}} 
 \index{Almog\_Draw\_Library.h@{Almog\_Draw\_Library.h}!adl\_linear\_sRGB\_to\_okLab@{adl\_linear\_sRGB\_to\_okLab}}
@@ -1238,15 +1258,15 @@ Oklab components are returned in ranges\+: L in \mbox{[}0,1\mbox{]}, a in \mbox{
 \end{DoxyParams}
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01878}{1878}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01945}{1945}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 
 
-References \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00157}{Hex\+ARGB\+\_\+\+RGB\+\_\+\+VAR}}.
+References \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00224}{Hex\+ARGB\+\_\+\+RGB\+\_\+\+VAR}}.
 
 
 
-Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01945}{adl\+\_\+linear\+\_\+s\+RGB\+\_\+to\+\_\+ok\+Lch()}}.
+Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02012}{adl\+\_\+linear\+\_\+s\+RGB\+\_\+to\+\_\+ok\+Lch()}}.
 
 \mbox{\Hypertarget{Almog__Draw__Library_8h_a2ba74070e06ac04189646b642b754471}\label{Almog__Draw__Library_8h_a2ba74070e06ac04189646b642b754471}} 
 \index{Almog\_Draw\_Library.h@{Almog\_Draw\_Library.h}!adl\_linear\_sRGB\_to\_okLch@{adl\_linear\_sRGB\_to\_okLch}}
@@ -1271,15 +1291,15 @@ Convert a linear s\+RGB color (ARGB) to Ok\+Lch components.
 \end{DoxyParams}
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01945}{1945}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02012}{2012}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 
 
-References \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01878}{adl\+\_\+linear\+\_\+s\+RGB\+\_\+to\+\_\+ok\+Lab()}}, and \mbox{\hyperlink{Matrix2D_8h_source_l00154}{PI}}.
+References \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01945}{adl\+\_\+linear\+\_\+s\+RGB\+\_\+to\+\_\+ok\+Lab()}}, and \mbox{\hyperlink{Matrix2D_8h_source_l00154}{PI}}.
 
 
 
-Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01986}{adl\+\_\+interpolate\+\_\+\+ARGBcolor\+\_\+on\+\_\+ok\+Lch()}}.
+Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02053}{adl\+\_\+interpolate\+\_\+\+ARGBcolor\+\_\+on\+\_\+ok\+Lch()}}.
 
 \mbox{\Hypertarget{Almog__Draw__Library_8h_a29ef1322c0f599a2dbdf46b7d1af2ec1}\label{Almog__Draw__Library_8h_a29ef1322c0f599a2dbdf46b7d1af2ec1}} 
 \index{Almog\_Draw\_Library.h@{Almog\_Draw\_Library.h}!adl\_lines\_draw@{adl\_lines\_draw}}
@@ -1308,15 +1328,15 @@ Draws segments between consecutive points\+: p\mbox{[}0\mbox{]}-\/p\mbox{[}1\mbo
 \end{DoxyParams}
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00403}{403}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00470}{470}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 
 
-References \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00316}{adl\+\_\+line\+\_\+draw()}}, and \mbox{\hyperlink{example1_8c_source_l00013}{points}}.
+References \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00383}{adl\+\_\+line\+\_\+draw()}}, and \mbox{\hyperlink{example1_8c_source_l00013}{points}}.
 
 
 
-Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02724}{adl\+\_\+grid\+\_\+draw()}}.
+Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02791}{adl\+\_\+grid\+\_\+draw()}}.
 
 \mbox{\Hypertarget{Almog__Draw__Library_8h_ac366785eb87bf751a0638a54c6308c08}\label{Almog__Draw__Library_8h_ac366785eb87bf751a0638a54c6308c08}} 
 \index{Almog\_Draw\_Library.h@{Almog\_Draw\_Library.h}!adl\_lines\_loop\_draw@{adl\_lines\_loop\_draw}}
@@ -1345,15 +1365,15 @@ Same as adl\+\_\+lines\+\_\+draw, plus an extra segment from the last point back
 \end{DoxyParams}
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00423}{423}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00490}{490}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 
 
-References \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00316}{adl\+\_\+line\+\_\+draw()}}, and \mbox{\hyperlink{example1_8c_source_l00013}{points}}.
+References \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00383}{adl\+\_\+line\+\_\+draw()}}, and \mbox{\hyperlink{example1_8c_source_l00013}{points}}.
 
 
 
-Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00943}{adl\+\_\+quad\+\_\+draw()}}.
+Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01010}{adl\+\_\+quad\+\_\+draw()}}.
 
 \mbox{\Hypertarget{Almog__Draw__Library_8h_a06a18de7604450f9d64c9739f248655c}\label{Almog__Draw__Library_8h_a06a18de7604450f9d64c9739f248655c}} 
 \index{Almog\_Draw\_Library.h@{Almog\_Draw\_Library.h}!adl\_max\_min\_values\_draw\_on\_figure@{adl\_max\_min\_values\_draw\_on\_figure}}
@@ -1374,15 +1394,15 @@ Renders textual min/max values for both axes inside the figure area. Assumes fig
 \end{DoxyParams}
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02103}{2103}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02170}{2170}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 
 
-References \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00257}{ADL\+\_\+\+FIGURE\+\_\+\+AXIS\+\_\+\+COLOR}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00259}{ADL\+\_\+\+MAX\+\_\+\+CHARACTER\+\_\+\+OFFSET}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00260}{ADL\+\_\+\+MIN\+\_\+\+CHARACTER\+\_\+\+OFFSET}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00882}{adl\+\_\+sentence\+\_\+draw()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00124}{Figure\+::max\+\_\+x}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00120}{Figure\+::max\+\_\+x\+\_\+pixel}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00126}{Figure\+::max\+\_\+y}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00122}{Figure\+::max\+\_\+y\+\_\+pixel}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00123}{Figure\+::min\+\_\+x}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00119}{Figure\+::min\+\_\+x\+\_\+pixel}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00125}{Figure\+::min\+\_\+y}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00121}{Figure\+::min\+\_\+y\+\_\+pixel}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00129}{Figure\+::offset\+\_\+zoom\+\_\+param}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00132}{Figure\+::pixels\+\_\+mat}}, \mbox{\hyperlink{Matrix2D_8h_source_l00099}{Mat2\+D\+\_\+uint32\+::rows}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00127}{Figure\+::x\+\_\+axis\+\_\+head\+\_\+size}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00128}{Figure\+::y\+\_\+axis\+\_\+head\+\_\+size}}.
+References \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00324}{ADL\+\_\+\+FIGURE\+\_\+\+AXIS\+\_\+\+COLOR}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00326}{ADL\+\_\+\+MAX\+\_\+\+CHARACTER\+\_\+\+OFFSET}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00327}{ADL\+\_\+\+MIN\+\_\+\+CHARACTER\+\_\+\+OFFSET}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00949}{adl\+\_\+sentence\+\_\+draw()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00181}{Figure\+::max\+\_\+x}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00176}{Figure\+::max\+\_\+x\+\_\+pixel}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00183}{Figure\+::max\+\_\+y}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00178}{Figure\+::max\+\_\+y\+\_\+pixel}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00180}{Figure\+::min\+\_\+x}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00175}{Figure\+::min\+\_\+x\+\_\+pixel}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00182}{Figure\+::min\+\_\+y}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00177}{Figure\+::min\+\_\+y\+\_\+pixel}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00188}{Figure\+::offset\+\_\+zoom\+\_\+param}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00192}{Figure\+::pixels\+\_\+mat}}, \mbox{\hyperlink{Matrix2D_8h_source_l00099}{Mat2\+D\+\_\+uint32\+::rows}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00185}{Figure\+::x\+\_\+axis\+\_\+head\+\_\+size}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00186}{Figure\+::y\+\_\+axis\+\_\+head\+\_\+size}}.
 
 
 
-Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02247}{adl\+\_\+2\+Dscalar\+\_\+interp\+\_\+on\+\_\+figure()}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02198}{adl\+\_\+curves\+\_\+plot\+\_\+on\+\_\+figure()}}.
+Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02314}{adl\+\_\+2\+Dscalar\+\_\+interp\+\_\+on\+\_\+figure()}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02265}{adl\+\_\+curves\+\_\+plot\+\_\+on\+\_\+figure()}}.
 
 \mbox{\Hypertarget{Almog__Draw__Library_8h_ac0cffe3ca4ae8551726963d9f9b659e2}\label{Almog__Draw__Library_8h_ac0cffe3ca4ae8551726963d9f9b659e2}} 
 \index{Almog\_Draw\_Library.h@{Almog\_Draw\_Library.h}!adl\_okLab\_to\_linear\_sRGB@{adl\_okLab\_to\_linear\_sRGB}}
@@ -1409,15 +1429,15 @@ Output RGB components are clamped to \mbox{[}0,255\mbox{]}, alpha is set to 255.
 \end{DoxyParams}
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01913}{1913}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01980}{1980}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 
 
-References \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00166}{RGBA\+\_\+hex\+ARGB}}.
+References \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00233}{RGBA\+\_\+hex\+ARGB}}.
 
 
 
-Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01964}{adl\+\_\+ok\+Lch\+\_\+to\+\_\+linear\+\_\+s\+RGB()}}.
+Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02031}{adl\+\_\+ok\+Lch\+\_\+to\+\_\+linear\+\_\+s\+RGB()}}.
 
 \mbox{\Hypertarget{Almog__Draw__Library_8h_a21c808de9cd7dc6fb270af0e8f1acbdc}\label{Almog__Draw__Library_8h_a21c808de9cd7dc6fb270af0e8f1acbdc}} 
 \index{Almog\_Draw\_Library.h@{Almog\_Draw\_Library.h}!adl\_okLch\_to\_linear\_sRGB@{adl\_okLch\_to\_linear\_sRGB}}
@@ -1444,15 +1464,15 @@ Hue is wrapped to \mbox{[}0,360). Output RGB is clamped to \mbox{[}0,255\mbox{]}
 \end{DoxyParams}
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01964}{1964}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02031}{2031}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 
 
-References \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01913}{adl\+\_\+ok\+Lab\+\_\+to\+\_\+linear\+\_\+s\+RGB()}}, and \mbox{\hyperlink{Matrix2D_8h_source_l00154}{PI}}.
+References \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01980}{adl\+\_\+ok\+Lab\+\_\+to\+\_\+linear\+\_\+s\+RGB()}}, and \mbox{\hyperlink{Matrix2D_8h_source_l00154}{PI}}.
 
 
 
-Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01986}{adl\+\_\+interpolate\+\_\+\+ARGBcolor\+\_\+on\+\_\+ok\+Lch()}}.
+Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02053}{adl\+\_\+interpolate\+\_\+\+ARGBcolor\+\_\+on\+\_\+ok\+Lch()}}.
 
 \mbox{\Hypertarget{Almog__Draw__Library_8h_ac6d67525504b37ac96fb3d44c2ead3b8}\label{Almog__Draw__Library_8h_ac6d67525504b37ac96fb3d44c2ead3b8}} 
 \index{Almog\_Draw\_Library.h@{Almog\_Draw\_Library.h}!adl\_point\_draw@{adl\_point\_draw}}
@@ -1481,15 +1501,15 @@ Applies the pan/zoom transform and writes the pixel if it falls inside the desti
 \end{DoxyParams}
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00283}{283}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00350}{350}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 
 
-References \mbox{\hyperlink{Matrix2D_8h_source_l00100}{Mat2\+D\+\_\+uint32\+::cols}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00160}{Hex\+ARGB\+\_\+\+RGBA\+\_\+\+VAR}}, \mbox{\hyperlink{Matrix2D_8h_source_l00146}{MAT2\+D\+\_\+\+AT\+\_\+\+UINT32}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00042}{Offset\+\_\+zoom\+\_\+param\+::offset\+\_\+x}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00043}{Offset\+\_\+zoom\+\_\+param\+::offset\+\_\+y}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00166}{RGBA\+\_\+hex\+ARGB}}, \mbox{\hyperlink{Matrix2D_8h_source_l00099}{Mat2\+D\+\_\+uint32\+::rows}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00041}{Offset\+\_\+zoom\+\_\+param\+::zoom\+\_\+multiplier}}.
+References \mbox{\hyperlink{Matrix2D_8h_source_l00100}{Mat2\+D\+\_\+uint32\+::cols}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00227}{Hex\+ARGB\+\_\+\+RGBA\+\_\+\+VAR}}, \mbox{\hyperlink{Matrix2D_8h_source_l00146}{MAT2\+D\+\_\+\+AT\+\_\+\+UINT32}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00067}{Offset\+\_\+zoom\+\_\+param\+::offset\+\_\+x}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00068}{Offset\+\_\+zoom\+\_\+param\+::offset\+\_\+y}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00233}{RGBA\+\_\+hex\+ARGB}}, \mbox{\hyperlink{Matrix2D_8h_source_l00099}{Mat2\+D\+\_\+uint32\+::rows}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00066}{Offset\+\_\+zoom\+\_\+param\+::zoom\+\_\+multiplier}}.
 
 
 
-Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01360}{adl\+\_\+circle\+\_\+draw()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01382}{adl\+\_\+circle\+\_\+fill()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02057}{adl\+\_\+figure\+\_\+copy\+\_\+to\+\_\+screen()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00316}{adl\+\_\+line\+\_\+draw()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00961}{adl\+\_\+quad\+\_\+fill()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01149}{adl\+\_\+quad\+\_\+fill\+\_\+interpolate\+\_\+color\+\_\+mean\+\_\+value()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01055}{adl\+\_\+quad\+\_\+fill\+\_\+interpolate\+\_\+normal\+\_\+mean\+\_\+value()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01425}{adl\+\_\+tri\+\_\+fill\+\_\+\+Pinedas\+\_\+rasterizer()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01506}{adl\+\_\+tri\+\_\+fill\+\_\+\+Pinedas\+\_\+rasterizer\+\_\+interpolate\+\_\+color()}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01597}{adl\+\_\+tri\+\_\+fill\+\_\+\+Pinedas\+\_\+rasterizer\+\_\+interpolate\+\_\+normal()}}.
+Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01427}{adl\+\_\+circle\+\_\+draw()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01449}{adl\+\_\+circle\+\_\+fill()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02124}{adl\+\_\+figure\+\_\+copy\+\_\+to\+\_\+screen()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00383}{adl\+\_\+line\+\_\+draw()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01028}{adl\+\_\+quad\+\_\+fill()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01216}{adl\+\_\+quad\+\_\+fill\+\_\+interpolate\+\_\+color\+\_\+mean\+\_\+value()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01122}{adl\+\_\+quad\+\_\+fill\+\_\+interpolate\+\_\+normal\+\_\+mean\+\_\+value()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01492}{adl\+\_\+tri\+\_\+fill\+\_\+\+Pinedas\+\_\+rasterizer()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01573}{adl\+\_\+tri\+\_\+fill\+\_\+\+Pinedas\+\_\+rasterizer\+\_\+interpolate\+\_\+color()}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01664}{adl\+\_\+tri\+\_\+fill\+\_\+\+Pinedas\+\_\+rasterizer\+\_\+interpolate\+\_\+normal()}}.
 
 \mbox{\Hypertarget{Almog__Draw__Library_8h_af8c6b6d3616a8589e7d3697b416b11f6}\label{Almog__Draw__Library_8h_af8c6b6d3616a8589e7d3697b416b11f6}} 
 \index{Almog\_Draw\_Library.h@{Almog\_Draw\_Library.h}!adl\_quad2tris@{adl\_quad2tris}}
@@ -1522,11 +1542,11 @@ The function copies positions, per-\/vertex colors, light\+\_\+intensity, and th
 \end{DoxyParams}
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01818}{1818}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01885}{1885}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 
 
-References \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00083}{Tri\+::colors}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00094}{Quad\+::colors}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00085}{Tri\+::light\+\_\+intensity}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00096}{Quad\+::light\+\_\+intensity}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00080}{Tri\+::points}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00092}{Quad\+::points}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00084}{Tri\+::to\+\_\+draw}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00095}{Quad\+::to\+\_\+draw}}.
+References \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00123}{Tri\+::colors}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00137}{Quad\+::colors}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00125}{Tri\+::light\+\_\+intensity}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00139}{Quad\+::light\+\_\+intensity}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00120}{Tri\+::points}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00135}{Quad\+::points}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00124}{Tri\+::to\+\_\+draw}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00138}{Quad\+::to\+\_\+draw}}.
 
 \mbox{\Hypertarget{Almog__Draw__Library_8h_a09f2306858f567227738692f35db1568}\label{Almog__Draw__Library_8h_a09f2306858f567227738692f35db1568}} 
 \index{Almog\_Draw\_Library.h@{Almog\_Draw\_Library.h}!adl\_quad\_draw@{adl\_quad\_draw}}
@@ -1555,15 +1575,15 @@ Depth buffer is not used in this outline variant.
 \end{DoxyParams}
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00943}{943}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01010}{1010}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 
 
-References \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00423}{adl\+\_\+lines\+\_\+loop\+\_\+draw()}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00092}{Quad\+::points}}.
+References \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00490}{adl\+\_\+lines\+\_\+loop\+\_\+draw()}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00135}{Quad\+::points}}.
 
 
 
-Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01253}{adl\+\_\+quad\+\_\+mesh\+\_\+draw()}}, and \mbox{\hyperlink{temp_8c_source_l00050}{render()}}.
+Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01320}{adl\+\_\+quad\+\_\+mesh\+\_\+draw()}}, and \mbox{\hyperlink{temp_8c_source_l00050}{render()}}.
 
 \mbox{\Hypertarget{Almog__Draw__Library_8h_af659c05ddcc48d7ee2ecaf31a03f7934}\label{Almog__Draw__Library_8h_af659c05ddcc48d7ee2ecaf31a03f7934}} 
 \index{Almog\_Draw\_Library.h@{Almog\_Draw\_Library.h}!adl\_quad\_fill@{adl\_quad\_fill}}
@@ -1592,15 +1612,15 @@ Performs a depth test against inv\+\_\+z\+\_\+buffer and modulates the base colo
 \end{DoxyParams}
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00961}{961}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01028}{1028}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 
 
-References \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00283}{adl\+\_\+point\+\_\+draw()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00100}{Mat2\+D\+\_\+uint32\+::cols}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00237}{edge\+\_\+cross\+\_\+point}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00160}{Hex\+ARGB\+\_\+\+RGBA\+\_\+\+VAR}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00096}{Quad\+::light\+\_\+intensity}}, \mbox{\hyperlink{Matrix2D_8h_source_l00145}{MAT2\+D\+\_\+\+AT}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00092}{Quad\+::points}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00166}{RGBA\+\_\+hex\+ARGB}}, \mbox{\hyperlink{Matrix2D_8h_source_l00099}{Mat2\+D\+\_\+uint32\+::rows}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00054}{Point\+::w}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00051}{Point\+::x}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00052}{Point\+::y}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00053}{Point\+::z}}.
+References \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00350}{adl\+\_\+point\+\_\+draw()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00100}{Mat2\+D\+\_\+uint32\+::cols}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00304}{edge\+\_\+cross\+\_\+point}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00227}{Hex\+ARGB\+\_\+\+RGBA\+\_\+\+VAR}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00139}{Quad\+::light\+\_\+intensity}}, \mbox{\hyperlink{Matrix2D_8h_source_l00145}{MAT2\+D\+\_\+\+AT}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00135}{Quad\+::points}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00233}{RGBA\+\_\+hex\+ARGB}}, \mbox{\hyperlink{Matrix2D_8h_source_l00099}{Mat2\+D\+\_\+uint32\+::rows}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00085}{Point\+::w}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00082}{Point\+::x}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00083}{Point\+::y}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00084}{Point\+::z}}.
 
 
 
-Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01277}{adl\+\_\+quad\+\_\+mesh\+\_\+fill()}}.
+Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01344}{adl\+\_\+quad\+\_\+mesh\+\_\+fill()}}.
 
 \mbox{\Hypertarget{Almog__Draw__Library_8h_a1d1000820ecf55d6af697fc8cde8d169}\label{Almog__Draw__Library_8h_a1d1000820ecf55d6af697fc8cde8d169}} 
 \index{Almog\_Draw\_Library.h@{Almog\_Draw\_Library.h}!adl\_quad\_fill\_interpolate\_color\_mean\_value@{adl\_quad\_fill\_interpolate\_color\_mean\_value}}
@@ -1627,15 +1647,15 @@ Interpolates ARGB vertex colors using mean-\/value coordinates, optionally modul
 \end{DoxyParams}
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01149}{1149}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01216}{1216}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 
 
-References \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00283}{adl\+\_\+point\+\_\+draw()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01778}{adl\+\_\+tan\+\_\+half\+\_\+angle()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00094}{Quad\+::colors}}, \mbox{\hyperlink{Matrix2D_8h_source_l00100}{Mat2\+D\+\_\+uint32\+::cols}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00237}{edge\+\_\+cross\+\_\+point}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00160}{Hex\+ARGB\+\_\+\+RGBA\+\_\+\+VAR}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00096}{Quad\+::light\+\_\+intensity}}, \mbox{\hyperlink{Matrix2D_8h_source_l00145}{MAT2\+D\+\_\+\+AT}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00092}{Quad\+::points}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00166}{RGBA\+\_\+hex\+ARGB}}, \mbox{\hyperlink{Matrix2D_8h_source_l00099}{Mat2\+D\+\_\+uint32\+::rows}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00054}{Point\+::w}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00051}{Point\+::x}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00052}{Point\+::y}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00053}{Point\+::z}}.
+References \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00350}{adl\+\_\+point\+\_\+draw()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01845}{adl\+\_\+tan\+\_\+half\+\_\+angle()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00137}{Quad\+::colors}}, \mbox{\hyperlink{Matrix2D_8h_source_l00100}{Mat2\+D\+\_\+uint32\+::cols}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00304}{edge\+\_\+cross\+\_\+point}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00227}{Hex\+ARGB\+\_\+\+RGBA\+\_\+\+VAR}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00139}{Quad\+::light\+\_\+intensity}}, \mbox{\hyperlink{Matrix2D_8h_source_l00145}{MAT2\+D\+\_\+\+AT}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00135}{Quad\+::points}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00233}{RGBA\+\_\+hex\+ARGB}}, \mbox{\hyperlink{Matrix2D_8h_source_l00099}{Mat2\+D\+\_\+uint32\+::rows}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00085}{Point\+::w}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00082}{Point\+::x}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00083}{Point\+::y}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00084}{Point\+::z}}.
 
 
 
-Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02247}{adl\+\_\+2\+Dscalar\+\_\+interp\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01334}{adl\+\_\+quad\+\_\+mesh\+\_\+fill\+\_\+interpolate\+\_\+color()}}, and \mbox{\hyperlink{temp_8c_source_l00050}{render()}}.
+Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02314}{adl\+\_\+2\+Dscalar\+\_\+interp\+\_\+on\+\_\+figure()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01401}{adl\+\_\+quad\+\_\+mesh\+\_\+fill\+\_\+interpolate\+\_\+color()}}, and \mbox{\hyperlink{temp_8c_source_l00050}{render()}}.
 
 \mbox{\Hypertarget{Almog__Draw__Library_8h_a02b757ea6368bac7965e0e9c46596187}\label{Almog__Draw__Library_8h_a02b757ea6368bac7965e0e9c46596187}} 
 \index{Almog\_Draw\_Library.h@{Almog\_Draw\_Library.h}!adl\_quad\_fill\_interpolate\_normal\_mean\_value@{adl\_quad\_fill\_interpolate\_normal\_mean\_value}}
@@ -1664,15 +1684,15 @@ Interpolates light\+\_\+intensity across the quad using mean-\/value coordinates
 \end{DoxyParams}
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01055}{1055}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01122}{1122}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 
 
-References \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00283}{adl\+\_\+point\+\_\+draw()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01778}{adl\+\_\+tan\+\_\+half\+\_\+angle()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00100}{Mat2\+D\+\_\+uint32\+::cols}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00237}{edge\+\_\+cross\+\_\+point}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00160}{Hex\+ARGB\+\_\+\+RGBA\+\_\+\+VAR}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00096}{Quad\+::light\+\_\+intensity}}, \mbox{\hyperlink{Matrix2D_8h_source_l00145}{MAT2\+D\+\_\+\+AT}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00092}{Quad\+::points}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00166}{RGBA\+\_\+hex\+ARGB}}, \mbox{\hyperlink{Matrix2D_8h_source_l00099}{Mat2\+D\+\_\+uint32\+::rows}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00054}{Point\+::w}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00051}{Point\+::x}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00052}{Point\+::y}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00053}{Point\+::z}}.
+References \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00350}{adl\+\_\+point\+\_\+draw()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01845}{adl\+\_\+tan\+\_\+half\+\_\+angle()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00100}{Mat2\+D\+\_\+uint32\+::cols}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00304}{edge\+\_\+cross\+\_\+point}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00227}{Hex\+ARGB\+\_\+\+RGBA\+\_\+\+VAR}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00139}{Quad\+::light\+\_\+intensity}}, \mbox{\hyperlink{Matrix2D_8h_source_l00145}{MAT2\+D\+\_\+\+AT}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00135}{Quad\+::points}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00233}{RGBA\+\_\+hex\+ARGB}}, \mbox{\hyperlink{Matrix2D_8h_source_l00099}{Mat2\+D\+\_\+uint32\+::rows}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00085}{Point\+::w}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00082}{Point\+::x}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00083}{Point\+::y}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00084}{Point\+::z}}.
 
 
 
-Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01304}{adl\+\_\+quad\+\_\+mesh\+\_\+fill\+\_\+interpolate\+\_\+normal()}}.
+Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01371}{adl\+\_\+quad\+\_\+mesh\+\_\+fill\+\_\+interpolate\+\_\+normal()}}.
 
 \mbox{\Hypertarget{Almog__Draw__Library_8h_ac0eca30966484b4ecf9388d09f66625f}\label{Almog__Draw__Library_8h_ac0eca30966484b4ecf9388d09f66625f}} 
 \index{Almog\_Draw\_Library.h@{Almog\_Draw\_Library.h}!adl\_quad\_mesh\_draw@{adl\_quad\_mesh\_draw}}
@@ -1701,11 +1721,11 @@ Skips elements with to\+\_\+draw == false. Depth buffer is not used.
 \end{DoxyParams}
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01253}{1253}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01320}{1320}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 
 
-References \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00247}{adl\+\_\+assert\+\_\+quad\+\_\+is\+\_\+valid}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00943}{adl\+\_\+quad\+\_\+draw()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00114}{Quad\+\_\+mesh\+::elements}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00112}{Quad\+\_\+mesh\+::length}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00095}{Quad\+::to\+\_\+draw}}.
+References \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00314}{adl\+\_\+assert\+\_\+quad\+\_\+is\+\_\+valid}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01010}{adl\+\_\+quad\+\_\+draw()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00163}{Quad\+\_\+mesh\+::elements}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00161}{Quad\+\_\+mesh\+::length}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00138}{Quad\+::to\+\_\+draw}}.
 
 \mbox{\Hypertarget{Almog__Draw__Library_8h_ad01062c2953db3ff85bff2697a90112e}\label{Almog__Draw__Library_8h_ad01062c2953db3ff85bff2697a90112e}} 
 \index{Almog\_Draw\_Library.h@{Almog\_Draw\_Library.h}!adl\_quad\_mesh\_fill@{adl\_quad\_mesh\_fill}}
@@ -1734,11 +1754,11 @@ Applies per-\/quad average light\+\_\+intensity. Depth-\/tested.
 \end{DoxyParams}
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01277}{1277}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01344}{1344}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 
 
-References \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00247}{adl\+\_\+assert\+\_\+quad\+\_\+is\+\_\+valid}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00961}{adl\+\_\+quad\+\_\+fill()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00114}{Quad\+\_\+mesh\+::elements}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00112}{Quad\+\_\+mesh\+::length}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00095}{Quad\+::to\+\_\+draw}}.
+References \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00314}{adl\+\_\+assert\+\_\+quad\+\_\+is\+\_\+valid}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01028}{adl\+\_\+quad\+\_\+fill()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00163}{Quad\+\_\+mesh\+::elements}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00161}{Quad\+\_\+mesh\+::length}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00138}{Quad\+::to\+\_\+draw}}.
 
 \mbox{\Hypertarget{Almog__Draw__Library_8h_ae7d3b419a822c0cbaaf6a6a0be3df866}\label{Almog__Draw__Library_8h_ae7d3b419a822c0cbaaf6a6a0be3df866}} 
 \index{Almog\_Draw\_Library.h@{Almog\_Draw\_Library.h}!adl\_quad\_mesh\_fill\_interpolate\_color@{adl\_quad\_mesh\_fill\_interpolate\_color}}
@@ -1765,11 +1785,11 @@ Interpolates quad.\+colors\mbox{[}\mbox{]} across each quad with mean-\/value co
 \end{DoxyParams}
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01334}{1334}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01401}{1401}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 
 
-References \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00247}{adl\+\_\+assert\+\_\+quad\+\_\+is\+\_\+valid}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01149}{adl\+\_\+quad\+\_\+fill\+\_\+interpolate\+\_\+color\+\_\+mean\+\_\+value()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00114}{Quad\+\_\+mesh\+::elements}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00112}{Quad\+\_\+mesh\+::length}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00095}{Quad\+::to\+\_\+draw}}.
+References \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00314}{adl\+\_\+assert\+\_\+quad\+\_\+is\+\_\+valid}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01216}{adl\+\_\+quad\+\_\+fill\+\_\+interpolate\+\_\+color\+\_\+mean\+\_\+value()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00163}{Quad\+\_\+mesh\+::elements}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00161}{Quad\+\_\+mesh\+::length}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00138}{Quad\+::to\+\_\+draw}}.
 
 \mbox{\Hypertarget{Almog__Draw__Library_8h_a54b9c681d8fb3935e70ee617056d2997}\label{Almog__Draw__Library_8h_a54b9c681d8fb3935e70ee617056d2997}} 
 \index{Almog\_Draw\_Library.h@{Almog\_Draw\_Library.h}!adl\_quad\_mesh\_fill\_interpolate\_normal@{adl\_quad\_mesh\_fill\_interpolate\_normal}}
@@ -1798,11 +1818,11 @@ Interpolates light\+\_\+intensity across quads and modulates a uniform base colo
 \end{DoxyParams}
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01304}{1304}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01371}{1371}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 
 
-References \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00247}{adl\+\_\+assert\+\_\+quad\+\_\+is\+\_\+valid}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01055}{adl\+\_\+quad\+\_\+fill\+\_\+interpolate\+\_\+normal\+\_\+mean\+\_\+value()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00114}{Quad\+\_\+mesh\+::elements}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00160}{Hex\+ARGB\+\_\+\+RGBA\+\_\+\+VAR}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00112}{Quad\+\_\+mesh\+::length}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00095}{Quad\+::to\+\_\+draw}}.
+References \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00314}{adl\+\_\+assert\+\_\+quad\+\_\+is\+\_\+valid}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01122}{adl\+\_\+quad\+\_\+fill\+\_\+interpolate\+\_\+normal\+\_\+mean\+\_\+value()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00163}{Quad\+\_\+mesh\+::elements}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00227}{Hex\+ARGB\+\_\+\+RGBA\+\_\+\+VAR}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00161}{Quad\+\_\+mesh\+::length}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00138}{Quad\+::to\+\_\+draw}}.
 
 \mbox{\Hypertarget{Almog__Draw__Library_8h_abe9a6b09bc6c969c76f4ba1f8b571994}\label{Almog__Draw__Library_8h_abe9a6b09bc6c969c76f4ba1f8b571994}} 
 \index{Almog\_Draw\_Library.h@{Almog\_Draw\_Library.h}!adl\_rectangle\_draw\_min\_max@{adl\_rectangle\_draw\_min\_max}}
@@ -1833,15 +1853,15 @@ Draw a rectangle outline defined by min/max corners (inclusive).
 \end{DoxyParams}
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00906}{906}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00973}{973}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 
 
-References \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00316}{adl\+\_\+line\+\_\+draw()}}.
+References \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00383}{adl\+\_\+line\+\_\+draw()}}.
 
 
 
-Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00519}{adl\+\_\+character\+\_\+draw()}}.
+Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00586}{adl\+\_\+character\+\_\+draw()}}.
 
 \mbox{\Hypertarget{Almog__Draw__Library_8h_a199833640d6ac9a1ca51bdae6c94f5a6}\label{Almog__Draw__Library_8h_a199833640d6ac9a1ca51bdae6c94f5a6}} 
 \index{Almog\_Draw\_Library.h@{Almog\_Draw\_Library.h}!adl\_rectangle\_fill\_min\_max@{adl\_rectangle\_fill\_min\_max}}
@@ -1872,15 +1892,15 @@ Fill a rectangle defined by min/max corners (inclusive).
 \end{DoxyParams}
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00925}{925}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00992}{992}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 
 
-References \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00316}{adl\+\_\+line\+\_\+draw()}}.
+References \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00383}{adl\+\_\+line\+\_\+draw()}}.
 
 
 
-Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00519}{adl\+\_\+character\+\_\+draw()}}.
+Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00586}{adl\+\_\+character\+\_\+draw()}}.
 
 \mbox{\Hypertarget{Almog__Draw__Library_8h_a52b749446ced6fda478879fccb410e21}\label{Almog__Draw__Library_8h_a52b749446ced6fda478879fccb410e21}} 
 \index{Almog\_Draw\_Library.h@{Almog\_Draw\_Library.h}!adl\_sentence\_draw@{adl\_sentence\_draw}}
@@ -1915,15 +1935,15 @@ Characters are laid out left-\/to-\/right with a spacing derived from the charac
 \end{DoxyParams}
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00882}{882}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00949}{949}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 
 
-References \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00519}{adl\+\_\+character\+\_\+draw()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00259}{ADL\+\_\+\+MAX\+\_\+\+CHARACTER\+\_\+\+OFFSET}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00260}{ADL\+\_\+\+MIN\+\_\+\+CHARACTER\+\_\+\+OFFSET}}.
+References \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00586}{adl\+\_\+character\+\_\+draw()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00326}{ADL\+\_\+\+MAX\+\_\+\+CHARACTER\+\_\+\+OFFSET}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00327}{ADL\+\_\+\+MIN\+\_\+\+CHARACTER\+\_\+\+OFFSET}}.
 
 
 
-Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02103}{adl\+\_\+max\+\_\+min\+\_\+values\+\_\+draw\+\_\+on\+\_\+figure()}}.
+Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l02170}{adl\+\_\+max\+\_\+min\+\_\+values\+\_\+draw\+\_\+on\+\_\+figure()}}.
 
 \mbox{\Hypertarget{Almog__Draw__Library_8h_a329be648e79affb9836f58c3b8cf397b}\label{Almog__Draw__Library_8h_a329be648e79affb9836f58c3b8cf397b}} 
 \index{Almog\_Draw\_Library.h@{Almog\_Draw\_Library.h}!adl\_tan\_half\_angle@{adl\_tan\_half\_angle}}
@@ -1955,15 +1975,15 @@ tan(alpha/2) (non-\/negative).
 \end{DoxyReturn}
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01778}{1778}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01845}{1845}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 
 
-References \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00051}{Point\+::x}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00052}{Point\+::y}}.
+References \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00082}{Point\+::x}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00083}{Point\+::y}}.
 
 
 
-Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01149}{adl\+\_\+quad\+\_\+fill\+\_\+interpolate\+\_\+color\+\_\+mean\+\_\+value()}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01055}{adl\+\_\+quad\+\_\+fill\+\_\+interpolate\+\_\+normal\+\_\+mean\+\_\+value()}}.
+Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01216}{adl\+\_\+quad\+\_\+fill\+\_\+interpolate\+\_\+color\+\_\+mean\+\_\+value()}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01122}{adl\+\_\+quad\+\_\+fill\+\_\+interpolate\+\_\+normal\+\_\+mean\+\_\+value()}}.
 
 \mbox{\Hypertarget{Almog__Draw__Library_8h_aabb99bac9cc725476ee838fdf178cf84}\label{Almog__Draw__Library_8h_aabb99bac9cc725476ee838fdf178cf84}} 
 \index{Almog\_Draw\_Library.h@{Almog\_Draw\_Library.h}!adl\_tri\_draw@{adl\_tri\_draw}}
@@ -1988,15 +2008,15 @@ Draw the outline of a triangle.
 \end{DoxyParams}
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01402}{1402}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01469}{1469}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 
 
-References \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00316}{adl\+\_\+line\+\_\+draw()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00080}{Tri\+::points}}, \mbox{\hyperlink{temp_8c_source_l00011}{tri}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00051}{Point\+::x}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00052}{Point\+::y}}.
+References \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00383}{adl\+\_\+line\+\_\+draw()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00120}{Tri\+::points}}, \mbox{\hyperlink{temp_8c_source_l00011}{tri}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00082}{Point\+::x}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00083}{Point\+::y}}.
 
 
 
-Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01679}{adl\+\_\+tri\+\_\+mesh\+\_\+draw()}}, and \mbox{\hyperlink{temp_8c_source_l00050}{render()}}.
+Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01746}{adl\+\_\+tri\+\_\+mesh\+\_\+draw()}}, and \mbox{\hyperlink{temp_8c_source_l00050}{render()}}.
 
 \mbox{\Hypertarget{Almog__Draw__Library_8h_a16218e4728c782ee363b404f50042080}\label{Almog__Draw__Library_8h_a16218e4728c782ee363b404f50042080}} 
 \index{Almog\_Draw\_Library.h@{Almog\_Draw\_Library.h}!adl\_tri\_fill\_Pinedas\_rasterizer@{adl\_tri\_fill\_Pinedas\_rasterizer}}
@@ -2025,15 +2045,15 @@ Uses the top-\/left fill convention and performs a depth test using inverse-\/Z 
 \end{DoxyParams}
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01425}{1425}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01492}{1492}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 
 
-References \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00283}{adl\+\_\+point\+\_\+draw()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00100}{Mat2\+D\+\_\+uint32\+::cols}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00237}{edge\+\_\+cross\+\_\+point}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00160}{Hex\+ARGB\+\_\+\+RGBA\+\_\+\+VAR}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00240}{is\+\_\+top\+\_\+left}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00085}{Tri\+::light\+\_\+intensity}}, \mbox{\hyperlink{Matrix2D_8h_source_l00145}{MAT2\+D\+\_\+\+AT}}, \mbox{\hyperlink{Matrix2D_8h_source_l00068}{MATRIX2\+D\+\_\+\+ASSERT}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00080}{Tri\+::points}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00166}{RGBA\+\_\+hex\+ARGB}}, \mbox{\hyperlink{Matrix2D_8h_source_l00099}{Mat2\+D\+\_\+uint32\+::rows}}, \mbox{\hyperlink{temp_8c_source_l00011}{tri}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00054}{Point\+::w}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00051}{Point\+::x}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00052}{Point\+::y}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00053}{Point\+::z}}.
+References \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00350}{adl\+\_\+point\+\_\+draw()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00100}{Mat2\+D\+\_\+uint32\+::cols}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00304}{edge\+\_\+cross\+\_\+point}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00227}{Hex\+ARGB\+\_\+\+RGBA\+\_\+\+VAR}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00307}{is\+\_\+top\+\_\+left}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00125}{Tri\+::light\+\_\+intensity}}, \mbox{\hyperlink{Matrix2D_8h_source_l00145}{MAT2\+D\+\_\+\+AT}}, \mbox{\hyperlink{Matrix2D_8h_source_l00068}{MATRIX2\+D\+\_\+\+ASSERT}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00120}{Tri\+::points}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00233}{RGBA\+\_\+hex\+ARGB}}, \mbox{\hyperlink{Matrix2D_8h_source_l00099}{Mat2\+D\+\_\+uint32\+::rows}}, \mbox{\hyperlink{temp_8c_source_l00011}{tri}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00085}{Point\+::w}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00082}{Point\+::x}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00083}{Point\+::y}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00084}{Point\+::z}}.
 
 
 
-Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01701}{adl\+\_\+tri\+\_\+mesh\+\_\+fill\+\_\+\+Pinedas\+\_\+rasterizer()}}.
+Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01768}{adl\+\_\+tri\+\_\+mesh\+\_\+fill\+\_\+\+Pinedas\+\_\+rasterizer()}}.
 
 \mbox{\Hypertarget{Almog__Draw__Library_8h_a6a7ba7ceddb6c584866563d918e90651}\label{Almog__Draw__Library_8h_a6a7ba7ceddb6c584866563d918e90651}} 
 \index{Almog\_Draw\_Library.h@{Almog\_Draw\_Library.h}!adl\_tri\_fill\_Pinedas\_rasterizer\_interpolate\_color@{adl\_tri\_fill\_Pinedas\_rasterizer\_interpolate\_color}}
@@ -2060,15 +2080,15 @@ Interpolates tri.\+colors\mbox{[}\mbox{]} and optionally modulates by average li
 \end{DoxyParams}
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01506}{1506}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01573}{1573}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 
 
-References \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00283}{adl\+\_\+point\+\_\+draw()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00083}{Tri\+::colors}}, \mbox{\hyperlink{Matrix2D_8h_source_l00100}{Mat2\+D\+\_\+uint32\+::cols}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00237}{edge\+\_\+cross\+\_\+point}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00160}{Hex\+ARGB\+\_\+\+RGBA\+\_\+\+VAR}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00240}{is\+\_\+top\+\_\+left}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00085}{Tri\+::light\+\_\+intensity}}, \mbox{\hyperlink{Matrix2D_8h_source_l00145}{MAT2\+D\+\_\+\+AT}}, \mbox{\hyperlink{Matrix2D_8h_source_l00068}{MATRIX2\+D\+\_\+\+ASSERT}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00080}{Tri\+::points}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00166}{RGBA\+\_\+hex\+ARGB}}, \mbox{\hyperlink{Matrix2D_8h_source_l00099}{Mat2\+D\+\_\+uint32\+::rows}}, \mbox{\hyperlink{temp_8c_source_l00011}{tri}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00054}{Point\+::w}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00051}{Point\+::x}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00052}{Point\+::y}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00053}{Point\+::z}}.
+References \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00350}{adl\+\_\+point\+\_\+draw()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00123}{Tri\+::colors}}, \mbox{\hyperlink{Matrix2D_8h_source_l00100}{Mat2\+D\+\_\+uint32\+::cols}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00304}{edge\+\_\+cross\+\_\+point}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00227}{Hex\+ARGB\+\_\+\+RGBA\+\_\+\+VAR}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00307}{is\+\_\+top\+\_\+left}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00125}{Tri\+::light\+\_\+intensity}}, \mbox{\hyperlink{Matrix2D_8h_source_l00145}{MAT2\+D\+\_\+\+AT}}, \mbox{\hyperlink{Matrix2D_8h_source_l00068}{MATRIX2\+D\+\_\+\+ASSERT}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00120}{Tri\+::points}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00233}{RGBA\+\_\+hex\+ARGB}}, \mbox{\hyperlink{Matrix2D_8h_source_l00099}{Mat2\+D\+\_\+uint32\+::rows}}, \mbox{\hyperlink{temp_8c_source_l00011}{tri}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00085}{Point\+::w}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00082}{Point\+::x}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00083}{Point\+::y}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00084}{Point\+::z}}.
 
 
 
-Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01725}{adl\+\_\+tri\+\_\+mesh\+\_\+fill\+\_\+\+Pinedas\+\_\+rasterizer\+\_\+interpolate\+\_\+color()}}, and \mbox{\hyperlink{temp_8c_source_l00050}{render()}}.
+Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01792}{adl\+\_\+tri\+\_\+mesh\+\_\+fill\+\_\+\+Pinedas\+\_\+rasterizer\+\_\+interpolate\+\_\+color()}}, and \mbox{\hyperlink{temp_8c_source_l00050}{render()}}.
 
 \mbox{\Hypertarget{Almog__Draw__Library_8h_a322a6fe3e2cf14474917879eb41318dd}\label{Almog__Draw__Library_8h_a322a6fe3e2cf14474917879eb41318dd}} 
 \index{Almog\_Draw\_Library.h@{Almog\_Draw\_Library.h}!adl\_tri\_fill\_Pinedas\_rasterizer\_interpolate\_normal@{adl\_tri\_fill\_Pinedas\_rasterizer\_interpolate\_normal}}
@@ -2097,15 +2117,15 @@ Interpolates light\+\_\+intensity across the triangle and modulates a uniform ba
 \end{DoxyParams}
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01597}{1597}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01664}{1664}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 
 
-References \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00283}{adl\+\_\+point\+\_\+draw()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00100}{Mat2\+D\+\_\+uint32\+::cols}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00237}{edge\+\_\+cross\+\_\+point}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00160}{Hex\+ARGB\+\_\+\+RGBA\+\_\+\+VAR}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00240}{is\+\_\+top\+\_\+left}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00085}{Tri\+::light\+\_\+intensity}}, \mbox{\hyperlink{Matrix2D_8h_source_l00145}{MAT2\+D\+\_\+\+AT}}, \mbox{\hyperlink{Matrix2D_8h_source_l00068}{MATRIX2\+D\+\_\+\+ASSERT}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00080}{Tri\+::points}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00166}{RGBA\+\_\+hex\+ARGB}}, \mbox{\hyperlink{Matrix2D_8h_source_l00099}{Mat2\+D\+\_\+uint32\+::rows}}, \mbox{\hyperlink{temp_8c_source_l00011}{tri}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00054}{Point\+::w}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00051}{Point\+::x}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00052}{Point\+::y}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00053}{Point\+::z}}.
+References \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00350}{adl\+\_\+point\+\_\+draw()}}, \mbox{\hyperlink{Matrix2D_8h_source_l00100}{Mat2\+D\+\_\+uint32\+::cols}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00304}{edge\+\_\+cross\+\_\+point}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00227}{Hex\+ARGB\+\_\+\+RGBA\+\_\+\+VAR}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00307}{is\+\_\+top\+\_\+left}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00125}{Tri\+::light\+\_\+intensity}}, \mbox{\hyperlink{Matrix2D_8h_source_l00145}{MAT2\+D\+\_\+\+AT}}, \mbox{\hyperlink{Matrix2D_8h_source_l00068}{MATRIX2\+D\+\_\+\+ASSERT}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00120}{Tri\+::points}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00233}{RGBA\+\_\+hex\+ARGB}}, \mbox{\hyperlink{Matrix2D_8h_source_l00099}{Mat2\+D\+\_\+uint32\+::rows}}, \mbox{\hyperlink{temp_8c_source_l00011}{tri}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00085}{Point\+::w}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00082}{Point\+::x}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00083}{Point\+::y}}, and \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00084}{Point\+::z}}.
 
 
 
-Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01750}{adl\+\_\+tri\+\_\+mesh\+\_\+fill\+\_\+\+Pinedas\+\_\+rasterizer\+\_\+interpolate\+\_\+normal()}}.
+Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01817}{adl\+\_\+tri\+\_\+mesh\+\_\+fill\+\_\+\+Pinedas\+\_\+rasterizer\+\_\+interpolate\+\_\+normal()}}.
 
 \mbox{\Hypertarget{Almog__Draw__Library_8h_a21a4c53fb533f0990d6f46017a4d3263}\label{Almog__Draw__Library_8h_a21a4c53fb533f0990d6f46017a4d3263}} 
 \index{Almog\_Draw\_Library.h@{Almog\_Draw\_Library.h}!adl\_tri\_mesh\_draw@{adl\_tri\_mesh\_draw}}
@@ -2132,11 +2152,11 @@ Skips elements with to\+\_\+draw == false.
 \end{DoxyParams}
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01679}{1679}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01746}{1746}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 
 
-References \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01402}{adl\+\_\+tri\+\_\+draw()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00105}{Tri\+\_\+mesh\+::elements}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00103}{Tri\+\_\+mesh\+::length}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00084}{Tri\+::to\+\_\+draw}}, and \mbox{\hyperlink{temp_8c_source_l00011}{tri}}.
+References \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01469}{adl\+\_\+tri\+\_\+draw()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00151}{Tri\+\_\+mesh\+::elements}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00149}{Tri\+\_\+mesh\+::length}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00124}{Tri\+::to\+\_\+draw}}, and \mbox{\hyperlink{temp_8c_source_l00011}{tri}}.
 
 \mbox{\Hypertarget{Almog__Draw__Library_8h_a29e38c19b3a2c0f8c4d8dfefa8004125}\label{Almog__Draw__Library_8h_a29e38c19b3a2c0f8c4d8dfefa8004125}} 
 \index{Almog\_Draw\_Library.h@{Almog\_Draw\_Library.h}!adl\_tri\_mesh\_fill\_Pinedas\_rasterizer@{adl\_tri\_mesh\_fill\_Pinedas\_rasterizer}}
@@ -2165,11 +2185,11 @@ Applies average light\+\_\+intensity per triangle. Depth-\/tested.
 \end{DoxyParams}
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01701}{1701}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01768}{1768}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 
 
-References \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00244}{adl\+\_\+assert\+\_\+tri\+\_\+is\+\_\+valid}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01425}{adl\+\_\+tri\+\_\+fill\+\_\+\+Pinedas\+\_\+rasterizer()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00105}{Tri\+\_\+mesh\+::elements}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00103}{Tri\+\_\+mesh\+::length}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00084}{Tri\+::to\+\_\+draw}}, and \mbox{\hyperlink{temp_8c_source_l00011}{tri}}.
+References \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00311}{adl\+\_\+assert\+\_\+tri\+\_\+is\+\_\+valid}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01492}{adl\+\_\+tri\+\_\+fill\+\_\+\+Pinedas\+\_\+rasterizer()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00151}{Tri\+\_\+mesh\+::elements}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00149}{Tri\+\_\+mesh\+::length}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00124}{Tri\+::to\+\_\+draw}}, and \mbox{\hyperlink{temp_8c_source_l00011}{tri}}.
 
 \mbox{\Hypertarget{Almog__Draw__Library_8h_a2c525ee6f335d0b7843df39e404c7dc3}\label{Almog__Draw__Library_8h_a2c525ee6f335d0b7843df39e404c7dc3}} 
 \index{Almog\_Draw\_Library.h@{Almog\_Draw\_Library.h}!adl\_tri\_mesh\_fill\_Pinedas\_rasterizer\_interpolate\_color@{adl\_tri\_mesh\_fill\_Pinedas\_rasterizer\_interpolate\_color}}
@@ -2198,11 +2218,11 @@ Applies average light\+\_\+intensity per triangle. Depth-\/tested.
 \end{DoxyParams}
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01725}{1725}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01792}{1792}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 
 
-References \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00244}{adl\+\_\+assert\+\_\+tri\+\_\+is\+\_\+valid}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01506}{adl\+\_\+tri\+\_\+fill\+\_\+\+Pinedas\+\_\+rasterizer\+\_\+interpolate\+\_\+color()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00105}{Tri\+\_\+mesh\+::elements}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00103}{Tri\+\_\+mesh\+::length}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00084}{Tri\+::to\+\_\+draw}}, and \mbox{\hyperlink{temp_8c_source_l00011}{tri}}.
+References \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00311}{adl\+\_\+assert\+\_\+tri\+\_\+is\+\_\+valid}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01573}{adl\+\_\+tri\+\_\+fill\+\_\+\+Pinedas\+\_\+rasterizer\+\_\+interpolate\+\_\+color()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00151}{Tri\+\_\+mesh\+::elements}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00149}{Tri\+\_\+mesh\+::length}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00124}{Tri\+::to\+\_\+draw}}, and \mbox{\hyperlink{temp_8c_source_l00011}{tri}}.
 
 \mbox{\Hypertarget{Almog__Draw__Library_8h_ab49bb632b6db243a86b95af128e0466a}\label{Almog__Draw__Library_8h_ab49bb632b6db243a86b95af128e0466a}} 
 \index{Almog\_Draw\_Library.h@{Almog\_Draw\_Library.h}!adl\_tri\_mesh\_fill\_Pinedas\_rasterizer\_interpolate\_normal@{adl\_tri\_mesh\_fill\_Pinedas\_rasterizer\_interpolate\_normal}}
@@ -2231,9 +2251,9 @@ Interpolates light\+\_\+intensity across each triangle and modulates a uniform b
 \end{DoxyParams}
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01750}{1750}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01817}{1817}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 
 
-References \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00244}{adl\+\_\+assert\+\_\+tri\+\_\+is\+\_\+valid}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01597}{adl\+\_\+tri\+\_\+fill\+\_\+\+Pinedas\+\_\+rasterizer\+\_\+interpolate\+\_\+normal()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00105}{Tri\+\_\+mesh\+::elements}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00103}{Tri\+\_\+mesh\+::length}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00084}{Tri\+::to\+\_\+draw}}, and \mbox{\hyperlink{temp_8c_source_l00011}{tri}}.
+References \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00311}{adl\+\_\+assert\+\_\+tri\+\_\+is\+\_\+valid}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01664}{adl\+\_\+tri\+\_\+fill\+\_\+\+Pinedas\+\_\+rasterizer\+\_\+interpolate\+\_\+normal()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00151}{Tri\+\_\+mesh\+::elements}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00149}{Tri\+\_\+mesh\+::length}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00124}{Tri\+::to\+\_\+draw}}, and \mbox{\hyperlink{temp_8c_source_l00011}{tri}}.
 

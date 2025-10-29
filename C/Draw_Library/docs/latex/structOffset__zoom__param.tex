@@ -2,6 +2,11 @@
 \label{structOffset__zoom__param}\index{Offset\_zoom\_param@{Offset\_zoom\_param}}
 
 
+Pan/zoom parameters relative to screen center.  
+
+
+
+
 {\ttfamily \#include $<$Almog\+\_\+\+Draw\+\_\+\+Library.\+h$>$}
 
 \doxysubsection*{Public Attributes}
@@ -20,9 +25,11 @@ int \mbox{\hyperlink{structOffset__zoom__param_a9a7ecb4fb6a90fba1098c81ba28ec510
 
 
 \doxysubsection{Detailed Description}
+Pan/zoom parameters relative to screen center. 
 
+The coordinates are shifted by (offset\+\_\+x, offset\+\_\+y) and scaled by zoom\+\_\+multiplier about the screen center. The mouse fields are optional and can be used by UI code that updates the pan/zoom. 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00040}{40}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00065}{65}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 
 
@@ -33,9 +40,9 @@ Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00040}{40}} 
 \doxysubsubsection{\texorpdfstring{mouse\_x}{mouse\_x}}
 {\footnotesize\ttfamily int Offset\+\_\+zoom\+\_\+param\+::mouse\+\_\+x}
 
+Optional\+: last mouse x (pixels). 
 
-
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00044}{44}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00069}{69}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 \mbox{\Hypertarget{structOffset__zoom__param_a9a7ecb4fb6a90fba1098c81ba28ec510}\label{structOffset__zoom__param_a9a7ecb4fb6a90fba1098c81ba28ec510}} 
 \index{Offset\_zoom\_param@{Offset\_zoom\_param}!mouse\_y@{mouse\_y}}
@@ -43,9 +50,9 @@ Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00044}{44}} 
 \doxysubsubsection{\texorpdfstring{mouse\_y}{mouse\_y}}
 {\footnotesize\ttfamily int Offset\+\_\+zoom\+\_\+param\+::mouse\+\_\+y}
 
+Optional\+: last mouse y (pixels). 
 
-
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00045}{45}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00070}{70}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 \mbox{\Hypertarget{structOffset__zoom__param_a8d6b91e28b53ba7b7e6dd74facf38363}\label{structOffset__zoom__param_a8d6b91e28b53ba7b7e6dd74facf38363}} 
 \index{Offset\_zoom\_param@{Offset\_zoom\_param}!offset\_x@{offset\_x}}
@@ -53,13 +60,13 @@ Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00045}{45}} 
 \doxysubsubsection{\texorpdfstring{offset\_x}{offset\_x}}
 {\footnotesize\ttfamily float Offset\+\_\+zoom\+\_\+param\+::offset\+\_\+x}
 
+Horizontal pan offset (pixels). 
+
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00067}{67}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00042}{42}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
-
-
-Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00316}{adl\+\_\+line\+\_\+draw()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00283}{adl\+\_\+point\+\_\+draw()}}, and \mbox{\hyperlink{display_8c_source_l00196}{process\+\_\+input\+\_\+window()}}.
+Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00383}{adl\+\_\+line\+\_\+draw()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00350}{adl\+\_\+point\+\_\+draw()}}, and \mbox{\hyperlink{display_8c_source_l00196}{process\+\_\+input\+\_\+window()}}.
 
 \mbox{\Hypertarget{structOffset__zoom__param_a8456b409c576fbae5e6c13ba1fbf4f30}\label{structOffset__zoom__param_a8456b409c576fbae5e6c13ba1fbf4f30}} 
 \index{Offset\_zoom\_param@{Offset\_zoom\_param}!offset\_y@{offset\_y}}
@@ -67,13 +74,13 @@ Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00316}{adl\+\_\+l
 \doxysubsubsection{\texorpdfstring{offset\_y}{offset\_y}}
 {\footnotesize\ttfamily float Offset\+\_\+zoom\+\_\+param\+::offset\+\_\+y}
 
+Vertical pan offset (pixels). 
+
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00068}{68}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00043}{43}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
-
-
-Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00316}{adl\+\_\+line\+\_\+draw()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00283}{adl\+\_\+point\+\_\+draw()}}, and \mbox{\hyperlink{display_8c_source_l00196}{process\+\_\+input\+\_\+window()}}.
+Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00383}{adl\+\_\+line\+\_\+draw()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00350}{adl\+\_\+point\+\_\+draw()}}, and \mbox{\hyperlink{display_8c_source_l00196}{process\+\_\+input\+\_\+window()}}.
 
 \mbox{\Hypertarget{structOffset__zoom__param_a019a25c3b0ac20cc7c2740ebe40e35f9}\label{structOffset__zoom__param_a019a25c3b0ac20cc7c2740ebe40e35f9}} 
 \index{Offset\_zoom\_param@{Offset\_zoom\_param}!zoom\_multiplier@{zoom\_multiplier}}
@@ -81,13 +88,13 @@ Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00316}{adl\+\_\+l
 \doxysubsubsection{\texorpdfstring{zoom\_multiplier}{zoom\_multiplier}}
 {\footnotesize\ttfamily float Offset\+\_\+zoom\+\_\+param\+::zoom\+\_\+multiplier}
 
+Zoom scale factor ($>$0). 
+
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00066}{66}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00041}{41}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
-
-
-Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00316}{adl\+\_\+line\+\_\+draw()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00283}{adl\+\_\+point\+\_\+draw()}}, \mbox{\hyperlink{display_8c_source_l00089}{main()}}, and \mbox{\hyperlink{display_8c_source_l00196}{process\+\_\+input\+\_\+window()}}.
+Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00383}{adl\+\_\+line\+\_\+draw()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00350}{adl\+\_\+point\+\_\+draw()}}, \mbox{\hyperlink{display_8c_source_l00089}{main()}}, and \mbox{\hyperlink{display_8c_source_l00196}{process\+\_\+input\+\_\+window()}}.
 
 
 

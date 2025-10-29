@@ -2,6 +2,11 @@
 \label{structTri}\index{Tri@{Tri}}
 
 
+Triangle primitive with optional per-\/vertex attributes.  
+
+
+
+
 {\ttfamily \#include $<$Almog\+\_\+\+Draw\+\_\+\+Library.\+h$>$}
 
 
@@ -32,9 +37,9 @@ float \mbox{\hyperlink{structTri_ae0621440deabb3071d6b2b9f88f55c34}{light\+\_\+i
 
 
 \doxysubsection{Detailed Description}
+Triangle primitive with optional per-\/vertex attributes. 
 
-
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00079}{79}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00119}{119}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 
 
@@ -45,13 +50,13 @@ Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00079}{79}} 
 \doxysubsubsection{\texorpdfstring{colors}{colors}}
 {\footnotesize\ttfamily uint32\+\_\+t Tri\+::colors\mbox{[}3\mbox{]}}
 
+Optional per-\/vertex ARGB colors. 
+
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00123}{123}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00083}{83}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
-
-
-Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01818}{adl\+\_\+quad2tris()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01506}{adl\+\_\+tri\+\_\+fill\+\_\+\+Pinedas\+\_\+rasterizer\+\_\+interpolate\+\_\+color()}}, and \mbox{\hyperlink{temp_8c_source_l00013}{setup()}}.
+Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01885}{adl\+\_\+quad2tris()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01573}{adl\+\_\+tri\+\_\+fill\+\_\+\+Pinedas\+\_\+rasterizer\+\_\+interpolate\+\_\+color()}}, and \mbox{\hyperlink{temp_8c_source_l00013}{setup()}}.
 
 \mbox{\Hypertarget{structTri_ae0621440deabb3071d6b2b9f88f55c34}\label{structTri_ae0621440deabb3071d6b2b9f88f55c34}} 
 \index{Tri@{Tri}!light\_intensity@{light\_intensity}}
@@ -59,13 +64,13 @@ Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01818}{adl\+\_\+q
 \doxysubsubsection{\texorpdfstring{light\_intensity}{light\_intensity}}
 {\footnotesize\ttfamily float Tri\+::light\+\_\+intensity\mbox{[}3\mbox{]}}
 
+Per-\/vertex light intensity multiplier. 
+
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00125}{125}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00085}{85}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
-
-
-Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01818}{adl\+\_\+quad2tris()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01425}{adl\+\_\+tri\+\_\+fill\+\_\+\+Pinedas\+\_\+rasterizer()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01506}{adl\+\_\+tri\+\_\+fill\+\_\+\+Pinedas\+\_\+rasterizer\+\_\+interpolate\+\_\+color()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01597}{adl\+\_\+tri\+\_\+fill\+\_\+\+Pinedas\+\_\+rasterizer\+\_\+interpolate\+\_\+normal()}}, and \mbox{\hyperlink{temp_8c_source_l00013}{setup()}}.
+Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01885}{adl\+\_\+quad2tris()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01492}{adl\+\_\+tri\+\_\+fill\+\_\+\+Pinedas\+\_\+rasterizer()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01573}{adl\+\_\+tri\+\_\+fill\+\_\+\+Pinedas\+\_\+rasterizer\+\_\+interpolate\+\_\+color()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01664}{adl\+\_\+tri\+\_\+fill\+\_\+\+Pinedas\+\_\+rasterizer\+\_\+interpolate\+\_\+normal()}}, and \mbox{\hyperlink{temp_8c_source_l00013}{setup()}}.
 
 \mbox{\Hypertarget{structTri_a3614ec76d2b41cb7f1cffc66cd5482ec}\label{structTri_a3614ec76d2b41cb7f1cffc66cd5482ec}} 
 \index{Tri@{Tri}!normals@{normals}}
@@ -73,9 +78,9 @@ Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01818}{adl\+\_\+q
 \doxysubsubsection{\texorpdfstring{normals}{normals}}
 {\footnotesize\ttfamily \mbox{\hyperlink{structPoint}{Point}} Tri\+::normals\mbox{[}3\mbox{]}}
 
+Optional normals (unused here). 
 
-
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00082}{82}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00122}{122}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 \mbox{\Hypertarget{structTri_a38f5d10a7f896472fbd8d635f0f7cd03}\label{structTri_a38f5d10a7f896472fbd8d635f0f7cd03}} 
 \index{Tri@{Tri}!points@{points}}
@@ -83,13 +88,13 @@ Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00082}{82}} 
 \doxysubsubsection{\texorpdfstring{points}{points}}
 {\footnotesize\ttfamily \mbox{\hyperlink{structPoint}{Point}} Tri\+::points\mbox{[}3\mbox{]}}
 
+Triangle vertices. 
+
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00120}{120}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00080}{80}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
-
-
-Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01818}{adl\+\_\+quad2tris()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01402}{adl\+\_\+tri\+\_\+draw()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01425}{adl\+\_\+tri\+\_\+fill\+\_\+\+Pinedas\+\_\+rasterizer()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01506}{adl\+\_\+tri\+\_\+fill\+\_\+\+Pinedas\+\_\+rasterizer\+\_\+interpolate\+\_\+color()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01597}{adl\+\_\+tri\+\_\+fill\+\_\+\+Pinedas\+\_\+rasterizer\+\_\+interpolate\+\_\+normal()}}, and \mbox{\hyperlink{temp_8c_source_l00013}{setup()}}.
+Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01885}{adl\+\_\+quad2tris()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01469}{adl\+\_\+tri\+\_\+draw()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01492}{adl\+\_\+tri\+\_\+fill\+\_\+\+Pinedas\+\_\+rasterizer()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01573}{adl\+\_\+tri\+\_\+fill\+\_\+\+Pinedas\+\_\+rasterizer\+\_\+interpolate\+\_\+color()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01664}{adl\+\_\+tri\+\_\+fill\+\_\+\+Pinedas\+\_\+rasterizer\+\_\+interpolate\+\_\+normal()}}, and \mbox{\hyperlink{temp_8c_source_l00013}{setup()}}.
 
 \mbox{\Hypertarget{structTri_a0cbc3520ec1e9920434c9984a8f3c345}\label{structTri_a0cbc3520ec1e9920434c9984a8f3c345}} 
 \index{Tri@{Tri}!tex\_points@{tex\_points}}
@@ -97,9 +102,9 @@ Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01818}{adl\+\_\+q
 \doxysubsubsection{\texorpdfstring{tex\_points}{tex\_points}}
 {\footnotesize\ttfamily \mbox{\hyperlink{structPoint}{Point}} Tri\+::tex\+\_\+points\mbox{[}3\mbox{]}}
 
+Optional texture coordinates (unused here). 
 
-
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00081}{81}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00121}{121}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 \mbox{\Hypertarget{structTri_a5b4e4396e4ee399ff6d07ffcedaeceaa}\label{structTri_a5b4e4396e4ee399ff6d07ffcedaeceaa}} 
 \index{Tri@{Tri}!to\_draw@{to\_draw}}
@@ -107,13 +112,13 @@ Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00081}{81}} 
 \doxysubsubsection{\texorpdfstring{to\_draw}{to\_draw}}
 {\footnotesize\ttfamily bool Tri\+::to\+\_\+draw}
 
+Whether to include in rendering. 
+
+Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00124}{124}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
 
-Definition at line \mbox{\hyperlink{Almog__Draw__Library_8h_source_l00084}{84}} of file \mbox{\hyperlink{Almog__Draw__Library_8h_source}{Almog\+\_\+\+Draw\+\_\+\+Library.\+h}}.
 
-
-
-Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01818}{adl\+\_\+quad2tris()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01679}{adl\+\_\+tri\+\_\+mesh\+\_\+draw()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01701}{adl\+\_\+tri\+\_\+mesh\+\_\+fill\+\_\+\+Pinedas\+\_\+rasterizer()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01725}{adl\+\_\+tri\+\_\+mesh\+\_\+fill\+\_\+\+Pinedas\+\_\+rasterizer\+\_\+interpolate\+\_\+color()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01750}{adl\+\_\+tri\+\_\+mesh\+\_\+fill\+\_\+\+Pinedas\+\_\+rasterizer\+\_\+interpolate\+\_\+normal()}}, and \mbox{\hyperlink{temp_8c_source_l00013}{setup()}}.
+Referenced by \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01885}{adl\+\_\+quad2tris()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01746}{adl\+\_\+tri\+\_\+mesh\+\_\+draw()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01768}{adl\+\_\+tri\+\_\+mesh\+\_\+fill\+\_\+\+Pinedas\+\_\+rasterizer()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01792}{adl\+\_\+tri\+\_\+mesh\+\_\+fill\+\_\+\+Pinedas\+\_\+rasterizer\+\_\+interpolate\+\_\+color()}}, \mbox{\hyperlink{Almog__Draw__Library_8h_source_l01817}{adl\+\_\+tri\+\_\+mesh\+\_\+fill\+\_\+\+Pinedas\+\_\+rasterizer\+\_\+interpolate\+\_\+normal()}}, and \mbox{\hyperlink{temp_8c_source_l00013}{setup()}}.
 
 
 

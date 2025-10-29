@@ -9,8 +9,8 @@
 #include "../include/Almog_Draw_Library.h"
 #define ALMOG_ENGINE_IMPLEMENTATION
 #include "../include/Almog_Engine.h"
-#define ALMOG_SHAPES_IMPLEMENTATION
-#include "../include/Almog_Shapes.h"
+#define ALMOG_DELAUNAY_TRIANGULATION_IMPLEMENTATION
+#include "../include/Almog_Delaunay_Triangulation.h"
 
 Tri_mesh mesh, proj_mesh;
 Curve circumcircle, proj_circumcircle;
@@ -39,19 +39,19 @@ void setup(game_state_t *game_state)
 
     Point circum_center = {0};
     float circum_r = 0;
-    as_tri_get_circumcircle(mesh.elements[0].points[0], mesh.elements[0].points[1], mesh.elements[0].points[2], "xy", &circum_center, &circum_r);
+    adt_tri_get_circumcircle(mesh.elements[0].points[0], mesh.elements[0].points[1], mesh.elements[0].points[2], "xy", &circum_center, &circum_r);
     circumcircle = as_circle_curve_create(circum_center, circum_r, 100, 0xffffffff, "XY");
     proj_circumcircle = as_circle_curve_create(circum_center, circum_r, 100, 0xffffffff, "XY");
 
     Point in_center = {0};
     float in_r = 0;
-    as_tri_get_incircle(mesh.elements[0].points[0], mesh.elements[0].points[1], mesh.elements[0].points[2], "xy", &in_center, &in_r);
+    adt_tri_get_incircle(mesh.elements[0].points[0], mesh.elements[0].points[1], mesh.elements[0].points[2], "xy", &in_center, &in_r);
     in_circle = as_circle_curve_create(in_center, in_r, 100, 0xff000000, "XY");
     proj_in_circle = as_circle_curve_create(in_center, in_r, 100, 0xff000000, "XY");
 
     Point min_containment_center = {0};
     float min_containment_r = 0;
-    as_tri_get_min_containment_circle(mesh.elements[0].points[0], mesh.elements[0].points[1], mesh.elements[0].points[2], "xy", &min_containment_center, &min_containment_r);
+    adt_tri_get_min_containment_circle(mesh.elements[0].points[0], mesh.elements[0].points[1], mesh.elements[0].points[2], "xy", &min_containment_center, &min_containment_r);
     min_containment_circle = as_circle_curve_create(min_containment_center, min_containment_r, 100, 0xffff0000, "XY");
     proj_min_containment_circle = as_circle_curve_create(min_containment_center, min_containment_r, 100, 0xffff0000, "XY");
 

@@ -89,19 +89,22 @@ $(document).ready(function(){initNavTree('structFigure.html',''); initResizable(
 </div><!--header-->
 <div class="contents">
 
+<p>Plotting figure holding a pixel buffer, z-buffer and plot state.  
+ <a href="structFigure.html#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="Almog__Draw__Library_8h_source.html">Almog_Draw_Library.h</a>&gt;</code></p>
 <div class="dynheader">
 Collaboration diagram for Figure:</div>
 <div class="dyncontent">
 <div class="center"><img src="structFigure__coll__graph.png" border="0" usemap="#aFigure_coll__map" alt="Collaboration graph"/></div>
 <map name="aFigure_coll__map" id="aFigure_coll__map">
-<area shape="rect" title=" " alt="" coords="324,273,387,300"/>
-<area shape="rect" href="structOffset__zoom__param.html" title=" " alt="" coords="5,184,159,211"/>
+<area shape="rect" title="Plotting figure holding a pixel buffer, z&#45;buffer and plot state." alt="" coords="324,273,387,300"/>
+<area shape="rect" href="structOffset__zoom__param.html" title="Pan/zoom parameters relative to screen center." alt="" coords="5,184,159,211"/>
 <area shape="rect" href="structMat2D__uint32.html" title="Dense row&#45;major matrix of uint32_t." alt="" coords="187,184,300,211"/>
 <area shape="rect" href="structMat2D.html" title="Dense row&#45;major matrix of doubles." alt="" coords="324,184,389,211"/>
-<area shape="rect" href="structPoint.html" title=" " alt="" coords="487,5,541,32"/>
-<area shape="rect" href="structCurve.html" title=" " alt="" coords="568,95,628,121"/>
-<area shape="rect" href="structCurve__ada.html" title=" " alt="" coords="561,184,651,211"/>
+<area shape="rect" href="structPoint.html" title="Homogeneous 2D/3D point with per&#45;vertex depth (z) and w." alt="" coords="487,5,541,32"/>
+<area shape="rect" href="structCurve.html" title="Polyline of points with a uniform color." alt="" coords="568,95,628,121"/>
+<area shape="rect" href="structCurve__ada.html" title="Dynamic array of curves (polyline container)." alt="" coords="561,184,651,211"/>
 </map>
 <center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
@@ -145,8 +148,10 @@ Public Attributes</h2></td></tr>
 <tr class="separator:a7f66a8ce46b8c425daba96a9434aef86"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock">
-<p class="definition">Definition at line <a class="el" href="Almog__Draw__Library_8h_source.html#l00118">118</a> of file <a class="el" href="Almog__Draw__Library_8h_source.html">Almog_Draw_Library.h</a>.</p>
+<div class="textblock"><p>Plotting figure holding a pixel buffer, z-buffer and plot state. </p>
+<p>A <a class="el" href="structFigure.html" title="Plotting figure holding a pixel buffer, z-buffer and plot state.">Figure</a> owns an internal pixel buffer and an inverse-Z buffer used by the plotting utilities. It also stores axis extents, paddings and appearance flags. </p>
+
+<p class="definition">Definition at line <a class="el" href="Almog__Draw__Library_8h_source.html#l00174">174</a> of file <a class="el" href="Almog__Draw__Library_8h_source.html">Almog_Draw_Library.h</a>.</p>
 </div><h2 class="groupheader">Member Data Documentation</h2>
 <a id="aa3ed89201025a283015bfa0eeedc1ee8"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aa3ed89201025a283015bfa0eeedc1ee8">&#9670;&nbsp;</a></span>background_color</h2>
@@ -159,10 +164,11 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Clear color for figure. </p>
 
-<p class="definition">Definition at line <a class="el" href="Almog__Draw__Library_8h_source.html#l00134">134</a> of file <a class="el" href="Almog__Draw__Library_8h_source.html">Almog_Draw_Library.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="Almog__Draw__Library_8h_source.html#l00195">195</a> of file <a class="el" href="Almog__Draw__Library_8h_source.html">Almog_Draw_Library.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="Almog__Draw__Library_8h_source.html#l02247">adl_2Dscalar_interp_on_figure()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l02198">adl_curves_plot_on_figure()</a>, and <a class="el" href="example1_8c_source.html#l00015">setup()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="Almog__Draw__Library_8h_source.html#l02314">adl_2Dscalar_interp_on_figure()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l02265">adl_curves_plot_on_figure()</a>, and <a class="el" href="example1_8c_source.html#l00015">setup()</a>.</p>
 
 </div>
 </div>
@@ -177,10 +183,11 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Owned inverse-Z buffer (double). </p>
 
-<p class="definition">Definition at line <a class="el" href="Almog__Draw__Library_8h_source.html#l00133">133</a> of file <a class="el" href="Almog__Draw__Library_8h_source.html">Almog_Draw_Library.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="Almog__Draw__Library_8h_source.html#l00193">193</a> of file <a class="el" href="Almog__Draw__Library_8h_source.html">Almog_Draw_Library.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="Almog__Draw__Library_8h_source.html#l02247">adl_2Dscalar_interp_on_figure()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l02198">adl_curves_plot_on_figure()</a>, and <a class="el" href="Almog__Draw__Library_8h_source.html#l02014">adl_figure_alloc()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="Almog__Draw__Library_8h_source.html#l02314">adl_2Dscalar_interp_on_figure()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l02265">adl_curves_plot_on_figure()</a>, and <a class="el" href="Almog__Draw__Library_8h_source.html#l02081">adl_figure_alloc()</a>.</p>
 
 </div>
 </div>
@@ -195,10 +202,11 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Max X value in source data. </p>
 
-<p class="definition">Definition at line <a class="el" href="Almog__Draw__Library_8h_source.html#l00124">124</a> of file <a class="el" href="Almog__Draw__Library_8h_source.html">Almog_Draw_Library.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="Almog__Draw__Library_8h_source.html#l00181">181</a> of file <a class="el" href="Almog__Draw__Library_8h_source.html">Almog_Draw_Library.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="Almog__Draw__Library_8h_source.html#l02247">adl_2Dscalar_interp_on_figure()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l02163">adl_curve_add_to_figure()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l02198">adl_curves_plot_on_figure()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l02014">adl_figure_alloc()</a>, and <a class="el" href="Almog__Draw__Library_8h_source.html#l02103">adl_max_min_values_draw_on_figure()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="Almog__Draw__Library_8h_source.html#l02314">adl_2Dscalar_interp_on_figure()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l02230">adl_curve_add_to_figure()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l02265">adl_curves_plot_on_figure()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l02081">adl_figure_alloc()</a>, and <a class="el" href="Almog__Draw__Library_8h_source.html#l02170">adl_max_min_values_draw_on_figure()</a>.</p>
 
 </div>
 </div>
@@ -213,10 +221,11 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Right bound (pixel space). </p>
 
-<p class="definition">Definition at line <a class="el" href="Almog__Draw__Library_8h_source.html#l00120">120</a> of file <a class="el" href="Almog__Draw__Library_8h_source.html">Almog_Draw_Library.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="Almog__Draw__Library_8h_source.html#l00176">176</a> of file <a class="el" href="Almog__Draw__Library_8h_source.html">Almog_Draw_Library.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="Almog__Draw__Library_8h_source.html#l02247">adl_2Dscalar_interp_on_figure()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l02077">adl_axis_draw_on_figure()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l02198">adl_curves_plot_on_figure()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l02014">adl_figure_alloc()</a>, and <a class="el" href="Almog__Draw__Library_8h_source.html#l02103">adl_max_min_values_draw_on_figure()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="Almog__Draw__Library_8h_source.html#l02314">adl_2Dscalar_interp_on_figure()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l02144">adl_axis_draw_on_figure()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l02265">adl_curves_plot_on_figure()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l02081">adl_figure_alloc()</a>, and <a class="el" href="Almog__Draw__Library_8h_source.html#l02170">adl_max_min_values_draw_on_figure()</a>.</p>
 
 </div>
 </div>
@@ -231,10 +240,11 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Max Y value in source data. </p>
 
-<p class="definition">Definition at line <a class="el" href="Almog__Draw__Library_8h_source.html#l00126">126</a> of file <a class="el" href="Almog__Draw__Library_8h_source.html">Almog_Draw_Library.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="Almog__Draw__Library_8h_source.html#l00183">183</a> of file <a class="el" href="Almog__Draw__Library_8h_source.html">Almog_Draw_Library.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="Almog__Draw__Library_8h_source.html#l02247">adl_2Dscalar_interp_on_figure()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l02163">adl_curve_add_to_figure()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l02198">adl_curves_plot_on_figure()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l02014">adl_figure_alloc()</a>, and <a class="el" href="Almog__Draw__Library_8h_source.html#l02103">adl_max_min_values_draw_on_figure()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="Almog__Draw__Library_8h_source.html#l02314">adl_2Dscalar_interp_on_figure()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l02230">adl_curve_add_to_figure()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l02265">adl_curves_plot_on_figure()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l02081">adl_figure_alloc()</a>, and <a class="el" href="Almog__Draw__Library_8h_source.html#l02170">adl_max_min_values_draw_on_figure()</a>.</p>
 
 </div>
 </div>
@@ -249,10 +259,11 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Bottom bound (pixel space). </p>
 
-<p class="definition">Definition at line <a class="el" href="Almog__Draw__Library_8h_source.html#l00122">122</a> of file <a class="el" href="Almog__Draw__Library_8h_source.html">Almog_Draw_Library.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="Almog__Draw__Library_8h_source.html#l00178">178</a> of file <a class="el" href="Almog__Draw__Library_8h_source.html">Almog_Draw_Library.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="Almog__Draw__Library_8h_source.html#l02247">adl_2Dscalar_interp_on_figure()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l02077">adl_axis_draw_on_figure()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l02198">adl_curves_plot_on_figure()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l02014">adl_figure_alloc()</a>, and <a class="el" href="Almog__Draw__Library_8h_source.html#l02103">adl_max_min_values_draw_on_figure()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="Almog__Draw__Library_8h_source.html#l02314">adl_2Dscalar_interp_on_figure()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l02144">adl_axis_draw_on_figure()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l02265">adl_curves_plot_on_figure()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l02081">adl_figure_alloc()</a>, and <a class="el" href="Almog__Draw__Library_8h_source.html#l02170">adl_max_min_values_draw_on_figure()</a>.</p>
 
 </div>
 </div>
@@ -267,10 +278,11 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Min X value in source data. </p>
 
-<p class="definition">Definition at line <a class="el" href="Almog__Draw__Library_8h_source.html#l00123">123</a> of file <a class="el" href="Almog__Draw__Library_8h_source.html">Almog_Draw_Library.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="Almog__Draw__Library_8h_source.html#l00180">180</a> of file <a class="el" href="Almog__Draw__Library_8h_source.html">Almog_Draw_Library.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="Almog__Draw__Library_8h_source.html#l02247">adl_2Dscalar_interp_on_figure()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l02163">adl_curve_add_to_figure()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l02198">adl_curves_plot_on_figure()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l02014">adl_figure_alloc()</a>, and <a class="el" href="Almog__Draw__Library_8h_source.html#l02103">adl_max_min_values_draw_on_figure()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="Almog__Draw__Library_8h_source.html#l02314">adl_2Dscalar_interp_on_figure()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l02230">adl_curve_add_to_figure()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l02265">adl_curves_plot_on_figure()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l02081">adl_figure_alloc()</a>, and <a class="el" href="Almog__Draw__Library_8h_source.html#l02170">adl_max_min_values_draw_on_figure()</a>.</p>
 
 </div>
 </div>
@@ -285,10 +297,11 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Left padding (pixel space). </p>
 
-<p class="definition">Definition at line <a class="el" href="Almog__Draw__Library_8h_source.html#l00119">119</a> of file <a class="el" href="Almog__Draw__Library_8h_source.html">Almog_Draw_Library.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="Almog__Draw__Library_8h_source.html#l00175">175</a> of file <a class="el" href="Almog__Draw__Library_8h_source.html">Almog_Draw_Library.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="Almog__Draw__Library_8h_source.html#l02247">adl_2Dscalar_interp_on_figure()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l02077">adl_axis_draw_on_figure()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l02198">adl_curves_plot_on_figure()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l02014">adl_figure_alloc()</a>, and <a class="el" href="Almog__Draw__Library_8h_source.html#l02103">adl_max_min_values_draw_on_figure()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="Almog__Draw__Library_8h_source.html#l02314">adl_2Dscalar_interp_on_figure()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l02144">adl_axis_draw_on_figure()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l02265">adl_curves_plot_on_figure()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l02081">adl_figure_alloc()</a>, and <a class="el" href="Almog__Draw__Library_8h_source.html#l02170">adl_max_min_values_draw_on_figure()</a>.</p>
 
 </div>
 </div>
@@ -303,10 +316,11 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Min Y value in source data. </p>
 
-<p class="definition">Definition at line <a class="el" href="Almog__Draw__Library_8h_source.html#l00125">125</a> of file <a class="el" href="Almog__Draw__Library_8h_source.html">Almog_Draw_Library.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="Almog__Draw__Library_8h_source.html#l00182">182</a> of file <a class="el" href="Almog__Draw__Library_8h_source.html">Almog_Draw_Library.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="Almog__Draw__Library_8h_source.html#l02247">adl_2Dscalar_interp_on_figure()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l02163">adl_curve_add_to_figure()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l02198">adl_curves_plot_on_figure()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l02014">adl_figure_alloc()</a>, and <a class="el" href="Almog__Draw__Library_8h_source.html#l02103">adl_max_min_values_draw_on_figure()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="Almog__Draw__Library_8h_source.html#l02314">adl_2Dscalar_interp_on_figure()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l02230">adl_curve_add_to_figure()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l02265">adl_curves_plot_on_figure()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l02081">adl_figure_alloc()</a>, and <a class="el" href="Almog__Draw__Library_8h_source.html#l02170">adl_max_min_values_draw_on_figure()</a>.</p>
 
 </div>
 </div>
@@ -321,10 +335,11 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Top padding (pixel space). </p>
 
-<p class="definition">Definition at line <a class="el" href="Almog__Draw__Library_8h_source.html#l00121">121</a> of file <a class="el" href="Almog__Draw__Library_8h_source.html">Almog_Draw_Library.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="Almog__Draw__Library_8h_source.html#l00177">177</a> of file <a class="el" href="Almog__Draw__Library_8h_source.html">Almog_Draw_Library.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="Almog__Draw__Library_8h_source.html#l02247">adl_2Dscalar_interp_on_figure()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l02077">adl_axis_draw_on_figure()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l02198">adl_curves_plot_on_figure()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l02014">adl_figure_alloc()</a>, and <a class="el" href="Almog__Draw__Library_8h_source.html#l02103">adl_max_min_values_draw_on_figure()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="Almog__Draw__Library_8h_source.html#l02314">adl_2Dscalar_interp_on_figure()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l02144">adl_axis_draw_on_figure()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l02265">adl_curves_plot_on_figure()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l02081">adl_figure_alloc()</a>, and <a class="el" href="Almog__Draw__Library_8h_source.html#l02170">adl_max_min_values_draw_on_figure()</a>.</p>
 
 </div>
 </div>
@@ -339,10 +354,11 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Pan/zoom parameters. </p>
 
-<p class="definition">Definition at line <a class="el" href="Almog__Draw__Library_8h_source.html#l00129">129</a> of file <a class="el" href="Almog__Draw__Library_8h_source.html">Almog_Draw_Library.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="Almog__Draw__Library_8h_source.html#l00188">188</a> of file <a class="el" href="Almog__Draw__Library_8h_source.html">Almog_Draw_Library.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="Almog__Draw__Library_8h_source.html#l02247">adl_2Dscalar_interp_on_figure()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l02077">adl_axis_draw_on_figure()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l02198">adl_curves_plot_on_figure()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l02014">adl_figure_alloc()</a>, and <a class="el" href="Almog__Draw__Library_8h_source.html#l02103">adl_max_min_values_draw_on_figure()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="Almog__Draw__Library_8h_source.html#l02314">adl_2Dscalar_interp_on_figure()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l02144">adl_axis_draw_on_figure()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l02265">adl_curves_plot_on_figure()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l02081">adl_figure_alloc()</a>, and <a class="el" href="Almog__Draw__Library_8h_source.html#l02170">adl_max_min_values_draw_on_figure()</a>.</p>
 
 </div>
 </div>
@@ -357,10 +373,11 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Owned ARGB pixel buffer. </p>
 
-<p class="definition">Definition at line <a class="el" href="Almog__Draw__Library_8h_source.html#l00132">132</a> of file <a class="el" href="Almog__Draw__Library_8h_source.html">Almog_Draw_Library.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="Almog__Draw__Library_8h_source.html#l00192">192</a> of file <a class="el" href="Almog__Draw__Library_8h_source.html">Almog_Draw_Library.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="Almog__Draw__Library_8h_source.html#l02247">adl_2Dscalar_interp_on_figure()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l02077">adl_axis_draw_on_figure()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l02198">adl_curves_plot_on_figure()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l02014">adl_figure_alloc()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l02057">adl_figure_copy_to_screen()</a>, and <a class="el" href="Almog__Draw__Library_8h_source.html#l02103">adl_max_min_values_draw_on_figure()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="Almog__Draw__Library_8h_source.html#l02314">adl_2Dscalar_interp_on_figure()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l02144">adl_axis_draw_on_figure()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l02265">adl_curves_plot_on_figure()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l02081">adl_figure_alloc()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l02124">adl_figure_copy_to_screen()</a>, and <a class="el" href="Almog__Draw__Library_8h_source.html#l02170">adl_max_min_values_draw_on_figure()</a>.</p>
 
 </div>
 </div>
@@ -375,10 +392,11 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Curves to plot. </p>
 
-<p class="definition">Definition at line <a class="el" href="Almog__Draw__Library_8h_source.html#l00130">130</a> of file <a class="el" href="Almog__Draw__Library_8h_source.html">Almog_Draw_Library.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="Almog__Draw__Library_8h_source.html#l00189">189</a> of file <a class="el" href="Almog__Draw__Library_8h_source.html">Almog_Draw_Library.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="Almog__Draw__Library_8h_source.html#l02163">adl_curve_add_to_figure()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l02198">adl_curves_plot_on_figure()</a>, and <a class="el" href="Almog__Draw__Library_8h_source.html#l02014">adl_figure_alloc()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="Almog__Draw__Library_8h_source.html#l02230">adl_curve_add_to_figure()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l02265">adl_curves_plot_on_figure()</a>, and <a class="el" href="Almog__Draw__Library_8h_source.html#l02081">adl_figure_alloc()</a>.</p>
 
 </div>
 </div>
@@ -393,10 +411,11 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Draw axes when plotting. </p>
 
-<p class="definition">Definition at line <a class="el" href="Almog__Draw__Library_8h_source.html#l00135">135</a> of file <a class="el" href="Almog__Draw__Library_8h_source.html">Almog_Draw_Library.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="Almog__Draw__Library_8h_source.html#l00196">196</a> of file <a class="el" href="Almog__Draw__Library_8h_source.html">Almog_Draw_Library.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="Almog__Draw__Library_8h_source.html#l02247">adl_2Dscalar_interp_on_figure()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l02198">adl_curves_plot_on_figure()</a>, and <a class="el" href="example1_8c_source.html#l00015">setup()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="Almog__Draw__Library_8h_source.html#l02314">adl_2Dscalar_interp_on_figure()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l02265">adl_curves_plot_on_figure()</a>, and <a class="el" href="example1_8c_source.html#l00015">setup()</a>.</p>
 
 </div>
 </div>
@@ -411,10 +430,11 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Draw min/max labels. </p>
 
-<p class="definition">Definition at line <a class="el" href="Almog__Draw__Library_8h_source.html#l00136">136</a> of file <a class="el" href="Almog__Draw__Library_8h_source.html">Almog_Draw_Library.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="Almog__Draw__Library_8h_source.html#l00197">197</a> of file <a class="el" href="Almog__Draw__Library_8h_source.html">Almog_Draw_Library.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="Almog__Draw__Library_8h_source.html#l02247">adl_2Dscalar_interp_on_figure()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l02198">adl_curves_plot_on_figure()</a>, and <a class="el" href="example1_8c_source.html#l00015">setup()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="Almog__Draw__Library_8h_source.html#l02314">adl_2Dscalar_interp_on_figure()</a>, <a class="el" href="Almog__Draw__Library_8h_source.html#l02265">adl_curves_plot_on_figure()</a>, and <a class="el" href="example1_8c_source.html#l00015">setup()</a>.</p>
 
 </div>
 </div>
@@ -429,10 +449,11 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>On-screen copy position. </p>
 
-<p class="definition">Definition at line <a class="el" href="Almog__Draw__Library_8h_source.html#l00131">131</a> of file <a class="el" href="Almog__Draw__Library_8h_source.html">Almog_Draw_Library.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="Almog__Draw__Library_8h_source.html#l00190">190</a> of file <a class="el" href="Almog__Draw__Library_8h_source.html">Almog_Draw_Library.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="Almog__Draw__Library_8h_source.html#l02014">adl_figure_alloc()</a>, and <a class="el" href="Almog__Draw__Library_8h_source.html#l02057">adl_figure_copy_to_screen()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="Almog__Draw__Library_8h_source.html#l02081">adl_figure_alloc()</a>, and <a class="el" href="Almog__Draw__Library_8h_source.html#l02124">adl_figure_copy_to_screen()</a>.</p>
 
 </div>
 </div>
@@ -447,10 +468,11 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Computed X-axis arrow head size (px). </p>
 
-<p class="definition">Definition at line <a class="el" href="Almog__Draw__Library_8h_source.html#l00127">127</a> of file <a class="el" href="Almog__Draw__Library_8h_source.html">Almog_Draw_Library.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="Almog__Draw__Library_8h_source.html#l00185">185</a> of file <a class="el" href="Almog__Draw__Library_8h_source.html">Almog_Draw_Library.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="Almog__Draw__Library_8h_source.html#l02077">adl_axis_draw_on_figure()</a>, and <a class="el" href="Almog__Draw__Library_8h_source.html#l02103">adl_max_min_values_draw_on_figure()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="Almog__Draw__Library_8h_source.html#l02144">adl_axis_draw_on_figure()</a>, and <a class="el" href="Almog__Draw__Library_8h_source.html#l02170">adl_max_min_values_draw_on_figure()</a>.</p>
 
 </div>
 </div>
@@ -465,10 +487,11 @@ Public Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Computed Y-axis arrow head size (px). </p>
 
-<p class="definition">Definition at line <a class="el" href="Almog__Draw__Library_8h_source.html#l00128">128</a> of file <a class="el" href="Almog__Draw__Library_8h_source.html">Almog_Draw_Library.h</a>.</p>
+<p class="definition">Definition at line <a class="el" href="Almog__Draw__Library_8h_source.html#l00186">186</a> of file <a class="el" href="Almog__Draw__Library_8h_source.html">Almog_Draw_Library.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="Almog__Draw__Library_8h_source.html#l02077">adl_axis_draw_on_figure()</a>, and <a class="el" href="Almog__Draw__Library_8h_source.html#l02103">adl_max_min_values_draw_on_figure()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="Almog__Draw__Library_8h_source.html#l02144">adl_axis_draw_on_figure()</a>, and <a class="el" href="Almog__Draw__Library_8h_source.html#l02170">adl_max_min_values_draw_on_figure()</a>.</p>
 
 </div>
 </div>
