@@ -24,32 +24,16 @@ void setup(game_state_t *game_state)
 
     ada_init_array(Tri, proj_mesh);
 
-    Curve c = as_curve_create_random_points(50, -2, 2, -2, 2, 0, 0, 20);
-
-    Point p1 = (Point){0,1,0,0};
-    ada_appand(Point, c, p1);
-    Point p2 = (Point){0,0,0,0};
-    ada_appand(Point, c, p2);
-    Point p3 = (Point){0,-1,0,0};
-    ada_appand(Point, c, p3);
-    Point p4 = c.elements[4];
-
-    Point p5 = (Point){-0.03,1.5,0,0};
-    ada_appand(Point, c, p5);
+    Curve c = as_curve_create_random_points(1000, -2, 2, -2, 2, 0, 0, 20);
 
     // AS_CURVE_PRINT(c);
 
     Tri_edge_implicit_mesh tei_mesh = adt_tri_edge_implicit_mesh_make_Delaunay_triangulation_flip_algorithm(c.elements, c.length);
 
+    // AS_TRI_EDGE_IMPLICIT_MESH_PRINT(tei_mesh);
 
-    float eps = 1e-6;
-
-    adt_tri_edge_implicit_mesh_insert_segment(&tei_mesh, p3, p4, eps);
-
-    AS_TRI_EDGE_IMPLICIT_MESH_PRINT_SEGMENTS(tei_mesh);
 
     dprintINT(adt_tri_edge_implicit_mesh_check_Delaunay(tei_mesh));
-
 
     mesh = as_tri_edge_implicit_mesh_to_tri_mesh(tei_mesh, 1, 0xffffffff);
 

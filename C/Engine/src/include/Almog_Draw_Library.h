@@ -2531,7 +2531,7 @@ Grid adl_cartesian_grid_create(float min_e1, float max_e1, float min_e2, float m
 
     if (!strncmp(plane, "XY", 3) || !strncmp(plane, "xy", 3)) {
         for (int e1_index = 0; e1_index <= num_samples_e1; e1_index++) {
-            Curve curve;
+            Curve curve = {0};
             ada_init_array(Point, curve);
             Point point_max = {0}, point_min = {0};
 
@@ -2551,7 +2551,7 @@ Grid adl_cartesian_grid_create(float min_e1, float max_e1, float min_e2, float m
             ada_appand(Curve, grid.curves, curve);
         }
         for (int e2_index = 0; e2_index <= num_samples_e2; e2_index++) {
-            Curve curve;
+            Curve curve = {0};
             ada_init_array(Point, curve);
             Point point_max = {0}, point_min = {0};
 
@@ -2572,7 +2572,7 @@ Grid adl_cartesian_grid_create(float min_e1, float max_e1, float min_e2, float m
         }
     } else if (!strncmp(plane, "XZ", 3) || !strncmp(plane, "xz", 3)) {
         for (int e1_index = 0; e1_index <= num_samples_e1; e1_index++) {
-            Curve curve;
+            Curve curve = {0};
             ada_init_array(Point, curve);
             Point point_max = {0}, point_min = {0};
 
@@ -2592,7 +2592,7 @@ Grid adl_cartesian_grid_create(float min_e1, float max_e1, float min_e2, float m
             ada_appand(Curve, grid.curves, curve);
         }
         for (int e2_index = 0; e2_index <= num_samples_e2; e2_index++) {
-            Curve curve;
+            Curve curve = {0};
             ada_init_array(Point, curve);
             Point point_max = {0}, point_min = {0};
 
@@ -2613,7 +2613,7 @@ Grid adl_cartesian_grid_create(float min_e1, float max_e1, float min_e2, float m
         }
     } else if (!strncmp(plane, "YX", 3) || !strncmp(plane, "yx", 3)) {
         for (int e1_index = 0; e1_index <= num_samples_e1; e1_index++) {
-            Curve curve;
+            Curve curve = {0};
             ada_init_array(Point, curve);
             Point point_max = {0}, point_min = {0};
 
@@ -2633,7 +2633,7 @@ Grid adl_cartesian_grid_create(float min_e1, float max_e1, float min_e2, float m
             ada_appand(Curve, grid.curves, curve);
         }
         for (int e2_index = 0; e2_index <= num_samples_e2; e2_index++) {
-            Curve curve;
+            Curve curve = {0};
             ada_init_array(Point, curve);
             Point point_max = {0}, point_min = {0};
 
@@ -2654,7 +2654,7 @@ Grid adl_cartesian_grid_create(float min_e1, float max_e1, float min_e2, float m
         }
     } else if (!strncmp(plane, "YZ", 3) || !strncmp(plane, "yz", 3)) {
         for (int e1_index = 0; e1_index <= num_samples_e1; e1_index++) {
-            Curve curve;
+            Curve curve = {0};
             ada_init_array(Point, curve);
             Point point_max = {0}, point_min = {0};
 
@@ -2674,7 +2674,7 @@ Grid adl_cartesian_grid_create(float min_e1, float max_e1, float min_e2, float m
             ada_appand(Curve, grid.curves, curve);
         }
         for (int e2_index = 0; e2_index <= num_samples_e2; e2_index++) {
-            Curve curve;
+            Curve curve = {0};
             ada_init_array(Point, curve);
             Point point_max = {0}, point_min = {0};
 
@@ -2695,7 +2695,7 @@ Grid adl_cartesian_grid_create(float min_e1, float max_e1, float min_e2, float m
         }
     } else if (!strncmp(plane, "ZX", 3) || !strncmp(plane, "zx", 3)) {
         for (int e1_index = 0; e1_index <= num_samples_e1; e1_index++) {
-            Curve curve;
+            Curve curve = {0};
             ada_init_array(Point, curve);
             Point point_max = {0}, point_min = {0};
 
@@ -2715,7 +2715,7 @@ Grid adl_cartesian_grid_create(float min_e1, float max_e1, float min_e2, float m
             ada_appand(Curve, grid.curves, curve);
         }
         for (int e2_index = 0; e2_index <= num_samples_e2; e2_index++) {
-            Curve curve;
+            Curve curve = {0};
             ada_init_array(Point, curve);
             Point point_max = {0}, point_min = {0};
 
@@ -2736,7 +2736,7 @@ Grid adl_cartesian_grid_create(float min_e1, float max_e1, float min_e2, float m
         }
     } else if (!strncmp(plane, "ZY", 3) || !strncmp(plane, "zy", 3)) {
         for (int e1_index = 0; e1_index <= num_samples_e1; e1_index++) {
-            Curve curve;
+            Curve curve = {0};
             ada_init_array(Point, curve);
             Point point_max = {0}, point_min = {0};
 
@@ -2756,7 +2756,7 @@ Grid adl_cartesian_grid_create(float min_e1, float max_e1, float min_e2, float m
             ada_appand(Curve, grid.curves, curve);
         }
         for (int e2_index = 0; e2_index <= num_samples_e2; e2_index++) {
-            Curve curve;
+            Curve curve = {0};
             ada_init_array(Point, curve);
             Point point_max = {0}, point_min = {0};
 

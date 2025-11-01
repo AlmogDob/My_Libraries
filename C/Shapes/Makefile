@@ -1,5 +1,5 @@
-CCHECKS = -fsanitize=address
-CWARNINGS = -Wall -Wextra -Wuninitialized 
+CCHECKS = -fsanitize=address,leak,undefined,bounds -fsanitize-address-use-after-scope -ggdb
+CWARNINGS = -W -Wall -Wextra -Wuninitialized -Wunreachable-code
 CFLAGS = $(CWARNINGS) -lm -lSDL2 -lSDL2_ttf
 
 #############################################################

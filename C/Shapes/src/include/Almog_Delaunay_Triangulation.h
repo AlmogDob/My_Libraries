@@ -22,6 +22,7 @@ Tri_implicit_mesh       adt_tri_implicit_mesh_make_Delaunay_triangulation_flip_a
 void                    adt_tri_implicit_mesh_set_Delaunay_triangulation_flip_algorithm_fixed_iterations(Tri_implicit_mesh mesh);
 bool                    adt_tri_edge_implicit_mesh_check_Delaunay(Tri_edge_implicit_mesh mesh);
 int                     adt_tri_edge_implicit_mesh_check_edge_is_locally_Delaunay(Tri_edge_implicit_mesh mesh, Point p1, Point p2);
+int                     adt_tri_edge_implicit_mesh_check_edge_index_is_locally_Delaunay(Tri_edge_implicit_mesh mesh, size_t edge_index);
 Edge_implicit           adt_tri_edge_implicit_mesh_flip_edge(Tri_edge_implicit_mesh *mesh, Point p1, Point p2, bool debug_print);
 void                    adt_tri_edge_implicit_mesh_insert_segment(Tri_edge_implicit_mesh *mesh, Point p1, Point p2, float eps);
 void                    adt_tri_edge_implicit_mesh_insert_segment_array(Tri_edge_implicit_mesh *mesh, Edge *edge_list, size_t len, float eps);
@@ -38,20 +39,15 @@ void                    adt_tri_edge_implicit_mesh_set_Delaunay_triangulation_fl
 #undef ALMOG_DELAUNAY_TRIANGULATION_IMPLEMENTATION
 
 
-/** @brief Compute circumcircle of triangle (p1,p2,p3) in XY.
- *
- * Asserts coplanarity and plane equals "XY" or "xy".
- *
- * @param p1     First vertex.
- * @param p2     Second vertex.
- * @param p3     Third vertex.
- * @param plane  Plane selector ("XY" only).
- * @param center Out: circle center.
- * @param r      Out: circle radius.
- */
 void adt_tri_get_circumcircle(Point p1, Point p2, Point p3, const char plane[], Point *center, float *r)
 {
     ADT_ASSERT((!strncmp(plane, "XY", 3) || !strncmp(plane, "xy", 3)) && "other planes are no implemented.");
+    ADT_ASSERT(center != NULL);
+    ADT_ASSERT(r != NULL);
+    as_point_assert_finite(p1);
+    as_point_assert_finite(p2);
+    as_point_assert_finite(p3);
+
     Tri temp_tri = {.points = {p1, p2, p3}};
     ADT_ASSERT(as_tri_equal_z(temp_tri));
 
@@ -81,6 +77,30 @@ void adt_tri_get_circumcircle(Point p1, Point p2, Point p3, const char plane[], 
     float detx = line1_per_c * line2_per_b - line2_per_c * line1_per_b;
     float dety = line1_per_a * line2_per_c - line2_per_a * line1_per_c;
 
+    /* Guard against degenerate (collinear or near-collinear) triangles:
+    perpendicular bisectors are parallel => det ~ 0. Provide a
+    reasonable fallback (diameter of the longest side). */
+    if (fabsf(det) <= ADT_EPSILON) {
+        float d12 = as_points_distance(p1, p2);
+        float d23 = as_points_distance(p2, p3);
+        float d31 = as_points_distance(p3, p1);
+        Point a = p1, b = p2;
+        float dmax = d12;
+        if (d23 > dmax) {
+            dmax = d23;
+            a = p2;
+            b = p3;
+        }
+        if (d31 > dmax) {
+            dmax = d31;
+            a = p3;
+            b = p1;
+        }
+        as_points_interpolate((*center), a, b, 0.5f);
+        *r = dmax * 0.5f;
+        return;
+    }
+
     float x = detx / det;
     float y = dety / det;
 
@@ -92,20 +112,15 @@ void adt_tri_get_circumcircle(Point p1, Point p2, Point p3, const char plane[], 
     *r = as_points_distance(p1, *center);
 }
 
-/** @brief Compute incircle of triangle (p1,p2,p3) in XY.
- *
- * Asserts coplanarity and plane equals "XY" or "xy".
- *
- * @param p1     First vertex.
- * @param p2     Second vertex.
- * @param p3     Third vertex.
- * @param plane  Plane selector ("XY" only).
- * @param center Out: circle center.
- * @param r      Out: circle radius.
- */
 void adt_tri_get_incircle(Point p1, Point p2, Point p3, const char plane[], Point *center, float *r)
 {
     ADT_ASSERT((!strncmp(plane, "XY", 3) || !strncmp(plane, "xy", 3)) && "other planes are no implemented.");
+    ADT_ASSERT(center != NULL);
+    ADT_ASSERT(r != NULL);
+    as_point_assert_finite(p1);
+    as_point_assert_finite(p2);
+    as_point_assert_finite(p3);
+
     Tri temp_tri = {.points = {p1, p2, p3}};
     ADT_ASSERT(as_tri_equal_z(temp_tri));
 
@@ -113,36 +128,40 @@ void adt_tri_get_incircle(Point p1, Point p2, Point p3, const char plane[], Poin
     float a = as_points_distance(p2, p3);
     float b = as_points_distance(p3, p1);
     float c = as_points_distance(p1, p2);
+    ADT_ASSERT(a > 0.0f && b > 0.0f && c > 0.0f && "triangle edges must be non-degenerate");
+    float area = fabsf((float)as_tri_area_xy(p1, p2, p3));
+    ADT_ASSERT(area > ADT_EPSILON && "incircle undefined for degenerate tri");
 
     (*center)   = (Point){0,0,0,0};
     (*center).x = (a * p1.x + b * p2.x + c * p3.x) / (a + b + c);
     (*center).y = (a * p1.y + b * p2.y + c * p3.y) / (a + b + c);
     (*center).z = p1.z;
     float s = 0.5 * (a + b + c);
-    *r = sqrt((s - a) * (s - b) * (s - c) / s);
+    ADT_ASSERT(s > 0.0f && "triangle semi-perimeter must be positive");
+    float rad_sqr = (s - a) * (s - b) * (s - c) / s;
+    /* numeric noise safety */
+    ADT_ASSERT(rad_sqr >= 0.0f && "negative incircle radicand");
+    *r = sqrtf(fmaxf(rad_sqr, 0.0f));
 }
 
-/** @brief Minimal containment circle for triangle (p1,p2,p3) in XY.
- *
- * Returns either the circumcircle or the diameter of the longest side.
- * Asserts coplanarity and plane equals "XY" or "xy".
- *
- * @param p1     First vertex.
- * @param p2     Second vertex.
- * @param p3     Third vertex.
- * @param plane  Plane selector ("XY" only).
- * @param center Out: circle center.
- * @param r      Out: circle radius.
- */
 void adt_tri_get_min_containment_circle(Point p1, Point p2, Point p3, const char plane[], Point *center, float *r)
 {
     ADT_ASSERT((!strncmp(plane, "XY", 3) || !strncmp(plane, "xy", 3)) && "other planes are no implemented.");
+    ADT_ASSERT(center != NULL);
+    ADT_ASSERT(r != NULL);
+    as_point_assert_finite(p1);
+    as_point_assert_finite(p2);
+    as_point_assert_finite(p3);
+
     Tri temp_tri = {.points = {p1, p2, p3}};
     ADT_ASSERT(as_tri_equal_z(temp_tri));
 
     float d1 = as_points_distance(p1, p2);
     float d2 = as_points_distance(p2, p3);
     float d3 = as_points_distance(p3, p1);
+
+    ADT_ASSERT(d1 > 0.0f && d2 > 0.0f && d3 > 0.0f && "triangle edges must be non-degenerate");
+
     Point line12 = {0};
     Point line13 = {0};
     Point line21 = {0};
@@ -186,11 +205,6 @@ void adt_tri_get_min_containment_circle(Point p1, Point p2, Point p3, const char
     }
 }
 
-/** @brief Check if all interior non-segment edges in an implicit mesh are locally Delaunay.
- *
- * @param mesh Implicit mesh to test.
- * @return true if Delaunay; false otherwise.
- */
 bool adt_tri_implicit_mesh_check_Delaunay(Tri_implicit_mesh mesh)
 {
     for (size_t i = 0; i < mesh.points.length-1; i++) {
@@ -205,15 +219,10 @@ bool adt_tri_implicit_mesh_check_Delaunay(Tri_implicit_mesh mesh)
     return true;
 }
 
-/** @brief Test if edge (p1,p2) is locally Delaunay in implicit mesh.
- *
- * @param mesh Implicit mesh.
- * @param p1   First endpoint.
- * @param p2   Second endpoint.
- * @return -1 if not an edge, 0 if not locally Delaunay, 1 otherwise.
- */
 int adt_tri_implicit_mesh_check_edge_is_locally_Delaunay(Tri_implicit_mesh mesh, Point p1, Point p2)
 {
+    ADT_ASSERT(!as_points_equal(p1, p2) && "edge endpoints must differ");
+
     int p1_index = as_point_in_curve_index(p1, mesh.points);
     int p2_index = as_point_in_curve_index(p2, mesh.points);
 
@@ -227,14 +236,14 @@ int adt_tri_implicit_mesh_check_edge_is_locally_Delaunay(Tri_implicit_mesh mesh,
     if (num_of_triangles == 0) return -1;
     if (num_of_triangles == 1) return 1;
 
-    ADA_ASSERT(num_of_triangles == 2);
+    ADT_ASSERT(num_of_triangles == 2 && "an edge cannot be shared by more then 2 triangles");
+    ADT_ASSERT((tri1_index < mesh.triangles.length) && "tri index OOB");
+    ADT_ASSERT((tri2_index < mesh.triangles.length) && "tri index OOB");
 
     Point circumcenter_1 = {0};
     float r1 = 0;
 
     adt_tri_get_circumcircle(as_tri_implicit_mesh_expand_tri_to_points(mesh, tri1_index), "xy", &circumcenter_1, &r1);
-    // AS_POINT_PRINT(circumcenter_1);
-    // dprintD(r1);
 
     /* fined the point on tri2 that is not on the edge */
     Point tri2_outside_p = {0};
@@ -250,20 +259,14 @@ int adt_tri_implicit_mesh_check_edge_is_locally_Delaunay(Tri_implicit_mesh mesh,
     return 0;
 }
 
-/** @brief Flip the shared edge (p1,p2) to the opposite diagonal.
- *
- * No-op with warnings if edge is not shared by exactly two triangles.
- *
- * @param mesh Implicit mesh to modify (in place).
- * @param p1   First endpoint.
- * @param p2   Second endpoint.
- */
 void adt_tri_implicit_mesh_flip_edge(Tri_implicit_mesh mesh, Point p1, Point p2)
 {
+    ADT_ASSERT(!as_points_equal(p1, p2) && "edge endpoints must differ");
+
     int p1_index = as_point_in_curve_index(p1, mesh.points);
     int p2_index = as_point_in_curve_index(p2, mesh.points);
 
-    ADT_ASSERT(p1_index != -1 || p2_index != -1);
+    ADT_ASSERT(p1_index != -1 && p2_index != -1);
     
     size_t tri1_index = 0;
     size_t tri2_index = 0;
@@ -309,12 +312,14 @@ void adt_tri_implicit_mesh_flip_edge(Tri_implicit_mesh mesh, Point p1, Point p2)
 
     /* fix orientation */
     float cross = as_tri_implicit_area_xy(mesh, tri1_index);
+    ADT_ASSERT(isfinite(cross) && "area must be finite");
     if (cross > 0) {
         int temp = mesh.triangles.elements[tri1_index].points_index[0];
         mesh.triangles.elements[tri1_index].points_index[0] = mesh.triangles.elements[tri1_index].points_index[2];
         mesh.triangles.elements[tri1_index].points_index[2] = temp;
     }
     cross = as_tri_implicit_area_xy(mesh, tri2_index);
+    ADT_ASSERT(isfinite(cross) && "area must be finite");
     if (cross > 0) {
         int temp = mesh.triangles.elements[tri2_index].points_index[0];
         mesh.triangles.elements[tri2_index].points_index[0] = mesh.triangles.elements[tri2_index].points_index[2];
@@ -328,17 +333,11 @@ void adt_tri_implicit_mesh_flip_edge(Tri_implicit_mesh mesh, Point p1, Point p2)
     (void)p1_tri2_index;
 }
 
-/** @brief Build Delaunay triangulation via fixed-iteration flips.
- *
- * Convenience wrapper that builds a lexicographic triangulation and
- * performs fixed iterations of edge flips.
- *
- * @param c   Input XY-coplanar points.
- * @param len Number of points.
- * @return Implicit Delaunay triangulation.
- */
 Tri_implicit_mesh adt_tri_implicit_mesh_make_Delaunay_triangulation_flip_algorithm_fixed_iterations(Point *c, const size_t len)
 {
+    ADT_ASSERT(c != NULL);
+    ADT_ASSERT(len >= 1 && "need at least one point");
+
     Tri_implicit_mesh ti_lexi_mesh = as_points_array_get_lexicographic_triangulation(c, len);
 
     adt_tri_implicit_mesh_set_Delaunay_triangulation_flip_algorithm_fixed_iterations(ti_lexi_mesh);
@@ -346,14 +345,12 @@ Tri_implicit_mesh adt_tri_implicit_mesh_make_Delaunay_triangulation_flip_algorit
     return ti_lexi_mesh;
 }
 
-/** @brief Enforce Delaunay by repeated passes (fixed iteration cap).
- *
- * Modifies the mesh in place.
- *
- * @param mesh Implicit mesh to modify (in place).
- */
 void adt_tri_implicit_mesh_set_Delaunay_triangulation_flip_algorithm_fixed_iterations(Tri_implicit_mesh mesh)
 {
+    ADT_ASSERT(mesh.points.elements != NULL);
+    ADT_ASSERT(mesh.triangles.elements != NULL);
+    ADT_ASSERT(mesh.points.length > 2 && "need > 2 points");
+
     printf("[INFO] Delaunay triangulation:\n");
 
     int hard_limit = 10;
@@ -376,13 +373,10 @@ void adt_tri_implicit_mesh_set_Delaunay_triangulation_flip_algorithm_fixed_itera
     printf("\n");
 }
 
-/** @brief Check if all interior non-segment edges are locally Delaunay.
- *
- * @param mesh Edge-implicit mesh to test.
- * @return true if Delaunay; false otherwise.
- */
 bool adt_tri_edge_implicit_mesh_check_Delaunay(Tri_edge_implicit_mesh mesh)
 {
+    ADT_ASSERT(mesh.points.elements != NULL);
+    ADT_ASSERT((mesh.edges.length == 0 || mesh.edges.elements != NULL) && "edges elements pointer invalid");
     for (size_t i = 0; i < mesh.edges.length; i++) {
         int is_locally_Delaunay = adt_tri_edge_implicit_mesh_check_edge_is_locally_Delaunay(mesh, mesh.points.elements[mesh.edges.elements[i].p1_index], mesh.points.elements[mesh.edges.elements[i].p2_index]);
         if (is_locally_Delaunay == -1) continue;
@@ -393,30 +387,31 @@ bool adt_tri_edge_implicit_mesh_check_Delaunay(Tri_edge_implicit_mesh mesh)
     return true;
 }
 
-/** @brief Test if edge (p1,p2) is locally Delaunay in edge-implicit mesh.
- *
- * Constrained edges (is_segment) are treated as already valid.
- *
- * @param mesh Edge-implicit mesh.
- * @param p1   First endpoint.
- * @param p2   Second endpoint.
- * @return -1 if not an edge, 0 if not locally Delaunay, 1 otherwise.
- */
 int adt_tri_edge_implicit_mesh_check_edge_is_locally_Delaunay(Tri_edge_implicit_mesh mesh, Point p1, Point p2)
 {
+    ADT_ASSERT(mesh.points.elements != NULL && "points array null");
+    ADT_ASSERT((mesh.edges.length == 0 || mesh.edges.elements != NULL) && "edges elements pointer invalid");
+    ADT_ASSERT(!as_points_equal(p1, p2) && "edge endpoints must differ");
+
     int edge_index = as_edge_implicit_ada_get_edge_index(mesh.edges, mesh.points.elements, p1, p2);
     if (edge_index == -1) return -1;
     if (mesh.edges.elements[edge_index].is_segment) return 1;
     
     size_t tri1_index = 0;
     size_t tri2_index = 0;
+    Edge_implicit ei = mesh.edges.elements[edge_index];
+    /* find inverse edge index once */
+    int inv_ei_index = as_edge_implicit_ada_get_edge_index( mesh.edges, mesh.points.elements, mesh.points.elements[ei.p2_index], mesh.points.elements[ei.p1_index]);
 
-    int num_of_triangles = as_tri_edge_implicit_mesh_get_triangles_indexs_with_edge(mesh, p1, p2, &tri1_index, &tri2_index);
+    int num_of_triangles = as_tri_edge_implicit_mesh_get_triangles_indexs_with_edge_index(mesh, edge_index, inv_ei_index, &tri1_index, &tri2_index);
     
     if (num_of_triangles == 0) return -1;
     if (num_of_triangles == 1) return 1;
 
-    ADA_ASSERT(num_of_triangles == 2);
+    ADT_ASSERT(num_of_triangles == 2 && "an edge cannot be shared by > 2 triangles");
+
+    ADT_ASSERT(tri1_index < mesh.triangles.length && "tri index OOB");
+    ADT_ASSERT(tri2_index < mesh.triangles.length && "tri index OOB");
 
     Point circumcenter_1 = {0};
     float r1 = 0;
@@ -436,36 +431,80 @@ int adt_tri_edge_implicit_mesh_check_edge_is_locally_Delaunay(Tri_edge_implicit_
     return 0;
 }
 
-/** @brief Flip common edge (p1,p2) to opposite diagonal; return new edge.
- *
- * Returns the newly inserted diagonal (global point indices) or {0} on
- * failure. Constrained edges are preserved.
- * 
- * @note - The orientation of the returned diagonal depends on which
- *         triangle contained the ordered edge (p1->p2).
- * @note - Updates edges[] and triangles[] in place; global indices may
- *         shift due to removals/insertions. debug_print controls warnings.
- *
- * @param mesh        Mesh to modify (in place).
- * @param p1          First endpoint.
- * @param p2          Second endpoint.
- * @param debug_print Emit warnings to stderr if true.
- * @return Newly inserted diagonal as an Edge_implicit, or zeroed struct.
- */
+int adt_tri_edge_implicit_mesh_check_edge_index_is_locally_Delaunay(Tri_edge_implicit_mesh mesh, size_t edge_index)
+{
+    ADT_ASSERT(mesh.points.elements != NULL && "points array null");
+    ADT_ASSERT((mesh.edges.length == 0 || mesh.edges.elements != NULL) && "edges elements pointer invalid");
+
+    if (mesh.edges.elements[edge_index].is_segment) return 1;
+
+    Point p1 = mesh.points.elements[mesh.edges.elements[edge_index].p1_index];
+    Point p2 = mesh.points.elements[mesh.edges.elements[edge_index].p2_index];
+    
+    size_t tri1_index = 0;
+    size_t tri2_index = 0;
+    Edge_implicit ei = mesh.edges.elements[edge_index];
+    /* find inverse edge index once */
+    int inv_ei_index = -1;
+    /* check if next edge is the inv edge */
+    if (edge_index < mesh.edges.length-1 && edge_index >= 1) {
+        Edge_implicit next_ei = mesh.edges.elements[edge_index+1];
+        Edge_implicit prev_ei = mesh.edges.elements[edge_index-1];
+        if ((ei.p1_index == next_ei.p2_index) && (ei.p2_index == next_ei.p1_index)) {
+            inv_ei_index = edge_index + 1;
+        } else if ((ei.p1_index == prev_ei.p2_index) && (ei.p2_index == prev_ei.p1_index)) {
+            inv_ei_index = edge_index - 1;
+        }
+    }
+    if (inv_ei_index == -1) inv_ei_index = as_edge_implicit_ada_get_edge_index( mesh.edges, mesh.points.elements, mesh.points.elements[ei.p2_index], mesh.points.elements[ei.p1_index]);
+
+    int num_of_triangles = as_tri_edge_implicit_mesh_get_triangles_indexs_with_edge_index(mesh, edge_index, inv_ei_index, &tri1_index, &tri2_index);
+    
+    if (num_of_triangles == 0) return -1;
+    if (num_of_triangles == 1) return 1;
+
+    ADT_ASSERT(num_of_triangles == 2 && "an edge cannot be shared by > 2 triangles");
+
+    ADT_ASSERT(tri1_index < mesh.triangles.length && "tri index OOB");
+    ADT_ASSERT(tri2_index < mesh.triangles.length && "tri index OOB");
+
+    Point circumcenter_1 = {0};
+    float r1 = 0;
+
+    adt_tri_get_circumcircle(as_tri_edge_implicit_mesh_expand_tri_to_points(mesh, tri1_index), "xy", &circumcenter_1, &r1);
+
+    Point tri2_outside_p = {0};
+    for (size_t i = 0; i < 3; i++) {
+        Point current_point = as_tri_edge_implicit_mesh_get_point_of_tri(mesh, tri2_index, i);
+        if (!as_points_equal(current_point, p1) && !as_points_equal(current_point, p2)) tri2_outside_p = current_point;
+    }
+
+    float tri2_out_p_and_center_dis = as_points_distance(tri2_outside_p, circumcenter_1);
+
+    if (tri2_out_p_and_center_dis > r1) return 1;
+
+    return 0;
+}
+
 Edge_implicit adt_tri_edge_implicit_mesh_flip_edge(Tri_edge_implicit_mesh *mesh, Point p1, Point p2, bool debug_print)
 {
+    ADT_ASSERT(!as_points_equal(p1, p2) && "edge endpoints must differ");
+    ADT_ASSERT(mesh != NULL);
+
     Tri_edge_implicit_mesh temp_mesh = *mesh;
+    ADT_ASSERT(temp_mesh.points.elements != NULL && "points array null");
+    ADT_ASSERT((temp_mesh.edges.length == 0 || temp_mesh.edges.elements != NULL) && "edges array null");
 
-    int p1_index = as_point_in_curve_index(p1, temp_mesh.points);
-    int p2_index = as_point_in_curve_index(p2, temp_mesh.points);
-
-    ADT_ASSERT(p1_index != -1 && p2_index != -1);
+    // int p1_index = as_point_in_curve_index(p1, temp_mesh.points);
+    // int p2_index = as_point_in_curve_index(p2, temp_mesh.points);
+    // ADT_ASSERT(p1_index != -1 && p2_index != -1);
     
     size_t tri1_index = -1;
     size_t tri2_index = -1;
 
     int num_of_triangles = as_tri_edge_implicit_mesh_get_triangles_indexs_with_edge(temp_mesh, p1, p2, &tri1_index, &tri2_index);
-    
+    ADT_ASSERT(tri1_index < temp_mesh.triangles.length && "tri index OOB");
+    ADT_ASSERT(tri2_index < temp_mesh.triangles.length && "tri index OOB");
     if (num_of_triangles == 0) {
         if (debug_print) fprintf(stderr, "%s:%s:%d:\n[Warning] one of the points is not in the tri edge implicit mesh or edge does not exists.\n\n", __FILE__, __func__, __LINE__);
         return (Edge_implicit){0};
@@ -474,6 +513,35 @@ Edge_implicit adt_tri_edge_implicit_mesh_flip_edge(Tri_edge_implicit_mesh *mesh,
         if (debug_print) fprintf(stderr, "%s:%s:%d:\n[Warning] this is a locally Delaunay edge.\n\n", __FILE__, __func__, __LINE__);
         return (Edge_implicit){0};
     }
+
+    /* getting neighbor indexes */
+    #if 0
+    /* making sure the neighbors indexes of tri1 and tri2 is correct */
+    as_tri_edge_implicit_mesh_set_neighbor_of_tri(temp_mesh, tri1_index);
+    as_tri_edge_implicit_mesh_set_neighbor_of_tri(temp_mesh, tri2_index);
+    int neighboring_tri_index[4] = {-1};
+    size_t neighbors_array_counter = 0;
+    for (size_t i = 0; i < 3; i++) {
+        if (mesh->triangles.elements[tri1_index].neighbor_tri_index[i] != (int)tri2_index) {
+            neighboring_tri_index[neighbors_array_counter++] = mesh->triangles.elements[tri1_index].neighbor_tri_index[i];
+        }
+    }
+    for (size_t i = 0; i < 3; i++) {
+        if (mesh->triangles.elements[tri2_index].neighbor_tri_index[i] != (int)tri1_index) {
+            neighboring_tri_index[neighbors_array_counter++] = mesh->triangles.elements[tri2_index].neighbor_tri_index[i];
+        }
+    }
+    #else
+    int neighboring_tri_index[6] = {-1};
+    size_t neighbors_array_counter = 0;
+    for (size_t i = 0; i < 3; i++) {
+        neighboring_tri_index[neighbors_array_counter++] = mesh->triangles.elements[tri1_index].neighbor_tri_index[i];
+    }
+    for (size_t i = 0; i < 3; i++) {
+        neighboring_tri_index[neighbors_array_counter++] = mesh->triangles.elements[tri2_index].neighbor_tri_index[i];
+    }
+    #endif
+
 
     /* getting the third point index and checking which triangles has the ordered edge */
     int edge_index_tri1 = -1;
@@ -598,6 +666,19 @@ Edge_implicit adt_tri_edge_implicit_mesh_flip_edge(Tri_edge_implicit_mesh *mesh,
         as_tri_edge_implicit_mesh_delete_edge(&temp_mesh, p1, p2);
     }
 
+
+    as_tri_edge_implicit_mesh_set_neighbor_of_tri(temp_mesh, temp_mesh.triangles.length-2);
+    as_tri_edge_implicit_mesh_set_neighbor_of_tri(temp_mesh, temp_mesh.triangles.length-1);
+    for (size_t i = 0; i < neighbors_array_counter; i++) {
+        if (neighboring_tri_index[i] > -1) {
+            as_tri_edge_implicit_mesh_set_neighbor_of_tri(temp_mesh, neighboring_tri_index[i]);
+        }
+    }
+
+
+
+    
+
     *mesh = temp_mesh;
 
     return third_edge;
@@ -605,6 +686,11 @@ Edge_implicit adt_tri_edge_implicit_mesh_flip_edge(Tri_edge_implicit_mesh *mesh,
 
 void adt_tri_edge_implicit_mesh_insert_segment(Tri_edge_implicit_mesh *mesh, Point p1, Point p2, float eps)
 {
+    ADT_ASSERT(mesh != NULL);
+    ADT_ASSERT(mesh->points.elements != NULL && "points array null");
+    ADT_ASSERT(eps >= 0.0f && "eps must be non-negative");
+    ADT_ASSERT(!as_points_equal(p1, p2) && "segment endpoints must differ");
+
     Edge_ada seg_list = {0};
     ada_init_array(Edge, seg_list);
     Edge temp_edge = {.p1 = p1, .p2 = p2};
@@ -628,24 +714,24 @@ void adt_tri_edge_implicit_mesh_insert_segment(Tri_edge_implicit_mesh *mesh, Poi
 
 void adt_tri_edge_implicit_mesh_insert_segment_array(Tri_edge_implicit_mesh *mesh, Edge *edge_list, size_t len, float eps)
 {
+    ADT_ASSERT(mesh != NULL);
+    ADT_ASSERT(mesh->points.elements != NULL && "points array null");
+    ADT_ASSERT(eps >= 0.0f && "eps must be non-negative");
+    ADT_ASSERT((len == 0 || mesh->points.elements != NULL) && "points null");
+
     for (size_t i = 0; i < len; i++) {
         Edge current_edge = edge_list[i];
         adt_tri_edge_implicit_mesh_insert_segment(mesh, current_edge.p1, current_edge.p2, eps);
     }
 }
 
-/** @brief Insert a constrained segment (p1,p2) into triangulation in the XY plane.
- *
- * Endpoints must exist; flips intersecting edges until the segment is
- * present, then marks it as a segment. Performs local Delaunay repairs.
- * Fails if any existing point lies on the segment (within tolerance).
- *
- * @param mesh Mesh to modify (in place).
- * @param p1   First endpoint (must exist).
- * @param p2   Second endpoint (must exist).
- */
 void adt_tri_edge_implicit_mesh_insert_segment_no_intersection(Tri_edge_implicit_mesh *mesh, Point p1, Point p2, float eps)
 {
+    ADT_ASSERT(mesh != NULL);
+    ADT_ASSERT(mesh->points.elements != NULL && "points array null");
+    ADT_ASSERT(eps >= 0.0f && "eps must be non-negative");
+    ADT_ASSERT(!as_points_equal(p1, p2) && "segment endpoints must differ");
+
     /* points must be part of the triangulations */
     int p1_index = as_point_in_curve_index(p1, mesh->points);
     int p2_index = as_point_in_curve_index(p2, mesh->points);
@@ -702,6 +788,8 @@ void adt_tri_edge_implicit_mesh_insert_segment_no_intersection(Tri_edge_implicit
             if (temp_mesh.edges.elements[i].is_segment) {
                 fprintf(stderr, "%s:%s:%d:\n[ERROR] segment intersects a segment of the mesh. failed to insert segment\n\n", __FILE__, __func__, __LINE__);
 
+                free(new_edges_list.elements);
+                free(intersecting_edges_list.elements);
                 *mesh = temp_mesh;
                 return;
             }
@@ -789,41 +877,39 @@ void adt_tri_edge_implicit_mesh_insert_segment_no_intersection(Tri_edge_implicit
 
 void adt_tri_edge_implicit_mesh_insert_segment_array_no_intersection(Tri_edge_implicit_mesh *mesh, Edge *edge_list, size_t len, float eps)
 {
+    ADT_ASSERT(mesh != NULL);
+    ADT_ASSERT(mesh->points.elements != NULL && "points array null");
+    ADT_ASSERT(eps >= 0.0f && "eps must be non-negative");
+    ADT_ASSERT((len == 0 || mesh->points.elements != NULL) && "points null");
+
     for (size_t i = 0; i < len; i++) {
         Edge current_edge = edge_list[i];
         adt_tri_edge_implicit_mesh_insert_segment_no_intersection(mesh, current_edge.p1, current_edge.p2, eps);
     }
 }
 
-/** @brief Build a Delaunay triangulation using a work-queue of flips.
- *
- * Steps: lexicographic triangulation -> edge mesh -> queue-based flips.
- *
- * @param c   Input XY-coplanar points.
- * @param len Number of points.
- * @return Edge-implicit Delaunay triangulation.
- */
 Tri_edge_implicit_mesh adt_tri_edge_implicit_mesh_make_Delaunay_triangulation_flip_algorithm(Point *c, const size_t len)
 {
+    ADT_ASSERT(c != NULL);
+    ADT_ASSERT(len >= 1 && "need at least one point");
+
     Tri_implicit_mesh ti_lexi_mesh = as_points_array_get_lexicographic_triangulation(c, len);
+    Tri_edge_implicit_mesh tei_mesh = as_tri_implicit_mesh_to_tri_edge_implicit_mesh(ti_lexi_mesh);
 
-    Tri_edge_implicit_mesh temp_tei_mesh = as_tri_implicit_mesh_to_tri_edge_implicit_mesh(ti_lexi_mesh);
+    as_tri_edge_implicit_mesh_set_all_tri_neighbor(tei_mesh);
 
-    adt_tri_edge_implicit_mesh_set_Delaunay_triangulation_flip_algorithm(&temp_tei_mesh);
+    adt_tri_edge_implicit_mesh_set_Delaunay_triangulation_flip_algorithm(&tei_mesh);
 
     as_tri_implicit_mesh_free(ti_lexi_mesh);
 
-    return temp_tei_mesh;
+    float min_edge_len = as_tri_edge_implicit_mesh_get_min_edge_length(tei_mesh);
+    if (min_edge_len < ADT_EPSILON) {
+        fprintf(stderr, "%s:%s:%d:\n[Warning] shortest edge is smaller then 'ADT_EPSILON' (%g).\n\n", __FILE__, __func__, __LINE__, ADT_EPSILON);
+    }
+
+    return tei_mesh;
 }
 
-/** @brief Build Delaunay triangulation with fixed-iteration passes.
- *
- * Steps: lexicographic triangulation -> edge mesh -> fixed passes.
- *
- * @param c   Input XY-coplanar points.
- * @param len Number of points.
- * @return Edge-implicit triangulation (approximately Delaunay).
- */
 Tri_edge_implicit_mesh adt_tri_edge_implicit_mesh_make_Delaunay_triangulation_flip_algorithm_fixed_iterations(Point *c, const size_t len)
 {
     Tri_implicit_mesh ti_lexi_mesh = as_points_array_get_lexicographic_triangulation(c, len);
@@ -837,13 +923,6 @@ Tri_edge_implicit_mesh adt_tri_edge_implicit_mesh_make_Delaunay_triangulation_fl
     return temp_tei_mesh;
 }
 
-/** @brief In-place Delaunay enforcement (work-queue scheme).
- *
- * Pops edges, tests local Delaunay, flips if needed, and pushes new
- * neighboring edges. Constrained edges are preserved.
- *
- * @param mesh Mesh to modify (in place).
- */
 void adt_tri_edge_implicit_mesh_set_Delaunay_triangulation_flip_algorithm(Tri_edge_implicit_mesh *mesh)
 {
     Tri_edge_implicit_mesh tei_temp_mesh = *mesh;
@@ -854,7 +933,7 @@ void adt_tri_edge_implicit_mesh_set_Delaunay_triangulation_flip_algorithm(Tri_ed
         ada_appand(Edge_implicit, edge_list, tei_temp_mesh.edges.elements[i]);
     }
 
-    printf("[INFO] Delaunay triangulation:\n");
+    printf("[INFO] Delaunay triangulation:\n\n");
     for (size_t init_len = edge_list.length; edge_list.length > 0;) {
 
         if (edge_list.length > init_len * 2) {
@@ -874,8 +953,14 @@ void adt_tri_edge_implicit_mesh_set_Delaunay_triangulation_flip_algorithm(Tri_ed
         Edge_implicit new_edge = adt_tri_edge_implicit_mesh_flip_edge(&tei_temp_mesh, tei_temp_mesh.points.elements[current_edge.p1_index], tei_temp_mesh.points.elements[current_edge.p2_index], 0);
         
         /* adding the edges of the new triangles to the edge list */
+        #if 0
         Tri_edge_implicit tri1 = {0}, tri2 = {0};
         as_tri_edge_implicit_mesh_get_triangles_with_edge(tei_temp_mesh, tei_temp_mesh.points.elements[new_edge.p1_index], tei_temp_mesh.points.elements[new_edge.p2_index], &tri1, &tri2); 
+        #else
+        Tri_edge_implicit tri1 = tei_temp_mesh.triangles.elements[tei_temp_mesh.triangles.length-1];
+        Tri_edge_implicit tri2 = tei_temp_mesh.triangles.elements[tei_temp_mesh.triangles.length-2];
+        (void)new_edge;
+        #endif
         for (int j = 0; j < 3; j++) {
             ada_appand(Edge_implicit, edge_list, tei_temp_mesh.edges.elements[tri1.edges_index[j]]);
             ada_appand(Edge_implicit, edge_list, tei_temp_mesh.edges.elements[tri2.edges_index[j]]);
@@ -889,13 +974,6 @@ void adt_tri_edge_implicit_mesh_set_Delaunay_triangulation_flip_algorithm(Tri_ed
     *mesh = tei_temp_mesh;
 }
 
-/** @brief In-place Delaunay enforcement (fixed-iteration passes).
- *
- * Runs repeated passes over all point pairs up to a hard limit. Keeps
- * constrained edges intact.
- *
- * @param mesh Mesh to modify (in place).
- */
 void adt_tri_edge_implicit_mesh_set_Delaunay_triangulation_flip_algorithm_fixed_iterations(Tri_edge_implicit_mesh *mesh)
 {
     Tri_edge_implicit_mesh tei_temp_mesh = *mesh;

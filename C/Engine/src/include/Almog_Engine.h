@@ -277,7 +277,7 @@ void        ae_z_buffer_copy_to_screen(Mat2D_uint32 screen_mat, Mat2D inv_z_buff
  */
 Tri ae_tri_create(Point p1, Point p2, Point p3)
 {
-    Tri tri;
+    Tri tri = {0};
 
     tri.points[0] = p1;
     tri.points[1] = p2;
@@ -583,7 +583,7 @@ Tri_mesh ae_tri_mesh_get_from_obj_file(char *file_path)
     /* parsing data from file */
     Curve points = {0};
     ada_init_array(Point, points);
-    Tri_mesh mesh;
+    Tri_mesh mesh = {0};
     ada_init_array(Tri, mesh);
 
     int line_len;
@@ -1162,7 +1162,7 @@ void ae_tri_mesh_rotate_Euler_xyz(Tri_mesh mesh, float phi_deg, float theta_deg,
         for (int j = 0; j < 3; j++) {
             // mat2D_fill(src_point_mat, 0);
             // mat2D_fill(des_point_mat, 0);
-            Point des;
+            Point des = {0};
             Point src = mesh.elements[i].points[j];
 
             MAT2D_AT(src_point_mat, 0, 0) = src.x;
