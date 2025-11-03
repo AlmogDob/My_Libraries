@@ -26,6 +26,7 @@ bool                    adt_tri_edge_implicit_mesh_check_Delaunay(Tri_edge_impli
 int                     adt_tri_edge_implicit_mesh_check_edge_is_locally_Delaunay(Tri_edge_implicit_mesh mesh, Point p1, Point p2);
 int                     adt_tri_edge_implicit_mesh_check_edge_index_is_locally_Delaunay(Tri_edge_implicit_mesh mesh, size_t edge_index);
 bool                    adt_tri_edge_implicit_mesh_check_point_intersect_any_segment(Tri_edge_implicit_mesh mesh, Point point, float eps);
+void                    adt_tri_edge_implicit_mesh_edge_split(Tri_edge_implicit_mesh *mesh, Point point, Point p1, Point p2);
 Edge_implicit           adt_tri_edge_implicit_mesh_flip_edge(Tri_edge_implicit_mesh *mesh, Point p1, Point p2, bool debug_print);
 void                    adt_tri_edge_implicit_mesh_insert_point(Tri_edge_implicit_mesh *mesh, Point point);
 void                    adt_tri_edge_implicit_mesh_insert_segment(Tri_edge_implicit_mesh *mesh, Point p1, Point p2, float eps);
@@ -52,8 +53,7 @@ bool adt_point_encroach_edge(Point point, Point p1, Point p2)
 
     float R = as_points_distance(p1, p2) / 2.0f;
 
-    Point mid_point = {0};
-    as_points_interpolate(mid_point, p1, p2, 0.5);
+    Point mid_point = as_points_interpolate(p1, p2, 0.5);
 
     if (as_points_distance(mid_point, point) > R) return false;
 
@@ -102,14 +102,12 @@ void adt_tri_get_circumcircle(Point p1, Point p2, Point p3, const char plane[], 
     float line1_a = (p2.y - p1.y);
     float line1_b = (p1.x - p2.x);
     // float line1_c = line1_a * p1.x + line1_b * p1.y;
-    Point line1_mid = {0};
-    as_points_interpolate(line1_mid, p1, p2, 0.5);
+    Point line1_mid = as_points_interpolate(p1, p2, 0.5);
 
     float line2_a = (p3.y - p2.y);
     float line2_b = (p2.x - p3.x);
     // float line2_c = line2_a * p2.x + line2_b * p2.y;
-    Point line2_mid = {0};
-    as_points_interpolate(line2_mid, p2, p3, 0.5);
+    Point line2_mid = as_points_interpolate(p2, p3, 0.5);
 
     float line1_per_a = -line1_b;
     float line1_per_b = line1_a;
@@ -142,7 +140,7 @@ void adt_tri_get_circumcircle(Point p1, Point p2, Point p3, const char plane[], 
             a = p3;
             b = p1;
         }
-        if (center) as_points_interpolate((*center), a, b, 0.5f);
+        if (center) *center = as_points_interpolate(a, b, 0.5f);
         if (r) *r = dmax * 0.5f;
         return;
     }
@@ -227,27 +225,21 @@ void adt_tri_get_min_containment_circle(Point p1, Point p2, Point p3, const char
         if (as_point_dot_point(line31, line32) >= 0) {
             adt_tri_get_circumcircle(p1, p2, p3, plane, center, r);
         } else {
-            Point mid = {0};
-            as_points_interpolate(mid, p1, p2, 0.5);
-            *center = mid;
+            *center = as_points_interpolate(p1, p2, 0.5);
             *r = d1 / 2;
         }
     } else if (d2 >= fmaxf(d1, d3)) {
         if (as_point_dot_point(line13, line12) >= 0) {
             adt_tri_get_circumcircle(p1, p2, p3, plane, center, r);
         } else {
-            Point mid = {0};
-            as_points_interpolate(mid, p2, p3, 0.5);
-            *center = mid;
+            *center = as_points_interpolate(p2, p3, 0.5);
             *r = d2 / 2;
         }
     } else if (d3 >= fmaxf(d1, d2)) {
         if (as_point_dot_point(line23, line21) >= 0) {
             adt_tri_get_circumcircle(p1, p2, p3, plane, center, r);
         } else {
-            Point mid = {0};
-            as_points_interpolate(mid, p3, p1, 0.5);
-            *center = mid;
+            *center = as_points_interpolate(p3, p1, 0.5);
             *r = d3 / 2;
         }
     }
@@ -546,6 +538,172 @@ bool adt_tri_edge_implicit_mesh_check_point_intersect_any_segment(Tri_edge_impli
     }
 
     return false;
+}
+
+void adt_tri_edge_implicit_mesh_edge_split(Tri_edge_implicit_mesh *mesh, Point point, Point p1, Point p2)
+{
+    ADT_ASSERT(mesh != NULL);
+
+    Tri_edge_implicit_mesh temp_mesh = *mesh;
+    ADT_ASSERT(temp_mesh.points.elements != NULL && "points array null");
+    ADT_ASSERT((temp_mesh.edges.length == 0 || temp_mesh.edges.elements != NULL) && "edges array null");
+    as_point_assert_finite(p1);
+    as_point_assert_finite(p2);
+
+    int ordered_edge_index = as_edge_implicit_ada_get_edge_index(temp_mesh.edges, temp_mesh.points.elements, p1, p2);
+    bool ordered_edge_in_mesh = ordered_edge_index == -1 ? false : true;
+
+    int inv_edge_index = as_edge_implicit_ada_get_edge_index(temp_mesh.edges, temp_mesh.points.elements, p2, p1);
+    bool inv_edge_in_mesh = inv_edge_index == -1 ? false : true;
+    
+    if (!(ordered_edge_in_mesh || inv_edge_in_mesh)) {
+        fprintf(stderr, "%s:%d:\n[Error] the ordered or inverse edge are not part of the triangulation.\n\n", __FILE__, __LINE__);
+        return;
+    }
+
+    if (!as_point_on_edge_xy(p1, p2, point, ADT_EPSILON)) {
+        fprintf(stderr, "%s:%d:\n[Error] the point is not on the edge.\n\n", __FILE__, __LINE__);
+        return;
+    }
+
+    Point p_to_insert = point;
+    ada_appand(Point, temp_mesh.points, p_to_insert);
+
+    if (ordered_edge_in_mesh) { /* tri of the ordered edge */
+        Edge_implicit the_ordered_edge = temp_mesh.edges.elements[ordered_edge_index];
+        size_t the_tri_index = 0;
+        size_t edge_index_in_tri = 0;
+        for (size_t ti = 0; ti < temp_mesh.triangles.length; ti++) {
+            Tri_edge_implicit current_tri = temp_mesh.triangles.elements[ti];
+            for (size_t i = 0; i < 3; i++) {
+                if (current_tri.edges_index[i] == (size_t)ordered_edge_index) {
+                    the_tri_index = ti;
+                    edge_index_in_tri = i;
+                }
+            }
+        }
+        size_t third_point_index = temp_mesh.edges.elements[temp_mesh.triangles.elements[the_tri_index].edges_index[(edge_index_in_tri+2)%3]].p1_index;
+        Tri_edge_implicit temp_tri = {0};
+        Edge_implicit temp_edge = the_ordered_edge; /* keeping if it is a segment or not */
+
+        /* tri 1 */
+        temp_edge.p1_index = the_ordered_edge.p1_index;
+        temp_edge.p2_index = temp_mesh.points.length - 1;
+        ada_appand(Edge_implicit, temp_mesh.edges, temp_edge);
+        temp_tri.edges_index[0] = temp_mesh.edges.length - 1;
+
+        temp_edge.p1_index = temp_mesh.points.length - 1;
+        temp_edge.p2_index = third_point_index;
+        ada_appand(Edge_implicit, temp_mesh.edges, temp_edge);
+        temp_tri.edges_index[1] = temp_mesh.edges.length - 1;
+
+        temp_tri.edges_index[2] = temp_mesh.triangles.elements[the_tri_index].edges_index[(edge_index_in_tri+2)%3];
+
+        ada_appand(Tri_edge_implicit, temp_mesh.triangles, temp_tri);
+
+        /* tri 2 */
+        temp_edge.p1_index = temp_mesh.points.length - 1;
+        temp_edge.p2_index = the_ordered_edge.p2_index;
+        ada_appand(Edge_implicit, temp_mesh.edges, temp_edge);
+        temp_tri.edges_index[0] = temp_mesh.edges.length - 1;
+
+        temp_tri.edges_index[1] = temp_mesh.triangles.elements[the_tri_index].edges_index[(edge_index_in_tri+1)%3];
+
+        temp_edge.p1_index = third_point_index;
+        temp_edge.p2_index = temp_mesh.points.length - 1;
+        ada_appand(Edge_implicit, temp_mesh.edges, temp_edge);
+        temp_tri.edges_index[2] = temp_mesh.edges.length - 1;
+
+        ada_appand(Tri_edge_implicit, temp_mesh.triangles, temp_tri);
+
+    }
+
+    if (inv_edge_in_mesh) { /* tri of the inverse edge */
+        Edge_implicit the_inv_edge = temp_mesh.edges.elements[inv_edge_index];
+        size_t the_tri_index = 0;
+        size_t edge_index_in_tri = 0;
+        for (size_t ti = 0; ti < temp_mesh.triangles.length; ti++) {
+            Tri_edge_implicit current_tri = temp_mesh.triangles.elements[ti];
+            for (size_t i = 0; i < 3; i++) {
+                if (current_tri.edges_index[i] == (size_t)inv_edge_index) {
+                    the_tri_index = ti;
+                    edge_index_in_tri = i;
+                }
+            }
+        }
+        size_t third_point_index = temp_mesh.edges.elements[temp_mesh.triangles.elements[the_tri_index].edges_index[(edge_index_in_tri+2)%3]].p1_index;
+        Tri_edge_implicit temp_tri = {0};
+        Edge_implicit temp_edge = the_inv_edge; /* keeping if it is a segment or not */
+
+        /* tri 1 */
+        temp_edge.p1_index = the_inv_edge.p1_index;
+        temp_edge.p2_index = temp_mesh.points.length - 1;
+        ada_appand(Edge_implicit, temp_mesh.edges, temp_edge);
+        temp_tri.edges_index[0] = temp_mesh.edges.length - 1;
+
+        temp_edge.p1_index = temp_mesh.points.length - 1;
+        temp_edge.p2_index = third_point_index;
+        ada_appand(Edge_implicit, temp_mesh.edges, temp_edge);
+        temp_tri.edges_index[1] = temp_mesh.edges.length - 1;
+
+        temp_tri.edges_index[2] = temp_mesh.triangles.elements[the_tri_index].edges_index[(edge_index_in_tri+2)%3];
+
+        ada_appand(Tri_edge_implicit, temp_mesh.triangles, temp_tri);
+
+        /* tri 2 */
+        temp_edge.p1_index = temp_mesh.points.length - 1;
+        temp_edge.p2_index = the_inv_edge.p2_index;
+        ada_appand(Edge_implicit, temp_mesh.edges, temp_edge);
+        temp_tri.edges_index[0] = temp_mesh.edges.length - 1;
+
+        temp_tri.edges_index[1] = temp_mesh.triangles.elements[the_tri_index].edges_index[(edge_index_in_tri+1)%3];
+
+        temp_edge.p1_index = third_point_index;
+        temp_edge.p2_index = temp_mesh.points.length - 1;
+        ada_appand(Edge_implicit, temp_mesh.edges, temp_edge);
+        temp_tri.edges_index[2] = temp_mesh.edges.length - 1;
+
+        ada_appand(Tri_edge_implicit, temp_mesh.triangles, temp_tri);
+
+    }
+
+    as_tri_edge_implicit_mesh_delete_edge(&temp_mesh, p1, p2);
+
+
+    as_tri_edge_implicit_mesh_set_neighbor_of_tri(temp_mesh, temp_mesh.triangles.length - 1);
+    as_tri_edge_implicit_mesh_set_neighbor_of_tri(temp_mesh, temp_mesh.triangles.length - 2);
+    as_tri_edge_implicit_mesh_set_neighbor_of_tri(temp_mesh, temp_mesh.triangles.length - 3);
+    as_tri_edge_implicit_mesh_set_neighbor_of_tri(temp_mesh, temp_mesh.triangles.length - 4);
+
+    /* fixing the delaunay condition */
+    Edge_implicit_ada new_edges_list = {0};
+    ada_init_array(Edge_implicit, new_edges_list);
+    for (size_t i = 0; i < 3; i++) {
+        ada_appand(Edge_implicit, new_edges_list, temp_mesh.edges.elements[temp_mesh.triangles.elements[temp_mesh.triangles.length-1].edges_index[i]]);
+        ada_appand(Edge_implicit, new_edges_list, temp_mesh.edges.elements[temp_mesh.triangles.elements[temp_mesh.triangles.length-2].edges_index[i]]);
+        ada_appand(Edge_implicit, new_edges_list, temp_mesh.edges.elements[temp_mesh.triangles.elements[temp_mesh.triangles.length-3].edges_index[i]]);
+        ada_appand(Edge_implicit, new_edges_list, temp_mesh.edges.elements[temp_mesh.triangles.elements[temp_mesh.triangles.length-4].edges_index[i]]);
+    }
+    for (;new_edges_list.length > 0;) {
+        Edge_implicit current_edge = new_edges_list.elements[0];
+        ada_remove_unordered(Edge_implicit, new_edges_list, 0);
+        int is_delaunay = adt_tri_edge_implicit_mesh_check_edge_is_locally_Delaunay(temp_mesh, temp_mesh.points.elements[current_edge.p1_index], temp_mesh.points.elements[current_edge.p2_index]);
+        if (is_delaunay == 0) {
+            Edge_implicit new_edge = adt_tri_edge_implicit_mesh_flip_edge(&temp_mesh, temp_mesh.points.elements[current_edge.p1_index], temp_mesh.points.elements[current_edge.p2_index], 1);
+            /* adding the edges of the new triangles to the edge list */
+            Tri_edge_implicit tri1 = {0}, tri2 = {0};
+            as_tri_edge_implicit_mesh_get_triangles_with_edge(temp_mesh, temp_mesh.points.elements[new_edge.p1_index], temp_mesh.points.elements[new_edge.p2_index], &tri1, &tri2); 
+            for (int j = 0; j < 3; j++) {
+                ada_appand(Edge_implicit, new_edges_list, temp_mesh.edges.elements[tri1.edges_index[j]]);
+                ada_appand(Edge_implicit, new_edges_list, temp_mesh.edges.elements[tri2.edges_index[j]]);
+            }
+        }
+    }
+
+    free(new_edges_list.elements);
+
+
+    *mesh = temp_mesh;
 }
 
 Edge_implicit adt_tri_edge_implicit_mesh_flip_edge(Tri_edge_implicit_mesh *mesh, Point p1, Point p2, bool debug_print)

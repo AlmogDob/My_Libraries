@@ -180,11 +180,6 @@ typedef struct {
 #define                 as_point_mult(p, const) (p).x *= const; \
                             (p).y *= const;                     \
                             (p).z *= const
-#define                 as_points_interpolate(p, p1, p2, t)             \
-                            (p).x = (p1).x * (t) + (p2).x * (1 - (t));  \
-                            (p).y = (p1).y * (t) + (p2).y * (1 - (t));  \
-                            (p).z = (p1).z * (t) + (p2).z * (1 - (t));  \
-                            (p).w = (p1).w * (t) + (p2).w * (1 - (t))
 #define                 as_points_equal(p1, p2) ((p1).x == (p2).x && (p1).y == (p2).y && (p1).z == (p2).z)
 #define                 as_points_equal_approx(p1, p2) (fabs((p1).x - (p2).x) < AS_EPSILON && fabs((p1).y - (p2).y) < AS_EPSILON && fabs((p1).z - (p2).z) < AS_EPSILON)
 #define                 as_tri_area_xy(p1, p2, p3) (0.5 * ((p2).x-(p1).x)*((p3).y-(p1).y)- 0.5 * ((p3).x-(p1).x)*((p2).y-(p1).y))
@@ -194,6 +189,7 @@ typedef struct {
 #define                 as_tri_implicit_area_xy(tim, t_index) as_tri_area_xy(as_tri_implicit_mesh_get_point_of_tri_implicit(tim, t_index, 0), as_tri_implicit_mesh_get_point_of_tri_implicit(tim, t_index, 1), as_tri_implicit_mesh_get_point_of_tri_implicit(tim, t_index, 2))
 #define                 as_tri_implicit_mesh_get_tri_implicit(tim, t_index) (tim).triangles.elements[t_index]
 #define                 as_tri_edge_implicit_mesh_get_point_of_tri(teim, t_index, p_index) (teim).points.elements[(teim).edges.elements[(teim).triangles.elements[t_index].edges_index[p_index]].p1_index]
+#define                 as_tri_edge_implicit_mesh_expand_edge_to_points(teim, edge_index) (teim).points.elements[(teim).edges.elements[edge_index].p1_index], (teim).points.elements[(teim).edges.elements[edge_index].p2_index]
 #define                 as_tri_edge_implicit_mesh_expand_tri_to_points(teim, t_index) (teim).points.elements[(teim).edges.elements[(teim).triangles.elements[t_index].edges_index[0]].p1_index], (teim).points.elements[(teim).edges.elements[(teim).triangles.elements[t_index].edges_index[1]].p1_index], (teim).points.elements[(teim).edges.elements[(teim).triangles.elements[t_index].edges_index[2]].p1_index]
 #define                 as_tri_edge_implicit_mesh_expand_point_of_tri_to_xyz(teim, t_index, p_index) (teim).points.elements[(teim).edges.elements[(teim).triangles.elements[t_index].edges_index[p_index]].p1_index].x, (teim).points.elements[(teim).edges.elements[(teim).triangles.elements[t_index].edges_index[p_index]].p1_index].y, (teim).points.elements[(teim).edges.elements[(teim).triangles.elements[t_index].edges_index[p_index]].p1_index].z
 #define                 as_tri_edge_implicit_mesh_points_equal_by_indexs(mesh, p1_index, p2_index) as_points_equal((mesh).points.elements[p1_index], (mesh).points.elements[p2_index])
@@ -240,6 +236,7 @@ float                   as_point_get_min_distance_from_point_array(Point *point_
 void                    as_point_to_mat2D(Point p, Mat2D m);
 size_t                  as_point_in_curve_occurrences(Point p, Curve c);
 int                     as_point_in_curve_index(Point p, Curve c);
+Point                   as_points_interpolate(Point p1, Point p2, float t);
 bool                    as_point_is_finite(Point p);
 bool                    as_point_on_edge_xy(Point a, Point b, Point p, float eps);
 float                   as_point_on_edge_xy_t(Point a, Point b, Point p);
@@ -740,6 +737,18 @@ int as_point_in_curve_index(Point p, Curve c)
     return -1;
 }
 
+Point as_points_interpolate(Point p1, Point p2, float t)
+{
+    Point p = {0};
+
+    p.x = p1.x * t + p2.x * (1 - t);
+    p.y = p1.y * t + p2.y * (1 - t);
+    p.z = p1.z * t + p2.z * (1 - t);
+    p.w = p1.w * t + p2.w * (1 - t);
+
+    return p;
+}
+
 bool as_point_is_finite(Point p)
 {
     return isfinite(p.x) && isfinite(p.y) && isfinite(p.z) && isfinite(p.w);
@@ -1112,10 +1121,9 @@ void as_tri_mesh_subdivide_simple(Tri_mesh *mesh)
         Point p0 = current_tri.points[0];
         Point p1 = current_tri.points[1];
         Point p2 = current_tri.points[2];
-        Point p01 = {0}, p12 = {0}, p20 = {0};
-        as_points_interpolate(p01, p0, p1, 0.5);
-        as_points_interpolate(p12, p1, p2, 0.5);
-        as_points_interpolate(p20, p2, p0, 0.5);
+        Point p01 = as_points_interpolate(p0, p1, 0.5);
+        Point p12 = as_points_interpolate(p1, p2, 0.5);
+        Point p20 = as_points_interpolate(p2, p0, 0.5);
         uint32_t c01 = as_color_interpolate(current_tri.colors[0], current_tri.colors[1], 0.5);
         uint32_t c12 = as_color_interpolate(current_tri.colors[1], current_tri.colors[2], 0.5);
         uint32_t c20 = as_color_interpolate(current_tri.colors[2], current_tri.colors[0], 0.5);

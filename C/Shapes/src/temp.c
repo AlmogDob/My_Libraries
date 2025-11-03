@@ -30,14 +30,16 @@ void setup(game_state_t *game_state)
 
     Tri_edge_implicit_mesh tei_mesh = adt_tri_edge_implicit_mesh_make_Delaunay_triangulation_flip_algorithm(c.elements, c.length);
 
+    Point p1 = tei_mesh.points.elements[10];
+    Point p2 = tei_mesh.points.elements[60];
+    Point point = as_points_interpolate(p1, p2, 0.5);
+
+    adt_tri_edge_implicit_mesh_insert_segment(&tei_mesh, p1, p2, ADT_EPSILON);
+
+    adt_tri_edge_implicit_mesh_edge_split(&tei_mesh, point, p1, p2);
+    adt_tri_edge_implicit_mesh_edge_split(&tei_mesh, point, p1, p2);
+
     // AS_TRI_EDGE_IMPLICIT_MESH_PRINT(tei_mesh);
-
-    adt_tri_edge_implicit_mesh_insert_segment(&tei_mesh, tei_mesh.points.elements[10], tei_mesh.points.elements[60], ADT_EPSILON);
-
-    // Point p = {-0.0727525,0,0,0};
-    Point p = {0,0,0,0};
-
-    adt_tri_edge_implicit_mesh_insert_point(&tei_mesh, p);
 
     dprintINT(adt_tri_edge_implicit_mesh_check_Delaunay(tei_mesh));
 
