@@ -44,6 +44,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
+    #include <math.h>
 
 /**
  * @def MATRIX2D_MALLOC
@@ -147,10 +148,6 @@ typedef struct {
 #endif
 
 #ifndef PI
-    #ifndef __USE_MISC
-    #define __USE_MISC
-    #endif
-    #include <math.h>
     #define PI M_PI
 #endif
 

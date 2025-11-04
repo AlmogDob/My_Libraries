@@ -277,7 +277,7 @@ void        ae_z_buffer_copy_to_screen(Mat2D_uint32 screen_mat, Mat2D inv_z_buff
  */
 Tri ae_tri_create(Point p1, Point p2, Point p3)
 {
-    Tri tri;
+    Tri tri = {0};
 
     tri.points[0] = p1;
     tri.points[1] = p2;
@@ -539,51 +539,51 @@ Point ae_mat2D_to_point(Mat2D m)
  */
 Tri_mesh ae_tri_mesh_get_from_obj_file(char *file_path)
 {
-    char current_line[MAX_LEN_LINE], current_word[MAX_LEN_LINE], current_num_str[MAX_LEN_LINE];
-    char file_name[MAX_LEN_LINE], file_extention[MAX_LEN_LINE], mesh_name[MAX_LEN_LINE];
+    char current_line[ASM_MAX_LEN_LINE], current_word[ASM_MAX_LEN_LINE], current_num_str[ASM_MAX_LEN_LINE];
+    char file_name[ASM_MAX_LEN_LINE], file_extention[ASM_MAX_LEN_LINE], mesh_name[ASM_MAX_LEN_LINE];
     int texture_warning_was_printed = 0;
 
-    strncpy(file_name, file_path, MAX_LEN_LINE);
-    strncpy(file_extention, file_name, MAX_LEN_LINE);
+    strncpy(file_name, file_path, ASM_MAX_LEN_LINE);
+    strncpy(file_extention, file_name, ASM_MAX_LEN_LINE);
 
     /* check if file is an obj file*/
     asm_get_word_and_cut(file_name, file_extention, '.');
     asm_get_word_and_cut(file_name, file_extention, '.');
-    if (strncmp(file_extention, ".obj", MAX_LEN_LINE)) {
-        fprintf(stderr, "%s:%d: [Error] unsupported file format: '%s'\n", __FILE__, __LINE__, file_name);
+    if (strncmp(file_extention, ".obj", ASM_MAX_LEN_LINE)) {
+        fprintf(stderr, "%s:%d:\n[Error] unsupported file format: '%s'\n\n", __FILE__, __LINE__, file_name);
         exit(1);
     }
 
-    strncpy(mesh_name, file_name, MAX_LEN_LINE);
+    strncpy(mesh_name, file_name, ASM_MAX_LEN_LINE);
     while(asm_length(mesh_name)) {
         asm_get_word_and_cut(current_word, mesh_name, '/');
     }
 
-    strncpy(mesh_name, current_word, MAX_LEN_LINE);
+    strncpy(mesh_name, current_word, ASM_MAX_LEN_LINE);
 
-    strncpy(current_word, ".", MAX_LEN_LINE);
-    strncat(file_name, ".obj", MAX_LEN_LINE/2);
-    strncat(current_word, file_name, MAX_LEN_LINE/2);
+    strncpy(current_word, ".", ASM_MAX_LEN_LINE);
+    strncat(file_name, ".obj", ASM_MAX_LEN_LINE/2);
+    strncat(current_word, file_name, ASM_MAX_LEN_LINE/2);
 
     FILE *fp_input = fopen(current_word, "rt");
     if (fp_input == NULL) {
-        fprintf(stderr, "%s:%d: [Error] failed to open input file: '%s', %s\n", __FILE__, __LINE__, current_word, strerror(errno));
+        fprintf(stderr, "%s:%d:\n[Error] failed to open input file: '%s', %s\n\n", __func__, __LINE__, current_word, strerror(errno));
         exit(1);
     }
 
-    // strncpy(output_file_name, "./build/", MAX_LEN_LINE);
-    // strncat(output_file_name, mesh_name, MAX_LEN_LINE/2);
-    // strncat(output_file_name, ".c", MAX_LEN_LINE/2);
+    // strncpy(output_file_name, "./build/", ASM_MAX_LEN_LINE);
+    // strncat(output_file_name, mesh_name, ASM_MAX_LEN_LINE/2);
+    // strncat(output_file_name, ".c", ASM_MAX_LEN_LINE/2);
     // FILE *fp_output = fopen(output_file_name, "wt");
     // if (fp_input == NULL) {
-    //     fprintf(stderr, "%s:%d: [Error] failed to open output file: '%s'. %s\n", __FILE__, __LINE__, output_file_name, strerror(errno));
+    //     fprintf(stderr, "%s:%d:\n[Error] failed to open output file: '%s'. %s\n\n", __FILE__, __LINE__, output_file_name, strerror(errno));
     //     exit(1);
     // }
 
     /* parsing data from file */
     Curve points = {0};
     ada_init_array(Point, points);
-    Tri_mesh mesh;
+    Tri_mesh mesh = {0};
     ada_init_array(Tri, mesh);
 
     int line_len;
@@ -591,7 +591,7 @@ Tri_mesh ae_tri_mesh_get_from_obj_file(char *file_path)
     while ((line_len = asm_get_line(fp_input, current_line)) != -1) {
         asm_get_next_word_from_line(current_word, current_line, ' ');
         if (!strncmp(current_word, "v", 1)) {
-            Point p;
+            Point p = {0};
             asm_get_word_and_cut(current_word, current_line, ' ');
             asm_get_word_and_cut(current_word, current_line, ' ');
             p.x = atof(current_word);
@@ -614,7 +614,7 @@ Tri_mesh ae_tri_mesh_get_from_obj_file(char *file_path)
             // printf("%d\n", number_of_spaces);
             // exit(1);
             if (!(number_of_spaces == 3 || number_of_spaces == 4 || number_of_spaces == 5)) {
-                fprintf(stderr, "%s:%d: [Error] there is unsupported number of vertices for a face: %d\n", __FILE__, __LINE__, number_of_spaces);
+                fprintf(stderr, "%s:%d:\n[Error] there is unsupported number of vertices for a face: %d\n\n", __FILE__, __LINE__, number_of_spaces);
                 exit(1);
             }
             if (number_of_spaces == 3) {
@@ -631,7 +631,7 @@ Tri_mesh ae_tri_mesh_get_from_obj_file(char *file_path)
                 }
                 if (number_of_backslash == 2) {
                     if (!texture_warning_was_printed) {
-                        fprintf(stderr, "%s:%d [Warning] texture and normals data ignored of file at - '%s'\n", __FILE__, __LINE__, file_path);
+                        fprintf(stderr, "%s:%d\n[Warning] texture and normals data ignored of file at - '%s'\n\n", __FILE__, __LINE__, file_path);
                         texture_warning_was_printed = 1;
                     }
 
@@ -675,7 +675,7 @@ Tri_mesh ae_tri_mesh_get_from_obj_file(char *file_path)
                 }
                 if (number_of_backslash == 2 || number_of_backslash == 1) {
                     if (!texture_warning_was_printed) {
-                        fprintf(stderr, "%s:%d [Warning] texture and normals data ignored of file at - '%s'\n", __FILE__, __LINE__, file_path);
+                        fprintf(stderr, "%s:%d\n[Warning] texture and normals data ignored of file at - '%s'\n\n", __FILE__, __LINE__, file_path);
                         texture_warning_was_printed = 1;
                     }
 
@@ -745,7 +745,7 @@ Tri_mesh ae_tri_mesh_get_from_stl_file(char *file_path)
     FILE *file;
     file = fopen(file_path, "rb");
     if (file == NULL) {
-        fprintf(stderr, "%s:%d: [Error] failed to open input file: '%s', %s\n", __FILE__, __LINE__, file_path, strerror(errno));
+        fprintf(stderr, "%s:%d:\n[Error] failed to open input file: '%s', %s\n\n", __func__, __LINE__, file_path, strerror(errno));
         exit(1);
     }
 
@@ -757,7 +757,7 @@ Tri_mesh ae_tri_mesh_get_from_stl_file(char *file_path)
     fread(&num_of_tri, STL_NUM_SIZE, 1, file);
     // dprintINT(num_of_tri);
 
-    Tri_mesh mesh;
+    Tri_mesh mesh = {0};
     ada_init_array(Tri, mesh);
     for (size_t i = 0; i < num_of_tri; i++) {
         Tri temp_tri = {0};
@@ -815,9 +815,9 @@ Tri_mesh ae_tri_mesh_get_from_stl_file(char *file_path)
  */
 Tri_mesh ae_tri_mesh_get_from_file(char *file_path)
 {
-    char file_extention[MAX_LEN_LINE], temp_word[MAX_LEN_LINE];
+    char file_extention[ASM_MAX_LEN_LINE], temp_word[ASM_MAX_LEN_LINE];
 
-    strncpy(file_extention, file_path, MAX_LEN_LINE);
+    strncpy(file_extention, file_path, ASM_MAX_LEN_LINE);
 
     int num_of_dots;
     while ((num_of_dots = asm_str_in_str(file_extention, ".")) >= 1) {
@@ -825,7 +825,7 @@ Tri_mesh ae_tri_mesh_get_from_file(char *file_path)
     }
 
     if (!(!strncmp(file_extention, "obj", 3) || !strncmp(file_extention, "STL", 3) || !strncmp(file_extention, "stl", 3))) {
-        fprintf(stderr, "%s:%d: [Error] unsupported file format: '%s'\n", __FILE__, __LINE__, file_path);
+        fprintf(stderr, "%s:%d:\n[Error] unsupported file format: '%s'\n\n", __FILE__, __LINE__, file_path);
         exit(1);
     }
 
@@ -1162,7 +1162,7 @@ void ae_tri_mesh_rotate_Euler_xyz(Tri_mesh mesh, float phi_deg, float theta_deg,
         for (int j = 0; j < 3; j++) {
             // mat2D_fill(src_point_mat, 0);
             // mat2D_fill(des_point_mat, 0);
-            Point des;
+            Point des = {0};
             Point src = mesh.elements[i].points[j];
 
             MAT2D_AT(src_point_mat, 0, 0) = src.x;
@@ -2946,7 +2946,7 @@ void ae_line_project_world2screen(Mat2D view_mat, Mat2D proj_mat, Point start_sr
     int rc = ae_line_clip_with_plane(start_view_point, end_view_point, z_p, z_n, &clipped_start_view_point, &clipped_end_view_point);           
 
     if (rc == -1) {
-        fprintf(stderr, "%s:%d: [error] problem with clipping lines\n", __FILE__, __LINE__);
+        fprintf(stderr, "%s:%d:\n[error] problem with clipping lines\n\n", __FILE__, __LINE__);
         exit(1);
     } else if (rc == 0) {
         clipped_start_view_point = (Point){-1,-1,1,1};
@@ -3065,9 +3065,9 @@ Tri_mesh ae_tri_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Tri tri, in
     // ae_point_to_mat2D(tri.normals[0], tri_normal);
     MAT2D_AT(dot_product, 0, 0) = MAT2D_AT(camera2tri, 0, 0) * MAT2D_AT(tri_normal, 0, 0) + MAT2D_AT(camera2tri, 0, 1) * MAT2D_AT(tri_normal, 1, 0) + MAT2D_AT(camera2tri, 0, 2) * MAT2D_AT(tri_normal, 2, 0);
     if (MAT2D_AT(dot_product, 0, 0) < 0) {
-        des_tri.to_draw = true;
+        des_tri.to_draw = true && des_tri.to_draw;
     } else {
-        des_tri.to_draw = false;
+        des_tri.to_draw = false && des_tri.to_draw;
     }
 
     /* transform tri to camera view */
@@ -3090,7 +3090,7 @@ Tri_mesh ae_tri_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Tri tri, in
     Tri_mesh temp_tri_array; 
     ada_init_array(Tri, temp_tri_array);
     if (num_clipped_tri == -1) {
-        fprintf(stderr, "%s:%d: [error] problem with clipping triangles\n", __FILE__, __LINE__);
+        fprintf(stderr, "%s:%d:\n[error] problem with clipping triangles\n\n", __FILE__, __LINE__);
         exit(1);
     } else if (num_clipped_tri == 0) {
         ;
@@ -3224,7 +3224,7 @@ void ae_tri_mesh_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Tri_mesh *
                 break;
             }
             if (num_clipped_tri == -1) {
-                fprintf(stderr, "%s:%d: [error] problem with clipping triangles\n", __FILE__, __LINE__);
+                fprintf(stderr, "%s:%d:\n[error] problem with clipping triangles\n\n", __FILE__, __LINE__);
                 exit(1);
             } else if (num_clipped_tri == 0) {
                 ada_remove_unordered(Tri, temp_des, tri_index);
@@ -3360,9 +3360,9 @@ Quad_mesh ae_quad_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Quad quad
     #endif
 
     if (visible) {
-        des_quad.to_draw = true;
+        des_quad.to_draw = true && des_quad.to_draw;
     } else {
-        des_quad.to_draw = false;
+        des_quad.to_draw = false && des_quad.to_draw;
     }
 
     /* transform quad to camera view */
@@ -3381,7 +3381,7 @@ Quad_mesh ae_quad_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Quad quad
     Quad_mesh temp_quad_array; 
     ada_init_array(Quad, temp_quad_array);
     if (num_clipped_quad == -1) {
-        fprintf(stderr, "%s:%d: [error] problem with clipping quad\n", __FILE__, __LINE__);
+        fprintf(stderr, "%s:%d:\n[error] problem with clipping quad\n\n", __FILE__, __LINE__);
         exit(1);
     } else if (num_clipped_quad == 0) {
         ;
@@ -3507,7 +3507,7 @@ void ae_quad_mesh_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Quad_mesh
                 break;
             }
             if (num_clipped_quad == -1) {
-                fprintf(stderr, "%s:%d: [error] problem with clipping quads\n", __FILE__, __LINE__);
+                fprintf(stderr, "%s:%d:\n[error] problem with clipping quads\n\n", __FILE__, __LINE__);
                 exit(1);
             } else if (num_clipped_quad == 0) {
                 ada_remove_unordered(Quad, temp_des, quad_index);
@@ -3614,7 +3614,7 @@ void ae_curve_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Curve *des, C
                 break;
             }
             if (rc == -1) {
-                fprintf(stderr, "%s:%d: [error] problem with clipping lines\n", __FILE__, __LINE__);
+                fprintf(stderr, "%s:%d:\n[error] problem with clipping lines\n\n", __FILE__, __LINE__);
                 exit(1);
             } else if (rc == 0) {
                 clipped_start_des_point = (Point){-1,-1,1,1};
@@ -3807,4 +3807,4 @@ void ae_z_buffer_copy_to_screen(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer)
     }
 }
 
-#endif /* ALMOG_ENGINE_IMPLEMENTATION */ //
+#endif /* ALMOG_ENGINE_IMPLEMENTATION */ 

@@ -1,6 +1,0 @@
-
-\begin{DoxyRefList}
-\item[Member \mbox{\hyperlink{Matrix3D_8h_ac70368dfe3aa451e212fd480abd176f6}{mat3\+D\+\_\+fill}} (\mbox{\hyperlink{structMat3D}{Mat3D}} m, float x)]\label{bug__bug000001}%
-\Hypertarget{bug__bug000001}%
-The inner loop currently iterates up to m.\+cols instead of m.\+layers, which will skip elements if layers != cols. Consider changing the inner loop bound to m.\+layers. 
-\end{DoxyRefList}

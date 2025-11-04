@@ -129,3 +129,13 @@ profile_build_teapot_example: ./src/teapot_example.c
 
 strip_comments_Engine: src/include/Almog_Engine.h
 	gcc -fpreprocessed -dD -E -P src/include/Almog_Engine.h > striped_Almog_Engine.h
+
+
+docs: doxygen.txt
+	@if [$(wildcard docs)]; then\
+		rm -r docs;\
+	fi
+	doxygen doxygen.txt
+	cd docs/latex; make;
+	cp docs/latex/refman.pdf .
+	rm -r docs

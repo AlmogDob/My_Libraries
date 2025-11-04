@@ -47,3 +47,13 @@ profile_build_temp: ./temp.c
 
 strip_comments_Almog_String_Manipulation: ./Almog_String_Manipulation.h
 	gcc -fpreprocessed -dD -E -P ./Almog_String_Manipulation.h > ./striped_Almog_String_Manipulation.h
+
+
+docs: doxygen.txt
+	@if [$(wildcard docs)]; then\
+		rm -r docs;\
+	fi
+	doxygen doxygen.txt
+	cd docs/latex; make;
+	cp docs/latex/refman.pdf .
+	rm -r docs

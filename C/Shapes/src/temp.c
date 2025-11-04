@@ -9,8 +9,8 @@
 #include "./include/Almog_Engine.h"
 #define MATRIX2D_IMPLEMENTATION
 #include "./include/Matrix2D.h"
-#define ALMOG_SHAPES_IMPLEMENTATION
-#include "./include/Almog_Shapes.h"
+#define ALMOG_DELAUNAY_TRIANGULATION_IMPLEMENTATION
+#include "./include/Almog_Delaunay_Triangulation.h"
 
 #include <time.h>
 
@@ -24,26 +24,46 @@ void setup(game_state_t *game_state)
 
     ada_init_array(Tri, proj_mesh);
 
-    // Curve c = as_curve_create_random_points(500, -2, 2, -2, 2, 0, 0, 20);
-    Curve c = as_curve_create_random_points(1000, -2, 2, -2, 2, 0, 0, 20);
+    Curve c = as_curve_create_random_points(7, -2, 2, -2, 2, 0, 0, 20);
+    // Curve c = as_curve_create_random_points(7, -2, 2, -2, 2, 0, 0, time(0));
 
-    Tri_edge_implicit_mesh tei_mesh = as_tri_edge_implicit_mesh_make_Delaunay_triangulation_flip_algorithm(c.elements, c.length);
-    // Tri_edge_implicit_mesh tei_mesh = as_tri_edge_implicit_mesh_make_Delaunay_triangulation_flip_algorithm_fixed_iterations(c.elements, c.length);
+    // AS_CURVE_PRINT(c);
+    c.elements[4].y -= 1;
+    c.elements[3].y -= 0.35;
+    // c.elements[0].x -= 0.25;
 
-    // size_t p1_index = 10;
-    // size_t p2_index = 950;
-    // as_tri_edge_implicit_mesh_insert_segment(&tei_mesh, tei_mesh.points.elements[p1_index], tei_mesh.points.elements[p2_index]);
+    Tri_edge_implicit_mesh tei_mesh = adt_tri_edge_implicit_mesh_make_Delaunay_triangulation_flip_algorithm(c.elements, c.length);
 
-    AS_TRI_EDGE_IMPLICIT_MESH_PRINT_SEGMENTS(tei_mesh);
+    Point p1 = tei_mesh.points.elements[2];
+    Point p2 = tei_mesh.points.elements[4];
 
-    dprintINT(as_tri_edge_implicit_mesh_check_Delaunay(tei_mesh));
+    adt_tri_edge_implicit_mesh_insert_segment(&tei_mesh, p1, p2, ADT_EPSILON);
+
+    dprintD(adt_tri_edge_implicit_mesh_calc_max_radius_edge_ratio(tei_mesh));
+    dprintD(adt_tri_edge_implicit_mesh_calc_min_radius_edge_ratio(tei_mesh));
+    printf("\n");
+
+    adt_tri_edge_implicit_mesh_Delaunay_refinement_Rupperts_algorithm_segments(&tei_mesh, 1.5);
+    printf("\n");
+
+    dprintD(adt_tri_edge_implicit_mesh_calc_max_radius_edge_ratio(tei_mesh));
+    dprintD(adt_tri_edge_implicit_mesh_calc_min_radius_edge_ratio(tei_mesh));
+    printf("\n");
+
+
+
+    dprintINT(adt_tri_edge_implicit_mesh_any_segment_is_encroach(tei_mesh));
+
+    dprintINT(adt_tri_edge_implicit_mesh_check_Delaunay(tei_mesh));
+
+
+
+
 
 
     mesh = as_tri_edge_implicit_mesh_to_tri_mesh(tei_mesh, 1, 0xffffffff);
 
 
-
-    // mesh = as_tri_implicit_mesh_to_tri_mesh(temp_implicit_mesh, 1, 0xffffffff);
 
     ada_init_array(Curve, circles);
     ada_init_array(Curve, proj_circles);
@@ -63,7 +83,7 @@ void setup(game_state_t *game_state)
     //     Tri tri = mesh.elements[i];
     //     Point center = {0};
     //     float r = 0;
-    //     as_tri_get_circumcircle(tri.points[0], tri.points[1], tri.points[2], "xy", &center, &r);
+    //     adt_tri_get_circumcircle(tri.points[0], tri.points[1], tri.points[2], "xy", &center, &r);
     //     Curve temp_curve = as_circle_curve_create(center, r, 500, RGBA_hexARGB(255.0f * t, 255 * (1-t1), 255 * (t2), 255), "xy");
     //     Curve temp_proj_curve = as_circle_curve_create(center, r, 500, RGBA_hexARGB(255.0f * t, 255 * (1-t1), 255 * (t2), 255), "xy");
     //     ada_appand(Curve, circles, temp_curve);

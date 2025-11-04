@@ -1,7 +1,0 @@
-<map id="Matrix2D.h" name="Matrix2D.h">
-<area shape="rect" id="node1" title="A single&#45;header C library for simple 2D matrix operations on doubles and uint32_t,..." alt="" coords="38,5,133,32"/>
-<area shape="rect" id="node2" href="$Almog__Draw__Library_8h.html" title="Immediate&#45;mode 2D/3D raster helpers for drawing onto Mat2D_uint32 pixel buffers." alt="" coords="63,80,230,107"/>
-<area shape="rect" id="node3" href="$display_8c.html" title=" " alt="" coords="21,155,99,181"/>
-<area shape="rect" id="node4" href="$example1_8c.html" title=" " alt="" coords="11,229,109,256"/>
-<area shape="rect" id="node5" href="$temp_8c.html" title=" " alt="" coords="155,229,221,256"/>
-</map>

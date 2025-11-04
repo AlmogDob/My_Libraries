@@ -9,8 +9,8 @@
 #include "../include/Almog_Engine.h"
 #define MATRIX2D_IMPLEMENTATION
 #include "../include/Matrix2D.h"
-#define ALMOG_SHAPES_IMPLEMENTATION
-#include "../include/Almog_Shapes.h"
+#define ALMOG_DELAUNAY_TRIANGULATION_IMPLEMENTATION
+#include "../include/Almog_Delaunay_Triangulation.h"
 
 Tri_mesh mesh, proj_mesh;
 Tri_mesh mesh1, proj_mesh1;
@@ -60,7 +60,7 @@ void setup(game_state_t *game_state)
         Tri tri = mesh.elements[i];
         Point center = {0};
         float r = 0;
-        as_tri_get_circumcircle(tri.points[0], tri.points[1], tri.points[2], "xy", &center, &r);
+        adt_tri_get_circumcircle(tri.points[0], tri.points[1], tri.points[2], "xy", &center, &r);
         Curve temp_curve = as_circle_curve_create(center, r, 1000, RGBA_hexARGB(255.0f * t, 255 * (1 - t), 255, 255), "xy");
         Curve temp_proj_curve = as_circle_curve_create(center, r, 1000, RGBA_hexARGB(255.0f * t, 255 * (1 - t), 255, 255), "xy");
         ada_appand(Curve, circles, temp_curve);

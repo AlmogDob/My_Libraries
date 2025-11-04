@@ -10,3 +10,12 @@ clean_test:
 	rm test
 
 ##########################################################
+
+docs: doxygen.txt
+	@if [$(wildcard docs)]; then\
+		rm -r docs;\
+	fi
+	doxygen doxygen.txt
+	cd docs/latex; make;
+	cp docs/latex/refman.pdf .
+	rm -r docs

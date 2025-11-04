@@ -51,8 +51,6 @@
 #ifndef ALMOG_DYNAMIC_ARRAY_H_
 #define ALMOG_DYNAMIC_ARRAY_H_
 
-#include <stdlib.h>
-#include <assert.h>
 
 
 /**
@@ -71,6 +69,7 @@
  * override the default.
  */
 #ifndef ADA_MALLOC
+#include <stdlib.h>
 #define ADA_MALLOC malloc
 #endif /*ADA_MALLOC*/
 
@@ -82,6 +81,7 @@
  * override the default.
  */
 #ifndef ADA_REALLOC
+#include <stdlib.h>
 #define ADA_REALLOC realloc
 #endif /*ADA_REALLOC*/
 
@@ -93,6 +93,7 @@
  * defined, standard assert() is disabled.
  */
 #ifndef ADA_ASSERT
+#include <assert.h>
 #define ADA_ASSERT assert
 #endif /*ADA_ASSERT*/
 

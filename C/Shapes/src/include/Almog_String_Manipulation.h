@@ -119,9 +119,11 @@ int asm_strncmp(const char *s1, const char *s2, const int N);
 int asm_get_line(FILE *fp, char *dst)
 {
     int i = 0;
+    int temp_c;
     char c;
 
-    while ((c = fgetc(fp)) != '\n' && c != EOF) {
+    while ((temp_c = fgetc(fp)) != '\n' && temp_c != EOF) {
+        c = (char)temp_c;
         dst[i] = c;
         i++;
         if (i >= ASM_MAX_LEN_LINE) {
@@ -130,7 +132,7 @@ int asm_get_line(FILE *fp, char *dst)
         }
     }
     dst[i] = '\0';
-    if (c == EOF && i == 0) {
+    if (temp_c == EOF && i == 0) {
         return -1;
     }
     return i;
