@@ -1,5 +1,0 @@
-<map id="Quad_mesh" name="Quad_mesh">
-<area shape="rect" id="node1" title="Dynamic array of quads (quad mesh)." alt="" coords="5,199,104,225"/>
-<area shape="rect" id="node2" href="$structQuad.html" title="Quad primitive with optional per&#45;vertex attributes." alt="" coords="27,109,83,136"/>
-<area shape="rect" id="node3" href="$structPoint.html" title="Homogeneous 2D/3D point with per&#45;vertex depth (z) and w." alt="" coords="27,5,82,32"/>
-</map>

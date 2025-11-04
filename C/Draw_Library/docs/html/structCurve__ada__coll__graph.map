@@ -1,5 +1,0 @@
-<map id="Curve_ada" name="Curve_ada">
-<area shape="rect" id="node1" title="Dynamic array of curves (polyline container)." alt="" coords="5,184,96,211"/>
-<area shape="rect" id="node2" href="$structCurve.html" title="Polyline of points with a uniform color." alt="" coords="21,95,81,121"/>
-<area shape="rect" id="node3" href="$structPoint.html" title="Homogeneous 2D/3D point with per&#45;vertex depth (z) and w." alt="" coords="23,5,78,32"/>
-</map>

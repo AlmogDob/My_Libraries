@@ -48,3 +48,12 @@ profile_build_temp: ./temp.c
 strip_comments_Matrix2D: ./Matrix2D.h
 	gcc -fpreprocessed -dD -E -P ./Matrix2D.h > ./striped_Matrix2D.h
 
+
+docs: doxygen.txt
+	@if [$(wildcard docs)]; then\
+		rm -r docs;\
+	fi
+	doxygen doxygen.txt
+	cd docs/latex; make;
+	cp docs/latex/refman.pdf .
+	rm -r docs
