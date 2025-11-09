@@ -2,15 +2,21 @@
 #define UPDATE
 #define RENDER
 #define DESTROY
+
+
+float wanted_rer = 0.8;
+float max_rer = 0;
+
+
 #include "./include/display.c"
+#define ALMOG_DELAUNAY_TRIANGULATION_IMPLEMENTATION
+#include "./include/Almog_Delaunay_Triangulation.h"
 #define ALMOG_DRAW_LIBRARY_IMPLEMENTATION
 #include "./include/Almog_Draw_Library.h"
 #define ALMOG_ENGINE_IMPLEMENTATION
 #include "./include/Almog_Engine.h"
 #define MATRIX2D_IMPLEMENTATION
 #include "./include/Matrix2D.h"
-#define ALMOG_DELAUNAY_TRIANGULATION_IMPLEMENTATION
-#include "./include/Almog_Delaunay_Triangulation.h"
 
 #include <time.h>
 
@@ -25,35 +31,33 @@ void setup(game_state_t *game_state)
     ada_init_array(Tri, proj_mesh);
 
     Curve c = as_curve_create_random_points(7, -2, 2, -2, 2, 0, 0, 20);
-    // Curve c = as_curve_create_random_points(7, -2, 2, -2, 2, 0, 0, time(0));
+    Curve convex_hull = {0};
+    ada_init_array(Point, convex_hull);
+    as_points_array_convex_hull_Jarvis_march_2D(&convex_hull, c.elements, c.length);
+    free(c.elements);
+    ada_appand(Point, convex_hull, ((Point){0,0,0,0}));
+    Tri_edge_implicit_mesh tei_mesh = adt_tri_edge_implicit_mesh_make_Delaunay_triangulation_flip_algorithm(convex_hull.elements, convex_hull.length);
+    free(convex_hull.elements);
+    // as_tri_edge_implicit_mesh_delete_edge(&tei_mesh, tei_mesh.points.elements[2], tei_mesh.points.elements[5]);
 
-    // AS_CURVE_PRINT(c);
-    c.elements[4].y -= 1;
-    c.elements[3].y -= 0.35;
-    // c.elements[0].x -= 0.25;
+    adt_tri_edge_implicit_mesh_set_perimeter_to_segments(tei_mesh);
 
-    Tri_edge_implicit_mesh tei_mesh = adt_tri_edge_implicit_mesh_make_Delaunay_triangulation_flip_algorithm(c.elements, c.length);
-
-    Point p1 = tei_mesh.points.elements[2];
-    Point p2 = tei_mesh.points.elements[4];
-
-    adt_tri_edge_implicit_mesh_insert_segment(&tei_mesh, p1, p2, ADT_EPSILON);
 
     dprintD(adt_tri_edge_implicit_mesh_calc_max_radius_edge_ratio(tei_mesh));
     dprintD(adt_tri_edge_implicit_mesh_calc_min_radius_edge_ratio(tei_mesh));
     printf("\n");
 
-    adt_tri_edge_implicit_mesh_Delaunay_refinement_Rupperts_algorithm_segments(&tei_mesh, 1.5);
+    adt_tri_edge_implicit_mesh_Delaunay_refinement_Rupperts_algorithm_segments(&tei_mesh, wanted_rer);
     printf("\n");
 
-    dprintD(adt_tri_edge_implicit_mesh_calc_max_radius_edge_ratio(tei_mesh));
+    max_rer = adt_tri_edge_implicit_mesh_calc_max_radius_edge_ratio(tei_mesh); 
+    dprintD(max_rer);
     dprintD(adt_tri_edge_implicit_mesh_calc_min_radius_edge_ratio(tei_mesh));
     printf("\n");
 
 
 
     dprintINT(adt_tri_edge_implicit_mesh_any_segment_is_encroach(tei_mesh));
-
     dprintINT(adt_tri_edge_implicit_mesh_check_Delaunay(tei_mesh));
 
 
@@ -91,7 +95,6 @@ void setup(game_state_t *game_state)
     // }
 
     as_tri_edge_implicit_mesh_free(tei_mesh);
-    free(c.elements);
 }
 
 void update(game_state_t *game_state)
@@ -109,12 +112,12 @@ void render(game_state_t *game_state)
     adl_tri_mesh_fill_Pinedas_rasterizer(game_state->window_pixels_mat, game_state->inv_z_buffer_mat, proj_mesh, 0xffffffff, ADL_DEFAULT_OFFSET_ZOOM);
     adl_tri_mesh_draw(game_state->window_pixels_mat, proj_mesh, 0xff000000, ADL_DEFAULT_OFFSET_ZOOM);
 
-    for (size_t i = 0; i < proj_mesh.length; i++) {
-        Tri current_tri = proj_mesh.elements[i];
-        for (int j = 0; j < 3; j++) {
-            adl_circle_fill(game_state->window_pixels_mat, current_tri.points[j].x, current_tri.points[j].y, 4, 0xffff0000, ADL_DEFAULT_OFFSET_ZOOM);
-        }
-    }
+    // for (size_t i = 0; i < proj_mesh.length; i++) {
+    //     Tri current_tri = proj_mesh.elements[i];
+    //     for (int j = 0; j < 3; j++) {
+    //         adl_circle_fill(game_state->window_pixels_mat, current_tri.points[j].x, current_tri.points[j].y, 4, 0xffff0000, ADL_DEFAULT_OFFSET_ZOOM);
+    //     }
+    // }
 
     for (size_t i = 0; i < proj_circles.length; i++) {
         adl_lines_loop_draw(game_state->window_pixels_mat, proj_circles.elements[i].elements, proj_circles.elements[i].length, proj_circles.elements[i].color, ADL_DEFAULT_OFFSET_ZOOM);

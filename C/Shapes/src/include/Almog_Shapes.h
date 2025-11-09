@@ -265,6 +265,7 @@ Tri_edge_implicit_mesh  as_tri_implicit_mesh_to_tri_edge_implicit_mesh(Tri_impli
 int                     as_tri_edge_implicit_mesh_check_neighbors(Tri_edge_implicit_mesh mesh, size_t tri_index);
 bool                    as_tri_edge_implicit_mesh_check_point_intersect_any_edge(Tri_edge_implicit_mesh mesh, Point point, float eps, size_t *intersecting_edge_index);
 void                    as_tri_edge_implicit_mesh_copy(Tri_edge_implicit_mesh *des, Tri_edge_implicit_mesh src);
+int                     as_tri_edge_implicit_mesh_edge_index_belongs_to_tri(Tri_edge_implicit_mesh mesh, size_t edge_index);
 float                   as_tri_edge_implicit_mesh_get_min_edge_length(Tri_edge_implicit_mesh mesh);
 int                     as_tri_edge_implicit_mesh_get_containing_tri_index_of_point(Tri_edge_implicit_mesh mesh, Point point);
 int                     as_tri_edge_implicit_mesh_get_triangles_with_edge(Tri_edge_implicit_mesh mesh, Point p1, Point p2, Tri_edge_implicit *tri_out1, Tri_edge_implicit *tri_out2);
@@ -1489,6 +1490,20 @@ void as_tri_edge_implicit_mesh_copy(Tri_edge_implicit_mesh *des, Tri_edge_implic
     *des = temp_des;
 }
 
+int as_tri_edge_implicit_mesh_edge_index_belongs_to_tri(Tri_edge_implicit_mesh mesh, size_t edge_index)
+{
+    for (size_t tri_index = 0; tri_index < mesh.triangles.length; tri_index++) {
+        Tri_edge_implicit current_tri = mesh.triangles.elements[tri_index];
+        for (size_t i = 0; i < 3; i++) {
+            if (current_tri.edges_index[i] == edge_index) {
+                return (int)tri_index;
+            }
+        }
+    } 
+
+    return -1;
+}
+
 float as_tri_edge_implicit_mesh_get_min_edge_length(Tri_edge_implicit_mesh mesh)
 {
     float min_dis = FLT_MAX;
@@ -1572,8 +1587,6 @@ int as_tri_edge_implicit_mesh_get_triangles_with_edge(Tri_edge_implicit_mesh mes
 
 int as_tri_edge_implicit_mesh_get_triangles_indexs_with_edge(Tri_edge_implicit_mesh mesh, Point p1, Point p2, size_t *tri_out1_index, size_t *tri_out2_index)
 {
-    AS_ASSERT((tri_out1_index != NULL && tri_out2_index != NULL) && "output indices must not be NULL");
-
     // int p1_index = as_point_in_curve_index(p1, mesh.points);
     // int p2_index = as_point_in_curve_index(p2, mesh.points);
     // if (p1_index == -1 || p2_index == -1) return 0;
@@ -1599,10 +1612,10 @@ int as_tri_edge_implicit_mesh_get_triangles_indexs_with_edge(Tri_edge_implicit_m
         if (p1_is_part_of_tri && p2_is_part_of_tri) {
             /* tri has both points*/
             if (num_of_tri_out == 0) {
-                *tri_out1_index = tri_index;
+                if (tri_out1_index) *tri_out1_index = tri_index;
                 num_of_tri_out++;
             } else if (num_of_tri_out == 1) {
-                *tri_out2_index = tri_index;
+                if (tri_out2_index) *tri_out2_index = tri_index;
                 num_of_tri_out++;
                 /* if this line will be uncommented, then the check will never be reached */
                 return num_of_tri_out;
@@ -1816,7 +1829,7 @@ void as_tri_edge_implicit_mesh_remove_triangle(Tri_edge_implicit_mesh *mesh, siz
     ada_remove(Tri_edge_implicit, temp_mesh.triangles, tri_index_to_remove);
     for (size_t tri_index = 0; tri_index < temp_mesh.triangles.length; tri_index++) {
         for (size_t i = 0; i < 3; i++) {
-            if (temp_mesh.triangles.elements[tri_index].neighbor_tri_index[i] > (int)tri_index_to_remove && temp_mesh.triangles.elements[tri_index].neighbor_tri_index[i] > -1) {
+            if ((temp_mesh.triangles.elements[tri_index].neighbor_tri_index[i] > (int)tri_index_to_remove) && (temp_mesh.triangles.elements[tri_index].neighbor_tri_index[i] > -1)) {
                 temp_mesh.triangles.elements[tri_index].neighbor_tri_index[i] -= 1;
             } else if (temp_mesh.triangles.elements[tri_index].neighbor_tri_index[i] == (int)tri_index_to_remove) {
                 temp_mesh.triangles.elements[tri_index].neighbor_tri_index[i] = -1;
