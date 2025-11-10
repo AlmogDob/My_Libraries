@@ -1774,16 +1774,7 @@ void adl_tri_mesh_fill_Pinedas_rasterizer(Mat2D_uint32 screen_mat, Mat2D inv_z_b
 
         if (!tri.to_draw) continue;
 
-        uint32_t temp_color = 0;
-        float current_rer = adt_tri_calc_radius_edge_ratio(tri.points[0], tri.points[1], tri.points[2], "xy");
-        if (current_rer > wanted_rer) {
-            float t = adl_linear_map(current_rer, wanted_rer, max_rer, 0, 1);
-            adl_interpolate_ARGBcolor_on_okLch(GREEN_hexARGB, RED_hexARGB, t, 0, &temp_color);
-        } else {
-            temp_color = color;
-        }
-
-        adl_tri_fill_Pinedas_rasterizer(screen_mat, inv_z_buffer_mat, tri, temp_color, offset_zoom_param);
+        adl_tri_fill_Pinedas_rasterizer(screen_mat, inv_z_buffer_mat, tri, color, offset_zoom_param);
     }
 }
 

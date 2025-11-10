@@ -2,16 +2,16 @@
 #define UPDATE
 #define RENDER
 #define DESTROY
-#include "./include/display.c"
+#include "../include/display.c"
 #define ALMOG_DRAW_LIBRARY_IMPLEMENTATION
-#include "./include/Almog_Draw_Library.h"
+#include "../include/Almog_Draw_Library.h"
 #define ALMOG_ENGINE_IMPLEMENTATION
-#include "./include/Almog_Engine.h"
+#include "../include/Almog_Engine.h"
 #define MATRIX2D_IMPLEMENTATION
-#include "./include/Matrix2D.h"
+#include "../include/Matrix2D.h"
 
 #define ALMOG_DELAUNAY_TRIANGULATION_IMPLEMENTATION
-#include "./include/Almog_Delaunay_Triangulation.h"
+#include "../include/Almog_Delaunay_Triangulation.h"
 
 #include <time.h>
 
@@ -25,19 +25,29 @@ void setup(game_state_t *game_state)
 
     ada_init_array(Tri, proj_mesh);
 
-    Curve c = as_curve_create_random_points(50, -2, 2, -2, 2, 0,0,time(0));
     Curve convex_hull = {0};
     ada_init_array(Point, convex_hull);
-    as_points_array_convex_hull_Jarvis_march_2D(&convex_hull, c.elements, c.length);
-    free(c.elements);
 
+    Point p = {-4,2,0,0};
+    ada_appand(Point, convex_hull, p);
+    p = (Point){-4,-2,0,0};
+    ada_appand(Point, convex_hull, p);
+    p = (Point){4,-2,0,0};
+    ada_appand(Point, convex_hull, p);
+    p = (Point){4,2,0,0};
+    ada_appand(Point, convex_hull, p);
+    float del = 4.0 / 100;
+    for (float i = -2 + del; i < 2 - del; i += del) {
+        p = (Point){4,i,0,0};
+        ada_appand(Point, convex_hull, p);
+    }
 
     Tri_edge_implicit_mesh tei_mesh = adt_tri_edge_implicit_mesh_make_Delaunay_triangulation_flip_algorithm(convex_hull.elements, convex_hull.length);
     free(convex_hull.elements);
 
     adt_tri_edge_implicit_mesh_set_perimeter_to_segments(tei_mesh);
 
-    adt_tri_edge_implicit_mesh_Delaunay_refinement_Rupperts_algorithm_segments(&tei_mesh, 1.0, true);
+    adt_tri_edge_implicit_mesh_Delaunay_refinement_Rupperts_algorithm_segments(&tei_mesh, 0.91, false);
 
     float max_rer = adt_tri_edge_implicit_mesh_calc_max_radius_edge_ratio(tei_mesh); 
     printf("max rer = %5f | min min theta = %5f\n", max_rer, adt_radius_edge_ration_to_theta(max_rer) * 180 / PI);

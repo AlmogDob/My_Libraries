@@ -145,7 +145,9 @@ typedef struct {
  * If it is too big, then the triangulation breaks down.
  * 
  */
+#ifndef AS_EPSILON
 #define AS_EPSILON 1e-6 
+#endif
 
 
 #ifndef HexARGB_RGBA
