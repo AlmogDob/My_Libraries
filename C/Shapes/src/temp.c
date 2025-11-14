@@ -1,3 +1,24 @@
+#if 0
+#define MATRIX2D_IMPLEMENTATION
+#define ALMOG_DELAUNAY_TRIANGULATION_IMPLEMENTATION
+#include "./include/Almog_Delaunay_Triangulation.h"
+
+int main(void)
+{
+    Point p11 = {0,0,0,0};   
+    Point p12 = {1,1,0,0};   
+    Point p21 = {0,0,0,0};   
+    Point p22 = {-2,-1,0,0};   
+
+    printf("%f\n", as_edges_calc_small_angle(p11, p12, p21, p22) * 180.0f / PI);
+
+
+
+    return 0;
+}
+
+
+#else
 #define SETUP
 #define UPDATE
 #define RENDER
@@ -9,7 +30,6 @@
 #include "./include/Almog_Engine.h"
 #define MATRIX2D_IMPLEMENTATION
 #include "./include/Matrix2D.h"
-
 #define ALMOG_DELAUNAY_TRIANGULATION_IMPLEMENTATION
 #include "./include/Almog_Delaunay_Triangulation.h"
 
@@ -26,6 +46,7 @@ void setup(game_state_t *game_state)
     ada_init_array(Tri, proj_mesh);
 
     Curve c = as_curve_create_random_points(50, -2, 2, -2, 2, 0,0,time(0));
+    // Curve c = as_curve_create_random_points(17, -2, 2, -2, 2, 0,0,20);
     Curve convex_hull = {0};
     ada_init_array(Point, convex_hull);
     as_points_array_convex_hull_Jarvis_march_2D(&convex_hull, c.elements, c.length);
@@ -35,9 +56,11 @@ void setup(game_state_t *game_state)
     Tri_edge_implicit_mesh tei_mesh = adt_tri_edge_implicit_mesh_make_Delaunay_triangulation_flip_algorithm(convex_hull.elements, convex_hull.length);
     free(convex_hull.elements);
 
+    // AS_CURVE_PRINT(tei_mesh.points);
+
     adt_tri_edge_implicit_mesh_set_perimeter_to_segments(tei_mesh);
 
-    adt_tri_edge_implicit_mesh_Delaunay_refinement_Rupperts_algorithm_segments(&tei_mesh, 1.0, true);
+    adt_tri_edge_implicit_mesh_Delaunay_refinement_Rupperts_algorithm_segments(&tei_mesh, 0.9, true);
 
     float max_rer = adt_tri_edge_implicit_mesh_calc_max_radius_edge_ratio(tei_mesh); 
     printf("max rer = %5f | min min theta = %5f\n", max_rer, adt_radius_edge_ration_to_theta(max_rer) * 180 / PI);
@@ -125,3 +148,4 @@ void destroy(game_state_t *game_state)
     (void)game_state;
 }
 
+#endif

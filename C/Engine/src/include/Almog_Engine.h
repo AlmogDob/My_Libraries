@@ -550,7 +550,7 @@ Tri_mesh ae_tri_mesh_get_from_obj_file(char *file_path)
     asm_get_word_and_cut(file_name, file_extention, '.');
     asm_get_word_and_cut(file_name, file_extention, '.');
     if (strncmp(file_extention, ".obj", ASM_MAX_LEN_LINE)) {
-        fprintf(stderr, "%s:%s:%d:\n[Error] unsupported file format: '%s'\n\n", __FILE__, __func__, __LINE__, file_name);
+        fprintf(stderr, "%s:%d:\n%s:\n[Error] unsupported file format: '%s'\n\n", __FILE__, __LINE__, __func__, file_name);
         exit(1);
     }
 
@@ -567,7 +567,7 @@ Tri_mesh ae_tri_mesh_get_from_obj_file(char *file_path)
 
     FILE *fp_input = fopen(current_word, "rt");
     if (fp_input == NULL) {
-        fprintf(stderr, "%s:%s:%d:\n[Error] failed to open input file: '%s', %s\n\n", __FILE__, __func__, __LINE__, current_word, strerror(errno));
+        fprintf(stderr, "%s:%d:\n%s:\n[Error] failed to open input file: '%s', %s\n\n", __func__, __LINE__, __func__, current_word, strerror(errno));
         exit(1);
     }
 
@@ -576,7 +576,7 @@ Tri_mesh ae_tri_mesh_get_from_obj_file(char *file_path)
     // strncat(output_file_name, ".c", ASM_MAX_LEN_LINE/2);
     // FILE *fp_output = fopen(output_file_name, "wt");
     // if (fp_input == NULL) {
-    //     fprintf(stderr, "%s:%s:%d:\n[Error] failed to open output file: '%s'. %s\n\n", __FILE__, __func__, __LINE__, output_file_name, strerror(errno));
+    //     fprintf(stderr, "%s:%d:\n%s:\n[Error] failed to open output file: '%s'. %s\n\n", __FILE__, __LINE__, __func__, output_file_name, strerror(errno));
     //     exit(1);
     // }
 
@@ -591,7 +591,7 @@ Tri_mesh ae_tri_mesh_get_from_obj_file(char *file_path)
     while ((line_len = asm_get_line(fp_input, current_line)) != -1) {
         asm_get_next_word_from_line(current_word, current_line, ' ');
         if (!strncmp(current_word, "v", 1)) {
-            Point p;
+            Point p = {0};
             asm_get_word_and_cut(current_word, current_line, ' ');
             asm_get_word_and_cut(current_word, current_line, ' ');
             p.x = atof(current_word);
@@ -614,7 +614,7 @@ Tri_mesh ae_tri_mesh_get_from_obj_file(char *file_path)
             // printf("%d\n", number_of_spaces);
             // exit(1);
             if (!(number_of_spaces == 3 || number_of_spaces == 4 || number_of_spaces == 5)) {
-                fprintf(stderr, "%s:%s:%d:\n[Error] there is unsupported number of vertices for a face: %d\n\n", __FILE__, __func__, __LINE__, number_of_spaces);
+                fprintf(stderr, "%s:%d:\n%s:\n[Error] there is unsupported number of vertices for a face: %d\n\n", __FILE__, __LINE__, __func__, number_of_spaces);
                 exit(1);
             }
             if (number_of_spaces == 3) {
@@ -631,7 +631,7 @@ Tri_mesh ae_tri_mesh_get_from_obj_file(char *file_path)
                 }
                 if (number_of_backslash == 2) {
                     if (!texture_warning_was_printed) {
-                        fprintf(stderr, "%s:%s:%d\n[Warning] texture and normals data ignored of file at - '%s'\n\n", __FILE__, __func__, __LINE__, file_path);
+                        fprintf(stderr, "%s:%d\n%s:\n[Warning] texture and normals data ignored of file at - '%s'\n\n", __FILE__, __LINE__, __func__, file_path);
                         texture_warning_was_printed = 1;
                     }
 
@@ -675,7 +675,7 @@ Tri_mesh ae_tri_mesh_get_from_obj_file(char *file_path)
                 }
                 if (number_of_backslash == 2 || number_of_backslash == 1) {
                     if (!texture_warning_was_printed) {
-                        fprintf(stderr, "%s:%s:%d\n[Warning] texture and normals data ignored of file at - '%s'\n\n", __FILE__, __func__, __LINE__, file_path);
+                        fprintf(stderr, "%s:%d\n%s:\n[Warning] texture and normals data ignored of file at - '%s'\n\n", __FILE__, __LINE__, __func__, file_path);
                         texture_warning_was_printed = 1;
                     }
 
@@ -745,7 +745,7 @@ Tri_mesh ae_tri_mesh_get_from_stl_file(char *file_path)
     FILE *file;
     file = fopen(file_path, "rb");
     if (file == NULL) {
-        fprintf(stderr, "%s:%s:%d:\n[Error] failed to open input file: '%s', %s\n\n", __FILE__, __func__, __LINE__, file_path, strerror(errno));
+        fprintf(stderr, "%s:%d:\n%s:\n[Error] failed to open input file: '%s', %s\n\n", __func__, __LINE__, __func__, file_path, strerror(errno));
         exit(1);
     }
 
@@ -757,7 +757,7 @@ Tri_mesh ae_tri_mesh_get_from_stl_file(char *file_path)
     fread(&num_of_tri, STL_NUM_SIZE, 1, file);
     // dprintINT(num_of_tri);
 
-    Tri_mesh mesh;
+    Tri_mesh mesh = {0};
     ada_init_array(Tri, mesh);
     for (size_t i = 0; i < num_of_tri; i++) {
         Tri temp_tri = {0};
@@ -825,7 +825,7 @@ Tri_mesh ae_tri_mesh_get_from_file(char *file_path)
     }
 
     if (!(!strncmp(file_extention, "obj", 3) || !strncmp(file_extention, "STL", 3) || !strncmp(file_extention, "stl", 3))) {
-        fprintf(stderr, "%s:%s:%d:\n[Error] unsupported file format: '%s'\n\n", __FILE__, __func__, __LINE__, file_path);
+        fprintf(stderr, "%s:%d:\n%s:\n[Error] unsupported file format: '%s'\n\n", __FILE__, __LINE__, __func__, file_path);
         exit(1);
     }
 
@@ -2946,7 +2946,7 @@ void ae_line_project_world2screen(Mat2D view_mat, Mat2D proj_mat, Point start_sr
     int rc = ae_line_clip_with_plane(start_view_point, end_view_point, z_p, z_n, &clipped_start_view_point, &clipped_end_view_point);           
 
     if (rc == -1) {
-        fprintf(stderr, "%s:%s:%d:\n[error] problem with clipping lines\n\n", __FILE__, __func__, __LINE__);
+        fprintf(stderr, "%s:%d:\n%s:\n[error] problem with clipping lines\n\n", __FILE__, __LINE__, __func__);
         exit(1);
     } else if (rc == 0) {
         clipped_start_view_point = (Point){-1,-1,1,1};
@@ -3090,7 +3090,7 @@ Tri_mesh ae_tri_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Tri tri, in
     Tri_mesh temp_tri_array; 
     ada_init_array(Tri, temp_tri_array);
     if (num_clipped_tri == -1) {
-        fprintf(stderr, "%s:%s:%d:\n[error] problem with clipping triangles\n\n", __FILE__, __func__, __LINE__);
+        fprintf(stderr, "%s:%d:\n%s:\n[error] problem with clipping triangles\n\n", __FILE__, __LINE__, __func__);
         exit(1);
     } else if (num_clipped_tri == 0) {
         ;
@@ -3224,7 +3224,7 @@ void ae_tri_mesh_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Tri_mesh *
                 break;
             }
             if (num_clipped_tri == -1) {
-                fprintf(stderr, "%s:%s:%d:\n[error] problem with clipping triangles\n\n", __FILE__, __func__, __LINE__);
+                fprintf(stderr, "%s:%d:\n%s:\n[error] problem with clipping triangles\n\n", __FILE__, __LINE__, __func__);
                 exit(1);
             } else if (num_clipped_tri == 0) {
                 ada_remove_unordered(Tri, temp_des, tri_index);
@@ -3381,7 +3381,7 @@ Quad_mesh ae_quad_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Quad quad
     Quad_mesh temp_quad_array; 
     ada_init_array(Quad, temp_quad_array);
     if (num_clipped_quad == -1) {
-        fprintf(stderr, "%s:%s:%d:\n[error] problem with clipping quad\n\n", __FILE__, __func__, __LINE__);
+        fprintf(stderr, "%s:%d:\n%s:\n[error] problem with clipping quad\n\n", __FILE__, __LINE__, __func__);
         exit(1);
     } else if (num_clipped_quad == 0) {
         ;
@@ -3507,7 +3507,7 @@ void ae_quad_mesh_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Quad_mesh
                 break;
             }
             if (num_clipped_quad == -1) {
-                fprintf(stderr, "%s:%s:%d:\n[error] problem with clipping quads\n\n", __FILE__, __func__, __LINE__);
+                fprintf(stderr, "%s:%d:\n%s:\n[error] problem with clipping quads\n\n", __FILE__, __LINE__, __func__);
                 exit(1);
             } else if (num_clipped_quad == 0) {
                 ada_remove_unordered(Quad, temp_des, quad_index);
@@ -3614,7 +3614,7 @@ void ae_curve_project_world2screen(Mat2D proj_mat, Mat2D view_mat, Curve *des, C
                 break;
             }
             if (rc == -1) {
-                fprintf(stderr, "%s:%s:%d:\n[error] problem with clipping lines\n\n", __FILE__, __func__, __LINE__);
+                fprintf(stderr, "%s:%d:\n%s:\n[error] problem with clipping lines\n\n", __FILE__, __LINE__, __func__);
                 exit(1);
             } else if (rc == 0) {
                 clipped_start_des_point = (Point){-1,-1,1,1};
