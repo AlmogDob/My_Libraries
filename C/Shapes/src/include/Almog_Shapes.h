@@ -184,7 +184,7 @@ typedef struct {
                             (p).y *= const;                     \
                             (p).z *= const
 #define                 as_points_equal(p1, p2) ((p1).x == (p2).x && (p1).y == (p2).y && (p1).z == (p2).z)
-#define                 as_points_equal_approx(p1, p2) (fabs((p1).x - (p2).x) < AS_EPSILON && fabs((p1).y - (p2).y) < AS_EPSILON && fabs((p1).z - (p2).z) < AS_EPSILON)
+#define                 as_points_equal_approx(p1, p2) (fabsf((p1).x - (p2).x) < AS_EPSILON && fabsf((p1).y - (p2).y) < AS_EPSILON && fabsf((p1).z - (p2).z) < AS_EPSILON)
 #define                 as_tri_area_xy(p1, p2, p3) (0.5 * ((p2).x-(p1).x)*((p3).y-(p1).y)- 0.5 * ((p3).x-(p1).x)*((p2).y-(p1).y))
 #define                 as_tri_equal_z(tri) ((tri.points[0].z == tri.points[1].z) && (tri.points[1].z == tri.points[2].z) && (tri.points[2].z == tri.points[0].z))
 #define                 as_tri_implicit_mesh_expand_tri_to_points(tim, t_index) (tim).points.elements[(tim).triangles.elements[t_index].points_index[0]], (tim).points.elements[(tim).triangles.elements[t_index].points_index[1]], (tim).points.elements[(tim).triangles.elements[t_index].points_index[2]]
@@ -410,7 +410,6 @@ void as_edge_implicit_print(Edge_implicit ei, Point *points, char *name, size_t 
 {
     AS_ASSERT(points != NULL);
     AS_ASSERT(name != NULL);
-    AS_ASSERT(ei.p1_index < (size_t)-1 && ei.p2_index < (size_t)-1 && "indices valid");
 
     printf("%*s%s:\n", (int) padding, "", name);
     printf("%*s    (%f, %f, %f)\n", (int) padding+4, "", as_point_expand_to_xyz(points[ei.p1_index]));
@@ -2021,7 +2020,7 @@ Curve as_circle_curve_create(const Point center, const float r, const size_t num
 {
     AS_ASSERT(r > 0);
     AS_ASSERT(num_of_points > 0);
-    AS_ASSERT((!strncmp(plane, "XY", 3) || !strncmp(plane, "xy", 3)) && "other planes are no implemented.");
+    AS_ASSERT((!strncmp(plane, "XY", 2) || !strncmp(plane, "xy", 2)) && "other planes are not implemented.");
 
     float delta_theta = 2 * PI / (float)num_of_points; 
 
@@ -2045,7 +2044,7 @@ Tri_mesh as_circle_tri_mesh_create_simple(const Point center, const float r, con
 {
     AS_ASSERT(r > 0);
     AS_ASSERT(num_of_points > 0);
-    AS_ASSERT((!strncmp(plane, "XY", 3) || !strncmp(plane, "xy", 3)) && "other planes are no implemented.");
+    AS_ASSERT((!strncmp(plane, "XY", 2) || !strncmp(plane, "xy", 2)) && "other planes are no implemented.");
 
     float delta_theta = 2 * PI / (float)num_of_points; 
 

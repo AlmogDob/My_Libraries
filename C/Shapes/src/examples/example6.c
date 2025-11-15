@@ -50,9 +50,9 @@ void setup(game_state_t *game_state)
     adt_tri_edge_implicit_mesh_Delaunay_refinement_Rupperts_algorithm_segments(&tei_mesh, 0.91, false);
 
     float max_rer = adt_tri_edge_implicit_mesh_calc_max_radius_edge_ratio(tei_mesh); 
-    printf("max rer = %5f | min min theta = %5f\n", max_rer, adt_radius_edge_ration_to_theta(max_rer) * 180 / PI);
+    printf("max rer = %5f | min min theta = %5f\n", max_rer, adt_radius_edge_ratio_to_theta(max_rer) * 180 / PI);
     float min_rer = adt_tri_edge_implicit_mesh_calc_min_radius_edge_ratio(tei_mesh);
-    printf("min rer = %5f | max min theta = %5f\n", min_rer, adt_radius_edge_ration_to_theta(min_rer) * 180 / PI);
+    printf("min rer = %5f | max min theta = %5f\n", min_rer, adt_radius_edge_ratio_to_theta(min_rer) * 180 / PI);
     printf("\n");
 
     dprintINT(adt_tri_edge_implicit_mesh_any_segment_is_encroach(tei_mesh));
