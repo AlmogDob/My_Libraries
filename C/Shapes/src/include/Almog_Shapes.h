@@ -241,6 +241,7 @@ void                    as_point_normalize_xyz(Point *p);
 void                    as_point_to_mat2D(Point p, Mat2D m);
 size_t                  as_point_in_curve_occurrences(Point p, Curve c);
 int                     as_point_in_curve_index(Point p, Curve c);
+bool                    as_point_in_tri(Point p, Point p1, Point p2, Point p3);
 Point                   as_points_interpolate(Point p1, Point p2, float t);
 bool                    as_point_is_finite(Point p);
 bool                    as_point_on_edge_xy(Point a, Point b, Point p, float eps);
@@ -806,6 +807,21 @@ int as_point_in_curve_index(Point p, Curve c)
     return -1;
 }
 
+bool as_point_in_tri(Point p, Point p0, Point p1, Point p2)
+{
+    float w = as_edge_cross_point(p0, p1, p1, p2);
+
+    float w0 = as_edge_cross_point(p0, p1, p0, p);
+    float w1 = as_edge_cross_point(p1, p2, p1, p);
+    float w2 = as_edge_cross_point(p2, p0, p2, p);
+
+    if (w0 * w >= 0 && w1 * w >= 0 &&  w2 * w >= 0) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
 Point as_points_interpolate(Point p1, Point p2, float t)
 {
     Point p = {0};
@@ -889,22 +905,23 @@ float as_points_distance(Point p1, Point p2)
 
 void as_points_array_convex_hull_Jarvis_march_2D(Curve *conv, Point *points, const size_t len)
 {
+    /* https://youtu.be/nBvCZi34F_o. */
+    /* I used AI to add collinear points on the convex hull. */
+
     AS_ASSERT(conv != NULL);
     AS_ASSERT(points != NULL);
     AS_ASSERT(len >= 1 && "expected at least one point");
 
-    /* https://youtu.be/nBvCZi34F_o. */
-    /* I used AI to add collinear points on the convex hull. */
     /* make sure points have the same z value */
     float z_value = points[0].z;
     for (size_t i = 1; i < len; i++) {
         AS_ASSERT(points[i].z == z_value);
     }
 
-    // for (size_t i = 0; i < len; i++) {
-    //     AS_POINT_PRINT(points[i]);
-    // }
-    
+    /* There is no real need to sort the hole array.
+       You just need to start from the left most point */
+    as_points_array_order_lexicographically(points, len);
+
     Curve temp_c = *conv;
     temp_c.length = 0;
 
@@ -1604,18 +1621,8 @@ float as_tri_edge_implicit_mesh_get_min_edge_length(Tri_edge_implicit_mesh mesh)
 int as_tri_edge_implicit_mesh_get_containing_tri_index_of_point(Tri_edge_implicit_mesh mesh, Point point)
 {
     for (size_t tri_index = 0; tri_index < mesh.triangles.length; tri_index++) {
-        Point p0, p1, p2;
-        p0 = as_tri_edge_implicit_mesh_get_point_of_tri(mesh, tri_index, 0);
-        p1 = as_tri_edge_implicit_mesh_get_point_of_tri(mesh, tri_index, 1);
-        p2 = as_tri_edge_implicit_mesh_get_point_of_tri(mesh, tri_index, 2);
 
-        float w = as_edge_cross_point(p0, p1, p1, p2);
-
-        float w0 = as_edge_cross_point(p0, p1, p0, point);
-        float w1 = as_edge_cross_point(p1, p2, p1, point);
-        float w2 = as_edge_cross_point(p2, p0, p2, point);
-
-        if (w0 * w >= 0 && w1 * w >= 0 &&  w2 * w >= 0) {
+        if (as_point_in_tri(point, as_tri_edge_implicit_mesh_expand_tri_to_points(mesh, tri_index))) {
             return (int)tri_index;
         }
     }
