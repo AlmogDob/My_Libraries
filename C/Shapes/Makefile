@@ -4,7 +4,7 @@ CFLAGS = $(CWARNINGS) -lm -lSDL2 -lSDL2_ttf
 
 #############################################################
 
-examples: example1 example2 example3 example4 example5
+examples: example1 example2 example3 example4 example5 example6 example7
 
 #############################################################
 temp: build_temp run_temp clean_temp  
@@ -257,4 +257,88 @@ profile_build_example5: ./src/examples/example5.c
 	@gcc ./src/examples/example5.c $(CFLAGS) -p -ggdb -o ./build/example5
 
 # valgrind -s --leak-check=full ./example5
+# cloc --exclude-lang=JSON,make .
+
+#############################################################
+example6: build_example6 run_example6 clean_example6  
+	@echo ./build/example6 done
+	@echo --------------------
+
+build_example6: ./src/examples/example6.c 
+	@echo [INFO] building example6
+	@gcc ./src/examples/example6.c $(CFLAGS) -o ./build/example6
+
+run_example6:
+	@echo
+	./build/example6
+	@echo
+
+clean_example6:
+	@echo [INFO] removing all build files
+	@rm ./build/example6
+
+debug_example6: debug_build_example6
+	gdb ./build/example6
+
+debug_build_example6: ./src/examples/example6.c
+	@echo [INFO] building example6
+	@gcc ./src/examples/example6.c $(CFLAGS) -ggdb -o ./build/example6
+
+profile_example6: profile_build_example6
+	./build/example6
+	@echo
+	gprof ./build/example6 gmon.out | /home/almog/.local/bin/gprof2dot | dot -Tpng -Gdpi=200 -o output.png
+	imview ./output.png
+	# xdg-open ./output.png
+	@echo
+	rm ./gmon.out ./output.png 
+	make clean_example6
+
+profile_build_example6: ./src/examples/example6.c
+	@echo [INFO] building example6
+	@gcc ./src/examples/example6.c $(CFLAGS) -p -ggdb -o ./build/example6
+
+# valgrind -s --leak-check=full ./example6
+# cloc --exclude-lang=JSON,make .
+
+#############################################################
+example7: build_example7 run_example7 clean_example7  
+	@echo ./build/example7 done
+	@echo --------------------
+
+build_example7: ./src/examples/example7.c 
+	@echo [INFO] building example7
+	@gcc ./src/examples/example7.c $(CFLAGS) -o ./build/example7
+
+run_example7:
+	@echo
+	./build/example7
+	@echo
+
+clean_example7:
+	@echo [INFO] removing all build files
+	@rm ./build/example7
+
+debug_example7: debug_build_example7
+	gdb ./build/example7
+
+debug_build_example7: ./src/examples/example7.c
+	@echo [INFO] building example7
+	@gcc ./src/examples/example7.c $(CFLAGS) -ggdb -o ./build/example7
+
+profile_example7: profile_build_example7
+	./build/example7
+	@echo
+	gprof ./build/example7 gmon.out | /home/almog/.local/bin/gprof2dot | dot -Tpng -Gdpi=200 -o output.png
+	imview ./output.png
+	# xdg-open ./output.png
+	@echo
+	rm ./gmon.out ./output.png 
+	make clean_example7
+
+profile_build_example7: ./src/examples/example7.c
+	@echo [INFO] building example7
+	@gcc ./src/examples/example7.c $(CFLAGS) -p -ggdb -o ./build/example7
+
+# valgrind -s --leak-check=full ./example7
 # cloc --exclude-lang=JSON,make .

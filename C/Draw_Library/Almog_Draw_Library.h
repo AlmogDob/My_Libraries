@@ -2229,7 +2229,7 @@ void adl_max_min_values_draw_on_figure(Figure figure)
  */
 void adl_curve_add_to_figure(Figure *figure, Point *src_points, size_t src_len, uint32_t color)
 {
-    Curve src_points_ada;
+    Curve src_points_ada = {0};
     ada_init_array(Point, src_points_ada);
     src_points_ada.color = color;
 

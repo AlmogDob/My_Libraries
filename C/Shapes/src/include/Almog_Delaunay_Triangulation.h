@@ -13,6 +13,7 @@
 
 
 bool                    adt_point_encroach_edge(Point point, Point p1, Point p2);
+float                   adt_radius_edge_ratio_to_theta(float rer);
 float                   adt_tri_calc_radius_edge_ratio(Point p1, Point p2, Point p3, const char plane[]);
 void                    adt_tri_get_circumcircle(Point p1, Point p2, Point p3, const char plane[], Point *center, float *r);
 void                    adt_tri_get_incircle(Point p1, Point p2, Point p3, const char plane[], Point *center, float *r);
@@ -30,7 +31,7 @@ bool                    adt_tri_edge_implicit_mesh_check_Delaunay(Tri_edge_impli
 int                     adt_tri_edge_implicit_mesh_check_edge_is_locally_Delaunay(Tri_edge_implicit_mesh mesh, Point p1, Point p2);
 int                     adt_tri_edge_implicit_mesh_check_edge_index_is_locally_Delaunay(Tri_edge_implicit_mesh mesh, size_t edge_index);
 bool                    adt_tri_edge_implicit_mesh_check_point_intersect_any_segment(Tri_edge_implicit_mesh mesh, Point point, float eps);
-void                    adt_tri_edge_implicit_mesh_Delaunay_refinement_Rupperts_algorithm_segments(Tri_edge_implicit_mesh *mesh, float radius_edge_ratio);
+void                    adt_tri_edge_implicit_mesh_Delaunay_refinement_Rupperts_algorithm_segments(Tri_edge_implicit_mesh *mesh, float radius_edge_ratio, bool to_limit);
 int                     adt_tri_edge_implicit_mesh_edge_split(Tri_edge_implicit_mesh *mesh, Point point, Point p1, Point p2);
 bool                    adt_tri_edge_implicit_mesh_edge_is_encroach(Tri_edge_implicit_mesh mesh, Point p1, Point p2);
 Edge_implicit           adt_tri_edge_implicit_mesh_flip_edge(Tri_edge_implicit_mesh *mesh, Point p1, Point p2, bool debug_print);
@@ -46,6 +47,7 @@ int                     adt_tri_edge_implicit_mesh_point_encroach_any_segment(Tr
 void                    adt_tri_edge_implicit_mesh_resolve_all_encroach_segments(Tri_edge_implicit_mesh *mesh);
 void                    adt_tri_edge_implicit_mesh_set_Delaunay_triangulation_flip_algorithm(Tri_edge_implicit_mesh *mesh);
 void                    adt_tri_edge_implicit_mesh_set_Delaunay_triangulation_flip_algorithm_fixed_iterations(Tri_edge_implicit_mesh *mesh);
+void                    adt_tri_edge_implicit_mesh_set_perimeter_to_segments(Tri_edge_implicit_mesh mesh);
 
 #endif
 
@@ -69,14 +71,20 @@ bool adt_point_encroach_edge(Point point, Point p1, Point p2)
     return true;
 }
 
+float adt_radius_edge_ratio_to_theta(float rer)
+{
+    return asinf(0.5f / rer);
+}
+
 float adt_tri_calc_radius_edge_ratio(Point p1, Point p2, Point p3, const char plane[])
 {
     /* according to the 'Delaunay Mesh Generation' book Pg. 26
        radius edge ratio = R/l_min, where R is the triangles circumcircle
        and l_min is the shortest side. In 2D, R/l_min = 1 / (2 * sin(theta_min)).
+       theta = arcsin(0.5 / (R / l_min))
        which means the smaller the radius edge ratio,
        the bigger the smallest angle of the tri will be. */
-    ADT_ASSERT((!strncmp(plane, "XY", 3) || !strncmp(plane, "xy", 3)) && "other planes are no implemented.");
+    ADT_ASSERT((!strncmp(plane, "XY", 2) || !strncmp(plane, "xy", 2)) && "other planes are no implemented.");
     as_point_assert_finite(p1);
     as_point_assert_finite(p2);
     as_point_assert_finite(p3);
@@ -98,7 +106,7 @@ float adt_tri_calc_radius_edge_ratio(Point p1, Point p2, Point p3, const char pl
 
 void adt_tri_get_circumcircle(Point p1, Point p2, Point p3, const char plane[], Point *center, float *r)
 {
-    ADT_ASSERT((!strncmp(plane, "XY", 3) || !strncmp(plane, "xy", 3)) && "other planes are no implemented.");
+    ADT_ASSERT((!strncmp(plane, "XY", 2) || !strncmp(plane, "xy", 2)) && "other planes are no implemented.");
     as_point_assert_finite(p1);
     as_point_assert_finite(p2);
     as_point_assert_finite(p3);
@@ -169,7 +177,7 @@ void adt_tri_get_circumcircle(Point p1, Point p2, Point p3, const char plane[], 
 
 void adt_tri_get_incircle(Point p1, Point p2, Point p3, const char plane[], Point *center, float *r)
 {
-    ADT_ASSERT((!strncmp(plane, "XY", 3) || !strncmp(plane, "xy", 3)) && "other planes are no implemented.");
+    ADT_ASSERT((!strncmp(plane, "XY", 2) || !strncmp(plane, "xy", 2)) && "other planes are no implemented.");
     ADT_ASSERT(center != NULL);
     ADT_ASSERT(r != NULL);
     as_point_assert_finite(p1);
@@ -201,7 +209,7 @@ void adt_tri_get_incircle(Point p1, Point p2, Point p3, const char plane[], Poin
 
 void adt_tri_get_min_containment_circle(Point p1, Point p2, Point p3, const char plane[], Point *center, float *r)
 {
-    ADT_ASSERT((!strncmp(plane, "XY", 3) || !strncmp(plane, "xy", 3)) && "other planes are no implemented.");
+    ADT_ASSERT((!strncmp(plane, "XY", 2) || !strncmp(plane, "xy", 2)) && "other planes are no implemented.");
     ADT_ASSERT(center != NULL);
     ADT_ASSERT(r != NULL);
     as_point_assert_finite(p1);
@@ -323,11 +331,11 @@ void adt_tri_implicit_mesh_flip_edge(Tri_implicit_mesh mesh, Point p1, Point p2)
     int num_of_triangles = as_tri_implicit_mesh_get_triangles_indexs_with_edge(mesh, p1, p2, &tri1_index, &tri2_index);
     
     if (num_of_triangles == 0) {
-        fprintf(stderr, "%s:%d: [Warning] one of the points is not in the tri implicit mesh.\n", __FILE__, __LINE__);
+        fprintf(stderr, "%s:%d:\n%s:\n[Warning] one of the points is not in the tri implicit mesh.\n", __FILE__, __LINE__, __func__);
         return;
     }
     if (num_of_triangles == 1) {
-        fprintf(stderr, "%s:%d: [Warning] this is a locally Delaunay edge.\n", __FILE__, __LINE__);
+        fprintf(stderr, "%s:%d:\n%s:\n[Warning] this is a locally Delaunay edge.\n", __FILE__, __LINE__, __func__);
         return;
     }
 
@@ -491,7 +499,7 @@ int adt_tri_edge_implicit_mesh_check_edge_is_locally_Delaunay(Tri_edge_implicit_
 {
     ADT_ASSERT(mesh.points.elements != NULL && "points array null");
     ADT_ASSERT((mesh.edges.length == 0 || mesh.edges.elements != NULL) && "edges elements pointer invalid");
-    ADT_ASSERT(!as_points_equal(p1, p2) && "edge endpoints must differ");
+    // ADT_ASSERT(!as_points_equal(p1, p2) && "edge endpoints must differ");
 
     int edge_index = as_edge_implicit_ada_get_edge_index(mesh.edges, mesh.points.elements, p1, p2);
     if (edge_index == -1) return -1;
@@ -526,7 +534,8 @@ int adt_tri_edge_implicit_mesh_check_edge_is_locally_Delaunay(Tri_edge_implicit_
 
     float tri2_out_p_and_center_dis = as_points_distance(tri2_outside_p, circumcenter_1);
 
-    if (tri2_out_p_and_center_dis > r1) return 1;
+    // if (tri2_out_p_and_center_dis > r1) return 1;
+    if (tri2_out_p_and_center_dis >= r1 - ADT_EPSILON) return 1;
 
     return 0;
 }
@@ -581,7 +590,8 @@ int adt_tri_edge_implicit_mesh_check_edge_index_is_locally_Delaunay(Tri_edge_imp
 
     float tri2_out_p_and_center_dis = as_points_distance(tri2_outside_p, circumcenter_1);
 
-    if (tri2_out_p_and_center_dis > r1) return 1;
+    // if (tri2_out_p_and_center_dis > r1) return 1;
+    if (tri2_out_p_and_center_dis >= r1 - ADT_EPSILON) return 1;
 
     return 0;
 }
@@ -600,63 +610,68 @@ bool adt_tri_edge_implicit_mesh_check_point_intersect_any_segment(Tri_edge_impli
     return false;
 }
 
-void adt_tri_edge_implicit_mesh_Delaunay_refinement_Rupperts_algorithm_segments(Tri_edge_implicit_mesh *mesh, float radius_edge_ratio)
+void adt_tri_edge_implicit_mesh_Delaunay_refinement_Rupperts_algorithm_segments(Tri_edge_implicit_mesh *mesh, float radius_edge_ratio, bool to_limit)
 {
     /* If radius edge is smaller then sqrt(2) algorithm might not terminate */
     Tri_edge_implicit_mesh temp_mesh = *mesh;
 
+    size_t init_points_count = temp_mesh.points.length;
+
     adt_tri_edge_implicit_mesh_resolve_all_encroach_segments(&temp_mesh);
 
-    Tri_edge_implicit_ada tri_to_refine = {0};
-    ada_init_array(Tri_edge_implicit, tri_to_refine);
+    
+    size_t counter = 0;
+    printf("[INFO] Delaunay refinement - Ruppert's algorithm:\n\n");
+    for (float max_rer = 0; adt_tri_edge_implicit_mesh_any_segment_is_encroach(temp_mesh) || (max_rer = adt_tri_edge_implicit_mesh_calc_max_radius_edge_ratio(temp_mesh)) > radius_edge_ratio;) {
+        for (size_t tri_index = 0; tri_index < temp_mesh.triangles.length; tri_index++) {
+            float current_rer = adt_tri_calc_radius_edge_ratio(as_tri_edge_implicit_mesh_expand_tri_to_points(temp_mesh, tri_index), "xy");
+            if (current_rer < radius_edge_ratio) continue;
+            Point circumcenter = {0};
+            adt_tri_get_circumcircle(as_tri_edge_implicit_mesh_expand_tri_to_points(temp_mesh, tri_index), "xy", &circumcenter, NULL);
+            int encroach_segment_index = adt_tri_edge_implicit_mesh_point_encroach_any_segment(temp_mesh, circumcenter);
 
-    for (size_t i = 0; i < temp_mesh.triangles.length; i++) {
-        Tri_edge_implicit current_tri = temp_mesh.triangles.elements[i];
-        ada_appand(Tri_edge_implicit, tri_to_refine, current_tri);
-    }
-
-    dprintD(radius_edge_ratio);
-
-    for (;tri_to_refine.length > 0;) {
-        Tri_edge_implicit current_tri = tri_to_refine.elements[tri_to_refine.length-1];
-        ada_remove_unordered(Tri_edge_implicit, tri_to_refine, 0);
-
-        Point p1 = temp_mesh.points.elements[temp_mesh.edges.elements[current_tri.edges_index[0]].p1_index];
-        Point p2 = temp_mesh.points.elements[temp_mesh.edges.elements[current_tri.edges_index[1]].p1_index];
-        Point p3 = temp_mesh.points.elements[temp_mesh.edges.elements[current_tri.edges_index[2]].p1_index];
-        float current_tri_radius_edge_ratio = adt_tri_calc_radius_edge_ratio(p1, p2, p3, "xy");
-
-        // float max_rer = adt_tri_edge_implicit_mesh_calc_max_radius_edge_ratio(temp_mesh);
-        // float min_rer = adt_tri_edge_implicit_mesh_calc_min_radius_edge_ratio(temp_mesh);
-        // printf("%f < %f < %f\n", min_rer, current_tri_radius_edge_ratio, max_rer);
-
-        if (current_tri_radius_edge_ratio <= radius_edge_ratio) continue;
-
-        Point circumcenter = {0};
-        adt_tri_get_circumcircle(p1, p2, p3, "xy", &circumcenter, NULL);
-        // int encroach_segment_index = adt_tri_edge_implicit_mesh_point_encroach_any_segment(temp_mesh, circumcenter);
-        int encroach_segment_index = adt_tri_edge_implicit_mesh_point_encroach_any_edge(temp_mesh, circumcenter);
-        if (-1 == encroach_segment_index) {
-            int num_of_added_tri = adt_tri_edge_implicit_mesh_insert_point(&temp_mesh, circumcenter);
-            dprintINT(num_of_added_tri);
-            for (int i = 1; i <= num_of_added_tri && num_of_added_tri > 0; i++) {
-                ada_appand(Tri_edge_implicit, tri_to_refine, temp_mesh.triangles.elements[temp_mesh.triangles.length - i]);
+            if (encroach_segment_index == -1) {
+                int temp = adt_tri_edge_implicit_mesh_insert_point(&temp_mesh, circumcenter);
+                if (temp == -1) {
+                    *mesh = temp_mesh;
+                    return;
+                }
+                counter++;
+            } else { /* segment is encroached */
+                int adjoin_segment_index = as_tri_edge_implicit_mesh_edge_index_adjoins_any_segment_with_smaller_angle_then_angle(temp_mesh, encroach_segment_index, 90);
+                if (adjoin_segment_index == -1) {
+                    Point midpoint = as_points_interpolate(as_tri_edge_implicit_mesh_expand_edge_to_points(temp_mesh, encroach_segment_index), 0.5);
+                    adt_tri_edge_implicit_mesh_edge_split(&temp_mesh, midpoint, as_tri_edge_implicit_mesh_expand_edge_to_points(temp_mesh, encroach_segment_index));
+                    counter++;
+                } else {
+                    // fprintf(stderr, "%s:%d:\n%s:\n[Warning] small angle between segments was detected.\n\n\n", __FILE__, __LINE__, __func__);
+                    /* checking if the first point is the meeting point or the second point */
+                    /* The split point needs to be on a concentric circles whose
+                       radii are all the powers of two but did 1/3 for simplicity */
+                    Point split_point = {0};
+                    if (temp_mesh.edges.elements[encroach_segment_index].p1_index == temp_mesh.edges.elements[adjoin_segment_index].p1_index ||
+                        temp_mesh.edges.elements[encroach_segment_index].p1_index == temp_mesh.edges.elements[adjoin_segment_index].p2_index) {
+                        split_point = as_points_interpolate(as_tri_edge_implicit_mesh_expand_edge_to_points(temp_mesh, encroach_segment_index), 0.33);
+                    } else {
+                        split_point = as_points_interpolate(as_tri_edge_implicit_mesh_expand_edge_to_points(temp_mesh, encroach_segment_index), 0.66);
+                    }
+                    adt_tri_edge_implicit_mesh_edge_split(&temp_mesh, split_point, as_tri_edge_implicit_mesh_expand_edge_to_points(temp_mesh, encroach_segment_index));
+                    counter++;
+                }
             }
 
-        } else {
-            Edge_implicit encroach_segment = temp_mesh.edges.elements[encroach_segment_index];
-            Point p1 = temp_mesh.points.elements[encroach_segment.p1_index];
-            Point p2 = temp_mesh.points.elements[encroach_segment.p2_index];
-            Point point = as_points_interpolate(p1, p2, 0.5);
-            int num_of_added_tri = adt_tri_edge_implicit_mesh_edge_split(&temp_mesh, point, p1, p2); 
-            for (int i = 1; i <= num_of_added_tri && num_of_added_tri > 0; i++) {
-                ada_appand(Tri_edge_implicit, tri_to_refine, temp_mesh.triangles.elements[temp_mesh.triangles.length - i]);
-            }
+            // float display_max_rer = adt_tri_edge_implicit_mesh_calc_max_radius_edge_ratio(temp_mesh);
+            float display_max_rer = max_rer;
+            printf("\033[A\33[2K\r       points added: %zu | max radius edge ratio: %5f\n", counter, display_max_rer);
+            fflush(stdout);
         }
-        adt_tri_edge_implicit_mesh_resolve_all_encroach_segments(&temp_mesh);
-    }
 
-    free(tri_to_refine.elements);
+        if ((counter > init_points_count * 100) && to_limit) {
+            fprintf(stderr, "%s:%d:\n%s:\n[Warning] refinement algorithm reached safety limit.\n", __FILE__, __LINE__, __func__);
+            break;
+        }
+    }
+    printf("\n");
 
     *mesh = temp_mesh;
 }
@@ -673,17 +688,19 @@ int adt_tri_edge_implicit_mesh_edge_split(Tri_edge_implicit_mesh *mesh, Point po
 
     int ordered_edge_index = as_edge_implicit_ada_get_edge_index(temp_mesh.edges, temp_mesh.points.elements, p1, p2);
     bool ordered_edge_in_mesh = ordered_edge_index == -1 ? false : true;
+    if (as_tri_edge_implicit_mesh_edge_index_belongs_to_tri(temp_mesh, ordered_edge_index) == -1) ordered_edge_in_mesh = false;
 
     int inv_edge_index = as_edge_implicit_ada_get_edge_index(temp_mesh.edges, temp_mesh.points.elements, p2, p1);
     bool inv_edge_in_mesh = inv_edge_index == -1 ? false : true;
+    if (as_tri_edge_implicit_mesh_edge_index_belongs_to_tri(temp_mesh, inv_edge_index) == -1) inv_edge_in_mesh = false;
     
     if (!(ordered_edge_in_mesh || inv_edge_in_mesh)) {
-        // fprintf(stderr, "%s:%d:\n[Error] the ordered or inverse edge are not part of the triangulation.\n\n", __FILE__, __LINE__);
+        fprintf(stderr, "%s:%d:\n%s:\n[Error] the ordered or inverse edge are not part of the triangulation.\n\n", __FILE__, __LINE__, __func__);
         return 0;
     }
 
     if (!as_point_on_edge_xy(p1, p2, point, ADT_EPSILON)) {
-        fprintf(stderr, "%s:%d:\n[Error] the point is not on the edge.\n\n", __FILE__, __LINE__);
+        fprintf(stderr, "%s:%d:\n%s:\n[Error] the point is not on the edge.\n\n", __FILE__, __LINE__, __func__);
         return 0;
     }
 
@@ -796,13 +813,14 @@ int adt_tri_edge_implicit_mesh_edge_split(Tri_edge_implicit_mesh *mesh, Point po
 
     }
 
-    as_tri_edge_implicit_mesh_delete_edge(&temp_mesh, p1, p2);
 
 
     as_tri_edge_implicit_mesh_set_neighbor_of_tri(temp_mesh, temp_mesh.triangles.length - 1);
     as_tri_edge_implicit_mesh_set_neighbor_of_tri(temp_mesh, temp_mesh.triangles.length - 2);
     as_tri_edge_implicit_mesh_set_neighbor_of_tri(temp_mesh, temp_mesh.triangles.length - 3);
     as_tri_edge_implicit_mesh_set_neighbor_of_tri(temp_mesh, temp_mesh.triangles.length - 4);
+
+    as_tri_edge_implicit_mesh_delete_edge(&temp_mesh, p1, p2);
 
     /* fixing the delaunay condition */
     Edge_implicit_ada new_edges_list = {0};
@@ -815,13 +833,14 @@ int adt_tri_edge_implicit_mesh_edge_split(Tri_edge_implicit_mesh *mesh, Point po
     }
 
     int num_of_add_tri = 4;
+    int count = 0;
     for (;new_edges_list.length > 0;) {
         Edge_implicit current_edge = new_edges_list.elements[0];
         ada_remove_unordered(Edge_implicit, new_edges_list, 0);
         int is_delaunay = adt_tri_edge_implicit_mesh_check_edge_is_locally_Delaunay(temp_mesh, temp_mesh.points.elements[current_edge.p1_index], temp_mesh.points.elements[current_edge.p2_index]);
         if (is_delaunay == 0) {
             num_of_add_tri += 2;
-            Edge_implicit new_edge = adt_tri_edge_implicit_mesh_flip_edge(&temp_mesh, temp_mesh.points.elements[current_edge.p1_index], temp_mesh.points.elements[current_edge.p2_index], 1);
+            Edge_implicit new_edge = adt_tri_edge_implicit_mesh_flip_edge(&temp_mesh, temp_mesh.points.elements[current_edge.p1_index], temp_mesh.points.elements[current_edge.p2_index], 0);
             /* adding the edges of the new triangles to the edge list */
             Tri_edge_implicit tri1 = {0}, tri2 = {0};
             as_tri_edge_implicit_mesh_get_triangles_with_edge(temp_mesh, temp_mesh.points.elements[new_edge.p1_index], temp_mesh.points.elements[new_edge.p2_index], &tri1, &tri2); 
@@ -830,6 +849,9 @@ int adt_tri_edge_implicit_mesh_edge_split(Tri_edge_implicit_mesh *mesh, Point po
                 ada_appand(Edge_implicit, new_edges_list, temp_mesh.edges.elements[tri2.edges_index[j]]);
             }
         }
+        
+        if (count == 100) break;
+        count++;
     }
 
     free(new_edges_list.elements);
@@ -869,16 +891,17 @@ Edge_implicit adt_tri_edge_implicit_mesh_flip_edge(Tri_edge_implicit_mesh *mesh,
     size_t tri2_index = -1;
 
     int num_of_triangles = as_tri_edge_implicit_mesh_get_triangles_indexs_with_edge(temp_mesh, p1, p2, &tri1_index, &tri2_index);
-    ADT_ASSERT(tri1_index < temp_mesh.triangles.length && "tri index OOB");
-    ADT_ASSERT(tri2_index < temp_mesh.triangles.length && "tri index OOB");
     if (num_of_triangles == 0) {
-        if (debug_print) fprintf(stderr, "%s:%d:\n[Warning] one of the points is not in the tri edge implicit mesh or edge does not exists.\n\n", __FILE__, __LINE__);
+        if (debug_print) fprintf(stderr, "%s:%d:\n%s:\n[Warning] one of the points is not in the tri edge implicit mesh or edge does not exists.\n\n", __FILE__, __LINE__, __func__);
         return (Edge_implicit){0};
     }
     if (num_of_triangles == 1) {
-        if (debug_print) fprintf(stderr, "%s:%d:\n[Warning] this is a locally Delaunay edge.\n\n", __FILE__, __LINE__);
+        if (debug_print) fprintf(stderr, "%s:%d:\n%s:\n[Warning] this is a locally Delaunay edge.\n\n", __FILE__, __LINE__, __func__);
         return (Edge_implicit){0};
     }
+
+    ADT_ASSERT(tri1_index < temp_mesh.triangles.length && "tri index OOB");
+    ADT_ASSERT(tri2_index < temp_mesh.triangles.length && "tri index OOB");
 
     /* getting neighbor indexes */
     #if 0
@@ -955,6 +978,7 @@ Edge_implicit adt_tri_edge_implicit_mesh_flip_edge(Tri_edge_implicit_mesh *mesh,
         third_edge.is_segment = false;
         third_edge.p1_index = as_point_in_curve_index(as_tri_edge_implicit_mesh_get_point_of_tri(temp_mesh, tri1_index, third_p_index_tri1), temp_mesh.points);
         third_edge.p2_index = as_point_in_curve_index(as_tri_edge_implicit_mesh_get_point_of_tri(temp_mesh, tri2_index, third_p_index_tri2), temp_mesh.points);
+        ADT_ASSERT(third_edge.p1_index != third_edge.p2_index && "flip created a self-loop edge");
         ada_appand(Edge_implicit, temp_mesh.edges, third_edge);
         temp_tri1.edges_index[0] = temp_mesh.edges.length - 1;
         for (size_t i = 0; i < 3; i++) {
@@ -973,6 +997,7 @@ Edge_implicit adt_tri_edge_implicit_mesh_flip_edge(Tri_edge_implicit_mesh *mesh,
         inv_third_edge.is_segment = false;
         inv_third_edge.p2_index = as_point_in_curve_index(as_tri_edge_implicit_mesh_get_point_of_tri(temp_mesh, tri1_index, third_p_index_tri1), temp_mesh.points);
         inv_third_edge.p1_index = as_point_in_curve_index(as_tri_edge_implicit_mesh_get_point_of_tri(temp_mesh, tri2_index, third_p_index_tri2), temp_mesh.points);
+        ADT_ASSERT(third_edge.p1_index != third_edge.p2_index && "flip created a self-loop edge");
         ada_appand(Edge_implicit, temp_mesh.edges, inv_third_edge);
         temp_tri2.edges_index[0] = temp_mesh.edges.length - 1;
         for (size_t i = 0; i < 3; i++) {
@@ -996,6 +1021,7 @@ Edge_implicit adt_tri_edge_implicit_mesh_flip_edge(Tri_edge_implicit_mesh *mesh,
         third_edge.is_segment = false;
         third_edge.p1_index = as_point_in_curve_index(as_tri_edge_implicit_mesh_get_point_of_tri(temp_mesh, tri1_index, third_p_index_tri1), temp_mesh.points);
         third_edge.p2_index = as_point_in_curve_index(as_tri_edge_implicit_mesh_get_point_of_tri(temp_mesh, tri2_index, third_p_index_tri2), temp_mesh.points);
+        ADT_ASSERT(third_edge.p1_index != third_edge.p2_index && "flip created a self-loop edge");
         ada_appand(Edge_implicit, temp_mesh.edges, third_edge);
         temp_tri1.edges_index[0] = temp_mesh.edges.length - 1;
         for (size_t i = 0; i < 3; i++) {
@@ -1014,6 +1040,7 @@ Edge_implicit adt_tri_edge_implicit_mesh_flip_edge(Tri_edge_implicit_mesh *mesh,
         inv_third_edge.is_segment = false;
         inv_third_edge.p2_index = as_point_in_curve_index(as_tri_edge_implicit_mesh_get_point_of_tri(temp_mesh, tri1_index, third_p_index_tri1), temp_mesh.points);
         inv_third_edge.p1_index = as_point_in_curve_index(as_tri_edge_implicit_mesh_get_point_of_tri(temp_mesh, tri2_index, third_p_index_tri2), temp_mesh.points);
+        ADT_ASSERT(third_edge.p1_index != third_edge.p2_index && "flip created a self-loop edge");
         ada_appand(Edge_implicit, temp_mesh.edges, inv_third_edge);
         temp_tri2.edges_index[0] = temp_mesh.edges.length - 1;
         for (size_t i = 0; i < 3; i++) {
@@ -1058,27 +1085,35 @@ int adt_tri_edge_implicit_mesh_insert_point(Tri_edge_implicit_mesh *mesh, Point 
     {
         float min_dis = as_point_get_min_distance_from_point_array(temp_mesh.points.elements, temp_mesh.points.length, point);
         if (min_dis == 0) {
-            fprintf(stderr, "%s:%d:\n[Warning] the point is already in triangulation.\n\n", __FILE__, __LINE__);
-            return 0;
+            fprintf(stderr, "%s:%d:\n%s:\n[Warning] the point is already in triangulation.\n\n", __FILE__, __LINE__, __func__);
+            return -1;
         } else if (min_dis < ADT_EPSILON) {
-            fprintf(stderr, "%s:%d:\n[Warning] the point is too close to a point in the triangulation.\n\n", __FILE__, __LINE__);
+            fprintf(stderr, "%s:%d:\n%s:\n[Warning] the point is too close to a point in the triangulation.\n\n", __FILE__, __LINE__, __func__);
             return 0;
         }
         size_t intersecting_edge_index = 0;
         if (as_tri_edge_implicit_mesh_check_point_intersect_any_edge(temp_mesh, point, ADT_EPSILON, &intersecting_edge_index)) {
-            fprintf(stderr, "%s:%d:\n[Warning] the point is on an edge. Case not supported.\n", __FILE__, __LINE__);
+            #if 1
+            adt_tri_edge_implicit_mesh_edge_split(&temp_mesh, point, as_tri_edge_implicit_mesh_expand_edge_to_points(temp_mesh, intersecting_edge_index));
+            *mesh = temp_mesh;
+            return 4;
+
+            #else
+            fprintf(stderr, "%s:%d:\n%s:\n[Warning] the point is on an edge. Case not supported.\n", __FILE__, __LINE__, __func__);
             fprintf(stderr, "          Tried to insert point (%f, %f, %f)\n", as_point_expand_to_xyz(point));
             fprintf(stderr, "          Intersected edge number %zu:\n", intersecting_edge_index);
             fprintf(stderr, "              (%f, %f, %f)\n", as_point_expand_to_xyz(temp_mesh.points.elements[temp_mesh.edges.elements[intersecting_edge_index].p1_index]));
             fprintf(stderr, "              (%f, %f, %f)\n", as_point_expand_to_xyz(temp_mesh.points.elements[temp_mesh.edges.elements[intersecting_edge_index].p2_index]));
             fprintf(stderr, "              (%zu -> %zu)\n\n", temp_mesh.edges.elements[intersecting_edge_index].p1_index, temp_mesh.edges.elements[intersecting_edge_index].p2_index);
+            ADT_ASSERT(0);
             return 0;
+            #endif
         }
     }
     int containing_tri_index = as_tri_edge_implicit_mesh_get_containing_tri_index_of_point(temp_mesh, point);
     if (containing_tri_index == -1) {
-        // fprintf(stderr, "%s:%d:\n[Warning] the point is outside of the triangulation. Case not supported.\n\n", __FILE__, __LINE__);
-        return -1;
+        fprintf(stderr, "%s:%d:\n%s:\n[Warning] the point is outside of the triangulation. Case not supported.\n\n", __FILE__, __LINE__, __func__);
+        return 0;
     }
     Tri_edge_implicit containing_tri = temp_mesh.triangles.elements[containing_tri_index];
 
@@ -1127,7 +1162,7 @@ int adt_tri_edge_implicit_mesh_insert_point(Tri_edge_implicit_mesh *mesh, Point 
         int is_delaunay = adt_tri_edge_implicit_mesh_check_edge_is_locally_Delaunay(temp_mesh, temp_mesh.points.elements[current_edge.p1_index], temp_mesh.points.elements[current_edge.p2_index]);
         if (is_delaunay == 0) {
             num_of_add_tri += 2;
-            Edge_implicit new_edge = adt_tri_edge_implicit_mesh_flip_edge(&temp_mesh, temp_mesh.points.elements[current_edge.p1_index], temp_mesh.points.elements[current_edge.p2_index], 1);
+            Edge_implicit new_edge = adt_tri_edge_implicit_mesh_flip_edge(&temp_mesh, temp_mesh.points.elements[current_edge.p1_index], temp_mesh.points.elements[current_edge.p2_index], 0);
             /* adding the edges of the new triangles to the edge list */
             Tri_edge_implicit tri1 = {0}, tri2 = {0};
             as_tri_edge_implicit_mesh_get_triangles_with_edge(temp_mesh, temp_mesh.points.elements[new_edge.p1_index], temp_mesh.points.elements[new_edge.p2_index], &tri1, &tri2); 
@@ -1200,11 +1235,11 @@ void adt_tri_edge_implicit_mesh_insert_segment_no_intersection(Tri_edge_implicit
     int p2_index = as_point_in_curve_index(p2, mesh->points);
 
     if (p1_index == -1) {
-        fprintf(stderr, "%s:%d:\n[Warning] p1 is not in the mesh.\n\n", __FILE__, __LINE__);
+        fprintf(stderr, "%s:%d:\n%s:\n[Warning] p1 is not in the mesh.\n\n", __FILE__, __LINE__, __func__);
         return;
     }
     if (p2_index == -1) {
-        fprintf(stderr, "%s:%d:\n[Warning] p2 is not in the mesh.\n\n", __FILE__, __LINE__);
+        fprintf(stderr, "%s:%d:\n%s:\n[Warning] p2 is not in the mesh.\n\n", __FILE__, __LINE__, __func__);
         return;
     }
 
@@ -1212,7 +1247,7 @@ void adt_tri_edge_implicit_mesh_insert_segment_no_intersection(Tri_edge_implicit
 
     Point inters_p = {0};
     if (as_edge_intersects_any_point_in_array(p1, p2, temp_mesh.points.elements, temp_mesh.points.length, eps, &inters_p)) {
-        fprintf(stderr, "%s:%d:\n[ERROR] segment intersects a point of the mesh.\n", __FILE__, __LINE__);
+        fprintf(stderr, "%s:%d:\n%s:\n[ERROR] segment intersects a point of the mesh.\n", __FILE__, __LINE__, __func__);
         fprintf(stderr, "        Tried to input segment:\n");
         fprintf(stderr, "           (%f, %f, %f)\n", as_point_expand_to_xyz(p1));
         fprintf(stderr, "           (%f, %f, %f)\n", as_point_expand_to_xyz(p2));
@@ -1249,7 +1284,7 @@ void adt_tri_edge_implicit_mesh_insert_segment_no_intersection(Tri_edge_implicit
     for (size_t i = 0; i < temp_mesh.edges.length; i++) {
         if (as_edge_intersect_edge(p1, p2, temp_mesh.points.elements[temp_mesh.edges.elements[i].p1_index], temp_mesh.points.elements[temp_mesh.edges.elements[i].p2_index])) {
             if (temp_mesh.edges.elements[i].is_segment) {
-                fprintf(stderr, "%s:%d:\n[ERROR] segment intersects a segment of the mesh. failed to insert segment\n\n", __FILE__, __LINE__);
+                fprintf(stderr, "%s:%d:\n%s:\n[ERROR] segment intersects a segment of the mesh. failed to insert segment\n\n", __FILE__, __LINE__, __func__);
 
                 free(new_edges_list.elements);
                 free(intersecting_edges_list.elements);
@@ -1265,7 +1300,7 @@ void adt_tri_edge_implicit_mesh_insert_segment_no_intersection(Tri_edge_implicit
     size_t safety = 0, safety_limit = temp_mesh.edges.length * 10 + 1000;
     for (;intersecting_edges_list.length > 0;) {
         if (++safety > safety_limit) {
-            fprintf(stderr, "%s:%d:\n[Error] segment insertion safety limit reached; aborting loop.\n\n", __FILE__, __LINE__);
+            fprintf(stderr, "%s:%d:\n%s:\n[Error] segment insertion safety limit reached; aborting loop.\n\n", __FILE__, __LINE__, __func__);
             break;
         }
 
@@ -1304,7 +1339,7 @@ void adt_tri_edge_implicit_mesh_insert_segment_no_intersection(Tri_edge_implicit
     
     int segment_index = as_edge_implicit_ada_get_edge_index(temp_mesh.edges, temp_mesh.points.elements, p1, p2);
     if (segment_index == -1) {
-        fprintf(stderr, "%s:%d:\n[Error] failed to insert segment.\n\n", __FILE__, __LINE__);
+        fprintf(stderr, "%s:%d:\n%s:\n[Error] failed to insert segment.\n\n", __FILE__, __LINE__, __func__);
     } else {
         temp_mesh.edges.elements[segment_index].is_segment = true;
     }
@@ -1367,7 +1402,7 @@ Tri_edge_implicit_mesh adt_tri_edge_implicit_mesh_make_Delaunay_triangulation_fl
 
     float min_edge_len = as_tri_edge_implicit_mesh_get_min_edge_length(tei_mesh);
     if (min_edge_len < ADT_EPSILON) {
-        fprintf(stderr, "%s:%d:\n[Warning] shortest edge is smaller then 'ADT_EPSILON' (%g).\n\n", __FILE__, __LINE__, ADT_EPSILON);
+        fprintf(stderr, "%s:%d:\n%s:\n[Warning] shortest edge is smaller then 'ADT_EPSILON' (%g).\n\n", __FILE__, __LINE__, __func__, ADT_EPSILON);
     }
 
     return tei_mesh;
@@ -1423,6 +1458,7 @@ void adt_tri_edge_implicit_mesh_resolve_all_encroach_segments(Tri_edge_implicit_
         }
     }
 
+    int count = 0;
     for (;encroach_candidate_list.length > 0;) {
         Edge_implicit current_edge = encroach_candidate_list.elements[0];
         ada_remove_unordered(Edge_implicit, encroach_candidate_list, 0);
@@ -1437,6 +1473,9 @@ void adt_tri_edge_implicit_mesh_resolve_all_encroach_segments(Tri_edge_implicit_
                 }
             }
         }
+
+        // if (count == 4) break;
+        count++;
     }
 
     free(encroach_candidate_list.elements);
@@ -1458,7 +1497,7 @@ void adt_tri_edge_implicit_mesh_set_Delaunay_triangulation_flip_algorithm(Tri_ed
     for (size_t init_len = edge_list.length; edge_list.length > 0;) {
 
         if (edge_list.length > init_len * 2) {
-            fprintf(stderr, "%s:%d:\n[Warning] flip algorithm safety limit reached; aborting loop.\n\n", __FILE__, __LINE__);
+            fprintf(stderr, "%s:%d:\n%s:\n[Warning] flip algorithm safety limit reached; aborting loop.\n\n", __FILE__, __LINE__, __func__);
             break;
         }
 
@@ -1523,6 +1562,14 @@ void adt_tri_edge_implicit_mesh_set_Delaunay_triangulation_flip_algorithm_fixed_
     *mesh = tei_temp_mesh;
 }
 
+void adt_tri_edge_implicit_mesh_set_perimeter_to_segments(Tri_edge_implicit_mesh mesh)
+{
+    for (size_t i = 0; i < mesh.edges.length; i++) {
+        int num_of_tri = as_tri_edge_implicit_mesh_get_triangles_indexs_with_edge(mesh, as_tri_edge_implicit_mesh_expand_edge_to_points(mesh, i), NULL, NULL);
+        
+        if (num_of_tri == 1) mesh.edges.elements[i].is_segment = true;
+    }
+}
 
 #endif
 

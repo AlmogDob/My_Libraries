@@ -138,7 +138,7 @@ int main()
 int initialize_window(game_state_t *game_state)
 {
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
-        fprintf(stderr, "%s:%d: [Error] initializing SDL.\n", __FILE__, __LINE__);
+        fprintf(stderr, "%s:%d:\n%s:\n[Error] initializing SDL.\n", __FILE__, __LINE__, __func__);
         return -1;
     }
 
@@ -150,18 +150,18 @@ int initialize_window(game_state_t *game_state)
                               SDL_WINDOW_RESIZABLE
                               );
     if (!game_state->window) {
-        fprintf(stderr, "%s:%d: [Error] creating SDL window.\n", __FILE__, __LINE__);
+        fprintf(stderr, "%s:%d:\n%s:\n[Error] creating SDL window.\n", __FILE__, __LINE__, __func__);
         return -1;
     }
 
     game_state->renderer = SDL_CreateRenderer(game_state->window, -1, 0);
     if (!game_state->renderer) {
-        fprintf(stderr, "%s:%d: [Error] creating SDL renderer.\n", __FILE__, __LINE__);
+        fprintf(stderr, "%s:%d:\n%s:\n[Error] creating SDL renderer.\n", __FILE__, __LINE__, __func__);
         return -1;
     }
 
     if (TTF_Init() == -1) {
-        fprintf(stderr, "%s:%d: [Error] initializing SDL_ttf.\n", __FILE__, __LINE__);
+        fprintf(stderr, "%s:%d:\n%s:\n[Error] initializing SDL_ttf.\n", __FILE__, __LINE__, __func__);
         return -1;
     }
 

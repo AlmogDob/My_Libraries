@@ -1030,7 +1030,7 @@ double mat2D_triangulate(Mat2D m)
         for (size_t j = i+1; j < m.cols; j++) {
             double factor = 1 / MAT2D_AT(m, i, i);
             if (!isfinite(factor)) {
-                printf("%s:%d: [Error] unable to transfrom into uperr triangular matrix. Probably some of the rows are not independent.\n", __FILE__, __LINE__);
+                printf("%s:%d:\n%s:\n[Error] unable to transfrom into uperr triangular matrix. Probably some of the rows are not independent.\n", __FILE__, __LINE__, __func__);
             }
             double mat_value = MAT2D_AT(m, j, i);
             mat2D_sub_row_time_factor_to_row(m, j, i, mat_value * factor);
@@ -1127,7 +1127,7 @@ void mat2D_LUP_decomposition_with_swap(Mat2D src, Mat2D l, Mat2D p, Mat2D u)
         for (size_t j = i+1; j < u.cols; j++) {
             double factor = 1 / MAT2D_AT(u, i, i);
             if (!isfinite(factor)) {
-                printf("%s:%d: [Error] unable to transfrom into uper triangular matrix. Probably some of the rows are not independent.\n", __FILE__, __LINE__);
+                printf("%s:%d:\n%s:\n[Error] unable to transfrom into uper triangular matrix. Probably some of the rows are not independent.\n", __FILE__, __LINE__, __func__);
             }
             double mat_value = MAT2D_AT(u, j, i);
             mat2D_sub_row_time_factor_to_row(u, j, i, mat_value * factor);
@@ -1175,7 +1175,7 @@ void mat2D_invert(Mat2D des, Mat2D src)
     
     if (!mat2D_det(m)) {
         mat2D_fill(des, 0);
-        printf("%s:%d: [Error] Can't invert the matrix. Determinant is zero! Set the inverse matrix to all zeros\n", __FILE__, __LINE__);
+        printf("%s:%d:\n%s:\n[Error] Can't invert the matrix. Determinant is zero! Set the inverse matrix to all zeros\n", __FILE__, __LINE__, __func__);
         return;
     }
 
@@ -1191,7 +1191,7 @@ void mat2D_invert(Mat2D des, Mat2D src)
             if (i != biggest_r) {
                 mat2D_swap_rows(m, i, biggest_r);
                 mat2D_swap_rows(des, i, biggest_r);
-                printf("%s:%d: [INFO] swapping row %zu with row %zu.\n", __FILE__, __LINE__, i, biggest_r);
+                printf("%s:%d:\n%s:\n[INFO] swapping row %zu with row %zu.\n", __FILE__, __LINE__, __func__, i, biggest_r);
             } else {
                 MATRIX2D_ASSERT(0 && "can't inverse");
             }
