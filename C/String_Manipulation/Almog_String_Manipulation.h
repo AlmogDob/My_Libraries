@@ -36,13 +36,6 @@
 #include <stdbool.h>
 
 /**
- * @def ASM_MAXDIR
- * @brief Generic maximum directory length constant (not used by the functions
- * in this header but available to callers).
- */
-#define ASM_MAXDIR 100
-
-/**
  * @def ASM_MAX_LEN_LINE
  * @brief Maximum number of characters read by asm_get_line (excluding the
  * terminating null).
@@ -51,7 +44,7 @@
  * asm_get_line prints an error to stderr and terminates the process with
  * exit(1).
  */
-#define ASM_MAX_LEN_LINE (int)1e3
+#define ASM_MAX_LEN (int)1e3
 
 /**
  * @def asm_dprintSTRING(expr)
@@ -104,8 +97,12 @@ void    asm_left_pad(char *s, size_t padding);
 size_t  asm_length(char *str);
 void    asm_remove_char_form_string(char *s, size_t index);
 int     asm_str_in_str(char *src, char *word_to_search);
+int     asm_str2int(char *s, size_t base);
+size_t  asm_str2size_t(char *s, size_t base);
 void    asm_strip_whitespace(char *s);
 int     asm_strncmp(const char *s1, const char *s2, const int N);
+void    asm_tolower(char *s);
+void    asm_toupper(char *s);
 
 #endif /*ALMOG_STRING_MANIPULATION_H_*/
 
@@ -164,8 +161,8 @@ int asm_get_line(FILE *fp, char *dst)
     while ((c = fgetc(fp)) != '\n' && c != EOF) {
         dst[i] = c;
         i++;
-        if (i >= ASM_MAX_LEN_LINE) {
-            fprintf(stderr, "%s:%d:\n%s:\n[Error] index exceeds ASM_MAX_LEN_LINE. Line in file is too long.\n", __FILE__, __LINE__, __func__);
+        if (i >= ASM_MAX_LEN) {
+            fprintf(stderr, "%s:%d:\n%s:\n[Error] index exceeds ASM_MAX_LEN_LINE. Line in file is too long.\n\n", __FILE__, __LINE__, __func__);
             return -1;
         }
     }
@@ -268,7 +265,7 @@ int asm_get_word_and_cut(char *dst, char *src, char delimiter, bool leave_delimi
 
 bool asm_isalnum(char c)
 {
-    return isalpha(c) || isdigit(c);
+    return asm_isalpha(c) || asm_isdigit(c);
 }
 
 bool asm_isalpha(char c)
@@ -347,7 +344,7 @@ bool asm_isupper(char c)
 
 bool asm_isxdigit(char c)
 {
-    if ((c >= 'a' && c <= 'f') || isdigit(c)) {
+    if ((c >= 'a' && c <= 'f') || asm_isdigit(c)) {
         return true;
     } else {
         return false;
@@ -356,7 +353,7 @@ bool asm_isxdigit(char c)
 
 bool asm_isXdigit(char c)
 {
-    if ((c >= 'A' && c <= 'F') || isdigit(c)) {
+    if ((c >= 'A' && c <= 'F') || asm_isdigit(c)) {
         return true;
     } else {
         return false;
@@ -387,8 +384,8 @@ size_t asm_length(char *str)
     size_t i = 0;
 
     while ((c = str[i++]) != '\0') {
-        if (i > ASM_MAX_LEN_LINE) {
-            fprintf(stderr, "%s:%d:\n%s:\n[Error] index exceeds ASM_MAX_LEN_LINE. Probably no NULL termination.\n", __FILE__, __LINE__, __func__);
+        if (i > ASM_MAX_LEN) {
+            fprintf(stderr, "%s:%d:\n%s:\n[Error] index exceeds ASM_MAX_LEN_LINE. Probably no NULL termination.\n\n", __FILE__, __LINE__, __func__);
             return __SIZE_MAX__;
         }
     }
@@ -400,7 +397,7 @@ void asm_remove_char_form_string(char *s, size_t index)
     size_t len = asm_length(s);
     if (len == 0) return;
     if (index >= len) {
-        fprintf(stderr, "%s:%d:\n%s:\n[Error] index exceeds array length.\n", __FILE__, __LINE__, __func__);
+        fprintf(stderr, "%s:%d:\n%s:\n[Error] index exceeds array length.\n\n", __FILE__, __LINE__, __func__);
         return;
     }
 
@@ -429,6 +426,44 @@ int asm_str_in_str(char *src, char *word_to_search)
         i++;
     }
     return num_of_accur;
+}
+
+int asm_str2int(char *s, size_t base)
+{
+    if (base != 10) {
+        fprintf(stderr, "%s:%d:\n%s:\n[Error] Unsupported base. Supports only base 10.\n\n", __FILE__, __LINE__, __func__);
+        return 0;
+        /* TODO: add more bases */
+    }
+    int sign = s[0] == '-' ? -1 : 1;
+    int i = sign == 1 ? 0 : 1;
+    int n = 0;
+
+    for (; asm_isdigit(s[i]); i++) {
+        n = 10 * n + s[i] - '0';
+    }
+
+    return n * sign;
+}
+
+size_t asm_str2size_t(char *s, size_t base)
+{
+    if (base != 10) {
+        fprintf(stderr, "%s:%d:\n%s:\n[Error] Unsupported base. Supports only base 10.\n\n", __FILE__, __LINE__, __func__);
+        return 0;
+        /* TODO: add more bases */
+    }
+    if (s[0] == '-') {
+        fprintf(stderr, "%s:%d:\n%s:\n[Error] Unable to convert a negative number to size_t.\n\n", __FILE__, __LINE__, __func__);
+        return 0;
+    }
+
+    size_t n = 0;
+    for (int i = 0; asm_isdigit(s[i]); i++) {
+        n = 10 * n + s[i] - '0';
+    }
+
+    return n;
 }
 
 void asm_strip_whitespace(char *s)
@@ -473,6 +508,25 @@ int asm_strncmp(const char *s1, const char *s2, const int N)
     return 1;
 }
 
+void asm_tolower(char *s)
+{
+    size_t len = asm_length(s);
+    for (size_t i = 0; i < len; i++) {
+        if (asm_isupper(s[i])) {
+            s[i] += 'a' - 'A';
+        }
+    }
+}
+
+void asm_toupper(char *s)
+{
+    size_t len = asm_length(s);
+    for (size_t i = 0; i < len; i++) {
+        if (asm_islower(s[i])) {
+            s[i] += 'A' - 'a';
+        }
+    }
+}
 
 #endif /*ALMOG_STRING_MANIPULATION_IMPLEMENTATION*/
 

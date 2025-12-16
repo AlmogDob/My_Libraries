@@ -1,6 +1,6 @@
-CCHECKS = -fsanitize=address
-CWARNINGS = -Wall -Wextra -Wuninitialized 
-CFLAGS = $(CWARNINGS) -lm
+CCHECKS = -fsanitize=address,leak,undefined,bounds -fsanitize-address-use-after-scope
+CWARNINGS = -W -Wall -Wextra -Wuninitialized -Wunreachable-code
+CFLAGS = $(CWARNINGS) -std=c99 -lm
 
 #############################################################
 
