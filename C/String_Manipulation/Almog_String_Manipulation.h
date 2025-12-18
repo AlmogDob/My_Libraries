@@ -77,6 +77,7 @@
 #define asm_min(a, b) (a < b ? a : b)
 #define asm_max(a, b) (a > b ? a : b)
 
+bool    asm_check_char_belong_to_base(char c, size_t base);
 void    asm_copy_array_by_indesies(char *target, int start, int end, char *src);
 int     asm_get_line(FILE *fp, char *dst);
 int     asm_get_next_word_from_line(char *dst, char *src, char delimiter);
@@ -97,8 +98,8 @@ void    asm_left_pad(char *s, size_t padding);
 size_t  asm_length(char *str);
 void    asm_remove_char_form_string(char *s, size_t index);
 int     asm_str_in_str(char *src, char *word_to_search);
-int     asm_str2int(char *s, size_t base);
-size_t  asm_str2size_t(char *s, size_t base);
+int     asm_str2int(char *s, char **end, size_t base);
+size_t  asm_str2size_t(char *s, char **end, size_t base);
 void    asm_strip_whitespace(char *s);
 int     asm_strncmp(const char *s1, const char *s2, const int N);
 void    asm_tolower(char *s);
@@ -108,6 +109,23 @@ void    asm_toupper(char *s);
 
 #ifdef ALMOG_STRING_MANIPULATION_IMPLEMENTATION
 #undef ALMOG_STRING_MANIPULATION_IMPLEMENTATION
+
+bool asm_check_char_belong_to_base(char c, size_t base)
+{
+    if (base > 36 || base < 2) {
+        fprintf(stderr, "%s:%d:\n%s:\n[Error] Supported bases are [2...36]. Inputted: %zu\n\n", __FILE__, __LINE__, __func__, base);
+        fprintf(stderr, "\n");
+        return false;
+    }
+    if (base <= 10) {
+        return c >= '0' && c <= '9'+(char)base-10;
+    }
+    if (base > 10) {
+        return asm_isdigit(c) || (c >= 'A' && c <= ('A'+(char)base-11));
+    }
+
+    return false;
+}
 
 /**
  * @brief Copy a substring [start, end) from src into target and null-terminate.
@@ -428,40 +446,59 @@ int asm_str_in_str(char *src, char *word_to_search)
     return num_of_accur;
 }
 
-int asm_str2int(char *s, size_t base)
+int asm_str2int(char *s, char **end, size_t base)
 {
     if (base != 10) {
         fprintf(stderr, "%s:%d:\n%s:\n[Error] Unsupported base. Supports only base 10.\n\n", __FILE__, __LINE__, __func__);
         return 0;
         /* TODO: add more bases */
     }
+
+    while (asm_isspace(*s)) {
+        s++;
+    }
+
+    int n = 0, i = 0;
+    if (s[0] == '-' || s[0] == '+') {
+        i++;
+    }
     int sign = s[0] == '-' ? -1 : 1;
-    int i = sign == 1 ? 0 : 1;
-    int n = 0;
 
     for (; asm_isdigit(s[i]); i++) {
         n = 10 * n + s[i] - '0';
     }
 
+    if (end) *end = s + i;
+
     return n * sign;
 }
 
-size_t asm_str2size_t(char *s, size_t base)
+size_t asm_str2size_t(char *s, char **end, size_t base)
 {
     if (base != 10) {
         fprintf(stderr, "%s:%d:\n%s:\n[Error] Unsupported base. Supports only base 10.\n\n", __FILE__, __LINE__, __func__);
         return 0;
         /* TODO: add more bases */
     }
+
+    while (asm_isspace(*s)) {
+        s++;
+    }
+
     if (s[0] == '-') {
         fprintf(stderr, "%s:%d:\n%s:\n[Error] Unable to convert a negative number to size_t.\n\n", __FILE__, __LINE__, __func__);
         return 0;
     }
+    size_t n = 0, i = 0;
+    if (s[0] == '+') {
+        i++;
+    }
 
-    size_t n = 0;
-    for (int i = 0; asm_isdigit(s[i]); i++) {
+    for (; asm_isdigit(s[i]); i++) {
         n = 10 * n + s[i] - '0';
     }
+
+    if (end) *end = s + i;
 
     return n;
 }
