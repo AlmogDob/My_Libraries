@@ -23,7 +23,7 @@
  * Notes and limitations
  *  - All destination buffers must be large enough; functions do not grow or
  *    allocate buffers.
- *  - asm_get_line enforces MAX_LEN_LINE characters (not counting the
+ *  - asm_get_line enforces MAX_LEN characters (not counting the
  *    terminating '\0'). Longer lines cause an early return with an error message.
  *  - asm_strncmp differs from the standard C strncmp: this version returns
  *    1 if equal and 0 otherwise.
@@ -36,7 +36,7 @@
 #include <stdbool.h>
 
 /**
- * @def ASM_MAX_LEN_LINE
+ * @def ASM_MAX_LEN
  * @brief Maximum number of characters read by asm_get_line (excluding the
  * terminating null).
  *
@@ -68,17 +68,32 @@
 #define asm_dprintINT(expr) printf(#expr " = %d\n", expr)
 
 /**
+ * @def asm_dprintFLOAT(expr)
+ * @brief Debug print a float expression as "expr = n\n".
+ * @param expr An expression that yields a float.
+ */
+#define asm_dprintFLOAT(expr) printf(#expr " = %#g\n", expr)
+
+/**
+ * @def asm_dprintDOUBLE(expr)
+ * @brief Debug print a double expression as "expr = n\n".
+ * @param expr An expression that yields a double.
+ */
+#define asm_dprintDOUBLE(expr) printf(#expr " = %#g\n", expr)
+
+/**
  * @def asm_dprintSIZE_T(expr)
  * @brief Debug print a size_t expression as "expr = n\n".
  * @param expr An expression that yields a size_t.
  */
 #define asm_dprintSIZE_T(expr) printf(#expr " = %zu\n", expr)
 
-#define asm_min(a, b) (a < b ? a : b)
-#define asm_max(a, b) (a > b ? a : b)
+#define asm_min(a, b) ((a) < (b) ? (a) : (b))
+#define asm_max(a, b) ((a) > (b) ? (a) : (b))
 
 bool    asm_check_char_belong_to_base(char c, size_t base);
-void    asm_copy_array_by_indesies(char *target, int start, int end, char *src);
+void    asm_copy_array_by_indexes(char *target, int start, int end, char *src);
+size_t  asm_get_char_value_in_base(char c);
 int     asm_get_line(FILE *fp, char *dst);
 int     asm_get_next_word_from_line(char *dst, char *src, char delimiter);
 int     asm_get_word_and_cut(char *dst, char *src, char delimiter, bool leave_delimiter);
@@ -98,6 +113,8 @@ void    asm_left_pad(char *s, size_t padding);
 size_t  asm_length(char *str);
 void    asm_remove_char_form_string(char *s, size_t index);
 int     asm_str_in_str(char *src, char *word_to_search);
+double  asm_str2double(char *s, char **end, size_t base);
+float   asm_str2float(char *s, char **end, size_t base);
 int     asm_str2int(char *s, char **end, size_t base);
 size_t  asm_str2size_t(char *s, char **end, size_t base);
 void    asm_strip_whitespace(char *s);
@@ -114,14 +131,13 @@ bool asm_check_char_belong_to_base(char c, size_t base)
 {
     if (base > 36 || base < 2) {
         fprintf(stderr, "%s:%d:\n%s:\n[Error] Supported bases are [2...36]. Inputted: %zu\n\n", __FILE__, __LINE__, __func__, base);
-        fprintf(stderr, "\n");
         return false;
     }
     if (base <= 10) {
         return c >= '0' && c <= '9'+(char)base-10;
     }
     if (base > 10) {
-        return asm_isdigit(c) || (c >= 'A' && c <= ('A'+(char)base-11));
+        return asm_isdigit(c) || (c >= 'A' && c <= ('A'+(char)base-11)) || (c >= 'a' && c <= ('a'+(char)base-11));
     }
 
     return false;
@@ -144,7 +160,7 @@ bool asm_check_char_belong_to_base(char c, size_t base)
  * @note This routine supports in-place "left-shift" usage where target == src
  *       and start > 0 (used by asm_get_word_and_cut).
  */
-void asm_copy_array_by_indesies(char *target, int start, int end, char *src)
+void asm_copy_array_by_indexes(char *target, int start, int end, char *src)
 {
     int j = 0;
     for (int i = start; i < end; i++) {
@@ -152,6 +168,17 @@ void asm_copy_array_by_indesies(char *target, int start, int end, char *src)
         j++;
     }
     target[j] = '\0';
+}
+
+size_t asm_get_char_value_in_base(char c)
+{
+    if (asm_isdigit(c)) {
+        return c - '0';
+    } else if (asm_isupper(c)) {
+        return c - 'A' + 10;
+    } else {
+        return c - 'a' + 10;
+    }
 }
 
 /**
@@ -163,24 +190,24 @@ void asm_copy_array_by_indesies(char *target, int start, int end, char *src)
  *
  * @param fp Input stream (must be non-NULL).
  * @param dst Destination buffer. Must have capacity of at least
- *            MAX_LEN_LINE + 1 bytes.
+ *            MAX_LEN + 1 bytes.
  * @return Number of characters stored in dst (excluding the terminating null).
  * @retval -1 EOF was encountered before any character was read.
  *
- * @note If the line exceeds MAX_LEN_LINE characters before a newline or EOF,
+ * @note If the line exceeds MAX_LEN characters before a newline or EOF,
  *       the function prints an error and calls exit(1).
  * @note An empty line returns 0 (not -1).
  */
 int asm_get_line(FILE *fp, char *dst)
 {
     int i = 0;
-    char c;
+    int c;
 
     while ((c = fgetc(fp)) != '\n' && c != EOF) {
         dst[i] = c;
         i++;
         if (i >= ASM_MAX_LEN) {
-            fprintf(stderr, "%s:%d:\n%s:\n[Error] index exceeds ASM_MAX_LEN_LINE. Line in file is too long.\n\n", __FILE__, __LINE__, __func__);
+            fprintf(stderr, "%s:%d:\n%s:\n[Error] index exceeds ASM_MAX_LEN. Line in file is too long.\n\n", __FILE__, __LINE__, __func__);
             return -1;
         }
     }
@@ -274,9 +301,9 @@ int asm_get_word_and_cut(char *dst, char *src, char delimiter, bool leave_delimi
         return 0;
     }
     if (leave_delimiter) {
-        asm_copy_array_by_indesies(src, last_pos, asm_length(src), src);
+        asm_copy_array_by_indexes(src, last_pos, asm_length(src), src);
     } else {
-        asm_copy_array_by_indesies(src, last_pos + 1, asm_length(src), src);
+        asm_copy_array_by_indexes(src, last_pos + 1, asm_length(src), src);
     }
     return 1;
 }
@@ -446,14 +473,93 @@ int asm_str_in_str(char *src, char *word_to_search)
     return num_of_accur;
 }
 
-int asm_str2int(char *s, char **end, size_t base)
+double asm_str2double(char *s, char **end, size_t base)
 {
-    if (base != 10) {
-        fprintf(stderr, "%s:%d:\n%s:\n[Error] Unsupported base. Supports only base 10.\n\n", __FILE__, __LINE__, __func__);
-        return 0;
-        /* TODO: add more bases */
+    if (base < 2 || base > 36) {
+        fprintf(stderr, "%s:%d:\n%s:\n[Error] Supported bases are [2...36]. Input: %zu\n\n", __FILE__, __LINE__, __func__, base);
+        if (end) *end = s;
+        return 0.0f;
+    }
+    while (asm_isspace(*s)) {
+        s++;
     }
 
+    int i = 0;
+    if (s[0] == '-' || s[0] == '+') {
+        i++;
+    }
+    int sign = s[0] == '-' ? -1 : 1;
+
+    size_t left = 0;
+    for (; asm_check_char_belong_to_base(s[i], base); i++) {
+        left = base * left + asm_get_char_value_in_base(s[i]);
+    }
+    if (s[i] != '.') {
+        if (end) *end = s + i;
+        return (left * sign);
+    }
+
+    i++; /* skip the point */
+
+    double right = 0;
+    size_t divider = base;
+    for (; asm_check_char_belong_to_base(s[i], base); i++) {
+        right = right + asm_get_char_value_in_base(s[i]) / (double)divider;
+        divider *= base;
+    }
+
+    if (end) *end = s + i;
+
+    return sign * (left + right);
+}
+
+float asm_str2float(char *s, char **end, size_t base)
+{
+    if (base < 2 || base > 36) {
+        fprintf(stderr, "%s:%d:\n%s:\n[Error] Supported bases are [2...36]. Input: %zu\n\n", __FILE__, __LINE__, __func__, base);
+        if (end) *end = s;
+        return 0.0f;
+    }
+    while (asm_isspace(*s)) {
+        s++;
+    }
+
+    int i = 0;
+    if (s[0] == '-' || s[0] == '+') {
+        i++;
+    }
+    int sign = s[0] == '-' ? -1 : 1;
+
+    int left = 0;
+    for (; asm_check_char_belong_to_base(s[i], base); i++) {
+        left = base * left + asm_get_char_value_in_base(s[i]);
+    }
+    if (s[i] != '.') {
+        if (end) *end = s + i;
+        return left * sign;
+    }
+
+    i++; /* skip the point */
+
+    float right = 0;
+    size_t divider = base;
+    for (; asm_check_char_belong_to_base(s[i], base); i++) {
+        right = right + asm_get_char_value_in_base(s[i]) / (float)divider;
+        divider *= base;
+    }
+
+    if (end) *end = s + i;
+
+    return sign * (left + right);
+}
+
+int asm_str2int(char *s, char **end, size_t base)
+{
+    if (base < 2 || base > 36) {
+        fprintf(stderr, "%s:%d:\n%s:\n[Error] Supported bases are [2...36]. Input: %zu\n\n", __FILE__, __LINE__, __func__, base);
+        if (end) *end = s;
+        return 0;
+    }
     while (asm_isspace(*s)) {
         s++;
     }
@@ -464,8 +570,8 @@ int asm_str2int(char *s, char **end, size_t base)
     }
     int sign = s[0] == '-' ? -1 : 1;
 
-    for (; asm_isdigit(s[i]); i++) {
-        n = 10 * n + s[i] - '0';
+    for (; asm_check_char_belong_to_base(s[i], base); i++) {
+        n = base * n + asm_get_char_value_in_base(s[i]);
     }
 
     if (end) *end = s + i;
@@ -475,27 +581,28 @@ int asm_str2int(char *s, char **end, size_t base)
 
 size_t asm_str2size_t(char *s, char **end, size_t base)
 {
-    if (base != 10) {
-        fprintf(stderr, "%s:%d:\n%s:\n[Error] Unsupported base. Supports only base 10.\n\n", __FILE__, __LINE__, __func__);
+    if (base < 2 || base > 36) {
+        fprintf(stderr, "%s:%d:\n%s:\n[Error] Supported bases are [2...36]. Input: %zu\n\n", __FILE__, __LINE__, __func__, base);
+        if (end) *end = s;
         return 0;
-        /* TODO: add more bases */
     }
-
     while (asm_isspace(*s)) {
         s++;
     }
 
     if (s[0] == '-') {
         fprintf(stderr, "%s:%d:\n%s:\n[Error] Unable to convert a negative number to size_t.\n\n", __FILE__, __LINE__, __func__);
+        if (end) *end = s;
         return 0;
     }
+
     size_t n = 0, i = 0;
     if (s[0] == '+') {
         i++;
     }
 
-    for (; asm_isdigit(s[i]); i++) {
-        n = 10 * n + s[i] - '0';
+    for (; asm_check_char_belong_to_base(s[i], base); i++) {
+        n = base * n + asm_get_char_value_in_base(s[i]);
     }
 
     if (end) *end = s + i;
