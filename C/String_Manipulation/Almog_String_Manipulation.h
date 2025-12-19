@@ -7,11 +7,15 @@
  * C strings:
  *  - Reading a single line from a FILE stream
  *  - Measuring string length
- *  - Extracting the next "word" (token) from a line using a separator
+ *  - Extracting the next "word" (token) from a line using a delimiter
  *  - Cutting the extracted word from the source buffer
  *  - Copying a substring by indices
  *  - Counting occurrences of a substring
  *  - A boolean-style strncmp (returns 1 on equality, 0 otherwise)
+ *  - ASCII-only character classification helpers (isalnum, isalpha, ...)
+ *  - ASCII case conversion (toupper / tolower)
+ *  - In-place whitespace stripping and left padding
+ *  - Base-N string-to-number conversion for int, size_t, float, and double
  *
  * Usage
  *  - In exactly one translation unit, define
@@ -23,10 +27,13 @@
  * Notes and limitations
  *  - All destination buffers must be large enough; functions do not grow or
  *    allocate buffers.
- *  - asm_get_line enforces MAX_LEN characters (not counting the
- *    terminating '\0'). Longer lines cause an early return with an error message.
+ *  - asm_get_line and asm_length enforce ASM_MAX_LEN characters (not counting
+ *    the terminating '\0'). Longer lines cause an early return with an error
+ *    message.
  *  - asm_strncmp differs from the standard C strncmp: this version returns
  *    1 if equal and 0 otherwise.
+ *  - Character classification and case-conversion helpers are ASCII-only and
+ *    not locale aware.
  */
 
 #ifndef ALMOG_STRING_MANIPULATION_H_
@@ -37,58 +44,97 @@
 
 /**
  * @def ASM_MAX_LEN
- * @brief Maximum number of characters read by asm_get_line (excluding the
- * terminating null).
+ * @brief Maximum number of characters processed in some string operations.
  *
- * If an input line exceeds this value before encountering '\n' or EOF,
- * asm_get_line prints an error to stderr and terminates the process with
- * exit(1).
+ * @details
+ * This constant limits:
+ *  - The number of characters read by asm_get_line from a stream (excluding
+ *    the terminating null byte).
+ *  - The maximum number of characters inspected by asm_length.
+ *
+ * If asm_get_line reads more than ASM_MAX_LEN characters before encountering
+ * '\n' or EOF, it prints an error to stderr and returns -1. In that error
+ * case, the contents of the destination buffer are not guaranteed to be
+ * null-terminated.
  */
 #define ASM_MAX_LEN (int)1e3
 
 /**
  * @def asm_dprintSTRING(expr)
- * @brief Debug print a C string expression as "expr = value\n".
- * @param expr An expression that yields a pointer to char (const or non-const).
+ * @brief Debug-print a C string expression as "expr = value\n".
+ *
+ * @param expr An expression that yields a pointer to char (const or
+ *             non-const). The expression is evaluated exactly once.
  */
 #define asm_dprintSTRING(expr) printf(#expr " = %s\n", expr)
 
 /**
  * @def asm_dprintCHAR(expr)
- * @brief Debug print a character expression as "expr = c\n".
- * @param expr An expression that yields a character promoted to int.
+ * @brief Debug-print a character expression as "expr = c\n".
+ *
+ * @param expr An expression that yields a character (or an int promoted from
+ *             a character). The expression is evaluated exactly once.
  */
 #define asm_dprintCHAR(expr) printf(#expr " = %c\n", expr)
 
 /**
  * @def asm_dprintINT(expr)
- * @brief Debug print an integer expression as "expr = n\n".
- * @param expr An expression that yields an int.
+ * @brief Debug-print an integer expression as "expr = n\n".
+ *
+ * @param expr An expression that yields an int. The expression is evaluated
+ *             exactly once.
  */
 #define asm_dprintINT(expr) printf(#expr " = %d\n", expr)
 
 /**
  * @def asm_dprintFLOAT(expr)
- * @brief Debug print a float expression as "expr = n\n".
- * @param expr An expression that yields a float.
+ * @brief Debug-print a float expression as "expr = n\n".
+ *
+ * @param expr An expression that yields a float. The expression is evaluated
+ *             exactly once.
  */
 #define asm_dprintFLOAT(expr) printf(#expr " = %#g\n", expr)
 
 /**
  * @def asm_dprintDOUBLE(expr)
- * @brief Debug print a double expression as "expr = n\n".
- * @param expr An expression that yields a double.
+ * @brief Debug-print a double expression as "expr = n\n".
+ *
+ * @param expr An expression that yields a double. The expression is evaluated
+ *             exactly once.
  */
 #define asm_dprintDOUBLE(expr) printf(#expr " = %#g\n", expr)
 
 /**
  * @def asm_dprintSIZE_T(expr)
- * @brief Debug print a size_t expression as "expr = n\n".
- * @param expr An expression that yields a size_t.
+ * @brief Debug-print a size_t expression as "expr = n\n".
+ *
+ * @param expr An expression that yields a size_t. The expression is evaluated
+ *             exactly once.
  */
 #define asm_dprintSIZE_T(expr) printf(#expr " = %zu\n", expr)
 
+/**
+ * @def asm_min
+ * @brief Return the smaller of two values (macro).
+ *
+ * @param a First value.
+ * @param b Second value.
+ * @return The smaller of @p a and @p b.
+ *
+ * @note Each parameter is evaluated exactly once.
+ */
 #define asm_min(a, b) ((a) < (b) ? (a) : (b))
+
+/**
+ * @def asm_max
+ * @brief Return the larger of two values (macro).
+ *
+ * @param a First value.
+ * @param b Second value.
+ * @return The larger of @p a and @p b.
+ *
+ * @note Each parameter is evaluated exactly once.
+ */
 #define asm_max(a, b) ((a) > (b) ? (a) : (b))
 
 bool    asm_check_char_belong_to_base(char c, size_t base);
@@ -127,6 +173,16 @@ void    asm_toupper(char *s);
 #ifdef ALMOG_STRING_MANIPULATION_IMPLEMENTATION
 #undef ALMOG_STRING_MANIPULATION_IMPLEMENTATION
 
+/**
+ * @brief Check if a character is a valid digit in a given base.
+ *
+ * @param c    Character to test (e.g., '0'–'9', 'a'–'z', 'A'–'Z').
+ * @param base Numeric base in the range [2, 36].
+ * @return true if @p c is a valid digit for @p base, false otherwise.
+ *
+ * @note If @p base is outside [2, 36], an error is printed to stderr and
+ *       false is returned.
+ */
 bool asm_check_char_belong_to_base(char c, size_t base)
 {
     if (base > 36 || base < 2) {
@@ -146,19 +202,19 @@ bool asm_check_char_belong_to_base(char c, size_t base)
 /**
  * @brief Copy a substring [start, end) from src into target and null-terminate.
  *
- * Copies characters with indices i = start, start+1, ..., end-1 from src into
- * target, then writes a terminating '\0'.
+ * Copies characters with indices i = start, start + 1, ..., end - 1 from
+ * @p src into @p target, then writes a terminating '\0'.
  *
- * @param target Destination buffer. Must be large enough to hold (end - start)
- *              characters plus the null terminator.
- * @param start Inclusive start index within src (0-based).
- * @param end Exclusive end index within src (must satisfy end >= start).
- * @param src Source string buffer.
+ * @param target Destination buffer. Must be large enough to hold
+ *               (end - start) characters plus the null terminator.
+ * @param start  Inclusive start index within @p src (0-based).
+ * @param end    Exclusive end index within @p src (must satisfy end >= start).
+ * @param src    Source string buffer.
  *
  * @warning No bounds checking is performed. The caller must ensure valid
  *          indices and sufficient target capacity.
- * @note This routine supports in-place "left-shift" usage where target == src
- *       and start > 0 (used by asm_get_word_and_cut).
+ * @note This routine supports in-place "left-shift" usage where
+ *       target == src and start > 0 (used by asm_get_word_and_cut).
  */
 void asm_copy_array_by_indexes(char *target, int start, int end, char *src)
 {
@@ -170,6 +226,15 @@ void asm_copy_array_by_indexes(char *target, int start, int end, char *src)
     target[j] = '\0';
 }
 
+/**
+ * @brief Convert a digit character to its numeric value in base-N.
+ *
+ * @param c Digit character ('0'–'9', 'a'–'z', 'A'–'Z').
+ * @return The numeric value of @p c in the range [0, 35].
+ *
+ * @note This function assumes @p c is a valid digit character. Call
+ *       asm_check_char_belong_to_base() first if validation is needed.
+ */
 size_t asm_get_char_value_in_base(char c)
 {
     if (asm_isdigit(c)) {
@@ -186,17 +251,20 @@ size_t asm_get_char_value_in_base(char c)
  *
  * Reads characters from the FILE stream until a newline ('\n') or EOF is
  * encountered. The newline, if present, is not copied. The result is
- * always null-terminated.
+ * always null-terminated on normal (non-error) completion.
  *
- * @param fp Input stream (must be non-NULL).
+ * @param fp  Input stream (must be non-NULL).
  * @param dst Destination buffer. Must have capacity of at least
- *            MAX_LEN + 1 bytes.
- * @return Number of characters stored in dst (excluding the terminating null).
- * @retval -1 EOF was encountered before any character was read.
+ *            ASM_MAX_LEN + 1 bytes.
+ * @return Number of characters stored in @p dst (excluding the terminating
+ *         null byte).
+ * @retval -1 EOF was encountered before any character was read, or the line
+ *         exceeded ASM_MAX_LEN characters (error).
  *
- * @note If the line exceeds MAX_LEN characters before a newline or EOF,
- *       the function prints an error and calls exit(1).
- * @note An empty line returns 0 (not -1).
+ * @note If the line exceeds ASM_MAX_LEN characters before a newline or EOF
+ *       is seen, the function prints an error message to stderr and returns
+ *       -1. In that case, @p dst is not guaranteed to be null-terminated.
+ * @note An empty line (just '\n') returns 0 (not -1).
  */
 int asm_get_line(FILE *fp, char *dst)
 {
@@ -221,27 +289,31 @@ int asm_get_line(FILE *fp, char *dst)
 /**
  * @brief Extract the next word from a line without modifying the source.
  *
- * Skips leading whitespace in src (as determined by isspace), then copies
- * characters into dst until one of the following is seen: the separator,
- * a newline ('\n'), or the string terminator ('\0'). The copied word in dst
- * is null-terminated and is never empty on success.
+ * Skips leading whitespace in @p src (as determined by asm_isspace), then
+ * copies characters into @p dst until one of the following is seen:
+ *  - the delimiter,
+ *  - a newline ('\n'),
+ *  - or the string terminator ('\0').
+ *
+ * The copied word in @p dst is null-terminated and is never empty on
+ * success.
  *
  * Special case:
- *  - If the very first character in src (at index 0, without leading
- *    whitespace) is the separator, '\n', or '\0', that single character is
- *    returned as a one-character "word".
+ *  - If the very first non-whitespace character in @p src is the delimiter,
+ *    '\n', or '\0', that single character is returned as a one-character
+ *    "word".
  *
- * @param dst Destination buffer for the extracted word. Must be large enough
- *            to hold the token plus the null terminator.
- * @param src Source C string to parse (not modified by this function).
- * @param delimiter Separator character to stop at.
- * @return The number of characters consumed from src (i.e., the index of the
- *         first unconsumed character).
+ * @param dst       Destination buffer for the extracted word. Must be large
+ *                  enough to hold the token plus the null terminator.
+ * @param src       Source C string to parse (not modified by this function).
+ * @param delimiter Delimiter character to stop at.
+ * @return The number of characters consumed from @p src (i.e., the index
+ *         of the first unconsumed character).
  * @retval -1 No word was found (e.g., only whitespace before a delimiter or
  *         end-of-string).
  *
  * @note The source buffer is not altered. To both extract and advance/cut the
- *       source, see asm_get_word_and_cut.
+ *       source, see asm_get_word_and_cut().
  */
 int asm_get_next_word_from_line(char *dst, char *src, char delimiter)
 {
@@ -274,20 +346,30 @@ int asm_get_next_word_from_line(char *dst, char *src, char delimiter)
 /**
  * @brief Get the next word and cut the source string at that point.
  *
- * Extracts the next word from src (per asm_get_next_word_from_line semantics)
- * into dst. On success, src is modified in-place to remove the consumed
- * prefix. The new src begins at the stopping character (the separator,
- * newline, or terminator).
+ * Extracts the next word from @p src (per asm_get_next_word_from_line
+ * semantics) into @p dst. On success, @p src is modified in-place to remove
+ * the consumed prefix.
  *
- * Example: For src = "abc,def", separator = ','
- *  - dst becomes "abc"
- *  - src becomes ",def" (note the leading separator remains)
+ * If @p leave_delimiter is true, the new @p src begins at the delimiter
+ * character. If false, the delimiter is skipped and the new @p src begins
+ * right after it.
  *
- * @param dst Destination buffer for the extracted word (large enough for the
- *            token and terminating null).
- * @param src Source buffer. Modified in-place if a word is found.
- * @param delimiter Separator character to stop at.
- * @return 1 if a word was extracted and src adjusted, 0 otherwise.
+ * Example (leave_delimiter == true):
+ * @code
+ *   char src[] = "abc,def";
+ *   char word[4];
+ *   asm_get_word_and_cut(word, src, ',', true);
+ *   // word == "abc"
+ *   // src  == ",def"
+ * @endcode
+ *
+ * @param dst             Destination buffer for the extracted word (large
+ *                        enough for the token and terminating null).
+ * @param src             Source buffer. Modified in-place if a word is found.
+ * @param delimiter       Delimiter character to stop at.
+ * @param leave_delimiter If true, the delimiter remains at the start of the
+ *                        updated @p src; if false, it is removed as well.
+ * @return 1 if a word was extracted and @p src adjusted, 0 otherwise.
  */
 int asm_get_word_and_cut(char *dst, char *src, char delimiter, bool leave_delimiter)
 {
@@ -308,16 +390,34 @@ int asm_get_word_and_cut(char *dst, char *src, char delimiter, bool leave_delimi
     return 1;
 }
 
+/**
+ * @brief Test for an alphanumeric character (ASCII).
+ *
+ * @param c Character to test.
+ * @return true if @p c is '0'–'9', 'A'–'Z', or 'a'–'z'; false otherwise.
+ */
 bool asm_isalnum(char c)
 {
     return asm_isalpha(c) || asm_isdigit(c);
 }
 
+/**
+ * @brief Test for an alphabetic character (ASCII).
+ *
+ * @param c Character to test.
+ * @return true if @p c is 'A'–'Z' or 'a'–'z'; false otherwise.
+ */
 bool asm_isalpha(char c)
 {
     return asm_isupper(c) || asm_islower(c);
 }
 
+/**
+ * @brief Test for a control character (ASCII).
+ *
+ * @param c Character to test.
+ * @return true if @p c is in the range [0, 31] or 127; false otherwise.
+ */
 bool asm_iscntrl(char c)
 {
     if ((c >= 0 && c <= 31) || c == 127) {
@@ -327,6 +427,12 @@ bool asm_iscntrl(char c)
     }
 }
 
+/**
+ * @brief Test for a decimal digit (ASCII).
+ *
+ * @param c Character to test.
+ * @return true if @p c is '0'–'9'; false otherwise.
+ */
 bool asm_isdigit(char c)
 {
     if (c >= '0' && c <= '9') {
@@ -336,6 +442,12 @@ bool asm_isdigit(char c)
     }
 }
 
+/**
+ * @brief Test for any printable character except space (ASCII).
+ *
+ * @param c Character to test.
+ * @return true if @p c is in the range [33, 126]; false otherwise.
+ */
 bool asm_isgraph(char c)
 {
     if (c >= 33 && c <= 126) {
@@ -345,6 +457,12 @@ bool asm_isgraph(char c)
     }
 }
 
+/**
+ * @brief Test for a lowercase letter (ASCII).
+ *
+ * @param c Character to test.
+ * @return true if @p c is 'a'–'z'; false otherwise.
+ */
 bool asm_islower(char c)
 {
     if (c >= 'a' && c <= 'z') {
@@ -354,11 +472,25 @@ bool asm_islower(char c)
     }
 }
 
+/**
+ * @brief Test for any printable character including space (ASCII).
+ *
+ * @param c Character to test.
+ * @return true if @p c is space (' ') or asm_isgraph(c) is true; false
+ *         otherwise.
+ */
 bool asm_isprint(char c)
 {
     return asm_isgraph(c) || c == ' ';
 }
 
+/**
+ * @brief Test for a punctuation character (ASCII).
+ *
+ * @param c Character to test.
+ * @return true if @p c is a printable, non-alphanumeric, non-space
+ *         character; false otherwise.
+ */
 bool asm_ispunct(char c)
 {
     if ((c >= 33 && c <= 47) || (c >= 58 && c <= 64) || (c >= 91 && c <= 96) || (c >= 123 && c <= 126)) {
@@ -368,6 +500,13 @@ bool asm_ispunct(char c)
     }
 }
 
+/**
+ * @brief Test for a whitespace character (ASCII).
+ *
+ * @param c Character to test.
+ * @return true if @p c is one of ' ', '\n', '\t', '\v', '\f', or '\r';
+ *         false otherwise.
+ */
 bool asm_isspace(char c)
 {
     if (c == ' ' || c == '\n' || c == '\t' ||
@@ -378,6 +517,12 @@ bool asm_isspace(char c)
     }
 }
 
+/**
+ * @brief Test for an uppercase letter (ASCII).
+ *
+ * @param c Character to test.
+ * @return true if @p c is 'A'–'Z'; false otherwise.
+ */
 bool asm_isupper(char c)
 {
     if (c >= 'A' && c <= 'Z') {
@@ -387,6 +532,12 @@ bool asm_isupper(char c)
     }
 }
 
+/**
+ * @brief Test for a hexadecimal digit (lowercase or decimal).
+ *
+ * @param c Character to test.
+ * @return true if @p c is '0'–'9' or 'a'–'f'; false otherwise.
+ */
 bool asm_isxdigit(char c)
 {
     if ((c >= 'a' && c <= 'f') || asm_isdigit(c)) {
@@ -396,6 +547,12 @@ bool asm_isxdigit(char c)
     }
 }
 
+/**
+ * @brief Test for a hexadecimal digit (uppercase or decimal).
+ *
+ * @param c Character to test.
+ * @return true if @p c is '0'–'9' or 'A'–'F'; false otherwise.
+ */
 bool asm_isXdigit(char c)
 {
     if ((c >= 'A' && c <= 'F') || asm_isdigit(c)) {
@@ -405,6 +562,19 @@ bool asm_isXdigit(char c)
     }
 }
 
+/**
+ * @brief Left-pad a string with spaces in-place.
+ *
+ * Shifts the contents of @p s to the right by @p padding positions and
+ * fills the vacated leading positions with spaces.
+ *
+ * @param s       String to pad. Modified in-place.
+ * @param padding Number of leading spaces to insert.
+ *
+ * @warning The buffer backing @p s must have enough capacity for the
+ *          original string length plus @p padding and the terminating
+ *          null byte. No bounds checking is performed.
+ */
 void asm_left_pad(char *s, size_t padding)
 {
     int len = (int)asm_length(s);
@@ -422,6 +592,9 @@ void asm_left_pad(char *s, size_t padding)
  * @param str Null-terminated string (must be non-NULL).
  * @return The number of characters before the terminating null byte.
  *
+ * @note If more than ASM_MAX_LEN characters are scanned without encountering
+ *       a null terminator, an error is printed to stderr and __SIZE_MAX__
+ *       is returned.
  */
 size_t asm_length(char *str)
 {
@@ -437,6 +610,18 @@ size_t asm_length(char *str)
     return --i;
 }
 
+/**
+ * @brief Remove a single character from a string by index.
+ *
+ * Deletes the character at position @p index from @p s by shifting
+ * subsequent characters one position to the left.
+ *
+ * @param s     String to modify in-place. Must be null-terminated.
+ * @param index Zero-based index of the character to remove.
+ *
+ * @note If @p index is out of range, an error is printed to stderr and
+ *       the string is left unchanged.
+ */
 void asm_remove_char_form_string(char *s, size_t index)
 {
     size_t len = asm_length(s);
@@ -454,12 +639,16 @@ void asm_remove_char_form_string(char *s, size_t index)
 /**
  * @brief Count occurrences of a substring within a string.
  *
- * Counts how many times word2search appears in src. Occurrences may overlap.
+ * Counts how many times @p word_to_search appears in @p src. Occurrences
+ * may overlap.
  *
- * @param src The string to search in (must be null-terminated).
- * @param word2search The substring to find (must be null-terminated).
+ * @param src           The string to search in (must be null-terminated).
+ * @param word_to_search The substring to find (must be null-terminated
+ *                       and non-empty).
  * @return The number of (possibly overlapping) occurrences found.
  *
+ * @note If @p word_to_search is the empty string, the behavior is not
+ *       well-defined and should be avoided.
  */
 int asm_str_in_str(char *src, char *word_to_search)
 {
@@ -473,6 +662,24 @@ int asm_str_in_str(char *src, char *word_to_search)
     return num_of_accur;
 }
 
+/**
+ * @brief Convert a string to double in the given base.
+ *
+ * Parses an optional sign, then a sequence of base-N digits, and optionally
+ * a fractional part separated by a '.' character.
+ *
+ * @param s    String to convert. Leading ASCII whitespace is skipped.
+ * @param end  If non-NULL, *end is set to point to the first character
+ *             not used in the conversion.
+ * @param base Numeric base in the range [2, 36].
+ * @return The converted double value. Returns 0.0 on invalid base.
+ *
+ * @note Only digits '0'–'9', 'a'–'z', and 'A'–'Z' are recognized as
+ *       base-N digits. No exponent notation (e.g., 'e' or 'p') is
+ *       supported.
+ * @note On invalid base, an error is printed to stderr, *end (if non-NULL)
+ *       is set to @p s, and 0.0 is returned.
+ */
 double asm_str2double(char *s, char **end, size_t base)
 {
     if (base < 2 || base > 36) {
@@ -513,6 +720,24 @@ double asm_str2double(char *s, char **end, size_t base)
     return sign * (left + right);
 }
 
+/**
+ * @brief Convert a string to float in the given base.
+ *
+ * Identical to asm_str2double semantically, but returns a float and uses
+ * float arithmetic for the fractional part.
+ *
+ * @param s    String to convert. Leading ASCII whitespace is skipped.
+ * @param end  If non-NULL, *end is set to point to the first character
+ *             not used in the conversion.
+ * @param base Numeric base in the range [2, 36].
+ * @return The converted float value. Returns 0.0f on invalid base.
+ *
+ * @note Only digits '0'–'9', 'a'–'z', and 'A'–'Z' are recognized as
+ *       base-N digits. No exponent notation (e.g., 'e' or 'p') is
+ *       supported.
+ * @note On invalid base, an error is printed to stderr, *end (if non-NULL)
+ *       is set to @p s, and 0.0f is returned.
+ */
 float asm_str2float(char *s, char **end, size_t base)
 {
     if (base < 2 || base > 36) {
@@ -553,6 +778,22 @@ float asm_str2float(char *s, char **end, size_t base)
     return sign * (left + right);
 }
 
+/**
+ * @brief Convert a string to int in the given base.
+ *
+ * Parses an optional sign and then a sequence of base-N digits.
+ *
+ * @param s    String to convert. Leading ASCII whitespace is skipped.
+ * @param end  If non-NULL, *end is set to point to the first character
+ *             not used in the conversion.
+ * @param base Numeric base in the range [2, 36].
+ * @return The converted int value. Returns 0 on invalid base.
+ *
+ * @note Only digits '0'–'9', 'a'–'z', and 'A'–'Z' are recognized as
+ *       base-N digits.
+ * @note On invalid base, an error is printed to stderr, *end (if non-NULL)
+ *       is set to @p s, and 0 is returned.
+ */
 int asm_str2int(char *s, char **end, size_t base)
 {
     if (base < 2 || base > 36) {
@@ -579,6 +820,22 @@ int asm_str2int(char *s, char **end, size_t base)
     return n * sign;
 }
 
+/**
+ * @brief Convert a string to size_t in the given base.
+ *
+ * Parses an optional leading '+' sign, then a sequence of base-N digits.
+ * Negative numbers are rejected.
+ *
+ * @param s    String to convert. Leading ASCII whitespace is skipped.
+ * @param end  If non-NULL, *end is set to point to the first character
+ *             not used in the conversion.
+ * @param base Numeric base in the range [2, 36].
+ * @return The converted size_t value. Returns 0 on invalid base or if
+ *         a negative sign is encountered.
+ *
+ * @note On invalid base or a negative sign, an error is printed to stderr,
+ *       *end (if non-NULL) is set to @p s, and 0 is returned.
+ */
 size_t asm_str2size_t(char *s, char **end, size_t base)
 {
     if (base < 2 || base > 36) {
@@ -610,6 +867,15 @@ size_t asm_str2size_t(char *s, char **end, size_t base)
     return n;
 }
 
+/**
+ * @brief Remove all ASCII whitespace characters from a string in-place.
+ *
+ * Scans @p s and deletes all characters for which asm_isspace() is true,
+ * compacting the string and preserving the original order of non-whitespace
+ * characters.
+ *
+ * @param s String to modify in-place. Must be null-terminated.
+ */
 void asm_strip_whitespace(char *s)
 {
     size_t len = asm_length(s);
@@ -627,15 +893,18 @@ void asm_strip_whitespace(char *s)
 /**
  * @brief Compare up to N characters for equality (boolean result).
  *
- * Returns 1 if the first N characters of s1 and s2 are all equal; otherwise
- * returns 0. Unlike the standard C strncmp, which returns 0 on equality and
- * a non-zero value on inequality/order, this function returns a boolean-like
- * result (1 == equal, 0 == different).
+ * Returns 1 if the first @p N characters of @p s1 and @p s2 are all equal;
+ * otherwise returns 0. Unlike the standard C strncmp, which returns 0 on
+ * equality and a non-zero value on inequality/order, this function returns
+ * a boolean-like result (1 == equal, 0 == different).
  *
- * @param s1 First string (may be shorter than N).
- * @param s2 Second string (may be shorter than N).
+ * @param s1 First string (may be shorter than @p N).
+ * @param s2 Second string (may be shorter than @p N).
  * @param N  Number of characters to compare.
- * @return 1 if equal for the first N characters, 0 otherwise.
+ * @return 1 if equal for the first @p N characters, 0 otherwise.
+ *
+ * @note If either string ends before @p N characters and the other does
+ *       not, the strings are considered different.
  */
 int asm_strncmp(const char *s1, const char *s2, const int N)
 {
@@ -652,6 +921,11 @@ int asm_strncmp(const char *s1, const char *s2, const int N)
     return 1;
 }
 
+/**
+ * @brief Convert all ASCII letters in a string to lowercase in-place.
+ *
+ * @param s String to modify in-place. Must be null-terminated.
+ */
 void asm_tolower(char *s)
 {
     size_t len = asm_length(s);
@@ -662,6 +936,11 @@ void asm_tolower(char *s)
     }
 }
 
+/**
+ * @brief Convert all ASCII letters in a string to uppercase in-place.
+ *
+ * @param s String to modify in-place. Must be null-terminated.
+ */
 void asm_toupper(char *s)
 {
     size_t len = asm_length(s);
