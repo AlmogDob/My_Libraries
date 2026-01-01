@@ -3,18 +3,15 @@
 
 int main(void)
 {
-    char str1[] = "10110110110110110110.101";
-    char *str = str1;
-    char *temp;
+    char str1[] = "1012";
+    char str[ASM_MAX_LEN];
 
-    asm_dprintINT(asm_str2int(str, &temp, 10));
-    asm_dprintSTRING(temp);
-    asm_dprintSIZE_T(asm_str2size_t(str, &temp, 10));
-    asm_dprintSTRING(temp);
-    asm_dprintFLOAT(asm_str2float(str, &temp, 10));
-    asm_dprintSTRING(temp);
-    asm_dprintDOUBLE(asm_str2double(str, &temp, 10));
-    asm_dprintSTRING(temp);
+    asm_dprintSTRING(str);
+    asm_dprintSTRING(str1);
+    asm_strncat(str, str1, ASM_MAX_LEN);
+    asm_dprintSTRING(str);
+
+
 
     return 0;
 }

@@ -57,7 +57,9 @@
  * case, the contents of the destination buffer are not guaranteed to be
  * null-terminated.
  */
+#ifndef ASM_MAX_LEN
 #define ASM_MAX_LEN (int)1e3
+#endif
 
 /**
  * @def asm_dprintSTRING(expr)
@@ -157,6 +159,8 @@ bool    asm_isxdigit(char c);
 bool    asm_isXdigit(char c);
 void    asm_left_pad(char *s, size_t padding);
 size_t  asm_length(char *str);
+void *  asm_memset(void *des, unsigned char value, size_t n);
+void    asm_print_many_times(char *str, size_t n);
 void    asm_remove_char_form_string(char *s, size_t index);
 int     asm_str_in_str(char *src, char *word_to_search);
 double  asm_str2double(char *s, char **end, size_t base);
@@ -164,6 +168,8 @@ float   asm_str2float(char *s, char **end, size_t base);
 int     asm_str2int(char *s, char **end, size_t base);
 size_t  asm_str2size_t(char *s, char **end, size_t base);
 void    asm_strip_whitespace(char *s);
+bool    asm_str_is_whitespace(char *s);
+int     asm_strncat(char *s1, char *s2, const int N);
 int     asm_strncmp(const char *s1, const char *s2, const int N);
 void    asm_tolower(char *s);
 void    asm_toupper(char *s);
@@ -320,14 +326,14 @@ int asm_get_next_word_from_line(char *dst, char *src, char delimiter)
     int i = 0, j = 0;
     char c;
 
-    while (asm_isspace((c = src[i]))) {
-        i++;
-    }
-
     while ((c = src[i]) != delimiter && c != '\n'&& c != '\0') {
         dst[j] = src[i];
         i++;
         j++;
+    }
+
+    if (src[i] == delimiter && asm_str_is_whitespace(dst)) {
+        return i;
     }
 
     if ((c == delimiter || c == '\n'|| c == '\0') && i == 0) {
@@ -373,6 +379,8 @@ int asm_get_next_word_from_line(char *dst, char *src, char delimiter)
  */
 int asm_get_word_and_cut(char *dst, char *src, char delimiter, bool leave_delimiter)
 {
+    asm_memset(dst, 0, asm_length(dst));
+
     int last_pos;
 
     if (src[0] == '\0') {
@@ -385,8 +393,9 @@ int asm_get_word_and_cut(char *dst, char *src, char delimiter, bool leave_delimi
     if (leave_delimiter) {
         asm_copy_array_by_indexes(src, last_pos, asm_length(src), src);
     } else {
-        asm_copy_array_by_indexes(src, last_pos + 1, asm_length(src), src);
+        asm_copy_array_by_indexes(src, last_pos+1, asm_length(src), src);
     }
+
     return 1;
 }
 
@@ -608,6 +617,42 @@ size_t asm_length(char *str)
         }
     }
     return --i;
+}
+
+/**
+ * @brief Set a block of memory to a repeated byte value.
+ *
+ * Writes @p value into each of the first @p n bytes of the memory region
+ * pointed to by @p des. This function mirrors the behavior of the standard
+ * C memset(), but implements it using a simple byte-wise loop.
+ *
+ * @param des   Destination memory block to modify. Must point to a valid
+ *              buffer of at least @p n bytes.
+ * @param value Unsigned byte value to store repeatedly.
+ * @param n     Number of bytes to set.
+ *
+ * @return The original pointer @p des.
+ *
+ * @note This implementation performs no optimizations (such as word-sized
+ *       writes); the memory block is filled one byte at a time.
+ * @note Behavior is undefined if @p des overlaps with invalid or
+ *       non-writable memory.
+ */
+void * asm_memset(void *des, unsigned char value, size_t n)
+{
+    unsigned char *ptr = (unsigned char *)des;
+    while (n-- > 0) {
+        *ptr++ = value;
+    }
+    return des;
+}
+
+void asm_print_many_times(char *str, size_t n)
+{
+    for (size_t i = 0; i < n; i++) {
+        printf("%s", str);
+    }
+    printf("\n");
 }
 
 /**
@@ -888,6 +933,39 @@ void asm_strip_whitespace(char *s)
         }
     } 
     s[i] = '\0';
+}
+
+bool asm_str_is_whitespace(char *s)
+{
+    for (size_t i = 0; i < asm_length(s); i++) {
+        if (!asm_isspace(s[i])) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+int asm_strncat(char *s1, char *s2, const int N)
+{
+    size_t len_s1 = asm_length(s1);
+
+    int limit = N;
+    if (limit == 0) {
+        limit = ASM_MAX_LEN;
+    }
+
+    int i = 0;
+    while (i < limit && s2[i] != '\0') {
+        if (len_s1+i > ASM_MAX_LEN) {
+            fprintf(stderr, "%s:%d:\n%s:\n[Error] s2 or the first N=%d digit of s2 does not fit into s1.\n\n", __FILE__, __LINE__, __func__, N);
+            return i;
+        }
+
+        s1[len_s1+i] = s2[i];
+        i++;
+    }
+    return i;
 }
 
 /**
