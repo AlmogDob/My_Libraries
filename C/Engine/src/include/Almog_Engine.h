@@ -52,7 +52,7 @@
 #include <string.h>
 
 #ifndef PI
-#define PI M_PI
+#define PI MAT2D_PI
 #endif
 
 #ifndef STL_HEADER_SIZE
@@ -497,7 +497,7 @@ void ae_camera_reset_pos(Scene *scene)
  */
 void ae_point_to_mat2D(Point p, Mat2D m)
 {
-    MATRIX2D_ASSERT((3 == m.rows && 1 == m.cols) || (1 == m.rows && 3 == m.cols));
+    AE_ASSERT((3 == m.rows && 1 == m.cols) || (1 == m.rows && 3 == m.cols));
     
     if (3 == m.rows) {
         MAT2D_AT(m, 0, 0) = p.x;

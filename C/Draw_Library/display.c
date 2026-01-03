@@ -28,11 +28,7 @@
 #define dprintSIZE_T(expr) printf(#expr " = %zu\n", expr)
 
 #ifndef PI
-    #ifndef __USE_MISC
-    #define __USE_MISC
-    #endif
-    #include <math.h>
-    #define PI M_PI
+    #define PI MAT2D_PI
 #endif
 
 typedef struct {

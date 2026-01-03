@@ -43,6 +43,10 @@
 #include "./Matrix2D.h"
 #include "./Almog_Dynamic_Array.h"
 
+#ifndef ADL_PI
+    #define ADL_PI MAT2D_PI
+#endif
+
 /**
  * @def ADL_ASSERT
  * @brief Assertion macro used by this header (defaults to assert).
@@ -1516,7 +1520,7 @@ void adl_tri_fill_Pinedas_rasterizer(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer
         // adl_tri_draw(screen_mat, tri, tri.colors[0], offset_zoom_param);
         return;
     }
-    MATRIX2D_ASSERT(fabsf(w) > 1e-6 && "triangle must have area");
+    ADA_ASSERT(fabsf(w) > 1e-6 && "triangle must have area");
 
     /* fill conventions */
     int bias0 = is_top_left(p0, p1) ? 0 : -1;
@@ -1583,7 +1587,7 @@ void adl_tri_fill_Pinedas_rasterizer_interpolate_color(Mat2D_uint32 screen_mat, 
         // adl_tri_draw(screen_mat, tri, tri.colors[0], offset_zoom_param);
         return;
     }
-    MATRIX2D_ASSERT(w != 0 && "triangle has area");
+    ADA_ASSERT(w != 0 && "triangle has area");
 
     /* fill conventions */
     int bias0 = is_top_left(p0, p1) ? 0 : -1;
@@ -1674,7 +1678,7 @@ void adl_tri_fill_Pinedas_rasterizer_interpolate_normal(Mat2D_uint32 screen_mat,
         // adl_tri_draw(screen_mat, tri, tri.colors[0], offset_zoom_param);
         return;
     }
-    MATRIX2D_ASSERT(w != 0 && "triangle has area");
+    ADA_ASSERT(w != 0 && "triangle has area");
 
     /* fill conventions */
     int bias0 = is_top_left(p0, p1) ? 0 : -1;
@@ -2015,7 +2019,7 @@ void adl_linear_sRGB_to_okLch(uint32_t hex_ARGB, float *L, float *c, float *h_de
     adl_linear_sRGB_to_okLab(hex_ARGB, L, &a, &b);
 
     *c = sqrtf(a * a + b * b);
-    *h_deg = atan2f(b, a) * 180 / PI;
+    *h_deg = atan2f(b, a) * 180 / ADL_PI;
 }
 
 /**
@@ -2031,8 +2035,8 @@ void adl_linear_sRGB_to_okLch(uint32_t hex_ARGB, float *L, float *c, float *h_de
 void adl_okLch_to_linear_sRGB(float L, float c, float h_deg, uint32_t *hex_ARGB)
 {
     h_deg = fmodf((h_deg + 360), 360);
-    float a = c * cosf(h_deg * PI / 180);
-    float b = c * sinf(h_deg * PI / 180);
+    float a = c * cosf(h_deg * ADL_PI / 180);
+    float b = c * sinf(h_deg * ADL_PI / 180);
     adl_okLab_to_linear_sRGB(L, a, b, hex_ARGB);
 }
 

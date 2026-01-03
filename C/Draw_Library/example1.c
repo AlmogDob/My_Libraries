@@ -3,9 +3,9 @@
 #define RENDER
 #define ALMOG_DRAW_LIBRARY_IMPLEMENTATION
 #include "./Almog_Draw_Library.h"
-#include "./display.c"
 #define MATRIX2D_IMPLEMENTATION
 #include "./Matrix2D.h"
+#include "./display.c"
 
 
 Figure figure1;

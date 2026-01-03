@@ -773,7 +773,7 @@ void as_point_normalize_xyz(Point *p)
 
 void as_point_to_mat2D(Point p, Mat2D m)
 {
-    MATRIX2D_ASSERT((3 == m.rows && 1 == m.cols) || (1 == m.rows && 3 == m.cols));
+    AS_ASSERT((3 == m.rows && 1 == m.cols) || (1 == m.rows && 3 == m.cols));
     
     if (3 == m.rows) {
         MAT2D_AT(m, 0, 0) = p.x;

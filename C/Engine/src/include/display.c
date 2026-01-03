@@ -27,14 +27,6 @@
 #define dprintD(expr) printf(#expr " = %g\n", expr)
 #define dprintSIZE_T(expr) printf(#expr " = %zu\n", expr)
 
-#ifndef PI
-    #ifndef __USE_MISC
-    #define __USE_MISC
-    #endif
-    #include <math.h>
-    #define PI M_PI
-#endif
-
 typedef struct {
     int game_is_running;
     float delta_time;
