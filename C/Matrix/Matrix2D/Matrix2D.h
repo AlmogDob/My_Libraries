@@ -1424,8 +1424,6 @@ void mat2D_invert(Mat2D des, Mat2D src)
 
     MAT2D_PRINT(m);
 
-    mat2D_reduce(m);
-
     mat2D_copy_src_window_to_des(des, m, 0, src.cols, des.rows-1, 2 * des.cols-1);
 
     mat2D_free(m);
