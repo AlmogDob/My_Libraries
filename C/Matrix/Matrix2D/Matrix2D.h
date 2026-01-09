@@ -239,6 +239,8 @@ typedef struct {
  */
 #define mat2D_normalize(m) mat2D_mult((m), 1.0 / mat2D_calc_norma((m)))
 
+#define mat2D_normalize_inf(m) mat2D_mult((m), 1.0 / mat2D_calc_norma_inf((m)))
+
 #define mat2D_dprintDOUBLE(expr) printf(#expr " = %#g\n", expr)
 
 #define mat2D_dprintSIZE_T(expr) printf(#expr " = %zu\n", expr)
@@ -293,6 +295,7 @@ void            mat2D_add_row_to_row(Mat2D des, size_t des_row, Mat2D src, size_
 void            mat2D_sub_row_to_row(Mat2D des, size_t des_row, Mat2D src, size_t src_row);
 
 double          mat2D_calc_norma(Mat2D m);
+double          mat2D_calc_norma_inf(Mat2D m);
 
 bool            mat2D_mat_is_all_digit(Mat2D m, double digit);
 bool            mat2D_row_is_all_digit(Mat2D m, double digit, size_t r);
@@ -1059,6 +1062,21 @@ double mat2D_calc_norma(Mat2D m)
         }
     }
     return sqrt(sum);
+}
+
+double mat2D_calc_norma_inf(Mat2D m)
+{
+    double max = 0;
+    for (size_t i = 0; i < m.rows; ++i) {
+        for (size_t j = 0; j < m.cols; ++j) {
+            double current = fabs(MAT2D_AT(m, i, j));
+            if (current > max) {
+                max = current;
+            }
+        }
+    }
+
+    return max;
 }
 
 /**
