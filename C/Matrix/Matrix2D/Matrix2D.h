@@ -239,6 +239,10 @@ typedef struct {
  */
 #define mat2D_normalize(m) mat2D_mult((m), 1.0 / mat2D_calc_norma((m)))
 
+#define mat2D_dprintDOUBLE(expr) printf(#expr " = %#g\n", expr)
+
+#define mat2D_dprintSIZE_T(expr) printf(#expr " = %zu\n", expr)
+
 double          mat2D_rand_double(void);
 
 Mat2D           mat2D_alloc(size_t rows, size_t cols);
@@ -270,14 +274,14 @@ void            mat2D_print(Mat2D m, const char *name, size_t padding);
 void            mat2D_print_as_col(Mat2D m, const char *name, size_t padding);
 
 void            mat2D_set_identity(Mat2D m);
-double          mat2D_make_identity(Mat2D m);
 void            mat2D_set_rot_mat_x(Mat2D m, float angle_deg);
 void            mat2D_set_rot_mat_y(Mat2D m, float angle_deg);
 void            mat2D_set_rot_mat_z(Mat2D m, float angle_deg);
 void            mat2D_set_DCM_zyx(Mat2D DCM, float yaw_deg, float pitch_deg, float roll_deg);
 
 void            mat2D_copy(Mat2D des, Mat2D src);
-void            mat2D_copy_mat_to_mat_at_window(Mat2D des, Mat2D src, size_t is, size_t js, size_t ie, size_t je);
+void            mat2D_copy_src_window_to_des(Mat2D des, Mat2D src, size_t is, size_t js, size_t ie, size_t je);
+void            mat2D_copy_src_to_des_window(Mat2D des, Mat2D src, size_t is, size_t js, size_t ie, size_t je);
 
 void            mat2D_get_col(Mat2D des, size_t des_col, Mat2D src, size_t src_col);
 void            mat2D_add_col_to_col(Mat2D des, size_t des_col, Mat2D src, size_t src_col);
@@ -296,6 +300,8 @@ bool            mat2D_col_is_all_digit(Mat2D m, double digit, size_t c);
 
 double          mat2D_det_2x2_mat(Mat2D m);
 double          mat2D_upper_triangulate(Mat2D m);
+bool            mat2D_find_first_non_zero_value(Mat2D m, size_t r, size_t *non_zero_col);
+size_t          mat2D_reduce(Mat2D m);
 double          mat2D_det(Mat2D m);
 void            mat2D_LUP_decomposition_with_swap(Mat2D src, Mat2D l, Mat2D p, Mat2D u);
 void            mat2D_transpose(Mat2D des, Mat2D src);
@@ -736,45 +742,6 @@ void mat2D_set_identity(Mat2D m)
 }
 
 /**
- * @brief Reduce a matrix to identity using Gauss-Jordan style elimination.
- *
- * @param m Matrix modified in-place.
- * @return A multiplicative factor that tracks the effect of row swaps and
- *         row scalings performed inside this routine (useful when relating the
- *         transformation to determinants).
- *
- * @details
- * Internally calls mat2D_upper_triangulate() and then performs backward
- * elimination and row scaling to reach identity (if the matrix is nonsingular
- * and pivots are usable).
- *
- * @warning No full pivoting is performed. Ill-conditioned matrices may produce
- *          poor results or floating-point exceptions.
- */
-double mat2D_make_identity(Mat2D m)
-{
-    /* make identity matrix using Gauss elimination */
-    /* preforming Gauss elimination: https://en.wikipedia.org/wiki/Gaussian_elimination */
-    /* returns the factor multiplying the determinant */
-
-    double factor_to_return = mat2D_upper_triangulate(m);
-    
-    double factor = 1 / MAT2D_AT(m, m.rows-1, m.cols-1);
-    mat2D_mult_row(m, m.rows-1, factor);
-    factor_to_return *= factor;
-    for (size_t c = m.cols-1; c > 0; c--) {
-        double factor = 1 / MAT2D_AT(m, c, c);
-        mat2D_mult_row(m, c, factor);
-        for (int r = c-1; r >= 0; r--) {
-            mat2D_sub_row_time_factor_to_row(m, r, c, MAT2D_AT(m, r, c));
-        }
-    }
-
-
-    return factor_to_return;
-}
-
-/**
  * @brief Set a 3x3 rotation matrix for rotation about the X-axis.
  * 
  * @param m 3x3 destination matrix.
@@ -906,15 +873,32 @@ void mat2D_copy(Mat2D des, Mat2D src)
  * @param je End column index in src (inclusive).
  * @pre 0 <= is <= ie < src.rows, 0 <= js <= je < src.cols.
  */
-void mat2D_copy_mat_to_mat_at_window(Mat2D des, Mat2D src, size_t is, size_t js, size_t ie, size_t je)
+void mat2D_copy_src_window_to_des(Mat2D des, Mat2D src, size_t is, size_t js, size_t ie, size_t je)
 {
     MAT2D_ASSERT(je >= js && ie >= is);
     MAT2D_ASSERT(je-js+1 == des.cols);
     MAT2D_ASSERT(ie-is+1 == des.rows);
+    MAT2D_ASSERT(je-js+1 <= src.cols);
+    MAT2D_ASSERT(ie-is+1 <= src.rows);
 
     for (size_t index = 0; index < des.rows; ++index) {
         for (size_t jndex = 0; jndex < des.cols; ++jndex) {
             MAT2D_AT(des, index, jndex) = MAT2D_AT(src, is+index, js+jndex);
+        }
+    }
+}
+
+void mat2D_copy_src_to_des_window(Mat2D des, Mat2D src, size_t is, size_t js, size_t ie, size_t je)
+{
+    MAT2D_ASSERT(je >= js && ie >= is);
+    MAT2D_ASSERT(je-js+1 == src.cols);
+    MAT2D_ASSERT(ie-is+1 == src.rows);
+    MAT2D_ASSERT(je-js+1 <= des.cols);
+    MAT2D_ASSERT(ie-is+1 <= des.rows);
+
+    for (size_t index = 0; index < src.rows; ++index) {
+        for (size_t jndex = 0; jndex < src.cols; ++jndex) {
+            MAT2D_AT(des, is+index, js+jndex) = MAT2D_AT(src, index, jndex);
         }
     }
 }
@@ -1161,9 +1145,6 @@ double mat2D_det_2x2_mat(Mat2D m)
  *   row_j = row_j - (m[j,i] / m[i,i]) * row_i
  * which do not change the determinant. Row swaps flip the determinant sign and
  * are tracked by the returned factor.
- *
- * @warning Pivoting is limited: a row swap is attempted only when the pivot is
- *          “near zero” per MAT2D_IS_ZERO(). No full pivoting is used.
  */
 double mat2D_upper_triangulate(Mat2D m)
 {
@@ -1172,31 +1153,89 @@ double mat2D_upper_triangulate(Mat2D m)
 
     double factor_to_return = 1;
 
-    size_t size = (size_t)fmin(m.rows, m.cols);
-    for (size_t i = 0; i < size; i++) {
-        if (MAT2D_IS_ZERO(MAT2D_AT(m, i, i))) {   /* swapping only if it is zero */
-            /* finding biggest first number (absolute value) */
-            size_t biggest_r = i;
-            for (size_t index = i; index < m.rows; index++) {
-                if (fabs(MAT2D_AT(m, index, i)) > fabs(MAT2D_AT(m, biggest_r, i))) {
-                    biggest_r = index;
-                }
-            }
-            if (i != biggest_r) {
-                mat2D_swap_rows(m, i, biggest_r);
-                factor_to_return *= -1;
+    size_t r = 0;
+    for (size_t c = 0; c < m.cols && r < m.rows; c++) {
+        /* finding biggest first number (absolute value); partial pivoting */
+        size_t piv = r;
+        double best = fabs(MAT2D_AT(m, r, c));
+        for (size_t i = r + 1; i < m.rows; i++) {
+            double v = fabs(MAT2D_AT(m, i, c));
+            if (v > best) {
+                best = v;
+                piv = i;
             }
         }
-        for (size_t j = i+1; j < m.rows; j++) {
-            double factor = 1 / MAT2D_AT(m, i, i);
-            if (!isfinite(factor)) {
-                printf("%s:%d:\n%s:\n[Error] unable to transfrom into uperr triangular matrix. Probably some of the rows are not independent.\n", __FILE__, __LINE__, __func__);
-            }
-            double mat_value = MAT2D_AT(m, j, i);
-            mat2D_sub_row_time_factor_to_row(m, j, i, mat_value * factor);
+        if (MAT2D_IS_ZERO(best)) {
+            continue; /* move to next column, same pivot row r */
         }
+        if (piv != r) {
+            mat2D_swap_rows(m, piv, r);
+            factor_to_return *= -1.0;
+        }
+
+        /* Eliminate entries below pivot in column c */
+        double pivot = MAT2D_AT(m, r, c);
+        MAT2D_ASSERT(!MAT2D_IS_ZERO(pivot));
+        for (size_t i = r + 1; i < m.rows; i++) {
+            double f = MAT2D_AT(m, i, c) / pivot;
+            mat2D_sub_row_time_factor_to_row(m, i, r, f);
+        }
+        r++;
     }
     return factor_to_return;
+}
+
+bool mat2D_find_first_non_zero_value(Mat2D m, size_t r, size_t *non_zero_col)
+{
+    for (size_t c = 0; c < m.cols; ++c) {
+        if (!MAT2D_IS_ZERO(MAT2D_AT(m, r, c))) {
+            *non_zero_col = c;
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
+ * @brief Reduce a matrix to identity using Gauss-Jordan style elimination.
+ *
+ * @param m Matrix modified in-place.
+ * @return A multiplicative factor that tracks the effect of row swaps and
+ *         row scalings performed inside this routine (useful when relating the
+ *         transformation to determinants).
+ *
+ * @details
+ * Internally calls mat2D_upper_triangulate() and then performs backward
+ * elimination and row scaling to reach identity (if the matrix is nonsingular
+ * and pivots are usable).
+ */
+size_t mat2D_reduce(Mat2D m)
+{
+    /* preforming Gauss–Jordan reduction to Reduced Row Echelon Form (RREF) */
+    /* Gauss elimination: https://en.wikipedia.org/wiki/Gaussian_elimination */
+
+    mat2D_upper_triangulate(m);
+
+    size_t rank = 0;
+
+    for (int r = m.rows-1; r >= 0; r--) {
+        size_t c = m.cols-1;
+        if (!mat2D_find_first_non_zero_value(m, r, &c)) {
+            continue; /* row of zeros */
+        }
+
+        double pivot = MAT2D_AT(m, r, c);
+        MAT2D_ASSERT(!MAT2D_IS_ZERO(pivot));
+        mat2D_mult_row(m, r, 1.0 / pivot);
+
+        for (int i = 0; i < r; i++) {
+            double factor = MAT2D_AT(m, i, c);
+            mat2D_sub_row_time_factor_to_row(m, i, r, factor);
+        }
+        rank++;
+    }
+
+    return rank;
 }
 
 /**
@@ -1352,60 +1391,24 @@ void mat2D_transpose(Mat2D des, Mat2D src)
  */
 void mat2D_invert(Mat2D des, Mat2D src)
 {
-    MAT2D_ASSERT(src.cols == src.rows && "should be an NxN matrix");
+    MAT2D_ASSERT(src.cols == src.rows && "Must be an NxN matrix");
     MAT2D_ASSERT(des.cols == src.cols && des.rows == des.cols);
 
-    Mat2D m = mat2D_alloc(src.rows, src.cols);
-    mat2D_copy(m, src);
+    Mat2D m = mat2D_alloc(src.rows, src.cols * 2);
+    mat2D_copy_src_to_des_window(m, src, 0, 0, src.rows-1, src.cols-1);
 
     mat2D_set_identity(des);
+    mat2D_copy_src_to_des_window(m, des, 0, src.cols, des.rows-1, 2 * des.cols-1);
+    
+    MAT2D_PRINT(m);
 
-    if (!(mat2D_det(m))) {
-        mat2D_fill(des, 0);
-        printf("%s:%d:\n%s:\n[Error] Can't invert the matrix. Determinant is zero! Set the inverse matrix to all zeros\n", __FILE__, __LINE__, __func__);
-        mat2D_free(m);
-        return;
-    }
+    mat2D_reduce(m);
 
-    size_t size = (size_t)fmin(m.rows, m.cols);
-    for (size_t i = 0; i < size; i++) {
-        if (MAT2D_IS_ZERO(MAT2D_AT(m, i, i))) {   /* swapping only if it is zero */
-            /* finding biggest first number (absolute value) */
-            size_t biggest_r = i;
-            for (size_t index = i; index < m.rows; index++) {
-                if (fabs(MAT2D_AT(m, index, i)) > fabs(MAT2D_AT(m, biggest_r, i))) {
-                    biggest_r = index;
-                }
-            }
-            if (i != biggest_r) {
-                mat2D_swap_rows(m, i, biggest_r);
-                mat2D_swap_rows(des, i, biggest_r);
-                printf("%s:%d:\n%s:\n[INFO] swapping row %zu with row %zu.\n", __FILE__, __LINE__, __func__, i, biggest_r);
-            } else {
-                MAT2D_ASSERT(0 && "can't inverse");
-            }
-        }
-        for (size_t j = i+1; j < size; j++) {
-            double factor = 1 / MAT2D_AT(m, i, i);
-            double mat_value = MAT2D_AT(m, j, i);
-            mat2D_sub_row_time_factor_to_row(m, j, i, mat_value * factor);
+    MAT2D_PRINT(m);
 
-            mat2D_sub_row_time_factor_to_row(des, j, i, mat_value * factor);
-        }
-    }
-    double factor = 1 / MAT2D_AT(m, m.rows-1, m.cols-1);
-    mat2D_mult_row(m, m.rows-1, factor);
-    mat2D_mult_row(des, des.rows-1, factor);
-    for (size_t c = m.cols-1; c > 0; c--) {
-        double factor = 1 / MAT2D_AT(m, c, c);
-        mat2D_mult_row(m, c, factor);
-        mat2D_mult_row(des, c, factor);
-        for (int r = c-1; r >= 0; r--) {
-            double mat_value = MAT2D_AT(m, r, c);
-            mat2D_sub_row_time_factor_to_row(m, r, c, mat_value);
-            mat2D_sub_row_time_factor_to_row(des, r, c, mat_value);
-        }
-    }
+    mat2D_reduce(m);
+
+    mat2D_copy_src_window_to_des(des, m, 0, src.cols, des.rows-1, 2 * des.cols-1);
 
     mat2D_free(m);
 }
