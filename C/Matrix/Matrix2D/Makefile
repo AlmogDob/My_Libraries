@@ -58,3 +58,25 @@ docs: doxygen.txt
 	cd docs/latex; make;
 	cp docs/latex/refman.pdf .
 	rm -r docs
+
+#############################################################
+# Matrix2D tests
+
+TEST_BIN = ./test_matrix2d
+TEST_SRC = ./test_matrix2d.c
+
+test_matrix2d: build_test_matrix2d run_test_matrix2d clean_test_matrix2d
+	@echo ./test_matrix2d done
+
+build_test_matrix2d: $(TEST_SRC) ./Matrix2D.h
+	@echo [INFO] building Matrix2D tests
+	@gcc -I. $(TEST_SRC) $(CFLAGS) -ggdb -o $(TEST_BIN)
+
+run_test_matrix2d:
+	@echo
+	@$(TEST_BIN)
+	@echo
+
+clean_test_matrix2d:
+	@echo [INFO] removing Matrix2D test binary
+	@rm -f $(TEST_BIN)
