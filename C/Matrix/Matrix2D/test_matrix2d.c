@@ -6,6 +6,61 @@
  */
 #define MATRIX2D_IMPLEMENTATION
 #include "Matrix2D.h"
+#include <unistd.h> /* dup/dup2/close for silencing stdout in print-smoke tests */
+
+/* -------------------------------------------------------------------------- */
+/* Deterministic fuzz helpers (no libc rand(); stable across platforms)        */
+/* -------------------------------------------------------------------------- */
+
+static uint64_t xorshift64star(uint64_t *state)
+{
+    /* Marsaglia xorshift* variant */
+    uint64_t x = *state;
+    x ^= x >> 12;
+    x ^= x << 25;
+    x ^= x >> 27;
+    *state = x;
+    return x * 2685821657736338717ULL;
+}
+
+static double rng_unit01(uint64_t *state)
+{
+    /* Convert top 53 bits to a double in [0, 1). */
+    uint64_t x = xorshift64star(state);
+    uint64_t top53 = x >> 11;
+    return (double)top53 * (1.0 / 9007199254740992.0); /* 2^53 */
+}
+
+static double rng_range(uint64_t *state, double low, double high)
+{
+    return low + (high - low) * rng_unit01(state);
+}
+
+static int close_rel_abs(double a, double b, double abs_eps, double rel_eps)
+{
+    double diff = fabs(a - b);
+    if (diff <= abs_eps) return 1;
+    return diff <= rel_eps * fmax(fabs(a), fabs(b));
+}
+
+static void fill_strictly_diag_dominant(Mat2D a, uint64_t *rng)
+{
+    /* Strict diagonal dominance => nonsingular (and usually stable to invert). */
+    MAT2D_ASSERT(a.rows == a.cols);
+    double mag = 2.0;
+
+    for (size_t i = 0; i < a.rows; i++) {
+        double row_sum = 0.0;
+        for (size_t j = 0; j < a.cols; j++) {
+            if (i == j) continue;
+            double v = rng_range(rng, -mag, mag);
+            MAT2D_AT(a, i, j) = v;
+            row_sum += fabs(v);
+        }
+        MAT2D_AT(a, i, i) = row_sum + 1.0;
+    }
+}
+
 
 static double det_by_minors_first_col(Mat2D a);
 
@@ -594,7 +649,7 @@ static void test_det_2x2_and_upper_triangulate_sign(void)
     // upper triangulation should have exactly one row swap => factor = -1
     Mat2D tmp = mat2D_alloc(2, 2);
     mat2D_copy(tmp, a);
-    double f = mat2D_upper_triangulate(tmp);
+    double f = mat2D_upper_triangulate(tmp, MAT2D_ROW_SWAPPING);
     MAT2D_ASSERT(nearly_equal(f, -1.0, 0.0));
 
     mat2D_free(a);
@@ -826,6 +881,285 @@ static void test_rand_range(void)
     mat2D_free(a);
 }
 
+static void test_copy_row_and_col_helpers(void)
+{
+    Mat2D src = mat2D_alloc(3, 3);
+    Mat2D des = mat2D_alloc(3, 3);
+
+    /*
+     * src =
+     * [1 2 3
+     *  4 5 6
+     *  7 8 9]
+     */
+    mat2D_fill_sequence(src, 1.0, 1.0);
+    mat2D_fill(des, 0.0);
+
+    /* copy row 1 => des[1,:] = src[1,:] */
+    mat2D_copy_row_from_src_to_des(des, 1, src, 1);
+    MAT2D_ASSERT(nearly_equal(MAT2D_AT(des, 1, 0), 4.0, 0.0));
+    MAT2D_ASSERT(nearly_equal(MAT2D_AT(des, 1, 1), 5.0, 0.0));
+    MAT2D_ASSERT(nearly_equal(MAT2D_AT(des, 1, 2), 6.0, 0.0));
+
+    /* copy col 2 => des[:,2] = src[:,2] */
+    mat2D_copy_col_from_src_to_des(des, 2, src, 2);
+    MAT2D_ASSERT(nearly_equal(MAT2D_AT(des, 0, 2), 3.0, 0.0));
+    MAT2D_ASSERT(nearly_equal(MAT2D_AT(des, 1, 2), 6.0, 0.0));
+    MAT2D_ASSERT(nearly_equal(MAT2D_AT(des, 2, 2), 9.0, 0.0));
+
+    mat2D_free(src);
+    mat2D_free(des);
+}
+
+static void test_dot_product_and_vector_variants(void)
+{
+    const double eps = 1e-12;
+
+    /* Column vectors */
+    Mat2D a = mat2D_alloc(3, 1);
+    Mat2D b = mat2D_alloc(3, 1);
+    MAT2D_AT(a, 0, 0) = 1.0;
+    MAT2D_AT(a, 1, 0) = 2.0;
+    MAT2D_AT(a, 2, 0) = 3.0;
+    MAT2D_AT(b, 0, 0) = 4.0;
+    MAT2D_AT(b, 1, 0) = 5.0;
+    MAT2D_AT(b, 2, 0) = 6.0;
+
+    MAT2D_ASSERT(nearly_equal(mat2D_dot_product(a, b), 32.0, eps));
+    MAT2D_ASSERT(nearly_equal(mat2D_inner_product(a), 14.0, eps));
+
+    /* Row vectors (exercise the other branch in dot_product/inner_product) */
+    Mat2D ar = mat2D_alloc(1, 3);
+    Mat2D br = mat2D_alloc(1, 3);
+    MAT2D_AT(ar, 0, 0) = 1.0;
+    MAT2D_AT(ar, 0, 1) = 2.0;
+    MAT2D_AT(ar, 0, 2) = 3.0;
+    MAT2D_AT(br, 0, 0) = 4.0;
+    MAT2D_AT(br, 0, 1) = 5.0;
+    MAT2D_AT(br, 0, 2) = 6.0;
+
+    MAT2D_ASSERT(nearly_equal(mat2D_dot_product(ar, br), 32.0, eps));
+    MAT2D_ASSERT(nearly_equal(mat2D_inner_product(ar), 14.0, eps));
+
+    /* Normalize-by-inf macro (smoke) */
+    MAT2D_ASSERT(nearly_equal(mat2D_calc_norma_inf(ar), 3.0, eps));
+    mat2D_normalize_inf(ar);
+    MAT2D_ASSERT(nearly_equal(mat2D_calc_norma_inf(ar), 1.0, 1e-12));
+
+    mat2D_free(a);
+    mat2D_free(b);
+    mat2D_free(ar);
+    mat2D_free(br);
+}
+
+static void test_outer_product_row_vector_path(void)
+{
+    const double eps = 1e-12;
+
+    Mat2D v = mat2D_alloc(1, 3);   /* row-vector form */
+    Mat2D out = mat2D_alloc(3, 3);
+
+    MAT2D_AT(v, 0, 0) = 1.0;
+    MAT2D_AT(v, 0, 1) = 2.0;
+    MAT2D_AT(v, 0, 2) = 3.0;
+
+    mat2D_outer_product(out, v);
+
+    /* out[i,j] = v[i]*v[j] (with row-vector indexing) */
+    MAT2D_ASSERT(nearly_equal(MAT2D_AT(out, 0, 0), 1.0, eps));
+    MAT2D_ASSERT(nearly_equal(MAT2D_AT(out, 0, 1), 2.0, eps));
+    MAT2D_ASSERT(nearly_equal(MAT2D_AT(out, 0, 2), 3.0, eps));
+    MAT2D_ASSERT(nearly_equal(MAT2D_AT(out, 1, 0), 2.0, eps));
+    MAT2D_ASSERT(nearly_equal(MAT2D_AT(out, 1, 1), 4.0, eps));
+    MAT2D_ASSERT(nearly_equal(MAT2D_AT(out, 1, 2), 6.0, eps));
+    MAT2D_ASSERT(nearly_equal(MAT2D_AT(out, 2, 2), 9.0, eps));
+
+    mat2D_free(v);
+    mat2D_free(out);
+}
+
+static void test_det_early_zero_row_and_zero_col_paths(void)
+{
+    /* Exercise mat2D_det() early return when it finds an all-zero row/col */
+
+    Mat2D zr = mat2D_alloc(2, 2);
+    /* row0 all zeros => det 0 */
+    MAT2D_AT(zr, 0, 0) = 0.0;
+    MAT2D_AT(zr, 0, 1) = 0.0;
+    MAT2D_AT(zr, 1, 0) = 1.0;
+    MAT2D_AT(zr, 1, 1) = 2.0;
+    MAT2D_ASSERT(mat2D_row_is_all_digit(zr, 0.0, 0));
+    MAT2D_ASSERT(nearly_equal(mat2D_det(zr), 0.0, 0.0));
+
+    Mat2D zc = mat2D_alloc(2, 2);
+    /* col0 all zeros but no all-zero row => det 0 */
+    MAT2D_AT(zc, 0, 0) = 0.0;
+    MAT2D_AT(zc, 0, 1) = 1.0;
+    MAT2D_AT(zc, 1, 0) = 0.0;
+    MAT2D_AT(zc, 1, 1) = 2.0;
+    MAT2D_ASSERT(mat2D_col_is_all_digit(zc, 0.0, 0));
+    MAT2D_ASSERT(nearly_equal(mat2D_det(zc), 0.0, 0.0));
+
+    mat2D_free(zr);
+    mat2D_free(zc);
+}
+
+static void test_mat_is_all_digit(void)
+{
+    Mat2D m = mat2D_alloc(2, 3);
+    mat2D_fill(m, 7.0);
+    MAT2D_ASSERT(mat2D_mat_is_all_digit(m, 7.0));
+    MAT2D_ASSERT(!mat2D_mat_is_all_digit(m, 8.0));
+    MAT2D_AT(m, 1, 2) = 8.0;
+    MAT2D_ASSERT(!mat2D_mat_is_all_digit(m, 7.0));
+    mat2D_free(m);
+}
+
+static void test_power_iterate_and_eig_helpers(void)
+{
+    /*
+     * Use a diagonal matrix with distinct positive eigenvalues:
+     * A = diag(5,3,1)
+     * Power iteration should find lambda=5 with eigenvector ~ e1.
+     * eig_power_iteration should recover (5,3,1) and eig_check residual small.
+     */
+    const double eps = 1e-7;
+
+    Mat2D A = mat2D_alloc(3, 3);
+    mat2D_fill(A, 0.0);
+    MAT2D_AT(A, 0, 0) = 5.0;
+    MAT2D_AT(A, 1, 1) = 3.0;
+    MAT2D_AT(A, 2, 2) = 1.0;
+
+    /* mat2D_power_iterate */
+    Mat2D v = mat2D_alloc(3, 1);
+    MAT2D_AT(v, 0, 0) = 1.0;
+    MAT2D_AT(v, 1, 0) = 1.0;
+    MAT2D_AT(v, 2, 0) = 1.0;
+    double lambda = 0.0;
+    int rc = mat2D_power_iterate(A, v, &lambda, 0.0, true);
+    MAT2D_ASSERT(rc == 0);
+    MAT2D_ASSERT(close_rel_abs(lambda, 5.0, 1e-6, 1e-6));
+    /* dominant component should be index 0 */
+    MAT2D_ASSERT(fabs(MAT2D_AT(v, 0, 0)) > fabs(MAT2D_AT(v, 1, 0)));
+    MAT2D_ASSERT(fabs(MAT2D_AT(v, 0, 0)) > fabs(MAT2D_AT(v, 2, 0)));
+
+    /* mat2D_eig_power_iteration + mat2D_eig_check */
+    Mat2D evals = mat2D_alloc(3, 3);
+    Mat2D evecs = mat2D_alloc(3, 3);
+    Mat2D res = mat2D_alloc(3, 3);
+
+    /* init vector must be non-zero */
+    Mat2D init = mat2D_alloc(3, 1);
+    MAT2D_AT(init, 0, 0) = 1.0;
+    MAT2D_AT(init, 1, 0) = 1.0;
+    MAT2D_AT(init, 2, 0) = 1.0;
+
+    mat2D_eig_power_iteration(A, evals, evecs, init, true);
+    MAT2D_ASSERT(close_rel_abs(MAT2D_AT(evals, 0, 0), 5.0, 1e-5, 1e-5));
+    MAT2D_ASSERT(close_rel_abs(MAT2D_AT(evals, 1, 1), 3.0, 1e-5, 1e-5));
+    MAT2D_ASSERT(close_rel_abs(MAT2D_AT(evals, 2, 2), 1.0, 1e-5, 1e-5));
+
+    mat2D_eig_check(A, evals, evecs, res);
+    MAT2D_ASSERT(mat2D_calc_norma_inf(res) < eps);
+
+    mat2D_free(A);
+    mat2D_free(v);
+    mat2D_free(evals);
+    mat2D_free(evecs);
+    mat2D_free(res);
+    mat2D_free(init);
+}
+
+static void test_deterministic_fuzz_loop(void)
+{
+    /*
+     * Deterministic fuzz:
+     *  - generate many random (but well-conditioned) square matrices
+     *  - reject near-singular ones (fabs(det) too small / non-finite)
+     *  - assert invariants:
+     *      inv(A) exists and A*inv(A)~I and inv(A)*A~I
+     *      det(A^T)~det(A)
+     *      det(A)*det(inv(A))~1
+     *      rank(A)==N (via mat2D_reduce)
+     */
+
+    const size_t iters = 500;
+    const double inv_eps = 1e-7;
+    const double det_min = 1e-8;
+    const double det_abs_eps = 1e-6;
+    const double det_rel_eps = 1e-6;
+
+    uint64_t rng = 0x9e3779b97f4a7c15ULL; /* fixed seed */
+    size_t tested = 0;
+    size_t skipped = 0;
+
+    for (size_t t = 0; t < iters; t++) {
+        size_t n = 2 + (size_t)(xorshift64star(&rng) % 49); /* 2..50 */
+
+        Mat2D a = mat2D_alloc(n, n);
+        Mat2D inv = mat2D_alloc(n, n);
+        Mat2D prod1 = mat2D_alloc(n, n);
+        Mat2D prod2 = mat2D_alloc(n, n);
+        Mat2D at = mat2D_alloc(n, n);
+        Mat2D tmp = mat2D_alloc(n, n);
+
+        fill_strictly_diag_dominant(a, &rng);
+
+        double det_a = mat2D_det(a);
+        if (!isfinite(det_a) || fabs(det_a) < det_min) {
+            skipped++;
+            mat2D_free(a);
+            mat2D_free(inv);
+            mat2D_free(prod1);
+            mat2D_free(prod2);
+            mat2D_free(at);
+            mat2D_free(tmp);
+            continue;
+        }
+
+        /* Inversion invariants */
+        mat2D_invert(inv, a);
+        mat2D_dot(prod1, a, inv);
+        assert_identity_close(prod1, inv_eps);
+        mat2D_dot(prod2, inv, a);
+        assert_identity_close(prod2, inv_eps);
+
+        /* det(A^T) == det(A) */
+        mat2D_transpose(at, a);
+        double det_at = mat2D_det(at);
+        MAT2D_ASSERT(
+            close_rel_abs(det_at, det_a, det_abs_eps, det_rel_eps));
+
+        /* det(A) * det(inv(A)) == 1 */
+        double det_inv = mat2D_det(inv);
+        MAT2D_ASSERT(isfinite(det_inv));
+        MAT2D_ASSERT(close_rel_abs(
+            det_a * det_inv,
+            1.0,
+            1e-5,   /* a bit looser: det() is numerically touchy */
+            1e-5));
+
+        /* rank(A) == N */
+        mat2D_copy(tmp, a);
+        size_t r = mat2D_reduce(tmp);
+        MAT2D_ASSERT(r == n);
+
+        tested++;
+
+        mat2D_free(a);
+        mat2D_free(inv);
+        mat2D_free(prod1);
+        mat2D_free(prod2);
+        mat2D_free(at);
+        mat2D_free(tmp);
+    }
+
+    /* Make sure the loop actually exercised enough cases. */
+    MAT2D_ASSERT(tested >= iters / 2);
+    printf("[INFO] fuzz summary: tested=%zu skipped=%zu\n", tested, skipped);
+}
+
 int main(void)
 {
     #define RUN_TEST(fn)         \
@@ -858,6 +1192,13 @@ int main(void)
     RUN_TEST(test_non_contiguous_stride_views);
     RUN_TEST(test_row_col_ops_and_scaling);
     RUN_TEST(test_rand_range);
+    RUN_TEST(test_copy_row_and_col_helpers);
+    RUN_TEST(test_deterministic_fuzz_loop);
+    RUN_TEST(test_dot_product_and_vector_variants);
+    RUN_TEST(test_outer_product_row_vector_path);
+    RUN_TEST(test_det_early_zero_row_and_zero_col_paths);
+    RUN_TEST(test_mat_is_all_digit);
+    RUN_TEST(test_power_iterate_and_eig_helpers);
 
     #undef RUN_TEST
 

@@ -246,6 +246,11 @@ typedef struct {
 
 #define mat2D_dprintINT(expr) printf(#expr " = %d\n", expr)
 
+enum mat2D_upper_triangulate_flag{
+    MAT2D_ONES_ON_DIAG = 1 << 0,
+    MAT2D_ROW_SWAPPING = 1 << 1,
+};
+
 void            mat2D_add(Mat2D dst, Mat2D a);
 void            mat2D_add_col_to_col(Mat2D des, size_t des_col, Mat2D src, size_t src_col);
 void            mat2D_add_row_to_row(Mat2D des, size_t des_row, Mat2D src, size_t src_row);
@@ -253,6 +258,7 @@ void            mat2D_add_row_time_factor_to_row(Mat2D m, size_t des_r, size_t s
 Mat2D           mat2D_alloc(size_t rows, size_t cols);
 Mat2D_uint32    mat2D_alloc_uint32(size_t rows, size_t cols);
 
+double          mat2D_calc_col_norma(Mat2D m, size_t c);
 double          mat2D_calc_norma(Mat2D m);
 double          mat2D_calc_norma_inf(Mat2D m);
 bool            mat2D_col_is_all_digit(Mat2D m, double digit, size_t c);
@@ -261,6 +267,7 @@ void            mat2D_copy_col_from_src_to_des(Mat2D des, size_t des_col, Mat2D 
 void            mat2D_copy_row_from_src_to_des(Mat2D des, size_t des_row, Mat2D src, size_t src_row);
 void            mat2D_copy_src_to_des_window(Mat2D des, Mat2D src, size_t is, size_t js, size_t ie, size_t je);
 void            mat2D_copy_src_window_to_des(Mat2D des, Mat2D src, size_t is, size_t js, size_t ie, size_t je);
+Mat2D           mat2D_create_col_ref(Mat2D src, size_t c);
 void            mat2D_cross(Mat2D dst, Mat2D v1, Mat2D v2);
 
 void            mat2D_dot(Mat2D dst, Mat2D a, Mat2D b);
@@ -284,6 +291,8 @@ void            mat2D_invert(Mat2D des, Mat2D src);
 
 void            mat2D_LUP_decomposition_with_swap(Mat2D src, Mat2D l, Mat2D p, Mat2D u);
 
+void            mat2D_make_orthogonal_Gaussian_elimination(Mat2D des, Mat2D A);
+void            mat2D_make_orthogonal_modified_Gram_Schmidt(Mat2D des, Mat2D A);
 bool            mat2D_mat_is_all_digit(Mat2D m, double digit);
 Mat2D_Minor     mat2D_minor_alloc_fill_from_mat(Mat2D ref_mat, size_t i, size_t j);
 Mat2D_Minor     mat2D_minor_alloc_fill_from_mat_minor(Mat2D_Minor ref_mm, size_t i, size_t j);
@@ -317,11 +326,13 @@ void            mat2D_sub(Mat2D dst, Mat2D a);
 void            mat2D_sub_col_to_col(Mat2D des, size_t des_col, Mat2D src, size_t src_col);
 void            mat2D_sub_row_to_row(Mat2D des, size_t des_row, Mat2D src, size_t src_row);
 void            mat2D_sub_row_time_factor_to_row(Mat2D m, size_t des_r, size_t src_r, double factor);
+void            mat2D_SVD_full(Mat2D A, Mat2D U, Mat2D S, Mat2D V, Mat2D init_vec_u, Mat2D init_vec_v, bool return_v_transpose);
+void            mat2D_SVD_thin(Mat2D A, Mat2D U, Mat2D S, Mat2D V, Mat2D init_vec_u, Mat2D init_vec_v, bool return_v_transpose);
 void            mat2D_swap_rows(Mat2D m, size_t r1, size_t r2);
 
 void            mat2D_transpose(Mat2D des, Mat2D src);
 
-double          mat2D_upper_triangulate(Mat2D m);
+double          mat2D_upper_triangulate(Mat2D m, uint8_t flags);
 
 #endif // MATRIX2D_H_
 
@@ -455,6 +466,26 @@ Mat2D_uint32 mat2D_alloc_uint32(size_t rows, size_t cols)
     MAT2D_ASSERT(m.elements != NULL);
     
     return m;
+}
+
+/**
+ * @brief Compute the Euclidean (L2) norm of a matrix column.
+ *
+ * @param m Matrix.
+ * @param c Column index.
+ * @return \(\sqrt{\sum_{i=0}^{m.rows-1} m_{i,c}^2}\).
+ *
+ * @pre c < m.cols
+ */
+double mat2D_calc_col_norma(Mat2D m, size_t c)
+{
+    MAT2D_ASSERT(c < m.cols);
+
+    double sum = 0;
+    for (size_t i = 0; i < m.rows; ++i) {
+        sum += MAT2D_AT(m, i, c) * MAT2D_AT(m, i, c);
+    }
+    return sqrt(sum);
 }
 
 /**
@@ -635,6 +666,34 @@ void mat2D_copy_src_window_to_des(Mat2D des, Mat2D src, size_t is, size_t js, si
 }
 
 /**
+ * @brief Create a non-owning column "view" into an existing matrix.
+ *
+ * @details Returns a Mat2D with shape (src.rows x 1) whose elements pointer
+ *          refers to the first element of column @p c in @p src. The returned
+ *          view preserves src.stride_r and therefore works for both contiguous
+ *          and strided matrices.
+ *
+ * @param src Source matrix.
+ * @param c Column index in @p src.
+ * @return A shallow Mat2D view (does not allocate, does not own memory).
+ *
+ * @pre c < src.cols
+ * @warning The returned matrix aliases @p src: modifying it modifies @p src.
+ * @warning The returned view is invalid after @p src.elements is freed/reallocated.
+ */
+Mat2D mat2D_create_col_ref(Mat2D src, size_t c)
+{
+    MAT2D_ASSERT(c < src.cols);
+
+    Mat2D col = {.cols = 1,
+                 .rows = src.rows,
+                 .stride_r = src.stride_r,
+                 .elements = &(MAT2D_AT(src, 0, c))};
+
+    return col;
+}
+
+/**
  * @brief 3D cross product: dst = a x b for 3x1 vectors.
  * @param dst 3x1 destination vector.
  * @param a 3x1 input vector.
@@ -767,7 +826,7 @@ double mat2D_det(Mat2D m)
 
     Mat2D temp_m = mat2D_alloc(m.rows, m.cols);
     mat2D_copy(temp_m, m);
-    double factor = mat2D_upper_triangulate(temp_m);
+    double factor = mat2D_upper_triangulate(temp_m, MAT2D_ROW_SWAPPING);
     double diag_mul = 1; 
     for (size_t i = 0; i < temp_m.rows; i++) {
         diag_mul *= MAT2D_AT(temp_m, i, i);
@@ -1137,6 +1196,133 @@ void mat2D_LUP_decomposition_with_swap(Mat2D src, Mat2D l, Mat2D p, Mat2D u)
         MAT2D_AT(l, i, i) = 1;
     }
     MAT2D_AT(l, l.rows-1, l.cols-1) = 1;
+}
+
+/**
+ * @brief Attempt to build an orthogonal(ized) matrix from A using Gaussian elimination.
+ *
+ * @details
+ * This routine follows the idea sketched in the in-body notes:
+ * it forms \(A^T\) and \(A^T A\), augments \([A^T A \mid A^T]\), performs
+ * elimination, then transposes the resulting right block into @p des.
+ *
+ * Mathematical condition (from the function's internal comment):
+ *  - \(A^T A\) must be full rank (invertible). Equivalently, the columns of
+ *    \(A\) must be linearly independent and non-zero.
+ *
+ * @param des Destination matrix.
+ * @param A Input matrix.
+ *
+ * @pre des.rows == A.rows and des.cols == A.cols
+ * @warning This is an educational routine; it is not a standard QR/GS
+ *          implementation and may be numerically unstable.
+ * @warning Prints debug output via MAT2D_PRINT(temp).
+ */
+void mat2D_make_orthogonal_Gaussian_elimination(Mat2D des, Mat2D A)
+{
+    /* https://en.wikipedia.org/wiki/Gram%E2%80%93Schmidt_process */
+    /** 
+     * A^TA must be fully ranked, i.e. 
+     * columns must be linearly independent and non zero.
+     * 
+     */
+
+    MAT2D_ASSERT(des.cols == A.cols);
+    MAT2D_ASSERT(des.rows == A.rows);
+
+    Mat2D AT = mat2D_alloc(A.cols, A.rows);
+    Mat2D ATA = mat2D_alloc(A.cols, A.cols);
+    Mat2D temp = mat2D_alloc(ATA.rows, ATA.cols + A.cols);
+    Mat2D temp_des = mat2D_alloc(des.cols, des.rows);
+
+    mat2D_transpose(AT, A);
+    mat2D_dot(ATA, AT, A);
+    mat2D_copy_src_to_des_window(temp, ATA, 0, 0, ATA.rows-1, ATA.cols-1);
+    mat2D_copy_src_to_des_window(temp, AT, 0, ATA.cols, AT.rows-1, ATA.cols + AT.cols-1);
+
+    MAT2D_PRINT(temp);
+
+    mat2D_upper_triangulate(temp, MAT2D_ONES_ON_DIAG);
+
+    mat2D_copy_src_window_to_des(temp_des, temp, 0, ATA.cols, AT.rows-1, ATA.cols + AT.cols-1);
+
+    mat2D_transpose(des, temp_des);
+
+    MAT2D_PRINT(temp);
+
+    mat2D_free(AT);
+    mat2D_free(ATA);
+    mat2D_free(temp);
+    mat2D_free(temp_des);
+}
+
+/**
+ * @brief Build an orthonormal basis using modified Gram-Schmidt.
+ *
+ * @details
+ * Uses a modified Gram-Schmidt process on the columns of @p des.
+ * The implementation copies the leading non-zero columns of @p A into @p des,
+ * and initializes the remaining columns of @p des with random values before
+ * orthogonalization/normalization, attempting to complete a full basis.
+ *
+ * Mathematical conditions:
+ *  - Gram-Schmidt requires non-zero vectors. This code stops copying columns
+ *    from @p A once it encounters a column with (near) zero norm.
+ *  - For stable/meaningful results, the set of input columns you expect to
+ *    preserve should be linearly independent; otherwise a vector can become
+ *    (near) zero during orthogonalization and normalization may divide by zero.
+ *
+ * @param des Destination matrix (overwritten).
+ * @param A Input matrix providing initial columns.
+ *
+ * @pre des.rows == A.rows
+ * @pre des.cols == des.rows (destination is square)
+ *
+ * @warning Uses rand() via mat2D_rand() for the extra columns.
+ */
+void mat2D_make_orthogonal_modified_Gram_Schmidt(Mat2D des, Mat2D A)
+{
+    /* https://en.wikipedia.org/wiki/Gram%E2%80%93Schmidt_process */
+    MAT2D_ASSERT(des.rows == A.rows);
+    MAT2D_ASSERT(des.cols == des.rows);
+
+    size_t num_non_zero_vec = 0;
+    for (size_t c = 0; c < A.cols; c++) {
+        if (MAT2D_IS_ZERO(mat2D_calc_col_norma(A, c))) {
+            break;
+        }
+        num_non_zero_vec++;
+    }
+
+    mat2D_dprintSIZE_T(num_non_zero_vec);
+
+    mat2D_rand(des, 1, 2);
+
+    Mat2D temp_col = mat2D_alloc(des.rows, 1);
+    for (size_t c = 0; c < num_non_zero_vec; c++) {
+        mat2D_copy_col_from_src_to_des(des, c, A, c);
+    }
+    for (size_t c = 0; c < des.cols-1; c++) {
+        Mat2D vc = mat2D_create_col_ref(des, c);
+        double vc_vc = mat2D_inner_product(vc);
+        for (size_t k = c+1; k < des.cols; k++) {
+            mat2D_copy(temp_col, vc);
+            Mat2D vk = mat2D_create_col_ref(des, k);
+            double vk_vc = mat2D_dot_product(vc, vk);
+            mat2D_mult(temp_col, vk_vc / vc_vc);
+            mat2D_sub(vk, temp_col);
+        }
+        if (!MAT2D_IS_ZERO(mat2D_calc_norma(vc))) {
+            mat2D_normalize(vc);
+        }
+    }
+    Mat2D vc = mat2D_create_col_ref(des, des.cols-1);
+    if (!MAT2D_IS_ZERO(mat2D_calc_norma(vc))) {
+        mat2D_normalize(vc);
+    }
+
+
+    mat2D_free(temp_col);    
 }
 
 /**
@@ -1558,7 +1744,7 @@ size_t mat2D_reduce(Mat2D m)
     /* preforming Gauss–Jordan reduction to Reduced Row Echelon Form (RREF) */
     /* Gauss elimination: https://en.wikipedia.org/wiki/Gaussian_elimination */
 
-    mat2D_upper_triangulate(m);
+    mat2D_upper_triangulate(m, MAT2D_ONES_ON_DIAG | MAT2D_ROW_SWAPPING);
 
     size_t rank = 0;
 
@@ -1567,11 +1753,6 @@ size_t mat2D_reduce(Mat2D m)
         if (!mat2D_find_first_non_zero_value(m, r, &c)) {
             continue; /* row of zeros */
         }
-
-        double pivot = MAT2D_AT(m, r, c);
-        MAT2D_ASSERT(!MAT2D_IS_ZERO(pivot));
-        mat2D_mult_row(m, r, 1.0 / pivot);
-
         for (int i = 0; i < r; i++) {
             double factor = MAT2D_AT(m, i, c);
             mat2D_sub_row_time_factor_to_row(m, i, r, factor);
@@ -1869,6 +2050,210 @@ void mat2D_sub_row_time_factor_to_row(Mat2D m, size_t des_r, size_t src_r, doubl
 }
 
 /**
+ * @brief Compute a "full" SVD by post-orthogonalizing the thin result.
+ *
+ * @details
+ * Calls @ref mat2D_SVD_thin() first, then applies @ref mat2D_make_orthogonal_modified_Gram_Schmidt()
+ * to expand/orthogonalize U and V into full orthonormal bases.
+ *
+ * Mathematical/algorithmic conditions (inherited from internals):
+ *  - mat2D_SVD_thin() uses repeated power iteration on \(A A^T\) or \(A^T A\),
+ *    so convergence depends on the power-iteration conditions documented in
+ *    mat2D_power_iterate()/mat2D_eig_power_iteration (dominant eigenvalue
+ *    separation, suitable initial vectors, etc.).
+ *  - The Gram-Schmidt completion step assumes it can produce non-zero
+ *    independent vectors; if columns become (near) dependent, normalization can
+ *    be unstable.
+ *
+ * @param A Input matrix (n x m).
+ * @param U Output U (n x n).
+ * @param S Output S (n x m) with singular values on its diagonal.
+ * @param V Output V (m x m) or V^T depending on @p return_v_transpose.
+ * @param init_vec_u Initial vector for eigen/power iteration when using \(A A^T\) (n x 1).
+ * @param init_vec_v Initial vector for eigen/power iteration when using \(A^T A\) (m x 1).
+ * @param return_v_transpose If true, writes V^T into @p V (in-place transpose at the end).
+ *
+ * @pre U.rows==U.cols==A.rows
+ * @pre V.rows==V.cols==A.cols
+ * @pre S.rows==A.rows and S.cols==A.cols
+ */
+void mat2D_SVD_full(Mat2D A, Mat2D U, Mat2D S, Mat2D V, Mat2D init_vec_u, Mat2D init_vec_v, bool return_v_transpose)
+{
+    mat2D_SVD_thin(A, U, S, V, init_vec_u, init_vec_v, false);
+
+    Mat2D U_full = mat2D_alloc(U.rows, U.cols);
+    Mat2D V_full = mat2D_alloc(V.rows, V.cols);
+
+    mat2D_make_orthogonal_modified_Gram_Schmidt(U_full, U);
+    mat2D_make_orthogonal_modified_Gram_Schmidt(V_full, V);
+
+    mat2D_copy(U, U_full);
+    if (return_v_transpose) {
+        mat2D_transpose(V, V_full);
+    } else {
+        mat2D_copy(V, V_full);
+    }
+
+    mat2D_free(U_full);
+    mat2D_free(V_full);
+}
+
+/**
+ * @brief Compute an SVD using eigen-decomposition + power iteration (educational).
+ *
+ * @details
+ * Implements the standard identities:
+ *  - Left singular vectors: eigenvectors of \(A A^T\)
+ *  - Right singular vectors: eigenvectors of \(A^T A\)
+ *  - Singular values: \(\sigma_i = \sqrt{\lambda_i}\) of the chosen PSD matrix
+ *
+ * The function chooses:
+ *  - If n <= m: compute eigenpairs of \(A A^T\) (n x n), fill U directly,
+ *    then compute \(v_i = A^T u_i / \sigma_i\).
+ *  - Else: compute eigenpairs of \(A^T A\) (m x m), fill V directly,
+ *    then compute \(u_i = A v_i / \sigma_i\).
+ *
+ * Mathematical conditions:
+ *  - Power iteration assumes the eigenvectors form a basis for the matrix being
+ *    iterated and that the dominant eigenvalue is positive and unique, which
+ *    improves convergence.
+ *  - The initial vectors (@p init_vec_u / @p init_vec_v) must be non-zero and
+ *    should not be (nearly) orthogonal to the dominant eigenvector(s), or
+ *    convergence can be slow/fail.
+ *
+ * Notes on numerical behavior:
+ *  - \(A A^T\) and \(A^T A\) are symmetric positive semidefinite in exact
+ *    arithmetic, so eigenvalues should be non-negative. Due to floating-point
+ *    error, small negative values may appear; this implementation clamps those
+ *    to 0 by setting the corresponding singular value to 0.
+ *
+ * @param A Input matrix (n x m).
+ * @param U Output matrix (n x n). Only the first min(n,m) columns corresponding
+ *          to non-zero singular values are meaningfully populated by this step.
+ * @param S Output matrix (n x m). Singular values written on the diagonal.
+ * @param V Output matrix (m x m) (or V^T if @p return_v_transpose is true).
+ * @param init_vec_u Initial vector for eigen iteration in the \(A A^T\) path (n x 1).
+ * @param init_vec_v Initial vector for eigen iteration in the \(A^T A\) path (m x 1).
+ * @param return_v_transpose If true, the function transposes V before returning.
+ *
+ * @pre U.rows==U.cols==A.rows
+ * @pre V.rows==V.cols==A.cols
+ * @pre S.rows==A.rows and S.cols==A.cols
+ * @pre init_vec_u.rows==A.rows && init_vec_u.cols==1
+ * @pre init_vec_v.rows==A.cols && init_vec_v.cols==1
+ *
+ * @warning This is not a production-quality SVD (no QR/SVD bidiagonalization).
+ *          It is sensitive to convergence issues of power iteration and to
+ *          deflation error accumulation.
+ */
+void mat2D_SVD_thin(Mat2D A, Mat2D U, Mat2D S, Mat2D V, Mat2D init_vec_u, Mat2D init_vec_v, bool return_v_transpose)
+{
+    /* https://www.youtube.com/watch?v=nbBvuuNVfco */
+    /* https://en.wikipedia.org/wiki/Singular_value_decomposition */
+    size_t n = A.rows;
+    size_t m = A.cols;
+    MAT2D_ASSERT(U.rows == n);
+    MAT2D_ASSERT(U.cols == n);
+    MAT2D_ASSERT(S.rows == n);
+    MAT2D_ASSERT(S.cols == m);
+    MAT2D_ASSERT(V.rows == m);
+    MAT2D_ASSERT(V.cols == m);
+    MAT2D_ASSERT(init_vec_u.rows == n);
+    MAT2D_ASSERT(init_vec_u.cols == 1);
+    MAT2D_ASSERT(init_vec_v.rows == m);
+    MAT2D_ASSERT(init_vec_v.cols == 1);
+
+    mat2D_fill(U, 0);
+    mat2D_fill(S, 0);
+    mat2D_fill(V, 0);
+
+    Mat2D AT = mat2D_alloc(m, n);
+    mat2D_transpose(AT, A);
+
+    if (n <= m) {
+        Mat2D AAT = mat2D_alloc(n, n);
+        Mat2D left_eigenvalues = mat2D_alloc(n, n);
+        Mat2D left_eigenvectors = mat2D_alloc(n, n);
+        Mat2D temp_u_vec = mat2D_alloc(n, 1);
+        Mat2D temp_v_vec = mat2D_alloc(m, 1);
+        mat2D_dot(AAT, A, AT);
+        mat2D_eig_power_iteration(AAT, left_eigenvalues, left_eigenvectors, init_vec_u, 0);
+        /* fill matrix sigma (S) */
+        size_t non_zero_n = 0;
+        for (size_t i = 0; i < n; i++) {
+            if (MAT2D_IS_ZERO(MAT2D_AT(left_eigenvalues, i, i)) || MAT2D_AT(left_eigenvalues, i, i) < 0) {
+                MAT2D_AT(S, i, i) = 0; /* AAT is positive definet */
+            } else {
+                MAT2D_AT(S, i, i) = sqrt(MAT2D_AT(left_eigenvalues, i, i));
+                non_zero_n++;
+            }
+        }
+        /** 
+         * fill U with the eigenvectors of AAT that have non zero singular value
+         * and fill V with the corresponding eigenvector according to:
+         *      v_i = A^T*u_i / sigma_i
+         */
+        for (size_t c = 0; c < non_zero_n; c++) {
+            mat2D_copy_col_from_src_to_des(U, c, left_eigenvectors, c);
+            mat2D_copy_col_from_src_to_des(temp_u_vec, 0, left_eigenvectors, c);
+            mat2D_dot(temp_v_vec, AT, temp_u_vec);
+            mat2D_mult(temp_v_vec, 1.0 / MAT2D_AT(S, c, c));
+            mat2D_copy_col_from_src_to_des(V, c, temp_v_vec, 0);
+        }
+        mat2D_free(AAT);
+        mat2D_free(left_eigenvalues);
+        mat2D_free(left_eigenvectors);
+        mat2D_free(temp_u_vec);
+        mat2D_free(temp_v_vec);
+    } else {
+        Mat2D ATA = mat2D_alloc(m, m);
+        Mat2D right_eigenvalues = mat2D_alloc(m, m);
+        Mat2D right_eigenvectors = mat2D_alloc(m, m);
+        Mat2D temp_u_vec = mat2D_alloc(n, 1);
+        Mat2D temp_v_vec = mat2D_alloc(m, 1);
+        mat2D_dot(ATA, AT, A);
+        mat2D_eig_power_iteration(ATA, right_eigenvalues, right_eigenvectors, init_vec_v, 0);
+        /* fill matrix sigma (S) */
+        size_t non_zero_m = 0;
+        for (size_t i = 0; i < m; i++) {
+            if (MAT2D_IS_ZERO(MAT2D_AT(right_eigenvalues, i, i)) || MAT2D_AT(right_eigenvalues, i, i) < 0) {
+                MAT2D_AT(S, i, i) = 0; /* ATA is positive definet */
+            } else {
+                MAT2D_AT(S, i, i) = sqrt(MAT2D_AT(right_eigenvalues, i, i));
+                non_zero_m++;
+            }
+        }
+        /** 
+         * fill V with the eigenvectors of ATA that have non zero singular value
+         * and fill U with the corresponding eigenvector according to:
+         *      u_i = A*v_i / sigma_i
+         */
+        for (size_t c = 0; c < non_zero_m; c++) {
+            mat2D_copy_col_from_src_to_des(V, c, right_eigenvectors, c);
+            mat2D_copy_col_from_src_to_des(temp_v_vec, 0, right_eigenvectors, c);
+            mat2D_dot(temp_u_vec, A, temp_v_vec);
+            mat2D_mult(temp_u_vec, 1.0 / MAT2D_AT(S, c, c));
+            mat2D_copy_col_from_src_to_des(U, c, temp_u_vec, 0);
+        }
+        mat2D_free(ATA);
+        mat2D_free(right_eigenvalues);
+        mat2D_free(right_eigenvectors);
+        mat2D_free(temp_u_vec);
+        mat2D_free(temp_v_vec);
+    }
+
+    if (return_v_transpose) {
+        Mat2D v_trans = mat2D_alloc(V.cols, V.rows);
+        mat2D_transpose(v_trans, V);
+        mat2D_copy(V, v_trans);
+
+        mat2D_free(v_trans);
+    }
+
+    mat2D_free(AT);
+}
+
+/**
  * @brief Swap two rows of a matrix in-place.
  * @param m Matrix.
  * @param r1 First row index.
@@ -1922,7 +2307,7 @@ void mat2D_transpose(Mat2D des, Mat2D src)
  *
  * @warning Not robust for linearly dependent rows or very small pivots.
  */
-double mat2D_upper_triangulate(Mat2D m)
+double mat2D_upper_triangulate(Mat2D m, uint8_t flags)
 {
     /* preforming Gauss elimination: https://en.wikipedia.org/wiki/Gaussian_elimination */
     /* returns the factor multiplying the determinant */
@@ -1931,27 +2316,36 @@ double mat2D_upper_triangulate(Mat2D m)
 
     size_t r = 0;
     for (size_t c = 0; c < m.cols && r < m.rows; c++) {
-        /* finding biggest first number (absolute value); partial pivoting */
-        size_t piv = r;
-        double best = fabs(MAT2D_AT(m, r, c));
-        for (size_t i = r + 1; i < m.rows; i++) {
-            double v = fabs(MAT2D_AT(m, i, c));
-            if (v > best) {
-                best = v;
-                piv = i;
+        if (flags & MAT2D_ROW_SWAPPING) {
+            /* finding biggest first number (absolute value); partial pivoting */
+            size_t piv = r;
+            double best = fabs(MAT2D_AT(m, r, c));
+            for (size_t i = r + 1; i < m.rows; i++) {
+                double v = fabs(MAT2D_AT(m, i, c));
+                if (v > best) {
+                    best = v;
+                    piv = i;
+                }
+            }
+            if (MAT2D_IS_ZERO(best)) {
+                continue; /* move to next column, same pivot row r */
+            }
+            if (piv != r) {
+                mat2D_swap_rows(m, piv, r);
+                factor_to_return *= -1.0;
             }
         }
-        if (MAT2D_IS_ZERO(best)) {
-            continue; /* move to next column, same pivot row r */
-        }
-        if (piv != r) {
-            mat2D_swap_rows(m, piv, r);
-            factor_to_return *= -1.0;
+
+        double pivot = MAT2D_AT(m, r, c);
+        MAT2D_ASSERT(!MAT2D_IS_ZERO(pivot));
+
+        if (flags & MAT2D_ONES_ON_DIAG) {
+            mat2D_mult_row(m, r, 1.0 / pivot);
+            factor_to_return *= pivot;
+            pivot = 1.0;
         }
 
         /* Eliminate entries below pivot in column c */
-        double pivot = MAT2D_AT(m, r, c);
-        MAT2D_ASSERT(!MAT2D_IS_ZERO(pivot));
         for (size_t i = r + 1; i < m.rows; i++) {
             double f = MAT2D_AT(m, i, c) / pivot;
             mat2D_sub_row_time_factor_to_row(m, i, r, f);
