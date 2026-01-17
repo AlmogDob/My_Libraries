@@ -257,6 +257,8 @@ double          mat2D_calc_norma(Mat2D m);
 double          mat2D_calc_norma_inf(Mat2D m);
 bool            mat2D_col_is_all_digit(Mat2D m, double digit, size_t c);
 void            mat2D_copy(Mat2D des, Mat2D src);
+void            mat2D_copy_col_from_src_to_des(Mat2D des, size_t des_col, Mat2D src, size_t src_col);
+void            mat2D_copy_row_from_src_to_des(Mat2D des, size_t des_row, Mat2D src, size_t src_row);
 void            mat2D_copy_src_to_des_window(Mat2D des, Mat2D src, size_t is, size_t js, size_t ie, size_t je);
 void            mat2D_copy_src_window_to_des(Mat2D des, Mat2D src, size_t is, size_t js, size_t ie, size_t je);
 void            mat2D_cross(Mat2D dst, Mat2D v1, Mat2D v2);
@@ -276,9 +278,6 @@ void            mat2D_fill_uint32(Mat2D_uint32 m, uint32_t x);
 bool            mat2D_find_first_non_zero_value(Mat2D m, size_t r, size_t *non_zero_col);
 void            mat2D_free(Mat2D m);
 void            mat2D_free_uint32(Mat2D_uint32 m);
-
-void            mat2D_get_col(Mat2D des, size_t des_col, Mat2D src, size_t src_col);
-void            mat2D_get_row(Mat2D des, size_t des_row, Mat2D src, size_t src_row);
 
 double          mat2D_inner_product(Mat2D v);
 void            mat2D_invert(Mat2D des, Mat2D src);
@@ -535,6 +534,47 @@ void mat2D_copy(Mat2D des, Mat2D src)
         for (size_t j = 0; j < des.cols; ++j) {
             MAT2D_AT(des, i, j) = MAT2D_AT(src, i, j);
         }
+    }
+}
+
+/**
+ * @brief Copy a column from src into a column of des.
+ * @param des Destination matrix (same row count as src).
+ * @param des_col Column index in destination.
+ * @param src Source matrix.
+ * @param src_col Column index in source.
+ * 
+ * @pre des.rows == src.rows
+ * @pre des_col < des.cols and src_col < src.cols
+ */ 
+void mat2D_copy_col_from_src_to_des(Mat2D des, size_t des_col, Mat2D src, size_t src_col)
+{
+    MAT2D_ASSERT(src_col < src.cols);
+    MAT2D_ASSERT(des.rows == src.rows);
+    MAT2D_ASSERT(des_col < des.cols);
+
+    for (size_t i = 0; i < des.rows; i++) {
+        MAT2D_AT(des, i, des_col) = MAT2D_AT(src, i, src_col);
+    }
+}
+
+/**
+ * @brief Copy a row from src into a row of des.
+ * @param des Destination matrix (same number of columns as src).
+ * @param des_row Row index in destination.
+ * @param src Source matrix.
+ * @param src_row Row index in source.
+ *
+ * @pre des.cols == src.cols
+ */
+void mat2D_copy_row_from_src_to_des(Mat2D des, size_t des_row, Mat2D src, size_t src_row)
+{
+    MAT2D_ASSERT(src_row < src.rows);
+    MAT2D_ASSERT(des.cols == src.cols);
+    MAT2D_ASSERT(des_row < des.rows);
+
+    for (size_t j = 0; j < des.cols; j++) {
+        MAT2D_AT(des, des_row, j) = MAT2D_AT(src, src_row, j);
     }
 }
 
@@ -982,47 +1022,6 @@ void mat2D_free(Mat2D m)
 void mat2D_free_uint32(Mat2D_uint32 m)
 {
     MAT2D_FREE(m.elements);
-}
-
-/**
- * @brief Copy a column from src into a column of des.
- * @param des Destination matrix (same row count as src).
- * @param des_col Column index in destination.
- * @param src Source matrix.
- * @param src_col Column index in source.
- * 
- * @pre des.rows == src.rows
- * @pre des_col < des.cols and src_col < src.cols
- */ 
-void mat2D_get_col(Mat2D des, size_t des_col, Mat2D src, size_t src_col)
-{
-    MAT2D_ASSERT(src_col < src.cols);
-    MAT2D_ASSERT(des.rows == src.rows);
-    MAT2D_ASSERT(des_col < des.cols);
-
-    for (size_t i = 0; i < des.rows; i++) {
-        MAT2D_AT(des, i, des_col) = MAT2D_AT(src, i, src_col);
-    }
-}
-
-/**
- * @brief Copy a row from src into a row of des.
- * @param des Destination matrix (same number of columns as src).
- * @param des_row Row index in destination.
- * @param src Source matrix.
- * @param src_row Row index in source.
- *
- * @pre des.cols == src.cols
- */
-void mat2D_get_row(Mat2D des, size_t des_row, Mat2D src, size_t src_row)
-{
-    MAT2D_ASSERT(src_row < src.rows);
-    MAT2D_ASSERT(des.cols == src.cols);
-    MAT2D_ASSERT(des_row < des.rows);
-
-    for (size_t j = 0; j < des.cols; j++) {
-        MAT2D_AT(des, des_row, j) = MAT2D_AT(src, src_row, j);
-    }
 }
 
 /**
