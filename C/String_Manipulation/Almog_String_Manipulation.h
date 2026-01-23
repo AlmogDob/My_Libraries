@@ -43,6 +43,7 @@
 
 #include <stdio.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 /**
  * @def ASM_MAX_LEN
@@ -164,7 +165,7 @@ void    asm_left_shift(char * const s, const size_t shift);
 size_t  asm_length(const char * const str);
 void *  asm_memset(void * const des, const unsigned char value, const size_t n);
 void    asm_print_many_times(const char * const str, const size_t n);
-void    asm_remove_char_form_string(char * const s, const size_t index);
+void    asm_remove_char_from_string(char * const s, const size_t index);
 int     asm_str_in_str(const char * const src, const char * const word_to_search);
 double  asm_str2double(const char * const s, const char ** const end, const size_t base);
 float   asm_str2float(const char * const s, const char ** const end, const size_t base);
@@ -292,6 +293,7 @@ int asm_get_line(FILE *fp, char * const dst)
             #ifndef NO_ERRORS
             fprintf(stderr, "%s:%d:\nIn function '%s':\n[Error] index exceeds ASM_MAX_LEN. Line in file is too long.\n\n", __FILE__, __LINE__, __func__);
             #endif
+            dst[i-1] = '\0';
             return -1;
         }
     }
@@ -342,46 +344,46 @@ int asm_get_next_token_from_str(char * const dst, const char * const src, const 
 }
 
 /**
- * @brief Get the next word and cut the source string at that point.
+ * @brief Extract the next token into @p dst and remove the corresponding prefix
+ *        from @p src.
  *
- * Extracts the next word from @p src (per asm_get_next_word_from_line
- * semantics) into @p dst. On success, @p src is modified in-place to remove
- * the consumed prefix.
+ * Calls asm_get_next_token_from_str(@p dst, @p src, @p delimiter) to extract a
+ * token from the beginning of @p src into @p dst. Then modifies @p src in-place
+ * by left-shifting it.
  *
- * If @p leave_delimiter is true, the new @p src begins at the delimiter
- * character. If false, the delimiter is skipped and the new @p src begins
- * right after it.
+ * If @p leave_delimiter is true, @p src is left-shifted by the value returned
+ * from asm_get_next_token_from_str() (i.e., the delimiter—if present—remains as
+ * the first character in the updated @p src).
  *
- * Example (leave_delimiter == true):
- * @code
- *   char src[] = "abc,def";
- *   char word[4];
- *   asm_get_word_and_cut(word, src, ',', true);
- *   // word == "abc"
- *   // src  == ",def"
- * @endcode
+ * If @p leave_delimiter is false, @p src is left-shifted by that return value
+ * plus one (intended to also remove the delimiter).
  *
- * @param dst             Destination buffer for the extracted word (large
- *                        enough for the token and terminating null).
- * @param src             Source buffer. Modified in-place if a word is found.
- * @param delimiter       Delimiter character to stop at.
- * @param leave_delimiter If true, the delimiter remains at the start of the
- *                        updated @p src; if false, it is removed as well.
- * @return 1 if a non-empty token was extracted into @p dst, 0 otherwise.
+ * @param dst             Destination buffer for the extracted token (must be
+ *                        large enough for the token plus the null terminator).
+ * @param src             Source buffer, modified in-place by this function.
+ * @param delimiter       Delimiter character used to stop token extraction.
+ * @param leave_delimiter If true, do not remove the delimiter from @p src; if
+ *                        false, remove one additional character after the token.
  *
- * @note Even when this function returns 0, it may still modify @p src if:
- *       - leading whitespace was consumed, and/or
- *       - @p leave_delimiter is false and the delimiter was the first
- *         non-whitespace character.
- * */
+ * @return 1 if asm_get_next_token_from_str() returned a non-zero value,
+ *         otherwise 0.
+ *
+ * @note This function always calls asm_left_shift() even when the returned value
+ *       from asm_get_next_token_from_str() is 0. In particular, when
+ *       @p leave_delimiter is false and the returned value is 0, @p src will be
+ *       left-shifted by 1.
+ */
 int asm_get_token_and_cut(char * const dst, char *src, const char delimiter, const bool leave_delimiter)
 {
     int new_src_start_index = asm_get_next_token_from_str(dst, src, delimiter);
+    bool delimiter_at_start = src[new_src_start_index] == delimiter;
 
     if (leave_delimiter) {
         asm_left_shift(src, new_src_start_index);
-    } else {
+    } else if (delimiter_at_start) {
         asm_left_shift(src, new_src_start_index + 1);
+    } else {
+        src[0] = '\0';
     }
     return new_src_start_index ? 1 : 0;
 }
@@ -631,9 +633,9 @@ size_t asm_length(const char * const str)
     while ((c = str[i++]) != '\0') {
         if (i > ASM_MAX_LEN) {
             #ifndef NO_ERRORS
-            fprintf(stderr, "%s:%d:\n%s:\n[Error] index exceeds ASM_MAX_LEN_LINE. Probably no NULL termination.\n\n", __FILE__, __LINE__, __func__);
+            fprintf(stderr, "%s:%d:\n%s:\n[Error] index exceeds ASM_MAX_LEN. Probably no NULL termination.\n\n", __FILE__, __LINE__, __func__);
             #endif
-            return __SIZE_MAX__;
+            return SIZE_MAX;
         }
     }
     return --i;
@@ -693,7 +695,7 @@ void asm_print_many_times(const char * const str, const size_t n)
  * @note If @p index is out of range, an error is printed to stderr and
  *       the string is left unchanged.
  */
-void asm_remove_char_form_string(char * const s, const size_t index)
+void asm_remove_char_from_string(char * const s, const size_t index)
 {
     size_t len = asm_length(s);
     if (len == 0) return;
@@ -989,7 +991,8 @@ void asm_strip_whitespace(char * const s)
  */
 bool asm_str_is_whitespace(const char * const s)
 {
-    for (size_t i = 0; i < asm_length(s); i++) {
+    size_t len = asm_length(s);
+    for (size_t i = 0; i < len; i++) {
         if (!asm_isspace(s[i])) {
             return false;
         }
@@ -1036,9 +1039,11 @@ int asm_strncat(char * const s1, const char * const s2, const int N)
             return i;
         }
 
-        s1[len_s1+i] = s2[i];
+        s1[len_s1+(size_t)i] = s2[i];
         i++;
     }
+    s1[len_s1+(size_t)i] = '\0';
+
     return i;
 }
 

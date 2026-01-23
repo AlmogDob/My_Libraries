@@ -780,13 +780,7 @@ static void test_strncat_current_behavior_and_sentinel(void)
     int n = asm_strncat(box.s1, "DEF", 3);
     TEST_EQ_INT(n, 3);
 
-    TEST_CASE(box.s1[0] == 'a' && box.s1[1] == 'b' && box.s1[2] == 'c');
-    TEST_CASE(box.s1[3] == 'D' && box.s1[4] == 'E' && box.s1[5] == 'F');
-
-    /* warn if it *is* NUL terminated (meaning you fixed it) */
-    TEST_WARN(!is_nul_terminated_within(box.s1, 7),
-              "asm_strncat appears to NUL-terminate now; update tests to "
-              "expect \"abcDEF\" as a proper C-string.");
+    TEST_EQ_STR(box.s1, "abcDEF");
 
     for (size_t i = 0; i < sizeof(box.pre); i++) TEST_CASE(box.pre[i] == 0xAA);
     for (size_t i = 0; i < sizeof(box.post); i++) TEST_CASE(box.post[i] == 0xBB);
