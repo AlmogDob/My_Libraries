@@ -1,24 +1,52 @@
 CCHECKS = -fsanitize=address,leak,undefined,bounds -fsanitize-address-use-after-scope
 CWARNINGS = -W -Wall -Wextra -Wuninitialized -Wunreachable-code
-CFLAGS = $(CWARNINGS) -std=c99 -lm
+CFLAGS = $(CWARNINGS) $(CCHECKS) -std=c99
 
 #############################################################
 
-temp: build_temp run_temp clean_temp  
-	@echo ./temp done
+BIN_DIR  := ./build
+SRC_DIR  := .
 
-build_temp: ./temp.c 
-	@echo [INFO] building temp
-	@gcc ./temp.c $(CFLAGS) -o ./temp
+.PHONY: temp
+temp: SRC_LIST := $(SRC_DIR)/temp.c
+temp: build run clean
 
-run_temp:
-	@echo
-	./temp
-	@echo
+.PHONY: tests
+tests: SRC_LIST := $(SRC_DIR)/tests.c
+tests: build run clean
 
-clean_temp:
-	@echo [INFO] removing all build files
-	@rm ./temp
+.PHONY: all
+all: SRC_LIST := $(SRC_DIR)/tests.c $(SRC_DIR)/temp.c
+all: build run clean
+
+#-----------------
+.PHONY: build 
+build: 
+	@mkdir -p $(BIN_DIR)
+	@$(foreach src,$(SRC_LIST), \
+		echo "[INFO] building '$(src)'"; \
+		gcc '$(src)' $(CFLAGS) -o '$(BIN_DIR)/$(notdir $(basename $(src)))'; \
+	)
+
+.PHONY: run 
+run:
+	@$(foreach src,$(SRC_LIST), \
+		echo; echo [INFO] $(BIN_DIR)/$(notdir $(basename $(src))):;  $(BIN_DIR)/$(notdir $(basename $(src))); echo; \
+	)
+
+.PHONY: clean 
+clean:
+	@echo [INFO] removing build files
+	@if [ -n "$(BIN_DIR)" ] && [ "$(BIN_DIR)" != "." ]; then \
+		echo "[INFO] removing directory '$(BIN_DIR)'"; \
+		rm -r "$(BIN_DIR)"; \
+	else \
+		$(foreach src,$(SRC_LIST), \
+			rm $(BIN_DIR)/$(notdir $(basename $(src))); \
+		) \
+	fi
+
+#############################################################
 
 debug_temp: debug_build_temp
 	gdb ./temp
@@ -57,3 +85,4 @@ docs: doxygen.txt
 	cd docs/latex; make;
 	cp docs/latex/refman.pdf .
 	rm -r docs
+

@@ -7,8 +7,10 @@
  * C strings:
  *  - Reading a single line from a FILE stream
  *  - Measuring string length
- *  - Extracting the next "word" (token) from a line using a delimiter
- *  - Cutting the extracted word from the source buffer
+ *  - Extracting the next token from a string using a delimiter
+ *    (skipping leading ASCII whitespace)
+ *  - Cutting the extracted token (and leading whitespace) from the source
+ *    buffer
  *  - Copying a substring by indices
  *  - Counting occurrences of a substring
  *  - A boolean-style strncmp (returns 1 on equality, 0 otherwise)
@@ -139,40 +141,41 @@
  */
 #define asm_max(a, b) ((a) > (b) ? (a) : (b))
 
-bool    asm_check_char_belong_to_base(char c, size_t base);
-void    asm_copy_array_by_indexes(char *target, int start, int end, char *src);
-size_t  asm_get_char_value_in_base(char c);
-int     asm_get_line(FILE *fp, char *dst);
-int     asm_get_next_word_from_line(char *dst, char *src, char delimiter);
-int     asm_get_word_and_cut(char *dst, char *src, char delimiter, bool leave_delimiter);
-bool    asm_isalnum(char c);
-bool    asm_isalpha(char c);
-bool    asm_iscntrl(char c);
-bool    asm_isdigit(char c);
-bool    asm_isgraph(char c);
-bool    asm_islower(char c);
-bool    asm_isprint(char c);
-bool    asm_ispunct(char c);
-bool    asm_isspace(char c);
-bool    asm_isupper(char c);
-bool    asm_isxdigit(char c);
-bool    asm_isXdigit(char c);
-void    asm_left_pad(char *s, size_t padding);
-size_t  asm_length(char *str);
-void *  asm_memset(void *des, unsigned char value, size_t n);
-void    asm_print_many_times(char *str, size_t n);
-void    asm_remove_char_form_string(char *s, size_t index);
-int     asm_str_in_str(char *src, char *word_to_search);
-double  asm_str2double(char *s, char **end, size_t base);
-float   asm_str2float(char *s, char **end, size_t base);
-int     asm_str2int(char *s, char **end, size_t base);
-size_t  asm_str2size_t(char *s, char **end, size_t base);
-void    asm_strip_whitespace(char *s);
-bool    asm_str_is_whitespace(char *s);
-int     asm_strncat(char *s1, char *s2, const int N);
-int     asm_strncmp(const char *s1, const char *s2, const int N);
-void    asm_tolower(char *s);
-void    asm_toupper(char *s);
+bool    asm_check_char_belong_to_base(const char c, const size_t base);
+void    asm_copy_array_by_indexes(char * const target, const int start, const int end, const char * const src);
+int     asm_get_char_value_in_base(const char c, const size_t base);
+int     asm_get_line(FILE *fp, char * const dst);
+int     asm_get_next_token_from_str(char * const dst, const char * const src, const char delimiter);
+int     asm_get_token_and_cut(char * const dst, char *src, const char delimiter, const bool leave_delimiter);
+bool    asm_isalnum(const char c);
+bool    asm_isalpha(const char c);
+bool    asm_iscntrl(const char c);
+bool    asm_isdigit(const char c);
+bool    asm_isgraph(const char c);
+bool    asm_islower(const char c);
+bool    asm_isprint(const char c);
+bool    asm_ispunct(const char c);
+bool    asm_isspace(const char c);
+bool    asm_isupper(const char c);
+bool    asm_isxdigit(const char c);
+bool    asm_isXdigit(const char c);
+void    asm_left_pad(char * const s, const size_t padding, const char pad);
+void    asm_left_shift(char * const s, const size_t shift);
+size_t  asm_length(const char * const str);
+void *  asm_memset(void * const des, const unsigned char value, const size_t n);
+void    asm_print_many_times(const char * const str, const size_t n);
+void    asm_remove_char_form_string(char * const s, const size_t index);
+int     asm_str_in_str(const char * const src, const char * const word_to_search);
+double  asm_str2double(const char * const s, const char ** const end, const size_t base);
+float   asm_str2float(const char * const s, const char ** const end, const size_t base);
+int     asm_str2int(const char * const s, const char ** const end, const size_t base);
+size_t  asm_str2size_t(const char * const s, const char ** const end, const size_t base);
+void    asm_strip_whitespace(char * const s);
+bool    asm_str_is_whitespace(const char * const s);
+int     asm_strncat(char * const s1, const char * const s2, const int N);
+int     asm_strncmp(const char * const s1, const char * const s2, const int N);
+void    asm_tolower(char * const s);
+void    asm_toupper(char * const s);
 
 #endif /*ALMOG_STRING_MANIPULATION_H_*/
 
@@ -189,10 +192,12 @@ void    asm_toupper(char *s);
  * @note If @p base is outside [2, 36], an error is printed to stderr and
  *       false is returned.
  */
-bool asm_check_char_belong_to_base(char c, size_t base)
+bool asm_check_char_belong_to_base(const char c, const size_t base)
 {
     if (base > 36 || base < 2) {
+        #ifndef NO_ERRORS
         fprintf(stderr, "%s:%d:\n%s:\n[Error] Supported bases are [2...36]. Inputted: %zu\n\n", __FILE__, __LINE__, __func__, base);
+        #endif
         return false;
     }
     if (base <= 10) {
@@ -206,43 +211,48 @@ bool asm_check_char_belong_to_base(char c, size_t base)
 }
 
 /**
- * @brief Copy a substring [start, end) from src into target and null-terminate.
+ * @brief Copy a substring from @p src into @p target by indices and
+ *        null-terminate.
  *
- * Copies characters with indices i = start, start + 1, ..., end - 1 from
- * @p src into @p target, then writes a terminating '\0'.
+ * Copies characters with indices i = start, start + 1, ..., end from @p src
+ * into @p target (note: @p end is inclusive in this implementation), then
+ * ensures @p target is null-terminated.
  *
  * @param target Destination buffer. Must be large enough to hold
- *               (end - start) characters plus the null terminator.
+ *               (end - start + 1) characters plus the null terminator.
  * @param start  Inclusive start index within @p src (0-based).
- * @param end    Exclusive end index within @p src (must satisfy end >= start).
+ * @param end    Inclusive end index within @p src (must satisfy end >= start).
  * @param src    Source string buffer.
  *
  * @warning No bounds checking is performed. The caller must ensure valid
  *          indices and sufficient target capacity.
- * @note This routine supports in-place "left-shift" usage where
- *       target == src and start > 0 (used by asm_get_word_and_cut).
  */
-void asm_copy_array_by_indexes(char *target, int start, int end, char *src)
+void asm_copy_array_by_indexes(char * const target, const int start, const int end, const char * const src)
 {
+    if (start > end) return;
     int j = 0;
-    for (int i = start; i < end; i++) {
+    for (int i = start; i <= end; i++) {
         target[j] = src[i];
         j++;
     }
-    target[j] = '\0';
+    if (target[j-1] != '\0') {
+        target[j] = '\0';
+    }
 }
 
 /**
  * @brief Convert a digit character to its numeric value in base-N.
  *
  * @param c Digit character ('0'–'9', 'a'–'z', 'A'–'Z').
+ * @param base Numeric base in the range [2, 36] (used for validation).
  * @return The numeric value of @p c in the range [0, 35].
  *
  * @note This function assumes @p c is a valid digit character. Call
  *       asm_check_char_belong_to_base() first if validation is needed.
  */
-size_t asm_get_char_value_in_base(char c)
+int asm_get_char_value_in_base(const char c, const size_t base)
 {
+    if (!asm_check_char_belong_to_base(c, base)) return -1;
     if (asm_isdigit(c)) {
         return c - '0';
     } else if (asm_isupper(c)) {
@@ -272,16 +282,16 @@ size_t asm_get_char_value_in_base(char c)
  *       -1. In that case, @p dst is not guaranteed to be null-terminated.
  * @note An empty line (just '\n') returns 0 (not -1).
  */
-int asm_get_line(FILE *fp, char *dst)
+int asm_get_line(FILE *fp, char * const dst)
 {
     int i = 0;
     int c;
-
     while ((c = fgetc(fp)) != '\n' && c != EOF) {
-        dst[i] = c;
-        i++;
+        dst[i++] = c;
         if (i >= ASM_MAX_LEN) {
-            fprintf(stderr, "%s:%d:\n%s:\n[Error] index exceeds ASM_MAX_LEN. Line in file is too long.\n\n", __FILE__, __LINE__, __func__);
+            #ifndef NO_ERRORS
+            fprintf(stderr, "%s:%d:\nIn function '%s':\n[Error] index exceeds ASM_MAX_LEN. Line in file is too long.\n\n", __FILE__, __LINE__, __func__);
+            #endif
             return -1;
         }
     }
@@ -293,60 +303,42 @@ int asm_get_line(FILE *fp, char *dst)
 }
 
 /**
- * @brief Extract the next word from a line without modifying the source.
+ * @brief Copy characters from the start of a string into a token buffer.
  *
- * Skips leading whitespace in @p src (as determined by asm_isspace), then
- * copies characters into @p dst until one of the following is seen:
- *  - the delimiter,
- *  - a newline ('\n'),
+ * Copies characters from @p src into @p dst until one of the following is
+ * encountered in @p src:
+ *  - the delimiter character,
  *  - or the string terminator ('\0').
  *
- * The copied word in @p dst is null-terminated and is never empty on
- * success.
+ * The delimiter (if present) is not copied into @p dst. The resulting token in
+ * @p dst is always null-terminated.
  *
- * Special case:
- *  - If the very first non-whitespace character in @p src is the delimiter,
- *    '\n', or '\0', that single character is returned as a one-character
- *    "word".
- *
- * @param dst       Destination buffer for the extracted word. Must be large
+ * @param dst       Destination buffer for the extracted token. Must be large
  *                  enough to hold the token plus the null terminator.
  * @param src       Source C string to parse (not modified by this function).
  * @param delimiter Delimiter character to stop at.
- * @return The number of characters consumed from @p src (i.e., the index
- *         of the first unconsumed character).
- * @retval -1 No word was found (e.g., only whitespace before a delimiter or
- *         end-of-string).
  *
- * @note The source buffer is not altered. To both extract and advance/cut the
- *       source, see asm_get_word_and_cut().
+ * @return The number of characters copied into @p dst (excluding the null
+ *         terminator). This is also the index in @p src of the delimiter or
+ *         '\0' that stopped the copy.
+ *
+ * @note This function does not skip leading whitespace and does not treat
+ *       newline ('\n') specially; newlines are copied like any other character.
+ *
+ * @note If @p src starts with @p delimiter or '\0', an empty token is produced
+ *       (@p dst becomes ""), and 0 is returned.
  */
-int asm_get_next_word_from_line(char *dst, char *src, char delimiter)
+int asm_get_next_token_from_str(char * const dst, const char * const src, const char delimiter)
 {
     int i = 0, j = 0;
     char c;
-
-    while ((c = src[i]) != delimiter && c != '\n'&& c != '\0') {
-        dst[j] = src[i];
-        i++;
-        j++;
-    }
-
-    if (src[i] == delimiter && asm_str_is_whitespace(dst)) {
-        return i;
-    }
-
-    if ((c == delimiter || c == '\n'|| c == '\0') && i == 0) {
-        dst[j++] = c;
-        i++;
+    while ((c = src[i]) != delimiter && c != '\0') {
+        dst[j++] = src[i++];
     }
 
     dst[j] = '\0';
 
-    if (j == 0) {
-        return -1;
-    }
-    return i;
+    return j;
 }
 
 /**
@@ -375,28 +367,23 @@ int asm_get_next_word_from_line(char *dst, char *src, char delimiter)
  * @param delimiter       Delimiter character to stop at.
  * @param leave_delimiter If true, the delimiter remains at the start of the
  *                        updated @p src; if false, it is removed as well.
- * @return 1 if a word was extracted and @p src adjusted, 0 otherwise.
- */
-int asm_get_word_and_cut(char *dst, char *src, char delimiter, bool leave_delimiter)
+ * @return 1 if a non-empty token was extracted into @p dst, 0 otherwise.
+ *
+ * @note Even when this function returns 0, it may still modify @p src if:
+ *       - leading whitespace was consumed, and/or
+ *       - @p leave_delimiter is false and the delimiter was the first
+ *         non-whitespace character.
+ * */
+int asm_get_token_and_cut(char * const dst, char *src, const char delimiter, const bool leave_delimiter)
 {
-    asm_memset(dst, 0, asm_length(dst));
+    int new_src_start_index = asm_get_next_token_from_str(dst, src, delimiter);
 
-    int last_pos;
-
-    if (src[0] == '\0') {
-        return 0;
-    }
-    last_pos = asm_get_next_word_from_line(dst, src, delimiter);
-    if (last_pos == -1) {
-        return 0;
-    }
     if (leave_delimiter) {
-        asm_copy_array_by_indexes(src, last_pos, asm_length(src), src);
+        asm_left_shift(src, new_src_start_index);
     } else {
-        asm_copy_array_by_indexes(src, last_pos+1, asm_length(src), src);
+        asm_left_shift(src, new_src_start_index + 1);
     }
-
-    return 1;
+    return new_src_start_index ? 1 : 0;
 }
 
 /**
@@ -572,27 +559,58 @@ bool asm_isXdigit(char c)
 }
 
 /**
- * @brief Left-pad a string with spaces in-place.
+ * @brief Left-pad a string in-place.
  *
  * Shifts the contents of @p s to the right by @p padding positions and
- * fills the vacated leading positions with spaces.
+ * fills the vacated leading positions with @p pad.
  *
  * @param s       String to pad. Modified in-place.
  * @param padding Number of leading spaces to insert.
+ * @param pad     The padding character to insert.
  *
  * @warning The buffer backing @p s must have enough capacity for the
  *          original string length plus @p padding and the terminating
  *          null byte. No bounds checking is performed.
  */
-void asm_left_pad(char *s, size_t padding)
+void asm_left_pad(char * const s, const size_t padding, const char pad)
 {
     int len = (int)asm_length(s);
-    for (int i = len+1; i >= 0; i--) {
+    for (int i = len; i >= 0; i--) {
         s[i+(int)padding] = s[i];
     }
     for (int i = 0; i < (int)padding; i++) {
-        s[i] = ' ';
+        s[i] = pad;
     }
+}
+
+/**
+ * @brief Shift a string left in-place by @p shift characters.
+ *
+ * Removes the first @p shift characters from @p s by moving the remaining
+ * characters to the front. The resulting string is always null-terminated.
+ *
+ * @param s     String to modify in-place. Must be null-terminated.
+ * @param shift Number of characters to remove from the front.
+ *
+ * @note If @p shift is 0, @p s is unchanged.
+ * @note If @p shift is greater than or equal to the string length,
+ *       @p s becomes the empty string.
+ */
+void asm_left_shift(char * const s, const size_t shift)
+{
+    size_t len = asm_length(s);
+
+    if (shift == 0) return;
+    if (len <= shift) {
+        s[0] = '\0';
+        return;
+    }
+
+    size_t i;
+    for (i = shift; i < len; i++) {
+        s[i-shift] = s[i];
+    }
+    s[i-shift] = '\0';
 }
 
 /**
@@ -605,14 +623,16 @@ void asm_left_pad(char *s, size_t padding)
  *       a null terminator, an error is printed to stderr and __SIZE_MAX__
  *       is returned.
  */
-size_t asm_length(char *str)
+size_t asm_length(const char * const str)
 {
     char c;
     size_t i = 0;
 
     while ((c = str[i++]) != '\0') {
         if (i > ASM_MAX_LEN) {
+            #ifndef NO_ERRORS
             fprintf(stderr, "%s:%d:\n%s:\n[Error] index exceeds ASM_MAX_LEN_LINE. Probably no NULL termination.\n\n", __FILE__, __LINE__, __func__);
+            #endif
             return __SIZE_MAX__;
         }
     }
@@ -638,16 +658,22 @@ size_t asm_length(char *str)
  * @note Behavior is undefined if @p des overlaps with invalid or
  *       non-writable memory.
  */
-void * asm_memset(void *des, unsigned char value, size_t n)
+void * asm_memset(void * const des, const unsigned char value, const size_t n)
 {
     unsigned char *ptr = (unsigned char *)des;
-    while (n-- > 0) {
+    for (size_t i = n; i-- > 0;) {
         *ptr++ = value;
     }
     return des;
 }
 
-void asm_print_many_times(char *str, size_t n)
+/**
+ * @brief Print a string @p n times, then print a newline.
+ *
+ * @param str String to print (as-is with printf("%s", ...)).
+ * @param n   Number of times to print @p str.
+ */
+void asm_print_many_times(const char * const str, const size_t n)
 {
     for (size_t i = 0; i < n; i++) {
         printf("%s", str);
@@ -667,12 +693,14 @@ void asm_print_many_times(char *str, size_t n)
  * @note If @p index is out of range, an error is printed to stderr and
  *       the string is left unchanged.
  */
-void asm_remove_char_form_string(char *s, size_t index)
+void asm_remove_char_form_string(char * const s, const size_t index)
 {
     size_t len = asm_length(s);
     if (len == 0) return;
     if (index >= len) {
+        #ifndef NO_ERRORS
         fprintf(stderr, "%s:%d:\n%s:\n[Error] index exceeds array length.\n\n", __FILE__, __LINE__, __func__);
+        #endif
         return;
     }
 
@@ -695,7 +723,7 @@ void asm_remove_char_form_string(char *s, size_t index)
  * @note If @p word_to_search is the empty string, the behavior is not
  *       well-defined and should be avoided.
  */
-int asm_str_in_str(char *src, char *word_to_search)
+int asm_str_in_str(const char * const src, const char * const word_to_search)
 {
     int i = 0, num_of_accur = 0;
     while (src[i] != '\0') {
@@ -725,29 +753,33 @@ int asm_str_in_str(char *src, char *word_to_search)
  * @note On invalid base, an error is printed to stderr, *end (if non-NULL)
  *       is set to @p s, and 0.0 is returned.
  */
-double asm_str2double(char *s, char **end, size_t base)
+double asm_str2double(const char * const s, const char ** const end, const size_t base)
 {
     if (base < 2 || base > 36) {
+        #ifndef NO_ERRORS
         fprintf(stderr, "%s:%d:\n%s:\n[Error] Supported bases are [2...36]. Input: %zu\n\n", __FILE__, __LINE__, __func__, base);
+        #endif
         if (end) *end = s;
         return 0.0f;
     }
-    while (asm_isspace(*s)) {
-        s++;
+
+    int num_of_whitespace = 0;
+    while (asm_isspace(s[num_of_whitespace])) {
+        num_of_whitespace++;
     }
 
     int i = 0;
-    if (s[0] == '-' || s[0] == '+') {
+    if (s[0+num_of_whitespace] == '-' || s[0+num_of_whitespace] == '+') {
         i++;
     }
-    int sign = s[0] == '-' ? -1 : 1;
+    int sign = s[0+num_of_whitespace] == '-' ? -1 : 1;
 
     size_t left = 0;
-    for (; asm_check_char_belong_to_base(s[i], base); i++) {
-        left = base * left + asm_get_char_value_in_base(s[i]);
+    for (; asm_check_char_belong_to_base(s[i+num_of_whitespace], base); i++) {
+        left = base * left + asm_get_char_value_in_base(s[i+num_of_whitespace], base);
     }
-    if (s[i] != '.') {
-        if (end) *end = s + i;
+    if (s[i+num_of_whitespace] != '.') {
+        if (end) *end = s + i + num_of_whitespace;
         return (left * sign);
     }
 
@@ -755,12 +787,12 @@ double asm_str2double(char *s, char **end, size_t base)
 
     double right = 0;
     size_t divider = base;
-    for (; asm_check_char_belong_to_base(s[i], base); i++) {
-        right = right + asm_get_char_value_in_base(s[i]) / (double)divider;
+    for (; asm_check_char_belong_to_base(s[i+num_of_whitespace], base); i++) {
+        right = right + asm_get_char_value_in_base(s[i+num_of_whitespace], base) / (double)divider;
         divider *= base;
     }
 
-    if (end) *end = s + i;
+    if (end) *end = s + i + num_of_whitespace;
 
     return sign * (left + right);
 }
@@ -783,29 +815,32 @@ double asm_str2double(char *s, char **end, size_t base)
  * @note On invalid base, an error is printed to stderr, *end (if non-NULL)
  *       is set to @p s, and 0.0f is returned.
  */
-float asm_str2float(char *s, char **end, size_t base)
+float asm_str2float(const char * const s, const char ** const end, const size_t base)
 {
     if (base < 2 || base > 36) {
+        #ifndef NO_ERRORS
         fprintf(stderr, "%s:%d:\n%s:\n[Error] Supported bases are [2...36]. Input: %zu\n\n", __FILE__, __LINE__, __func__, base);
+        #endif
         if (end) *end = s;
         return 0.0f;
     }
-    while (asm_isspace(*s)) {
-        s++;
+    int num_of_whitespace = 0;
+    while (asm_isspace(s[num_of_whitespace])) {
+        num_of_whitespace++;
     }
 
     int i = 0;
-    if (s[0] == '-' || s[0] == '+') {
+    if (s[0+num_of_whitespace] == '-' || s[0+num_of_whitespace] == '+') {
         i++;
     }
-    int sign = s[0] == '-' ? -1 : 1;
+    int sign = s[0+num_of_whitespace] == '-' ? -1 : 1;
 
     int left = 0;
-    for (; asm_check_char_belong_to_base(s[i], base); i++) {
-        left = base * left + asm_get_char_value_in_base(s[i]);
+    for (; asm_check_char_belong_to_base(s[i+num_of_whitespace], base); i++) {
+        left = base * left + asm_get_char_value_in_base(s[i+num_of_whitespace], base);
     }
-    if (s[i] != '.') {
-        if (end) *end = s + i;
+    if (s[i+num_of_whitespace] != '.') {
+        if (end) *end = s + i + num_of_whitespace;
         return left * sign;
     }
 
@@ -813,12 +848,12 @@ float asm_str2float(char *s, char **end, size_t base)
 
     float right = 0;
     size_t divider = base;
-    for (; asm_check_char_belong_to_base(s[i], base); i++) {
-        right = right + asm_get_char_value_in_base(s[i]) / (float)divider;
+    for (; asm_check_char_belong_to_base(s[i+num_of_whitespace], base); i++) {
+        right = right + asm_get_char_value_in_base(s[i+num_of_whitespace], base) / (float)divider;
         divider *= base;
     }
 
-    if (end) *end = s + i;
+    if (end) *end = s + i + num_of_whitespace;
 
     return sign * (left + right);
 }
@@ -839,28 +874,31 @@ float asm_str2float(char *s, char **end, size_t base)
  * @note On invalid base, an error is printed to stderr, *end (if non-NULL)
  *       is set to @p s, and 0 is returned.
  */
-int asm_str2int(char *s, char **end, size_t base)
+int asm_str2int(const char * const s, const char ** const end, const size_t base)
 {
     if (base < 2 || base > 36) {
+        #ifndef NO_ERRORS
         fprintf(stderr, "%s:%d:\n%s:\n[Error] Supported bases are [2...36]. Input: %zu\n\n", __FILE__, __LINE__, __func__, base);
+        #endif
         if (end) *end = s;
         return 0;
     }
-    while (asm_isspace(*s)) {
-        s++;
+    int num_of_whitespace = 0;
+    while (asm_isspace(s[num_of_whitespace])) {
+        num_of_whitespace++;
     }
 
     int n = 0, i = 0;
-    if (s[0] == '-' || s[0] == '+') {
+    if (s[0+num_of_whitespace] == '-' || s[0+num_of_whitespace] == '+') {
         i++;
     }
-    int sign = s[0] == '-' ? -1 : 1;
+    int sign = s[0+num_of_whitespace] == '-' ? -1 : 1;
 
-    for (; asm_check_char_belong_to_base(s[i], base); i++) {
-        n = base * n + asm_get_char_value_in_base(s[i]);
+    for (; asm_check_char_belong_to_base(s[i+num_of_whitespace], base); i++) {
+        n = base * n + asm_get_char_value_in_base(s[i+num_of_whitespace], base);
     }
 
-    if (end) *end = s + i;
+    if (end) *end = s + i+num_of_whitespace;
 
     return n * sign;
 }
@@ -881,33 +919,40 @@ int asm_str2int(char *s, char **end, size_t base)
  * @note On invalid base or a negative sign, an error is printed to stderr,
  *       *end (if non-NULL) is set to @p s, and 0 is returned.
  */
-size_t asm_str2size_t(char *s, char **end, size_t base)
+size_t asm_str2size_t(const char * const s, const char ** const end, const size_t base)
 {
-    if (base < 2 || base > 36) {
-        fprintf(stderr, "%s:%d:\n%s:\n[Error] Supported bases are [2...36]. Input: %zu\n\n", __FILE__, __LINE__, __func__, base);
-        if (end) *end = s;
-        return 0;
-    }
-    while (asm_isspace(*s)) {
-        s++;
+    if (end) *end = s;
+
+    int num_of_whitespace = 0;
+    while (asm_isspace(s[num_of_whitespace])) {
+        num_of_whitespace++;
     }
 
-    if (s[0] == '-') {
+    if (s[0+num_of_whitespace] == '-') {
+        #ifndef NO_ERRORS
         fprintf(stderr, "%s:%d:\n%s:\n[Error] Unable to convert a negative number to size_t.\n\n", __FILE__, __LINE__, __func__);
-        if (end) *end = s;
+        #endif
+        return 0;
+    }
+
+    if (base < 2 || base > 36) {
+        #ifndef NO_ERRORS
+        fprintf(stderr, "%s:%d:\n%s:\n[Error] Supported bases are [2...36]. Input: %zu\n\n", __FILE__, __LINE__, __func__, base);
+        #endif
+        if (end) *end = s+num_of_whitespace;
         return 0;
     }
 
     size_t n = 0, i = 0;
-    if (s[0] == '+') {
+    if (s[0+num_of_whitespace] == '+') {
         i++;
     }
 
-    for (; asm_check_char_belong_to_base(s[i], base); i++) {
-        n = base * n + asm_get_char_value_in_base(s[i]);
+    for (; asm_check_char_belong_to_base(s[i+num_of_whitespace], base); i++) {
+        n = base * n + asm_get_char_value_in_base(s[i+num_of_whitespace], base);
     }
 
-    if (end) *end = s + i;
+    if (end) *end = s + i+num_of_whitespace;
 
     return n;
 }
@@ -921,7 +966,7 @@ size_t asm_str2size_t(char *s, char **end, size_t base)
  *
  * @param s String to modify in-place. Must be null-terminated.
  */
-void asm_strip_whitespace(char *s)
+void asm_strip_whitespace(char * const s)
 {
     size_t len = asm_length(s);
     size_t i;
@@ -935,7 +980,14 @@ void asm_strip_whitespace(char *s)
     s[i] = '\0';
 }
 
-bool asm_str_is_whitespace(char *s)
+/**
+ * @brief Check whether a string contains only ASCII whitespace characters.
+ *
+ * @param s Null-terminated string to test.
+ * @return true if every character in @p s satisfies asm_isspace(), or if
+ *         @p s is the empty string; false otherwise.
+ */
+bool asm_str_is_whitespace(const char * const s)
 {
     for (size_t i = 0; i < asm_length(s); i++) {
         if (!asm_isspace(s[i])) {
@@ -946,7 +998,27 @@ bool asm_str_is_whitespace(char *s)
     return true;
 }
 
-int asm_strncat(char *s1, char *s2, const int N)
+/**
+ * @brief Append up to @p N characters from @p s2 to the end of @p s1.
+ *
+ * Appends characters from @p s2 to the end of @p s1 until either:
+ *  - @p N characters were appended, or
+ *  - a '\0' is encountered in @p s2.
+ *
+ * After appending, this implementation writes a terminating '\0' to @p s1.
+ *
+ * @param s1 Destination string buffer (must be null-terminated).
+ * @param s2 Source string buffer (must be null-terminated).
+ * @param N  Maximum number of characters to append. If N == 0, the limit
+ *           defaults to ASM_MAX_LEN.
+ *
+ * @return The number of characters appended to @p s1.
+ *
+ * @warning This function uses ASM_MAX_LEN as an upper bound for the resulting
+ *          length (excluding the terminating '\0'). The caller must ensure
+ *          @p s1 has capacity of at least ASM_MAX_LEN bytes.
+ */
+int asm_strncat(char * const s1, const char * const s2, const int N)
 {
     size_t len_s1 = asm_length(s1);
 
@@ -957,8 +1029,10 @@ int asm_strncat(char *s1, char *s2, const int N)
 
     int i = 0;
     while (i < limit && s2[i] != '\0') {
-        if (len_s1+i > ASM_MAX_LEN) {
+        if (len_s1 + (size_t)i >= ASM_MAX_LEN) {
+            #ifndef NO_ERRORS
             fprintf(stderr, "%s:%d:\n%s:\n[Error] s2 or the first N=%d digit of s2 does not fit into s1.\n\n", __FILE__, __LINE__, __func__, N);
+            #endif
             return i;
         }
 
@@ -1004,7 +1078,7 @@ int asm_strncmp(const char *s1, const char *s2, const int N)
  *
  * @param s String to modify in-place. Must be null-terminated.
  */
-void asm_tolower(char *s)
+void asm_tolower(char * const s)
 {
     size_t len = asm_length(s);
     for (size_t i = 0; i < len; i++) {
@@ -1019,7 +1093,7 @@ void asm_tolower(char *s)
  *
  * @param s String to modify in-place. Must be null-terminated.
  */
-void asm_toupper(char *s)
+void asm_toupper(char * const s)
 {
     size_t len = asm_length(s);
     for (size_t i = 0; i < len; i++) {
@@ -1028,6 +1102,10 @@ void asm_toupper(char *s)
         }
     }
 }
+
+#ifdef NO_ERRORS
+#undef NO_ERRORS
+#endif
 
 #endif /*ALMOG_STRING_MANIPULATION_IMPLEMENTATION*/
 
