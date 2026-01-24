@@ -35,6 +35,8 @@ struct Lexer {
 
 #define AL_UNUSED(x) (void)x
 
+bool            al_is_symbol(char c);
+bool            al_is_symbol_start(char c);
 struct Lexer    al_lexer_alloc(const char *content, size_t len);
 void            al_lexer_trim_left(struct Lexer *l);
 struct Token    al_lexer_next_token(struct Lexer *l);
@@ -46,6 +48,16 @@ struct Token    al_lexer_next_token(struct Lexer *l);
 
 #define ALMOG_STRING_MANIPULATION_IMPLEMENTATION
 #include "Almog_String_Manipulation.h"
+
+bool al_is_symbol(char c)
+{
+    return asm_isalnum(c) || c == '_';
+}
+
+bool al_is_symbol_start(char c)
+{
+    return asm_isalpha(c) || c == '_';
+}
 
 struct Lexer al_lexer_alloc(const char *content, size_t len)
 {

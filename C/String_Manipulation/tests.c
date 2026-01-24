@@ -296,23 +296,23 @@ static void test_left_shift_edges(void)
     char s[64];
 
     strcpy(s, "abcdef");
-    asm_left_shift(s, 0);
+    asm_shift_left(s, 0);
     TEST_EQ_STR(s, "abcdef");
 
     strcpy(s, "abcdef");
-    asm_left_shift(s, 1);
+    asm_shift_left(s, 1);
     TEST_EQ_STR(s, "bcdef");
 
     strcpy(s, "abcdef");
-    asm_left_shift(s, 5);
+    asm_shift_left(s, 5);
     TEST_EQ_STR(s, "f");
 
     strcpy(s, "abcdef");
-    asm_left_shift(s, 6);
+    asm_shift_left(s, 6);
     TEST_EQ_STR(s, "");
 
     strcpy(s, "abcdef");
-    asm_left_shift(s, 1000);
+    asm_shift_left(s, 1000);
     TEST_EQ_STR(s, "");
 }
 
@@ -320,17 +320,17 @@ static void test_left_pad_edges_and_sentinel(void)
 {
     {
         char s[64] = "abc";
-        asm_left_pad(s, 0, ' ');
+        asm_pad_left(s, 0, ' ');
         TEST_EQ_STR(s, "abc");
     }
     {
         char s[64] = "abc";
-        asm_left_pad(s, 4, ' ');
+        asm_pad_left(s, 4, ' ');
         TEST_EQ_STR(s, "    abc");
     }
     {
         char s[64] = "";
-        asm_left_pad(s, 3, '_');
+        asm_pad_left(s, 3, '_');
         TEST_EQ_STR(s, "___");
     }
 
@@ -346,7 +346,7 @@ static void test_left_pad_edges_and_sentinel(void)
     fill_sentinel(box.post, sizeof(box.post), 0x22);
 
     strcpy(box.s, "x");
-    asm_left_pad(box.s, 5, '0');
+    asm_pad_left(box.s, 5, '0');
     TEST_EQ_STR(box.s, "00000x");
 
     for (size_t i = 0; i < sizeof(box.pre); i++) TEST_CASE(box.pre[i] == 0x11);
@@ -360,27 +360,27 @@ static void test_remove_char_form_string_edges(void)
     char s[64];
 
     strcpy(s, "abcd");
-    asm_remove_char_form_string(s, 1);
+    asm_remove_char_from_string(s, 1);
     TEST_EQ_STR(s, "acd");
 
     strcpy(s, "abcd");
-    asm_remove_char_form_string(s, 0);
+    asm_remove_char_from_string(s, 0);
     TEST_EQ_STR(s, "bcd");
 
     strcpy(s, "abcd");
-    asm_remove_char_form_string(s, 3);
+    asm_remove_char_from_string(s, 3);
     TEST_EQ_STR(s, "abc");
 
     strcpy(s, "a");
-    asm_remove_char_form_string(s, 0);
+    asm_remove_char_from_string(s, 0);
     TEST_EQ_STR(s, "");
 
     strcpy(s, "");
-    asm_remove_char_form_string(s, 0);
+    asm_remove_char_from_string(s, 0);
     TEST_EQ_STR(s, "");
 
     strcpy(s, "abcd");
-    asm_remove_char_form_string(s, 999);
+    asm_remove_char_from_string(s, 999);
     TEST_EQ_STR(s, "abcd");
 }
 

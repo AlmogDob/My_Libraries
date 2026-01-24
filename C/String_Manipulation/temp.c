@@ -16,7 +16,7 @@ int main(void)
     asm_dprintSTRING(str);
     asm_dprintSTRING(str1);
 
-    asm_left_pad(str1, 2, '*');
+    asm_pad_left(str1, 2, '*');
     asm_dprintSTRING(str1);
 
 
