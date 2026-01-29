@@ -11,6 +11,14 @@ SRC_DIR  := .
 temp: SRC_LIST := $(SRC_DIR)/temp.c
 temp: build run clean
 
+.PHONY: tests
+tests: SRC_LIST := $(SRC_DIR)/tests.c
+tests: build run clean
+
+.PHONY: all
+all: SRC_LIST := $(SRC_DIR)/tests.c $(SRC_DIR)/temp.c
+all: build run clean
+
 #-----------------
 .PHONY: build 
 build: 
@@ -65,8 +73,8 @@ profile_build_temp: ./temp.c
 # valgrind -s --leak-check=full ./temp
 # cloc --exclude-lang=JSON,make .
 
-strip_comments_Almog_C_Lexer: ./Almog_C_Lexer.h
-	gcc -fpreprocessed -dD -E -P ./Almog_C_Lexer.h > ./striped_Almog_C_Lexer.h
+strip_comments_Almog_Lexer: ./Almog_Lexer.h
+	gcc -fpreprocessed -dD -E -P ./Almog_Lexer.h > ./striped_Almog_Lexer.h
 
 
 docs: doxygen.txt

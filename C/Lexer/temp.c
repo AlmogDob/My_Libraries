@@ -11,7 +11,9 @@ struct String {
 
 int main(void)
 {
-    FILE *fp = fopen("./Almog_Dynamic_Array.h", "r");
+    FILE *fp = fopen("./temp.c", "r");
+
+    #
 
     struct String string = {0};
     ada_init_array(char, string);

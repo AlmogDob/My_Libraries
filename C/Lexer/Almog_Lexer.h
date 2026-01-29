@@ -1,6 +1,18 @@
-/** This single header library is insapired by
+/**
+ * @file
+ * @brief A small single-header lexer for C/C++-like source text.
+ *
+ * The lexer operates on a caller-provided, read-only character buffer.
+ * It produces tokens that reference slices of the original buffer (no
+ * allocations and no null-termination guarantees).
+ *
+ * @note This header depends on "Almog_String_Manipulation.h" for the
+ *       `asm_*` character classification and string helper routines used
+ *       by the implementation (e.g. `asm_isalpha`, `asm_isspace`, etc.).
+ * @note This single header library is insapired by
  * Tsoding's C-lexer implementation: https://youtu.be/AqyZztKlSGQ
  */
+
 #ifndef ALMOG_LEXER_H_
 #define ALMOG_LEXER_H_
 
@@ -20,8 +32,11 @@ enum Token_Kind {
     TOKEN_PP_DIRECTIVE,
     TOKEN_COMMENT,
     TOKEN_STRING_LIT,
+    TOKEN_CHAR_LIT,
+    TOKEN_NUMBER,
     TOKEN_KEYWORD,
     TOKEN_IDENTIFIER,
+
 
     /* Grouping / separators */
     TOKEN_LPAREN,
@@ -36,6 +51,7 @@ enum Token_Kind {
     TOKEN_COMMA,
     TOKEN_SEMICOLON,
     TOKEN_BSLASH,
+    TOKEN_HASH,
 
     /* Ternary */
     TOKEN_QUESTION,
@@ -106,6 +122,7 @@ static struct Literal_Token literal_tokens[] = {
     {.text = "]"  , .kind = TOKEN_RBRACKET},
     {.text = "{"  , .kind = TOKEN_LBRACE}, 
     {.text = "}"  , .kind = TOKEN_RBRACE},
+    {.text = "#"  , .kind = TOKEN_HASH},
     {.text = "...", .kind = TOKEN_ELLIPSIS},
     {.text = "."  , .kind = TOKEN_DOT},
     {.text = ","  , .kind = TOKEN_COMMA},
@@ -172,6 +189,12 @@ struct Location {
     size_t col;
 };
 
+/**
+ * @brief A token produced by the lexer.
+ *
+ * `text` points into the original input buffer passed to @ref al_lexer_alloc.
+ * The token text is not null-terminated; use `text_len`.
+ */
 struct Token {
     enum Token_Kind kind;
     const char *text;
@@ -179,6 +202,17 @@ struct Token {
     struct Location location;
 };
 
+/**
+ * @brief Lexer state over a caller-provided input buffer.
+ *
+ * The lexer does not own `content`; the caller must keep it valid for the
+ * lifetime of any tokens referencing it.
+ *
+ * Internal location tracking:
+ * - `line_num` is 0-based internally (first line is 0).
+ * - `begining_of_line` is the cursor index of the first character of the
+ *   current line (used for column calculation).
+ */
 struct Lexer {
     const char * content;
     size_t content_len;
@@ -189,13 +223,15 @@ struct Lexer {
 
 #define AL_UNUSED(x) (void)x
 
-bool            al_is_symbol(char c);
-bool            al_is_symbol_start(char c);
+bool            al_is_identifier(char c);
+bool            al_is_identifier_start(char c);
 struct Lexer    al_lexer_alloc(const char *content, size_t len);
 char            al_lexer_chop_char(struct Lexer *l);
+void            al_lexer_chop_while(struct Lexer *l, bool (*pred)(char));
 struct Token    al_lexer_next_token(struct Lexer *l);
 bool            al_lexer_start_with(struct Lexer *l, const char *prefix);
 void            al_lexer_trim_left(struct Lexer *l);
+char            al_lexer_peek(const struct Lexer *l, size_t off);
 void            al_token_print(struct Token tok);
 const char *    al_token_kind_name(enum Token_Kind kind);
 
@@ -204,17 +240,45 @@ const char *    al_token_kind_name(enum Token_Kind kind);
 #ifdef ALMOG_LEXER_IMPLEMENTATION
 #undef ALMOG_LEXER_IMPLEMENTATION
 
+#define ASM_NO_ERRORS
 
-bool al_is_symbol(char c)
+/**
+ * @brief Returns whether @p c can appear in an identifier after the first
+ * character.
+ *
+ * Matches the implementation: alphanumeric (per `asm_isalnum`) or underscore.
+ *
+ * @param c Character to test.
+ * @return true if @p c is valid as a non-initial identifier character.
+ */
+bool al_is_identifier(char c)
 {
     return asm_isalnum(c) || c == '_';
 }
 
-bool al_is_symbol_start(char c)
+/**
+ * @brief Returns whether @p c can start an identifier.
+ *
+ * Matches the implementation: alphabetic (per `asm_isalpha`) or underscore.
+ *
+ * @param c Character to test.
+ * @return true if @p c is valid as an initial identifier character.
+ */
+bool al_is_identifier_start(char c)
 {
     return asm_isalpha(c) || c == '_';
 }
 
+/**
+ * @brief Create a lexer over an input buffer.
+ *
+ * Initializes cursor and location state to the beginning of the buffer.
+ * No memory is allocated; the lexer holds only pointers/indices.
+ *
+ * @param content Pointer to the input text (need not be null-terminated).
+ * @param len Length of @p content in bytes.
+ * @return A lexer initialized to the start of @p content.
+ */
 struct Lexer al_lexer_alloc(const char *content, size_t len)
 {
     struct Lexer l = {0};
@@ -223,6 +287,20 @@ struct Lexer al_lexer_alloc(const char *content, size_t len)
     return l;
 }
 
+/**
+ * @brief Consume and return the next character from the input.
+ *
+ * Advances the lexer's cursor by 1. If the consumed character is a newline
+ * (`'\\n'`), the lexer's internal line/column bookkeeping is updated:
+ * - `line_num` is incremented
+ * - `begining_of_line` is set to the new cursor position
+ *
+ * @param l Lexer to advance.
+ * @return The consumed character.
+ *
+ * @pre `l->cursor < l->content_len` (enforced via @c AL_ASSERT in the
+ *      implementation).
+ */
 char al_lexer_chop_char(struct Lexer *l)
 {
     AL_ASSERT(l->cursor < l->content_len);
@@ -234,6 +312,65 @@ char al_lexer_chop_char(struct Lexer *l)
     return c;
 }
 
+/**
+ * @brief Consume characters while @p pred returns true for the next character.
+ *
+ * Uses @ref al_lexer_chop_char internally, so newline bookkeeping is applied.
+ *
+ * @param l Lexer to advance.
+ * @param pred Predicate called with the next character to decide whether to
+ *             consume it.
+ */
+void al_lexer_chop_while(struct Lexer *l, bool (*pred)(char))
+{
+    while (l->cursor < l->content_len && pred(l->content[l->cursor])) {
+        al_lexer_chop_char(l);
+    }
+}
+
+/**
+ * @brief Return the next token from the input and advance the lexer.
+ *
+ * This function first calls @ref al_lexer_trim_left, so leading whitespace is
+ * skipped (including newlines).
+ *
+ * The returned token:
+ * - has `text` pointing into the original buffer at the token start
+ * - has `text_len` equal to the number of bytes consumed for the token
+ * - has 1-based `location.line_num` and 1-based `location.col`
+ *
+ * Tokenization behavior matches the implementation:
+ * - End of input => @c TOKEN_EOF
+ * - Preprocessor directive: a `#` at column 1 (after trimming) consumes until
+ *   newline (and includes the newline if present) => @c TOKEN_PP_DIRECTIVE
+ * - Identifiers: `[A-Za-z_][A-Za-z0-9_]*` => @c TOKEN_IDENTIFIER, upgraded to
+ *   @c TOKEN_KEYWORD if it matches an entry in `keywords[]`
+ * - String literal: starts with `"` and consumes until the next `"` or newline
+ *   (includes the closing `"` if present) => @c TOKEN_STRING_LIT
+ * - Character literal: starts with `'` and consumes until the next `'` or
+ *   newline (includes the closing `'` if present) => @c TOKEN_CHAR_LIT
+ * - Line comment: starts with `//` and consumes until newline (and includes the
+ *   newline if present) => @c TOKEN_COMMENT
+ * - Block comment: starts with `/ *` and consumes until the first `*\ /` (includes
+ *   the final `/`), or until end of input => @c TOKEN_COMMENT
+ * - Number literals:
+ *   - decimal integers/floats with optional exponent (`e`/`E`)
+ *   - hex integers and hex floats (hex float requires `p`/`P` exponent when a
+ *     fractional part is present)
+ *   - binary integers with `0b`/`0B`
+ *   - explicit octal integers with `0o`/`0O`
+ *   - accepts common integer suffixes (`uUlLzZ`) and float suffixes (`fFlL`)
+ *   - certain malformed forms are returned as @c TOKEN_INVALID
+ * - Otherwise: matches the longest operator/punctuation from `literal_tokens[]`
+ *   (longest-match rule) and returns its kind
+ * - If nothing matches, consumes one character and returns @c TOKEN_INVALID
+ *
+ * @warning Escape sequences in string/character literals are not interpreted;
+ *          a quote character ends the literal even if preceded by a backslash.
+ *
+ * @param l Lexer to tokenize from.
+ * @return The next token.
+ */
 struct Token al_lexer_next_token(struct Lexer *l)
 {
     al_lexer_trim_left(l);
@@ -242,92 +379,232 @@ struct Token al_lexer_next_token(struct Lexer *l)
         .kind = TOKEN_INVALID,
         .text = &(l->content[l->cursor]),
         .text_len = 0,
-        .location.line_num = l->line_num,
-        .location.col = l->cursor - l->begining_of_line,
+        .location.line_num = l->line_num+1,
+        .location.col = l->cursor - l->begining_of_line+1,
     };
+    size_t start = l->cursor;
 
     if (l->cursor >= l->content_len) {
         token.kind = TOKEN_EOF;
-        token.text_len = 0;
-    } else if (l->content[l->cursor] == '#' && token.location.col == 0) {
+    } else if (l->content[l->cursor] == '#' && token.location.col == 1) {
         token.kind = TOKEN_PP_DIRECTIVE;
         for (;l->cursor < l->content_len && l->content[l->cursor] != '\n';) {
             al_lexer_chop_char(l);
-            token.text_len++;
         }
         if (l->cursor < l->content_len) {
             al_lexer_chop_char(l);
         }
-    } else if (al_is_symbol_start(l->content[l->cursor])) {
+    } else if (al_is_identifier_start(l->content[l->cursor])) {
         token.kind = TOKEN_IDENTIFIER;
-        for ( ; l->cursor < l->content_len && al_is_symbol(l->content[l->cursor]); ) {
-            token.text_len++;
+        for ( ; l->cursor < l->content_len && al_is_identifier(l->content[l->cursor]); ) {
             al_lexer_chop_char(l);
         }
-        for (size_t i = 0; i < keywords_count; i++) {
-            if ((token.text_len == asm_length(keywords[i])) && (asm_strncmp(token.text, keywords[i], asm_length(keywords[i])))) {
-                token.kind = TOKEN_KEYWORD;
-                break;
+        {
+            size_t ident_len = l->cursor - start;
+            for (size_t i = 0; i < keywords_count; i++) {
+                size_t kw_len = asm_length(keywords[i]);
+                if (ident_len == kw_len && asm_strncmp(token.text, keywords[i], kw_len)) {
+                    token.kind = TOKEN_KEYWORD;
+                    break;
+                }
             }
         }
     } else if (l->content[l->cursor] == '"') {
         token.kind = TOKEN_STRING_LIT;
-        token.text_len++;
         al_lexer_chop_char(l);
         for ( ; (l->cursor < l->content_len) && (l->content[l->cursor] != '"') && (l->content[l->cursor] != '\n'); ) {
-            token.text_len++;
             al_lexer_chop_char(l);
         }
         if ((l->cursor < l->content_len) && (l->content[l->cursor] == '"')) {
-            token.text_len++;
+            al_lexer_chop_char(l);
+        }
+    } else if (l->content[l->cursor] == '\'') {
+        token.kind = TOKEN_CHAR_LIT;
+        al_lexer_chop_char(l);
+        for ( ; (l->cursor < l->content_len) && (l->content[l->cursor] != '\'') && (l->content[l->cursor] != '\n'); ) {
+            al_lexer_chop_char(l);
+        }
+        if ((l->cursor < l->content_len) && (l->content[l->cursor] == '\'')) {
             al_lexer_chop_char(l);
         }
     } else if (al_lexer_start_with(l, "//")) {
         token.kind = TOKEN_COMMENT;
         for (;l->cursor < l->content_len && l->content[l->cursor] != '\n';) {
             al_lexer_chop_char(l);
-            token.text_len++;
         }
         if (l->cursor < l->content_len) {
             al_lexer_chop_char(l);
         }
     } else if (al_lexer_start_with(l, "/*")) {
         token.kind = TOKEN_COMMENT;
-        token.text_len = 2;
         al_lexer_chop_char(l);
         al_lexer_chop_char(l);
         for ( ; l->cursor < l->content_len; ) {
-            token.text_len++;
             if ((l->content[l->cursor-1] == '*') && (l->content[l->cursor] == '/')) {
                 al_lexer_chop_char(l);
                 break;
             }
             al_lexer_chop_char(l);
         }
+    } else if (asm_isdigit(l->content[l->cursor]) || (l->content[l->cursor] == '.' && asm_isdigit(al_lexer_peek(l, 1)))) {
+        token.kind = TOKEN_NUMBER;
+
+        bool is_float = false;
+        bool invalid = false;
+
+        /* decimal float starting with "." */
+        if (l->content[l->cursor] == '.') {
+            is_float = true;
+            al_lexer_chop_char(l);
+            al_lexer_chop_while(l, asm_isdigit);
+
+            /* optional exponent */
+            if (al_lexer_peek(l, 0) == 'e' || al_lexer_peek(l, 0) == 'E') {
+                is_float = true;
+                al_lexer_chop_char(l);
+                if (al_lexer_peek(l, 0) == '+' || al_lexer_peek(l, 0) == '-') {
+                    al_lexer_chop_char(l);
+                }
+                if (!asm_isdigit(al_lexer_peek(l, 0))) {
+                    invalid = true; /* ".5e" or ".5e+" */
+                }
+                al_lexer_chop_while(l, asm_isdigit);
+            }
+        } else {
+            /* starts with digit */
+            if (al_lexer_peek(l, 0) == '0' && (al_lexer_peek(l, 1) == 'x' || al_lexer_peek(l, 1) == 'X')) {
+                /* hex int or hex float */
+                al_lexer_chop_char(l);
+                al_lexer_chop_char(l);
+
+                size_t mantissa_digits = 0;
+                while (asm_isXdigit(al_lexer_peek(l, 0)) || asm_isxdigit(al_lexer_peek(l, 0))) {
+                    mantissa_digits++;
+                    al_lexer_chop_char(l);
+                }
+                if (al_lexer_peek(l, 0) == '.') {
+                    is_float = true;
+                    al_lexer_chop_char(l);
+                    while (asm_isXdigit(al_lexer_peek(l, 0)) || asm_isxdigit(al_lexer_peek(l, 0))) {
+                        mantissa_digits++;
+                        al_lexer_chop_char(l);
+                    }
+                }
+                if (mantissa_digits == 0) {
+                    invalid = true; /* "0x" or "0x." */
+                }
+
+                /* Hex float requires p/P exponent if it's a float form. */
+                if (al_lexer_peek(l, 0) == 'p' || al_lexer_peek(l, 0) == 'P') {
+                    is_float = true;
+                    al_lexer_chop_char(l);
+                    if (al_lexer_peek(l, 0) == '+' || al_lexer_peek(l, 0) == '-') {
+                        al_lexer_chop_char(l);
+                    }
+                    if (!asm_isdigit(al_lexer_peek(l, 0))) {
+                        invalid = true; /* "0x1.fp" / "0x1p+" */
+                    }
+                    al_lexer_chop_while(l, asm_isdigit);
+                } else if (is_float) {
+                    /* Had a '.' in hex mantissa but no p-exponent => invalid hex float */
+                    invalid = true;
+                }
+            } else if (al_lexer_peek(l, 0) == '0' && (al_lexer_peek(l, 1) == 'b' || al_lexer_peek(l, 1) == 'B')) {
+                /* binary int */
+                al_lexer_chop_char(l);
+                al_lexer_chop_char(l);
+                if (!asm_isbdigit(al_lexer_peek(l, 0))) {
+                    invalid = true; /* "0b" */
+                }
+                al_lexer_chop_while(l, asm_isbdigit);
+            } else if (al_lexer_peek(l, 0) == '0' && (al_lexer_peek(l, 1) == 'o' || al_lexer_peek(l, 1) == 'O')) {
+                /* explicit octal int */
+                al_lexer_chop_char(l);
+                al_lexer_chop_char(l);
+                if (!asm_isodigit(al_lexer_peek(l, 0))) {
+                    invalid = true; /* "0o" */
+                }
+                while (asm_isodigit(al_lexer_peek(l, 0))) {
+                    al_lexer_chop_char(l);
+                }
+            } else {
+                /* decimal int or decimal float */
+                al_lexer_chop_while(l, asm_isdigit);
+
+                if (al_lexer_peek(l, 0) == '.') {
+                    is_float = true;
+                    al_lexer_chop_char(l);
+                    al_lexer_chop_while(l, asm_isdigit);
+                }
+
+                if (al_lexer_peek(l, 0) == 'e' || al_lexer_peek(l, 0) == 'E') {
+                    is_float = true;
+                    al_lexer_chop_char(l);
+                    if (al_lexer_peek(l, 0) == '+' || al_lexer_peek(l, 0) == '-') {
+                        al_lexer_chop_char(l);
+                    }
+                    if (!asm_isdigit(al_lexer_peek(l, 0))) {
+                        invalid = true; /* "1e" / "1e+" */
+                    }
+                    al_lexer_chop_while(l, asm_isdigit);
+                }
+            }
+        }
+
+        /* Suffix handling */
+        if (is_float) {
+            /* float suffixes: f/F/l/L (accept at most one, but we’ll be permissive) */
+            while (al_lexer_peek(l, 0) == 'f' || al_lexer_peek(l, 0) == 'F' ||
+                   al_lexer_peek(l, 0) == 'l' || al_lexer_peek(l, 0) == 'L') {
+                al_lexer_chop_char(l);
+            }
+        } else {
+            /* integer suffixes: u/U/l/L/z/Z (permissive) */
+            while (al_lexer_peek(l, 0) == 'u' || al_lexer_peek(l, 0) == 'U' ||
+                   al_lexer_peek(l, 0) == 'l' || al_lexer_peek(l, 0) == 'L' ||
+                   al_lexer_peek(l, 0) == 'z' || al_lexer_peek(l, 0) == 'Z') {
+                al_lexer_chop_char(l);
+            }
+        }
+
+        if (invalid) token.kind = TOKEN_INVALID;
     } else {
         size_t longest_matching_token = 0;
+        enum Token_Kind best_kind = TOKEN_INVALID;
         for (size_t i = 0; i < literal_tokens_count; i++) {
             if (al_lexer_start_with(l, literal_tokens[i].text)) {
                 /* NOTE: assumes that literal_tokens[i].text does not have any '\n' */
                 size_t text_len = asm_length(literal_tokens[i].text);
                 if (text_len > longest_matching_token) {
                     longest_matching_token = text_len;
-                    token.kind = literal_tokens[i].kind;
-                    token.text_len = text_len;
-                }
+                    best_kind = literal_tokens[i].kind;                }
             }
         }
-        if (longest_matching_token == 0) {
-            token.text_len = 1;
-        }
-        for (size_t i = 0; i < token.text_len; i++) {
+        if (longest_matching_token > 0) {
+            token.kind = best_kind;
+            for (size_t i = 0; i < longest_matching_token; i++) {
+                al_lexer_chop_char(l);
+            }
+        } else {
+            token.kind = TOKEN_INVALID;
             al_lexer_chop_char(l);
         }
     }
 
+    token.text_len = l->cursor - start;
+
     return token;
 }
 
+/**
+ * @brief Check whether the remaining input at the current cursor starts with
+ * @p prefix.
+ *
+ * @param l Lexer whose input is tested.
+ * @param prefix Null-terminated prefix string to match.
+ * @return true if @p prefix is empty or fully matches at the current cursor;
+ *         false otherwise.
+ */
 bool al_lexer_start_with(struct Lexer *l, const char *prefix)
 {
     size_t prefix_len = asm_length(prefix); 
@@ -345,6 +622,14 @@ bool al_lexer_start_with(struct Lexer *l, const char *prefix)
     return true;
 }
 
+/**
+ * @brief Consume leading whitespace characters.
+ *
+ * Whitespace is defined by `asm_isspace` from "Almog_String_Manipulation.h".
+ * Uses @ref al_lexer_chop_char, so newlines update line/column bookkeeping.
+ *
+ * @param l Lexer to advance.
+ */
 void al_lexer_trim_left(struct Lexer *l)
 {
     for (;l->cursor < l->content_len;) {
@@ -355,11 +640,45 @@ void al_lexer_trim_left(struct Lexer *l)
     }
 }
 
+/**
+ * @brief Peek at a character in the input without advancing the lexer.
+ *
+ * @param l Lexer to read from.
+ * @param off Offset from the current cursor (0 means current character).
+ * @return The character at `cursor + off`, or `'\\0'` if out of range.
+ */
+char al_lexer_peek(const struct Lexer *l, size_t off)
+{
+    size_t i = l->cursor + off;
+    if (i >= l->content_len) return '\0';
+    return l->content[i];
+}
+
+/**
+ * @brief Print a human-readable representation of @p tok to stdout.
+ *
+ * Output format matches the implementation:
+ * `line:col:(KIND) -> "TEXT"`
+ *
+ * @note The token text is printed using a precision specifier (`%.*s`) and does
+ *       not need to be null-terminated.
+ *
+ * @param tok Token to print.
+ */
 void al_token_print(struct Token tok)
 {
     printf("%4zu:%-3zu:(%-18s) -> \"%.*s\"\n", tok.location.line_num, tok.location.col, al_token_kind_name(tok.kind), (int)tok.text_len, tok.text);
 }
 
+/**
+ * @brief Convert a token kind enum to a stable string name.
+ *
+ * The returned pointer refers to a string literal.
+ *
+ * @param kind Token kind.
+ * @return A string name such as `"TOKEN_IDENTIFIER"`, or asserts on unknown
+ *         kinds in the implementation's default case.
+ */
 const char *al_token_kind_name(enum Token_Kind kind)
 {
     switch (kind) {
@@ -405,10 +724,14 @@ const char *al_token_kind_name(enum Token_Kind kind)
             return ("TOKEN_LE");
         case TOKEN_KEYWORD:
             return ("TOKEN_KEYWORD");
+        case TOKEN_NUMBER:
+            return ("TOKEN_NUMBER");
         case TOKEN_COMMENT:
             return ("TOKEN_COMMENT");
         case TOKEN_STRING_LIT:
             return ("TOKEN_STRING_LIT");
+        case TOKEN_CHAR_LIT:
+            return ("TOKEN_CHAR_LIT");
         case TOKEN_EQ:
             return ("TOKEN_EQ");
         case TOKEN_EQEQ:
@@ -445,6 +768,8 @@ const char *al_token_kind_name(enum Token_Kind kind)
             return ("TOKEN_STAR");
         case TOKEN_SLASH:
             return ("TOKEN_SLASH");
+        case TOKEN_HASH:
+            return ("TOKEN_HASH");
         case TOKEN_PERCENT:
             return ("TOKEN_PERCENT");
         case TOKEN_PLUSEQ:

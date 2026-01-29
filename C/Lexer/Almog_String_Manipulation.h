@@ -8,7 +8,7 @@
  *  - Reading a single line from a FILE stream
  *  - Measuring string length
  *  - Extracting the next token from a string using a delimiter
- *    (skipping leading ASCII whitespace)
+ *    (does not skip whitespace)
  *  - Cutting the extracted token (and leading whitespace) from the source
  *    buffer
  *  - Copying a substring by indices
@@ -55,10 +55,10 @@
  *    the terminating null byte).
  *  - The maximum number of characters inspected by asm_length.
  *
- * If asm_get_line reads more than ASM_MAX_LEN characters before encountering
- * '\n' or EOF, it prints an error to stderr and returns -1. In that error
- * case, the contents of the destination buffer are not guaranteed to be
- * null-terminated.
+ * If asm_get_line reads ASM_MAX_LEN characters without encountering '\n' or
+ * EOF, it prints an error to stderr and returns -1. In that error case, the
+ * buffer is truncated and null-terminated by overwriting the last stored
+ * character (so the resulting string length is ASM_MAX_LEN - 1).
  */
 #ifndef ASM_MAX_LEN
 #define ASM_MAX_LEN (int)1e3
@@ -130,7 +130,8 @@
  * @param b Second value.
  * @return The smaller of @p a and @p b.
  *
- * @note Each parameter is evaluated exactly once.
+ * @note Each parameter may be evaluated more than once. Do not pass
+ *       expressions with side effects (e.g., ++i, function calls with state).
  */
 #define asm_min(a, b) ((a) < (b) ? (a) : (b))
 
@@ -142,7 +143,8 @@
  * @param b Second value.
  * @return The larger of @p a and @p b.
  *
- * @note Each parameter is evaluated exactly once.
+ * @note Each parameter may be evaluated more than once. Do not pass
+ *       expressions with side effects (e.g., ++i, function calls with state).
  */
 #define asm_max(a, b) ((a) > (b) ? (a) : (b))
 
@@ -154,10 +156,12 @@ int     asm_get_next_token_from_str(char * const dst, const char * const src, co
 int     asm_get_token_and_cut(char * const dst, char *src, const char delimiter, const bool leave_delimiter);
 bool    asm_isalnum(const char c);
 bool    asm_isalpha(const char c);
+bool    asm_isbdigit(const char c);
 bool    asm_iscntrl(const char c);
 bool    asm_isdigit(const char c);
 bool    asm_isgraph(const char c);
 bool    asm_islower(const char c);
+bool    asm_isodigit(const char c);
 bool    asm_isprint(const char c);
 bool    asm_ispunct(const char c);
 bool    asm_isspace(const char c);
@@ -284,9 +288,10 @@ int asm_get_char_value_in_base(const char c, const size_t base)
  * @retval -1 EOF was encountered before any character was read, or the line
  *         exceeded ASM_MAX_LEN characters (error).
  *
- * @note If the line exceeds ASM_MAX_LEN characters before a newline or EOF
+ * @note If the line reaches ASM_MAX_LEN characters before a newline or EOF
  *       is seen, the function prints an error message to stderr and returns
- *       -1. In that case, @p dst is not guaranteed to be null-terminated.
+ *       -1. In that case, @p dst is truncated and null-terminated by
+ *       overwriting the last stored character.
  * @note An empty line (just '\n') returns 0 (not -1).
  */
 int asm_get_line(FILE *fp, char * const dst)
@@ -417,6 +422,21 @@ bool asm_isalpha(char c)
 }
 
 /**
+ * @brief Test for a binary digit (ASCII).
+ *
+ * @param c Character to test.
+ * @return true if @p c is '0' or '1'; false otherwise.
+ */
+bool asm_isbdigit(const char c)
+{
+    if (c == '0' || c == '1') {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+/**
  * @brief Test for a control character (ASCII).
  *
  * @param c Character to test.
@@ -470,6 +490,21 @@ bool asm_isgraph(char c)
 bool asm_islower(char c)
 {
     if (c >= 'a' && c <= 'z') {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+/**
+ * @brief Test for an octal digit (ASCII).
+ *
+ * @param c Character to test.
+ * @return true if @p c is '0'–'7'; false otherwise.
+ */
+bool asm_isodigit(const char c)
+{
+    if ((c >= '0' && c <= '7')) {
         return true;
     } else {
         return false;
@@ -744,10 +779,12 @@ int asm_str_in_str(const char * const src, const char * const word_to_search)
 }
 
 /**
- * @brief Convert a string to double in the given base.
+ * @brief Convert a string to double in the given base with exponent support.
  *
- * Parses an optional sign, then a sequence of base-N digits, and optionally
- * a fractional part separated by a '.' character.
+ * Parses an optional sign, then a sequence of base-N digits, optionally
+ * a fractional part separated by a '.' character, and optionally an
+ * exponent part indicated by 'e' or 'E' followed by an optional sign
+ * and decimal digits.
  *
  * @param s    String to convert. Leading ASCII whitespace is skipped.
  * @param end  If non-NULL, *end is set to point to the first character
@@ -756,10 +793,21 @@ int asm_str_in_str(const char * const src, const char * const word_to_search)
  * @return The converted double value. Returns 0.0 on invalid base.
  *
  * @note Only digits '0'–'9', 'a'–'z', and 'A'–'Z' are recognized as
- *       base-N digits. No exponent notation (e.g., 'e' or 'p') is
- *       supported.
+ *       base-N digits for the mantissa (the part before the exponent).
+ * @note The exponent is always parsed in base 10 and represents the
+ *       power of the specified base. For example, "1.5e2" in base 10
+ *       means 1.5 * 10^2 = 150, while "A.8e2" in base 16 means
+ *       10.5 * 16^2 = 2688.
+ * @note The exponent can be positive or negative (e.g., "1e-3" = 0.001).
  * @note On invalid base, an error is printed to stderr, *end (if non-NULL)
  *       is set to @p s, and 0.0 is returned.
+ *
+ * @par Examples:
+ * @code
+ * asm_str2double("1.5e2", NULL, 10)    // Returns 150.0
+ * asm_str2double("-3.14e-1", NULL, 10) // Returns -0.314
+ * asm_str2double("FF.0e1", NULL, 16)   // Returns 4080.0 (255 × 16^1)
+ * @endcode
  */
 double asm_str2double(const char * const s, const char ** const end, const size_t base)
 {
@@ -768,9 +816,8 @@ double asm_str2double(const char * const s, const char ** const end, const size_
         asm_dprintERROR("Supported bases are [2...36]. Input: %zu", base);
         #endif
         if (end) *end = s;
-        return 0.0f;
+        return 0.0;
     }
-
     int num_of_whitespace = 0;
     while (asm_isspace(s[num_of_whitespace])) {
         num_of_whitespace++;
@@ -783,30 +830,45 @@ double asm_str2double(const char * const s, const char ** const end, const size_
     int sign = s[0+num_of_whitespace] == '-' ? -1 : 1;
 
     size_t left = 0;
+    double right = 0.0;
+    int expo = 0;
     for (; asm_check_char_belong_to_base(s[i+num_of_whitespace], base); i++) {
         left = base * left + asm_get_char_value_in_base(s[i+num_of_whitespace], base);
     }
-    if (s[i+num_of_whitespace] != '.') {
+
+    if (s[i+num_of_whitespace] == '.') {
+        i++; /* skip the point */
+
+        size_t divider = base;
+        for (; asm_check_char_belong_to_base(s[i+num_of_whitespace], base); i++) {
+            right = right + asm_get_char_value_in_base(s[i+num_of_whitespace], base) / (double)divider;
+            divider *= base;
+        }
+    }
+
+    if ((s[i+num_of_whitespace] == 'e') || (s[i+num_of_whitespace] == 'E')) {
+        expo = asm_str2int(&(s[i+num_of_whitespace+1]), end, 10);
+    } else {
         if (end) *end = s + i + num_of_whitespace;
-        return (left * sign);
     }
 
-    i++; /* skip the point */
+    double res = sign * (left + right);
 
-    double right = 0;
-    size_t divider = base;
-    for (; asm_check_char_belong_to_base(s[i+num_of_whitespace], base); i++) {
-        right = right + asm_get_char_value_in_base(s[i+num_of_whitespace], base) / (double)divider;
-        divider *= base;
+    if (expo > 0) {
+        for (int index = 0; index < expo; index++) {
+            res *= (double)base;
+        }
+    } else {
+        for (int index = 0; index > expo; index--) {
+            res /= (double)base;
+        }
     }
 
-    if (end) *end = s + i + num_of_whitespace;
-
-    return sign * (left + right);
+    return res;
 }
 
 /**
- * @brief Convert a string to float in the given base.
+ * @brief Convert a string to float in the given base with exponent support.
  *
  * Identical to asm_str2double semantically, but returns a float and uses
  * float arithmetic for the fractional part.
@@ -818,10 +880,21 @@ double asm_str2double(const char * const s, const char ** const end, const size_
  * @return The converted float value. Returns 0.0f on invalid base.
  *
  * @note Only digits '0'–'9', 'a'–'z', and 'A'–'Z' are recognized as
- *       base-N digits. No exponent notation (e.g., 'e' or 'p') is
- *       supported.
+ *       base-N digits for the mantissa (the part before the exponent).
+ * @note The exponent is always parsed in base 10 and represents the
+ *       power of the specified base. For example, "1.5e2" in base 10
+ *       means 1.5 * 10^2 = 150, while "A.8e2" in base 16 means
+ *       10.5 * 16^2 = 2688.
+ * @note The exponent can be positive or negative (e.g., "1e-3" = 0.001).
  * @note On invalid base, an error is printed to stderr, *end (if non-NULL)
  *       is set to @p s, and 0.0f is returned.
+ *
+ * @par Examples:
+ * @code
+ * asm_str2float("1.5e2", NULL, 10)    // Returns 150.0f
+ * asm_str2float("-3.14e-1", NULL, 10) // Returns -0.314f
+ * asm_str2float("FF.0e1", NULL, 16)   // Returns 4080.0f (255 × 16^1)
+ * @endcode
  */
 float asm_str2float(const char * const s, const char ** const end, const size_t base)
 {
@@ -844,26 +917,41 @@ float asm_str2float(const char * const s, const char ** const end, const size_t 
     int sign = s[0+num_of_whitespace] == '-' ? -1 : 1;
 
     int left = 0;
+    float right = 0.0f;
+    int expo = 0;
     for (; asm_check_char_belong_to_base(s[i+num_of_whitespace], base); i++) {
         left = base * left + asm_get_char_value_in_base(s[i+num_of_whitespace], base);
     }
-    if (s[i+num_of_whitespace] != '.') {
+
+    if (s[i+num_of_whitespace] == '.') {
+        i++; /* skip the point */
+
+        size_t divider = base;
+        for (; asm_check_char_belong_to_base(s[i+num_of_whitespace], base); i++) {
+            right = right + asm_get_char_value_in_base(s[i+num_of_whitespace], base) / (float)divider;
+            divider *= base;
+        }
+    }
+
+    if ((s[i+num_of_whitespace] == 'e') || (s[i+num_of_whitespace] == 'E')) {
+        expo = asm_str2int(&(s[i+num_of_whitespace+1]), end, 10);
+    } else {
         if (end) *end = s + i + num_of_whitespace;
-        return left * sign;
     }
 
-    i++; /* skip the point */
+    float res = sign * (left + right);
 
-    float right = 0;
-    size_t divider = base;
-    for (; asm_check_char_belong_to_base(s[i+num_of_whitespace], base); i++) {
-        right = right + asm_get_char_value_in_base(s[i+num_of_whitespace], base) / (float)divider;
-        divider *= base;
+    if (expo > 0) {
+        for (int index = 0; index < expo; index++) {
+            res *= (float)base;
+        }
+    } else {
+        for (int index = 0; index > expo; index--) {
+            res /= (float)base;
+        }
     }
 
-    if (end) *end = s + i + num_of_whitespace;
-
-    return sign * (left + right);
+    return res;
 }
 
 /**
@@ -1038,7 +1126,7 @@ int asm_strncat(char * const s1, const char * const s2, const size_t N)
 
     int i = 0;
     while (i < limit && s2[i] != '\0') {
-        if (len_s1 + (size_t)i >= ASM_MAX_LEN) {
+        if (len_s1 + (size_t)i >= ASM_MAX_LEN-1) {
             #ifndef NO_ERRORS
             asm_dprintERROR("s2 or the first N=%zu digit of s2 does not fit into s1.", N);
             #endif
@@ -1084,6 +1172,23 @@ int asm_strncmp(const char *s1, const char *s2, const size_t N)
     return 1;
 }
 
+/**
+ * @brief Copy up to @p N characters from @p s2 into @p s1 (non-standard).
+ *
+ * Copies n = min(N, len(s2)) characters from @p s2 into @p s1
+ * and then writes a terminating '\0'.
+ *
+ * @param s1 Destination string buffer (must be null-terminated).
+ * @param s2 Source string buffer (must be null-terminated).
+ * @param N  Maximum number of characters to copy from @p s2.
+ *
+ * @return The number of characters copied (i.e., \(n\)). Returns 0 and prints
+ *         an error if \(n > \text{len}(s1)\).
+ *
+ * @warning This function does not check the capacity of @p s1. Instead, it
+ *          checks the *current length* of the string in @p s1 and refuses to
+ *          copy more than that. This differs from the standard strncpy().
+ */
 int asm_strncpy(char * const s1, const char * const s2, const size_t N)
 {
     size_t len1 = asm_length(s1);
@@ -1137,6 +1242,14 @@ void asm_toupper(char * const s)
     }
 }
 
+/**
+ * @brief Remove leading ASCII whitespace from a string in-place.
+ *
+ * Finds the first character in @p s for which asm_isspace() is false and
+ * left-shifts the string so that character becomes the first character.
+ *
+ * @param s String to modify in-place. Must be null-terminated.
+ */
 void asm_trim_left_whitespace(char * const s)
 {
     size_t len = asm_length(s);
