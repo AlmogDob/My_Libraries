@@ -744,10 +744,12 @@ int asm_str_in_str(const char * const src, const char * const word_to_search)
 }
 
 /**
- * @brief Convert a string to double in the given base.
+ * @brief Convert a string to double in the given base with exponent support.
  *
- * Parses an optional sign, then a sequence of base-N digits, and optionally
- * a fractional part separated by a '.' character.
+ * Parses an optional sign, then a sequence of base-N digits, optionally
+ * a fractional part separated by a '.' character, and optionally an
+ * exponent part indicated by 'e' or 'E' followed by an optional sign
+ * and decimal digits.
  *
  * @param s    String to convert. Leading ASCII whitespace is skipped.
  * @param end  If non-NULL, *end is set to point to the first character
@@ -756,10 +758,21 @@ int asm_str_in_str(const char * const src, const char * const word_to_search)
  * @return The converted double value. Returns 0.0 on invalid base.
  *
  * @note Only digits '0'–'9', 'a'–'z', and 'A'–'Z' are recognized as
- *       base-N digits. No exponent notation (e.g., 'e' or 'p') is
- *       supported.
+ *       base-N digits for the mantissa (the part before the exponent).
+ * @note The exponent is always parsed in base 10 and represents the
+ *       power of the specified base. For example, "1.5e2" in base 10
+ *       means 1.5 * 10^2 = 150, while "A.8e2" in base 16 means
+ *       10.5 * 16^2 = 2688.
+ * @note The exponent can be positive or negative (e.g., "1e-3" = 0.001).
  * @note On invalid base, an error is printed to stderr, *end (if non-NULL)
  *       is set to @p s, and 0.0 is returned.
+ *
+ * @par Examples:
+ * @code
+ * asm_str2double("1.5e2", NULL, 10)    // Returns 150.0
+ * asm_str2double("-3.14e-1", NULL, 10) // Returns -0.314
+ * asm_str2double("FF.0e1", NULL, 16)   // Returns 4080.0 (255 × 16^1)
+ * @endcode
  */
 double asm_str2double(const char * const s, const char ** const end, const size_t base)
 {
@@ -768,9 +781,8 @@ double asm_str2double(const char * const s, const char ** const end, const size_
         asm_dprintERROR("Supported bases are [2...36]. Input: %zu", base);
         #endif
         if (end) *end = s;
-        return 0.0f;
+        return 0.0;
     }
-
     int num_of_whitespace = 0;
     while (asm_isspace(s[num_of_whitespace])) {
         num_of_whitespace++;
@@ -783,30 +795,45 @@ double asm_str2double(const char * const s, const char ** const end, const size_
     int sign = s[0+num_of_whitespace] == '-' ? -1 : 1;
 
     size_t left = 0;
+    double right = 0.0;
+    int expo = 0;
     for (; asm_check_char_belong_to_base(s[i+num_of_whitespace], base); i++) {
         left = base * left + asm_get_char_value_in_base(s[i+num_of_whitespace], base);
     }
-    if (s[i+num_of_whitespace] != '.') {
+
+    if (s[i+num_of_whitespace] == '.') {
+        i++; /* skip the point */
+
+        size_t divider = base;
+        for (; asm_check_char_belong_to_base(s[i+num_of_whitespace], base); i++) {
+            right = right + asm_get_char_value_in_base(s[i+num_of_whitespace], base) / (double)divider;
+            divider *= base;
+        }
+    }
+
+    if ((s[i+num_of_whitespace] == 'e') || (s[i+num_of_whitespace] == 'E')) {
+        expo = asm_str2int(&(s[i+num_of_whitespace+1]), end, 10);
+    } else {
         if (end) *end = s + i + num_of_whitespace;
-        return (left * sign);
     }
 
-    i++; /* skip the point */
+    double res = sign * (left + right);
 
-    double right = 0;
-    size_t divider = base;
-    for (; asm_check_char_belong_to_base(s[i+num_of_whitespace], base); i++) {
-        right = right + asm_get_char_value_in_base(s[i+num_of_whitespace], base) / (double)divider;
-        divider *= base;
+    if (expo > 0) {
+        for (int index = 0; index < expo; index++) {
+            res *= (double)base;
+        }
+    } else {
+        for (int index = 0; index > expo; index--) {
+            res /= (double)base;
+        }
     }
 
-    if (end) *end = s + i + num_of_whitespace;
-
-    return sign * (left + right);
+    return res;
 }
 
 /**
- * @brief Convert a string to float in the given base.
+ * @brief Convert a string to float in the given base with exponent support.
  *
  * Identical to asm_str2double semantically, but returns a float and uses
  * float arithmetic for the fractional part.
@@ -818,10 +845,21 @@ double asm_str2double(const char * const s, const char ** const end, const size_
  * @return The converted float value. Returns 0.0f on invalid base.
  *
  * @note Only digits '0'–'9', 'a'–'z', and 'A'–'Z' are recognized as
- *       base-N digits. No exponent notation (e.g., 'e' or 'p') is
- *       supported.
+ *       base-N digits for the mantissa (the part before the exponent).
+ * @note The exponent is always parsed in base 10 and represents the
+ *       power of the specified base. For example, "1.5e2" in base 10
+ *       means 1.5 * 10^2 = 150, while "A.8e2" in base 16 means
+ *       10.5 * 16^2 = 2688.
+ * @note The exponent can be positive or negative (e.g., "1e-3" = 0.001).
  * @note On invalid base, an error is printed to stderr, *end (if non-NULL)
  *       is set to @p s, and 0.0f is returned.
+ *
+ * @par Examples:
+ * @code
+ * asm_str2float("1.5e2", NULL, 10)    // Returns 150.0f
+ * asm_str2float("-3.14e-1", NULL, 10) // Returns -0.314f
+ * asm_str2float("FF.0e1", NULL, 16)   // Returns 4080.0f (255 × 16^1)
+ * @endcode
  */
 float asm_str2float(const char * const s, const char ** const end, const size_t base)
 {
@@ -844,26 +882,41 @@ float asm_str2float(const char * const s, const char ** const end, const size_t 
     int sign = s[0+num_of_whitespace] == '-' ? -1 : 1;
 
     int left = 0;
+    float right = 0.0f;
+    int expo = 0;
     for (; asm_check_char_belong_to_base(s[i+num_of_whitespace], base); i++) {
         left = base * left + asm_get_char_value_in_base(s[i+num_of_whitespace], base);
     }
-    if (s[i+num_of_whitespace] != '.') {
+
+    if (s[i+num_of_whitespace] == '.') {
+        i++; /* skip the point */
+
+        size_t divider = base;
+        for (; asm_check_char_belong_to_base(s[i+num_of_whitespace], base); i++) {
+            right = right + asm_get_char_value_in_base(s[i+num_of_whitespace], base) / (float)divider;
+            divider *= base;
+        }
+    }
+
+    if ((s[i+num_of_whitespace] == 'e') || (s[i+num_of_whitespace] == 'E')) {
+        expo = asm_str2int(&(s[i+num_of_whitespace+1]), end, 10);
+    } else {
         if (end) *end = s + i + num_of_whitespace;
-        return left * sign;
     }
 
-    i++; /* skip the point */
+    float res = sign * (left + right);
 
-    float right = 0;
-    size_t divider = base;
-    for (; asm_check_char_belong_to_base(s[i+num_of_whitespace], base); i++) {
-        right = right + asm_get_char_value_in_base(s[i+num_of_whitespace], base) / (float)divider;
-        divider *= base;
+    if (expo > 0) {
+        for (int index = 0; index < expo; index++) {
+            res *= (float)base;
+        }
+    } else {
+        for (int index = 0; index > expo; index--) {
+            res /= (float)base;
+        }
     }
 
-    if (end) *end = s + i + num_of_whitespace;
-
-    return sign * (left + right);
+    return res;
 }
 
 /**

@@ -786,6 +786,291 @@ static void test_strncat_current_behavior_and_sentinel(void)
     for (size_t i = 0; i < sizeof(box.post); i++) TEST_CASE(box.post[i] == 0xBB);
 }
 
+/* ---------------- Tests: str2float/double with exponent notation ---------------- */
+
+static void test_str2float_exponent_basic(void)
+{
+    const char *end = NULL;
+    float v;
+
+    /* Basic positive exponents */
+    v = asm_str2float("1e2", &end, 10);
+    TEST_CASE(v > 99.9f && v < 100.1f);
+    TEST_CASE(*end == '\0');
+
+    v = asm_str2float("1.5e3", &end, 10);
+    TEST_CASE(v > 1499.9f && v < 1500.1f);
+    TEST_CASE(*end == '\0');
+
+    v = asm_str2float("5e2", &end, 10);
+    TEST_CASE(v > 499.9f && v < 500.1f);
+    TEST_CASE(*end == '\0');
+
+    /* Basic negative exponents */
+    v = asm_str2float("1e-2", &end, 10);
+    TEST_CASE(v > 0.0099f && v < 0.0101f);
+    TEST_CASE(*end == '\0');
+
+    v = asm_str2float("5e-1", &end, 10);
+    TEST_CASE(v > 0.49f && v < 0.51f);
+    TEST_CASE(*end == '\0');
+
+    v = asm_str2float("2.5e-3", &end, 10);
+    TEST_CASE(v > 0.00249f && v < 0.00251f);
+    TEST_CASE(*end == '\0');
+
+    /* Exponent with explicit positive sign */
+    v = asm_str2float("1e+2", &end, 10);
+    TEST_CASE(v > 99.9f && v < 100.1f);
+    TEST_CASE(*end == '\0');
+
+    v = asm_str2float("3.5e+1", &end, 10);
+    TEST_CASE(v > 34.9f && v < 35.1f);
+    TEST_CASE(*end == '\0');
+}
+
+static void test_str2float_exponent_signed_mantissa(void)
+{
+    const char *end = NULL;
+    float v;
+
+    /* Negative mantissa with positive exponent */
+    v = asm_str2float("-1e2", &end, 10);
+    TEST_CASE(v > -100.1f && v < -99.9f);
+    TEST_CASE(*end == '\0');
+
+    v = asm_str2float("-2.5e3", &end, 10);
+    TEST_CASE(v > -2500.1f && v < -2499.9f);
+    TEST_CASE(*end == '\0');
+
+    /* Negative mantissa with negative exponent */
+    v = asm_str2float("-1.0e-2", &end, 10);
+    TEST_CASE(v > -0.0101f && v < -0.0099f);
+    TEST_CASE(*end == '\0');
+
+    v = asm_str2float("-5e-1", &end, 10);
+    TEST_CASE(v > -0.51f && v < -0.49f);
+    TEST_CASE(*end == '\0');
+
+    /* Positive sign with exponent */
+    v = asm_str2float("+1.5e2", &end, 10);
+    TEST_CASE(v > 149.9f && v < 150.1f);
+    TEST_CASE(*end == '\0');
+
+    v = asm_str2float("+3e-2", &end, 10);
+    TEST_CASE(v > 0.0299f && v < 0.0301f);
+    TEST_CASE(*end == '\0');
+}
+
+static void test_str2float_exponent_edge_cases(void)
+{
+    const char *end = NULL;
+    float v;
+
+    /* Zero exponent */
+    v = asm_str2float("5e0", &end, 10);
+    TEST_CASE(v > 4.99f && v < 5.01f);
+    TEST_CASE(*end == '\0');
+
+    v = asm_str2float("3.14e0", &end, 10);
+    TEST_CASE(v > 3.13f && v < 3.15f);
+    TEST_CASE(*end == '\0');
+
+    /* Zero mantissa */
+    v = asm_str2float("0e5", &end, 10);
+    TEST_CASE(v > -0.01f && v < 0.01f);
+    TEST_CASE(*end == '\0');
+
+    v = asm_str2float("0.0e-3", &end, 10);
+    TEST_CASE(v > -0.01f && v < 0.01f);
+    TEST_CASE(*end == '\0');
+
+    /* No integer part */
+    v = asm_str2float(".5e2", &end, 10);
+    TEST_CASE(v > 49.9f && v < 50.1f);
+    TEST_CASE(*end == '\0');
+
+    v = asm_str2float(".25e-1", &end, 10);
+    TEST_CASE(v > 0.0249f && v < 0.0251f);
+    TEST_CASE(*end == '\0');
+
+    /* No fractional part */
+    v = asm_str2float("10.e2", &end, 10);
+    TEST_CASE(v > 999.9f && v < 1000.1f);
+    TEST_CASE(*end == '\0');
+
+    /* Uppercase E */
+    v = asm_str2float("1E2", &end, 10);
+    TEST_CASE(v > 99.9f && v < 100.1f);
+    TEST_CASE(*end == '\0');
+
+    v = asm_str2float("5E-3", &end, 10);
+    TEST_CASE(v > 0.00499f && v < 0.00501f);
+    TEST_CASE(*end == '\0');
+}
+
+static void test_str2float_exponent_with_trailing(void)
+{
+    const char *end = NULL;
+    float v;
+
+    /* Exponent with trailing characters */
+    v = asm_str2float("1.5e2xyz", &end, 10);
+    TEST_CASE(v > 149.9f && v < 150.1f);
+    TEST_CASE(*end == 'x');
+
+    v = asm_str2float("3e-1!", &end, 10);
+    TEST_CASE(v > 0.29f && v < 0.31f);
+    TEST_CASE(*end == '!');
+
+    v = asm_str2float("  -2.5e3  ", &end, 10);
+    TEST_CASE(v > -2500.1f && v < -2499.9f);
+    TEST_CASE(*end == ' ');
+}
+
+static void test_str2double_exponent_basic(void)
+{
+    const char *end = NULL;
+    double v;
+
+    /* Basic positive exponents */
+    v = asm_str2double("1e2", &end, 10);
+    TEST_CASE(v > 99.99 && v < 100.01);
+    TEST_CASE(*end == '\0');
+
+    v = asm_str2double("1.5e3", &end, 10);
+    TEST_CASE(v > 1499.99 && v < 1500.01);
+    TEST_CASE(*end == '\0');
+
+    /* Basic negative exponents */
+    v = asm_str2double("1e-2", &end, 10);
+    TEST_CASE(v > 0.0099 && v < 0.0101);
+    TEST_CASE(*end == '\0');
+
+    v = asm_str2double("-1.0e-2", &end, 10);
+    TEST_CASE(v > -0.0101 && v < -0.0099);
+    TEST_CASE(*end == '\0');
+
+    /* Higher precision than float */
+    v = asm_str2double("3.141592653589793e0", &end, 10);
+    TEST_CASE(v > 3.141592653 && v < 3.141592654);
+    TEST_CASE(*end == '\0');
+}
+
+static void test_str2double_exponent_signed_mantissa(void)
+{
+    const char *end = NULL;
+    double v;
+
+    /* Negative mantissa with exponents */
+    v = asm_str2double("-2.5e3", &end, 10);
+    TEST_CASE(v > -2500.01 && v < -2499.99);
+    TEST_CASE(*end == '\0');
+
+    v = asm_str2double("-5e-1", &end, 10);
+    TEST_CASE(v > -0.51 && v < -0.49);
+    TEST_CASE(*end == '\0');
+
+    /* Positive sign */
+    v = asm_str2double("+1.5e2", &end, 10);
+    TEST_CASE(v > 149.99 && v < 150.01);
+    TEST_CASE(*end == '\0');
+}
+
+static void test_str2double_exponent_edge_cases(void)
+{
+    const char *end = NULL;
+    double v;
+
+    /* Zero exponent */
+    v = asm_str2double("5e0", &end, 10);
+    TEST_CASE(v > 4.99 && v < 5.01);
+    TEST_CASE(*end == '\0');
+
+    /* Zero mantissa */
+    v = asm_str2double("0e5", &end, 10);
+    TEST_CASE(v > -0.01 && v < 0.01);
+    TEST_CASE(*end == '\0');
+
+    /* No integer part */
+    v = asm_str2double(".5e2", &end, 10);
+    TEST_CASE(v > 49.99 && v < 50.01);
+    TEST_CASE(*end == '\0');
+
+    /* Uppercase E */
+    v = asm_str2double("1E2", &end, 10);
+    TEST_CASE(v > 99.99 && v < 100.01);
+    TEST_CASE(*end == '\0');
+}
+
+static void test_str2float_double_exponent_different_bases(void)
+{
+    const char *end = NULL;
+    float vf;
+    double vd;
+
+    /* Binary with exponent (base 2)
+     * 1.1e3 in base 2 = 1.5 * 2^3 = 1.5 * 8 = 12 */
+    vf = asm_str2float("1.1e3", &end, 2);
+    TEST_CASE(vf > 11.9f && vf < 12.1f);
+    TEST_CASE(*end == '\0');
+
+    vd = asm_str2double("1.1e3", &end, 2);
+    TEST_CASE(vd > 11.99 && vd < 12.01);
+    TEST_CASE(*end == '\0');
+
+    /* Octal with exponent (base 8)
+     * 7.4e2 in base 8 = (7 + 4/8) * 8^2 = 7.5 * 64 = 480 */
+    vf = asm_str2float("7.4e2", &end, 8);
+    TEST_CASE(vf > 479.9f && vf < 480.1f);
+    TEST_CASE(*end == '\0');
+
+    vd = asm_str2double("7.4e2", &end, 8);
+    TEST_CASE(vd > 479.99 && vd < 480.01);
+    TEST_CASE(*end == '\0');
+}
+
+static void test_str2float_double_exponent_whitespace(void)
+{
+    const char *end = NULL;
+    float vf;
+    double vd;
+
+    /* Leading whitespace */
+    vf = asm_str2float("  \t\n1.5e2", &end, 10);
+    TEST_CASE(vf > 149.9f && vf < 150.1f);
+    TEST_CASE(*end == '\0');
+
+    vd = asm_str2double("  \t\n-2.5e-3", &end, 10);
+    TEST_CASE(vd > -0.00251 && vd < -0.00249);
+    TEST_CASE(*end == '\0');
+}
+
+static void test_str2float_double_exponent_large_values(void)
+{
+    const char *end = NULL;
+    float vf;
+    double vd;
+
+    /* Larger exponents */
+    vf = asm_str2float("1e5", &end, 10);
+    TEST_CASE(vf > 99999.0f && vf < 100001.0f);
+    TEST_CASE(*end == '\0');
+
+    vd = asm_str2double("1e10", &end, 10);
+    TEST_CASE(vd > 9999999999.0 && vd < 10000000001.0);
+    TEST_CASE(*end == '\0');
+
+    /* Very small exponents */
+    vf = asm_str2float("1e-5", &end, 10);
+    TEST_CASE(vf > 0.000009f && vf < 0.000011f);
+    TEST_CASE(*end == '\0');
+
+    vd = asm_str2double("1e-10", &end, 10);
+    TEST_CASE(vd > 0.00000000009 && vd < 0.00000000011);
+    TEST_CASE(*end == '\0');
+}
+
 /* ---------------- Main ---------------- */
 
 int main(void)
@@ -815,6 +1100,17 @@ int main(void)
     test_str2int();
     test_str2size_t();
     test_str2float_double();
+
+    test_str2float_exponent_basic();
+    test_str2float_exponent_signed_mantissa();
+    test_str2float_exponent_edge_cases();
+    test_str2float_exponent_with_trailing();
+    test_str2double_exponent_basic();
+    test_str2double_exponent_signed_mantissa();
+    test_str2double_exponent_edge_cases();
+    test_str2float_double_exponent_different_bases();
+    test_str2float_double_exponent_whitespace();
+    test_str2float_double_exponent_large_values();
 
     test_get_next_word_from_line_current_behavior();
     test_get_word_and_cut_edges();

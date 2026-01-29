@@ -3,21 +3,11 @@
 
 int main(void)
 {
-    char str[] = "1012";
-    char str1[5] = {'2'};
+    char str[] = "-1.1e-1";
+
+    asm_dprintFLOAT(asm_str2float(str, NULL, 10));
+    asm_dprintDOUBLE(asm_str2double(str, NULL, 10));
  
-    asm_copy_array_by_indexes(str1, 0, asm_length(str), str);
-
-    asm_dprintSTRING(str);
-    asm_dprintSTRING(str1);
-    
-    asm_get_token_and_cut(str1, str, '0', false);
-
-    asm_dprintSTRING(str);
-    asm_dprintSTRING(str1);
-
-    asm_pad_left(str1, 2, '*');
-    asm_dprintSTRING(str1);
 
 
     return 0;
