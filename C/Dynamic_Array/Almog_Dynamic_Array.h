@@ -52,14 +52,15 @@
 #define ALMOG_DYNAMIC_ARRAY_H_
 
 
-
 /**
  * @def ADA_INIT_CAPACITY
  * @brief Default initial capacity used by ada_init_array.
  *
- * You may override this by defining INIT_CAPACITY before including this file.
+ * You may override this by defining ADA_INIT_CAPACITY before including this file.
  */
+#ifndef ADA_INIT_CAPACITY
 #define ADA_INIT_CAPACITY 10
+#endif /*ADA_INIT_CAPACITY*/
 
 /**
  * @def ADA_MALLOC
@@ -72,6 +73,11 @@
 #include <stdlib.h>
 #define ADA_MALLOC malloc
 #endif /*ADA_MALLOC*/
+
+#ifndef ADA_EXIT
+#include <stdlib.h>
+#define ADA_EXIT exit
+#endif /*ADA_EXIT*/
 
 /**
  * @def ADA_REALLOC
@@ -138,13 +144,13 @@
  * @post header.capacity == new_capacity and header.elements points to a block
  *       large enough for new_capacity elements.
  *
- * @warning On allocation failure, this macro calls exit(1).
+ * @warning On allocation failure, this macro calls ADA_EXIT(1).
  * @note Reallocation uses ADA_REALLOC and is also checked via ADA_ASSERT.
  */
 #define ada_resize(type, header, new_capacity) do {                                                         \
         type *ada_temp_pointer = (type *)ADA_REALLOC((void *)(header.elements), new_capacity*sizeof(type)); \
         if (ada_temp_pointer == NULL) {                                                                     \
-            exit(1);                                                                                        \
+            ADA_EXIT(1);                                                                                        \
         }                                                                                                   \
         header.elements = ada_temp_pointer;                                                                 \
         ADA_ASSERT(header.elements != NULL);                                                                \
@@ -167,12 +173,12 @@
  *       manually shrink capacity. Ensure growth always increases capacity by
  *       at least 1 if you customize this macro.
  */
-#define ada_appand(type, header, value) do {                        \
-        if (header.length >= header.capacity) {                     \
-            ada_resize(type, header, (int)(header.capacity*1.5));   \
-        }                                                           \
-        header.elements[header.length] = value;                     \
-        header.length++;                                            \
+#define ada_appand(type, header, value) do {                                            \
+        if (header.length >= header.capacity) {                                         \
+            ada_resize(type, header, (int)(header.capacity + header.capacity/2 + 1));   \
+        }                                                                               \
+        header.elements[header.length] = value;                                         \
+        header.length++;                                                                \
     } while (0)
 
 /**
@@ -194,14 +200,14 @@
  * @note This macro asserts index is non-negative and an integer value using
  *       ADA_ASSERT. No explicit upper-bound assert is performed.
  */
-#define ada_insert(type, header, value, index) do {                                                         \
-    ADA_ASSERT((int)(index) >= 0);                                                                          \
-    ADA_ASSERT((float)(index) - (int)(index) == 0);                                                         \
-    ada_appand(type, header, header.elements[header.length-1]);                                             \
-    for (size_t ada_for_loop_index = header.length-2; ada_for_loop_index > (index); ada_for_loop_index--) { \
-        header.elements[ada_for_loop_index] = header.elements [ada_for_loop_index-1];                       \
-    }                                                                                                       \
-    header.elements[(index)] = value;                                                                       \
+#define ada_insert(type, header, value, index) do {                                                             \
+    ADA_ASSERT((int)(index) >= 0);                                                                              \
+    ADA_ASSERT((float)(index) - (int)(index) == 0);                                                             \
+    ada_appand(type, header, header.elements[header.length-1]);                                                 \
+    for (int ada_for_loop_index = header.length-2; ada_for_loop_index > (int)(index); ada_for_loop_index--) {   \
+        header.elements[ada_for_loop_index] = header.elements [ada_for_loop_index-1];                           \
+    }                                                                                                           \
+    header.elements[(index)] = value;                                                                           \
 } while (0)
 
 

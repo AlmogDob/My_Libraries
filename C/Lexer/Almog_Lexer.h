@@ -17,12 +17,40 @@
 #define ALMOG_LEXER_H_
 
 #include "Almog_String_Manipulation.h"
+#include "Almog_Dynamic_Array.h"
 
+/**
+ * @def AL_ASSERT
+ * @brief Assertion macro used by the lexer (defaults to @c assert()).
+ *
+ * Define @c AL_ASSERT before including this header to override.
+ */
 #ifndef AL_ASSERT
 #include <assert.h>
 #define AL_ASSERT assert
 #endif /* AL_ASSERT */ 
 
+/**
+ * @def AL_FREE
+ * @brief Deallocation macro used by al_tokens_free() (defaults to @c free()).
+ *
+ * Define @c AL_FREE before including this header to override.
+ */
+#ifndef AL_FREE
+#include <stdlib.h>
+#define AL_FREE free
+#endif /* AL_FREE */ 
+
+/**
+ * @enum Token_Kind
+ * @brief Token categories produced by the lexer.
+ *
+ * The lexer attempts to classify source text into:
+ * - high-level "word-like" tokens (identifiers, keywords, literals, comments)
+ * - punctuation / operators (matched using the longest-match rule)
+ * - TOKEN_INVALID for unrecognized or malformed sequences
+ * - TOKEN_EOF at end of input
+ */
 enum Token_Kind {
     /* Sentinel / unknown */
     TOKEN_EOF,
@@ -33,7 +61,12 @@ enum Token_Kind {
     TOKEN_COMMENT,
     TOKEN_STRING_LIT,
     TOKEN_CHAR_LIT,
-    TOKEN_NUMBER,
+    TOKEN_INT_LIT_BIN,
+    TOKEN_INT_LIT_OCT,
+    TOKEN_INT_LIT_DEC,
+    TOKEN_INT_LIT_HEX,
+    TOKEN_FLOAT_LIT_DEC,
+    TOKEN_FLOAT_LIT_HEX,
     TOKEN_KEYWORD,
     TOKEN_IDENTIFIER,
 
@@ -110,11 +143,105 @@ enum Token_Kind {
     TOKEN_ELLIPSIS,
 };
 
+/**
+ * @struct Literal_Token
+ * @brief Mapping between a literal operator/punctuation text and a token kind.
+ *
+ * Used internally for longest-match scanning of operators and punctuation.
+ *
+ * @note `text` must be a null-terminated string literal.
+ */
 struct Literal_Token {
     enum Token_Kind kind;
     const char * const text;
 };
 
+/**
+ * @struct Location
+ * @brief Source location (1-based externally in produced tokens).
+ *
+ * `al_lexer_next_token()` stores:
+ * - line_num: 1-based line number
+ * - col: 1-based column number
+ */
+struct Location {
+    size_t line_num;
+    size_t col;
+};
+
+/**
+ * @struct String
+ * @brief Simple dynamic array of characters (used to hold file content).
+ *
+ * This struct is compatible with the dynamic array macros from
+ * "Almog_Dynamic_Array.h".
+ */
+struct String {
+    size_t length;
+    size_t capacity;
+    char* elements;
+};
+
+/**
+ * @brief A token produced by the lexer.
+ *
+ * `text` points into the original input buffer passed to @ref al_lexer_alloc.
+ * The token text is not null-terminated; use `text_len`.
+ */
+struct Token {
+    enum Token_Kind kind;
+    const char *text;
+    size_t text_len;
+    struct Location location;
+};
+
+/**
+ * @struct Tokens
+ * @brief Result of lexing an entire file.
+ *
+ * Owns 2 dynamic buffers:
+ * - `content`: the concatenated file contents (with '\n' inserted after each
+ *   line read by asm_get_line()).
+ * - `elements`: the token array; each token's `text` points into `content`.
+ *
+ * @warning Because tokens reference `content.elements`, `content` must remain
+ *          alive as long as tokens are used.
+ */
+struct Tokens {
+    struct String content;
+    size_t length;
+    size_t capacity;
+    struct Token* elements;
+};
+
+/**
+ * @brief Lexer state over a caller-provided input buffer.
+ *
+ * The lexer does not own `content`; the caller must keep it valid for the
+ * lifetime of any tokens referencing it.
+ *
+ * Internal location tracking:
+ * - `line_num` is 0-based internally (first line is 0).
+ * - `begining_of_line` is the cursor index of the first character of the
+ *   current line (used for column calculation).
+ */
+struct Lexer {
+    const char * content;
+    size_t content_len;
+    size_t cursor;
+    size_t line_num;
+    size_t begining_of_line;
+};
+
+/**
+ * @brief Operator/punctuation token table.
+ *
+ * The lexer uses this table to apply a longest-match rule for multi-character
+ * operators (e.g. ">>=" over ">>" and ">").
+ *
+ * @note This table is defined in the header as `static`, so each translation
+ * unit gets its own copy.
+ */
 static struct Literal_Token literal_tokens[] = {
     {.text = "("  , .kind = TOKEN_LPAREN}, 
     {.text = ")"  , .kind = TOKEN_RPAREN},
@@ -165,8 +292,15 @@ static struct Literal_Token literal_tokens[] = {
     {.text = "/" , .kind = TOKEN_SLASH},
     {.text = "%" , .kind = TOKEN_PERCENT},
 };
+
 #define literal_tokens_count (sizeof(literal_tokens) / sizeof(literal_tokens[0]))
 
+/**
+ * @brief List of keywords recognized by the lexer.
+ *
+ * If an identifier's spelling matches one of these strings exactly, the lexer
+ * produces TOKEN_KEYWORD instead of TOKEN_IDENTIFIER.
+ */
 static const char * const keywords[] = {
     "auto", "break", "case", "char", "const", "continue", "default", "do", "double",
     "else", "enum", "extern", "float", "for", "goto", "if", "int", "long", "register",
@@ -184,47 +318,18 @@ static const char * const keywords[] = {
 };
 #define keywords_count (sizeof(keywords) / sizeof(keywords[0]))
 
-struct Location {
-    size_t line_num;
-    size_t col;
-};
-
 /**
- * @brief A token produced by the lexer.
+ * @def AL_UNUSED
+ * @brief Mark a variable as intentionally unused.
  *
- * `text` points into the original input buffer passed to @ref al_lexer_alloc.
- * The token text is not null-terminated; use `text_len`.
+ * @param x Expression evaluated for side effects (if any) and then cast to
+ *          void to suppress unused warnings.
  */
-struct Token {
-    enum Token_Kind kind;
-    const char *text;
-    size_t text_len;
-    struct Location location;
-};
-
-/**
- * @brief Lexer state over a caller-provided input buffer.
- *
- * The lexer does not own `content`; the caller must keep it valid for the
- * lifetime of any tokens referencing it.
- *
- * Internal location tracking:
- * - `line_num` is 0-based internally (first line is 0).
- * - `begining_of_line` is the cursor index of the first character of the
- *   current line (used for column calculation).
- */
-struct Lexer {
-    const char * content;
-    size_t content_len;
-    size_t cursor;
-    size_t line_num;
-    size_t begining_of_line;
-};
-
 #define AL_UNUSED(x) (void)x
 
 bool            al_is_identifier(char c);
 bool            al_is_identifier_start(char c);
+struct Tokens   al_lex_entire_file(FILE *fp);
 struct Lexer    al_lexer_alloc(const char *content, size_t len);
 char            al_lexer_chop_char(struct Lexer *l);
 void            al_lexer_chop_while(struct Lexer *l, bool (*pred)(char));
@@ -234,6 +339,8 @@ void            al_lexer_trim_left(struct Lexer *l);
 char            al_lexer_peek(const struct Lexer *l, size_t off);
 void            al_token_print(struct Token tok);
 const char *    al_token_kind_name(enum Token_Kind kind);
+struct Tokens   al_tokens_init(void);
+void            al_tokens_free(struct Tokens tokens);
 
 #endif /*ALMOG_LEXER_H_*/
 
@@ -267,6 +374,31 @@ bool al_is_identifier(char c)
 bool al_is_identifier_start(char c)
 {
     return asm_isalpha(c) || c == '_';
+}
+
+struct Tokens al_lex_entire_file(FILE *fp)
+{
+    struct Tokens tokens = al_tokens_init();
+
+    char temp_str[ASM_MAX_LEN];
+    int len = 0;
+    while ((len = asm_get_line(fp, temp_str)) != EOF) {
+        for (int i = 0; i < len; i++) {
+            ada_appand(char, tokens.content, temp_str[i]);
+        }
+        ada_appand(char, tokens.content, '\n');
+    }
+
+    struct Lexer l = al_lexer_alloc(tokens.content.elements, tokens.content.length);
+
+    struct Token t = al_lexer_next_token(&l);
+    while (t.kind != TOKEN_EOF) {
+        ada_appand(struct Token, tokens, t);
+        t = al_lexer_next_token(&l);
+    }
+    ada_appand(struct Token, tokens, t);
+
+    return tokens;
 }
 
 /**
@@ -447,13 +579,12 @@ struct Token al_lexer_next_token(struct Lexer *l)
             al_lexer_chop_char(l);
         }
     } else if (asm_isdigit(l->content[l->cursor]) || (l->content[l->cursor] == '.' && asm_isdigit(al_lexer_peek(l, 1)))) {
-        token.kind = TOKEN_NUMBER;
-
+        token.kind = TOKEN_INT_LIT_DEC;
         bool is_float = false;
         bool invalid = false;
 
-        /* decimal float starting with "." */
         if (l->content[l->cursor] == '.') {
+            token.kind = TOKEN_FLOAT_LIT_DEC;
             is_float = true;
             al_lexer_chop_char(l);
             al_lexer_chop_while(l, asm_isdigit);
@@ -473,7 +604,7 @@ struct Token al_lexer_next_token(struct Lexer *l)
         } else {
             /* starts with digit */
             if (al_lexer_peek(l, 0) == '0' && (al_lexer_peek(l, 1) == 'x' || al_lexer_peek(l, 1) == 'X')) {
-                /* hex int or hex float */
+                token.kind = TOKEN_INT_LIT_HEX;
                 al_lexer_chop_char(l);
                 al_lexer_chop_char(l);
 
@@ -483,6 +614,7 @@ struct Token al_lexer_next_token(struct Lexer *l)
                     al_lexer_chop_char(l);
                 }
                 if (al_lexer_peek(l, 0) == '.') {
+                    token.kind = TOKEN_FLOAT_LIT_HEX;
                     is_float = true;
                     al_lexer_chop_char(l);
                     while (asm_isXdigit(al_lexer_peek(l, 0)) || asm_isxdigit(al_lexer_peek(l, 0))) {
@@ -510,7 +642,7 @@ struct Token al_lexer_next_token(struct Lexer *l)
                     invalid = true;
                 }
             } else if (al_lexer_peek(l, 0) == '0' && (al_lexer_peek(l, 1) == 'b' || al_lexer_peek(l, 1) == 'B')) {
-                /* binary int */
+                token.kind = TOKEN_INT_LIT_BIN;
                 al_lexer_chop_char(l);
                 al_lexer_chop_char(l);
                 if (!asm_isbdigit(al_lexer_peek(l, 0))) {
@@ -518,7 +650,7 @@ struct Token al_lexer_next_token(struct Lexer *l)
                 }
                 al_lexer_chop_while(l, asm_isbdigit);
             } else if (al_lexer_peek(l, 0) == '0' && (al_lexer_peek(l, 1) == 'o' || al_lexer_peek(l, 1) == 'O')) {
-                /* explicit octal int */
+                token.kind = TOKEN_INT_LIT_OCT;
                 al_lexer_chop_char(l);
                 al_lexer_chop_char(l);
                 if (!asm_isodigit(al_lexer_peek(l, 0))) {
@@ -528,10 +660,11 @@ struct Token al_lexer_next_token(struct Lexer *l)
                     al_lexer_chop_char(l);
                 }
             } else {
-                /* decimal int or decimal float */
+                token.kind = TOKEN_INT_LIT_DEC;
                 al_lexer_chop_while(l, asm_isdigit);
 
                 if (al_lexer_peek(l, 0) == '.') {
+                    token.kind = TOKEN_FLOAT_LIT_DEC;
                     is_float = true;
                     al_lexer_chop_char(l);
                     al_lexer_chop_while(l, asm_isdigit);
@@ -667,7 +800,7 @@ char al_lexer_peek(const struct Lexer *l, size_t off)
  */
 void al_token_print(struct Token tok)
 {
-    printf("%4zu:%-3zu:(%-18s) -> \"%.*s\"\n", tok.location.line_num, tok.location.col, al_token_kind_name(tok.kind), (int)tok.text_len, tok.text);
+    printf("%4zu:%-3zu:(%-19s) -> \"%.*s\"\n", tok.location.line_num, tok.location.col, al_token_kind_name(tok.kind), (int)tok.text_len, tok.text);
 }
 
 /**
@@ -724,8 +857,18 @@ const char *al_token_kind_name(enum Token_Kind kind)
             return ("TOKEN_LE");
         case TOKEN_KEYWORD:
             return ("TOKEN_KEYWORD");
-        case TOKEN_NUMBER:
-            return ("TOKEN_NUMBER");
+        case TOKEN_INT_LIT_BIN:
+            return ("TOKEN_INT_LIT_BIN");
+        case TOKEN_INT_LIT_OCT:
+            return ("TOKEN_INT_LIT_OCT");
+        case TOKEN_INT_LIT_DEC:
+            return ("TOKEN_INT_LIT_DEC");
+        case TOKEN_INT_LIT_HEX:
+            return ("TOKEN_INT_LIT_HEX");
+        case TOKEN_FLOAT_LIT_DEC:
+            return ("TOKEN_FLOAT_LIT_DEC");
+        case TOKEN_FLOAT_LIT_HEX:
+            return ("TOKEN_FLOAT_LIT_HEX");
         case TOKEN_COMMENT:
             return ("TOKEN_COMMENT");
         case TOKEN_STRING_LIT:
@@ -800,6 +943,21 @@ const char *al_token_kind_name(enum Token_Kind kind)
             AL_ASSERT(0 && "Unknown kind");
     }
     return NULL;
+}
+
+struct Tokens al_tokens_init(void)
+{
+    struct Tokens tokens = {0};
+    ada_init_array(struct Token, tokens);
+    ada_init_array(char, tokens.content);
+
+    return tokens;
+}
+
+void al_tokens_free(struct Tokens tokens)
+{
+    AL_FREE(tokens.content.elements);   
+    AL_FREE(tokens.elements);   
 }
 
 #endif /*ALMOG_LEXER_IMPLEMENTATION*/
