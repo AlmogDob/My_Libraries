@@ -347,8 +347,6 @@ void            al_tokens_free(struct Tokens tokens);
 #ifdef ALMOG_LEXER_IMPLEMENTATION
 #undef ALMOG_LEXER_IMPLEMENTATION
 
-#define ASM_NO_ERRORS
-
 /**
  * @brief Returns whether @p c can appear in an identifier after the first
  * character.
