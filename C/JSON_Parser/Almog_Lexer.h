@@ -301,6 +301,14 @@ static struct Literal_Token literal_tokens[] = {
  * If an identifier's spelling matches one of these strings exactly, the lexer
  * produces TOKEN_KEYWORD instead of TOKEN_IDENTIFIER.
  */
+#ifndef AL_CPP_KEYWORDS
+static const char * const keywords[] = {
+    "auto", "break", "case", "char", "const", "continue", "default", "do", "double",
+    "else", "enum", "extern", "float", "for", "goto", "if", "int", "long", "register",
+    "return", "short", "signed", "sizeof", "static", "struct", "switch", "typedef",
+    "union", "unsigned", "void", "volatile", "while",
+};
+#else 
 static const char * const keywords[] = {
     "auto", "break", "case", "char", "const", "continue", "default", "do", "double",
     "else", "enum", "extern", "float", "for", "goto", "if", "int", "long", "register",
@@ -316,6 +324,7 @@ static const char * const keywords[] = {
     "template", "this", "thread_local", "throw", "true", "try", "typeid", "typename",
     "using", "virtual", "wchar_t", "xor", "xor_eq",
 };
+#endif /*AL_CPP_KEYWORDS*/
 #define keywords_count (sizeof(keywords) / sizeof(keywords[0]))
 
 /**
