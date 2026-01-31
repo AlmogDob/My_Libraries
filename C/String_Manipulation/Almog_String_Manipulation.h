@@ -1191,17 +1191,9 @@ int asm_strncmp(const char *s1, const char *s2, const size_t N)
  */
 int asm_strncpy(char * const s1, const char * const s2, const size_t N)
 {
-    size_t len1 = asm_length(s1);
     size_t len2 = asm_length(s2);
 
     size_t n = N < len2 ? N : len2;
-
-    if (n > len1) {
-        #ifndef NO_ERRORS
-        asm_dprintERROR("%s", "min(N, len(s2)) is bigger then len(s1)");
-        #endif
-        return 0;
-    }
 
     size_t i;
     for (i = 0; i < n; i++) {
