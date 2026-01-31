@@ -45,6 +45,11 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#ifndef ASM_MALLOC
+#include <stdlib.h>
+#define ASM_MALLOC malloc
+#endif
+
 /**
  * @def ASM_MAX_LEN
  * @brief Maximum number of characters processed in some string operations.
@@ -181,6 +186,7 @@ int     asm_str2int(const char * const s, const char ** const end, const size_t 
 size_t  asm_str2size_t(const char * const s, const char ** const end, const size_t base);
 void    asm_strip_whitespace(char * const s);
 bool    asm_str_is_whitespace(const char * const s);
+char *  asm_strdup(const char * const s, size_t length);
 int     asm_strncat(char * const s1, const char * const s2, const size_t N);
 int     asm_strncmp(const char * const s1, const char * const s2, const size_t N);
 int     asm_strncpy(char * const s1, const char * const s2, const size_t N);
@@ -206,7 +212,7 @@ void    asm_trim_left_whitespace(char *s);
 bool asm_check_char_belong_to_base(const char c, const size_t base)
 {
     if (base > 36 || base < 2) {
-        #ifndef NO_ERRORS
+        #ifndef ASM_NO_ERRORS
         asm_dprintERROR("Supported bases are [2...36]. Inputted: %zu", base);
         #endif
         return false;
@@ -301,7 +307,7 @@ int asm_get_line(FILE *fp, char * const dst)
     while ((c = fgetc(fp)) != '\n' && c != EOF) {
         dst[i++] = c;
         if (i >= ASM_MAX_LEN) {
-            #ifndef NO_ERRORS
+            #ifndef ASM_NO_ERRORS
             asm_dprintERROR("%s", "index exceeds ASM_MAX_LEN. Line in file is too long.");
             #endif
             dst[i-1] = '\0';
@@ -618,7 +624,7 @@ size_t asm_length(const char * const str)
 
     while ((c = str[i++]) != '\0') {
         if (i > ASM_MAX_LEN) {
-            #ifndef NO_ERRORS
+            #ifndef ASM_NO_ERRORS
             asm_dprintERROR("%s", "index exceeds ASM_MAX_LEN. Probably no NULL termination.");
             #endif
             return SIZE_MAX;
@@ -711,7 +717,7 @@ void asm_remove_char_from_string(char * const s, const size_t index)
     size_t len = asm_length(s);
     if (len == 0) return;
     if (index >= len) {
-        #ifndef NO_ERRORS
+        #ifndef ASM_NO_ERRORS
         asm_dprintERROR("%s", "index exceeds array length.");
         #endif
         return;
@@ -812,7 +818,7 @@ int asm_str_in_str(const char * const src, const char * const word_to_search)
 double asm_str2double(const char * const s, const char ** const end, const size_t base)
 {
     if (base < 2 || base > 36) {
-        #ifndef NO_ERRORS
+        #ifndef ASM_NO_ERRORS
         asm_dprintERROR("Supported bases are [2...36]. Input: %zu", base);
         #endif
         if (end) *end = s;
@@ -899,7 +905,7 @@ double asm_str2double(const char * const s, const char ** const end, const size_
 float asm_str2float(const char * const s, const char ** const end, const size_t base)
 {
     if (base < 2 || base > 36) {
-        #ifndef NO_ERRORS
+        #ifndef ASM_NO_ERRORS
         asm_dprintERROR("Supported bases are [2...36]. Input: %zu", base);
         #endif
         if (end) *end = s;
@@ -973,7 +979,7 @@ float asm_str2float(const char * const s, const char ** const end, const size_t 
 int asm_str2int(const char * const s, const char ** const end, const size_t base)
 {
     if (base < 2 || base > 36) {
-        #ifndef NO_ERRORS
+        #ifndef ASM_NO_ERRORS
         asm_dprintERROR("Supported bases are [2...36]. Input: %zu", base);
         #endif
         if (end) *end = s;
@@ -1025,14 +1031,14 @@ size_t asm_str2size_t(const char * const s, const char ** const end, const size_
     }
 
     if (s[0+num_of_whitespace] == '-') {
-        #ifndef NO_ERRORS
+        #ifndef ASM_NO_ERRORS
         asm_dprintERROR("%s", "Unable to convert a negative number to size_t.");
         #endif
         return 0;
     }
 
     if (base < 2 || base > 36) {
-        #ifndef NO_ERRORS
+        #ifndef ASM_NO_ERRORS
         asm_dprintERROR("Supported bases are [2...36]. Input: %zu", base);
         #endif
         if (end) *end = s+num_of_whitespace;
@@ -1095,6 +1101,14 @@ bool asm_str_is_whitespace(const char * const s)
     return true;
 }
 
+char * asm_strdup(const char * const s, size_t length)
+{
+    char * res = (char *)ASM_MALLOC(sizeof(char) * length+1);
+    asm_strncpy((char * const)res, s, length);
+
+    return res;
+}
+
 /**
  * @brief Append up to @p N characters from @p s2 to the end of @p s1.
  *
@@ -1127,7 +1141,7 @@ int asm_strncat(char * const s1, const char * const s2, const size_t N)
     int i = 0;
     while (i < limit && s2[i] != '\0') {
         if (len_s1 + (size_t)i >= ASM_MAX_LEN-1) {
-            #ifndef NO_ERRORS
+            #ifndef ASM_NO_ERRORS
             asm_dprintERROR("s2 or the first N=%zu digit of s2 does not fit into s1.", N);
             #endif
             return i;
@@ -1175,28 +1189,21 @@ int asm_strncmp(const char *s1, const char *s2, const size_t N)
 /**
  * @brief Copy up to @p N characters from @p s2 into @p s1 (non-standard).
  *
- * Copies n = min(N, len(s2)) characters from @p s2 into @p s1
+ * Copies N characters from @p s2 into @p s1
  * and then writes a terminating '\0'.
  *
  * @param s1 Destination string buffer (must be null-terminated).
  * @param s2 Source string buffer (must be null-terminated).
  * @param N  Maximum number of characters to copy from @p s2.
  *
- * @return The number of characters copied (i.e., \(n\)). Returns 0 and prints
- *         an error if \(n > \text{len}(s1)\).
- *
- * @warning This function does not check the capacity of @p s1. Instead, it
- *          checks the *current length* of the string in @p s1 and refuses to
- *          copy more than that. This differs from the standard strncpy().
+ * @return The number of characters copied (i.e., \(n\)).
  */
 int asm_strncpy(char * const s1, const char * const s2, const size_t N)
 {
-    size_t len2 = asm_length(s2);
-
-    size_t n = N < len2 ? N : len2;
+    size_t n = N;
 
     size_t i;
-    for (i = 0; i < n; i++) {
+    for (i = 0; i < n && s2[i] != '\0'; i++) {
         s1[i] = s2[i];
     }
     s1[i] = '\0';
@@ -1256,8 +1263,8 @@ void asm_trim_left_whitespace(char * const s)
     asm_shift_left(s, i);
 }
 
-#ifdef NO_ERRORS
-#undef NO_ERRORS
+#ifdef ASM_NO_ERRORS
+#undef ASM_NO_ERRORS
 #endif
 
 #endif /*ALMOG_STRING_MANIPULATION_IMPLEMENTATION*/

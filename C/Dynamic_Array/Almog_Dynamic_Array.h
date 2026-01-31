@@ -125,10 +125,10 @@
  * @note Allocation uses ADA_MALLOC and is checked via ADA_ASSERT.
  */
 #define ada_init_array(type, header) do {                                       \
-        header.capacity = ADA_INIT_CAPACITY;                                        \
-        header.length = 0;                                                      \
-        header.elements = (type *)ADA_MALLOC(sizeof(type) * header.capacity);   \
-        ADA_ASSERT(header.elements != NULL);                                    \
+        (header).capacity = ADA_INIT_CAPACITY;                                        \
+        (header).length = 0;                                                      \
+        (header).elements = (type *)ADA_MALLOC(sizeof(type) * (header).capacity);   \
+        ADA_ASSERT((header).elements != NULL);                                    \
     } while (0)
 
     /**

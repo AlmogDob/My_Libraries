@@ -10,7 +10,9 @@
 
 #include "Almog_Lexer.h"
 
-
+#define ajp_dprintERROR(fmt, ...) \
+    fprintf(stderr, "\n%s:%d:\n[Error] in function '%s':\n        " \
+    fmt "\n\n", __FILE__, __LINE__, __func__, __VA_ARGS__)
 
 
 #endif /*ALMOG_JSON_PARSER_H_*/

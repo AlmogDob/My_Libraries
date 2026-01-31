@@ -1,5 +1,5 @@
 CCHECKS = -fsanitize=address,leak,undefined,bounds -fsanitize-address-use-after-scope
-CWARNINGS = -W -Wall -Wextra -Wuninitialized -Wunreachable-code
+CWARNINGS = -W -Wall -Wno-switch -Wextra -Wuninitialized -Wunreachable-code
 CFLAGS = $(CWARNINGS) $(CCHECKS) -std=c99
 
 #############################################################
