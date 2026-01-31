@@ -264,8 +264,7 @@ void asm_copy_array_by_indexes(char * const target, const int start, const int e
  * @param base Numeric base in the range [2, 36] (used for validation).
  * @return The numeric value of @p c in the range [0, 35].
  *
- * @note This function assumes @p c is a valid digit character. Call
- *       asm_check_char_belong_to_base() first if validation is needed.
+ * @note Returns -1 if @p c is not valid for @p base.
  */
 int asm_get_char_value_in_base(const char c, const size_t base)
 {
@@ -287,8 +286,7 @@ int asm_get_char_value_in_base(const char c, const size_t base)
  * always null-terminated on normal (non-error) completion.
  *
  * @param fp  Input stream (must be non-NULL).
- * @param dst Destination buffer. Must have capacity of at least
- *            ASM_MAX_LEN + 1 bytes.
+ * @param dst Destination buffer. Must have capacity of at least ASM_MAX_LEN bytes.
  * @return Number of characters stored in @p dst (excluding the terminating
  *         null byte).
  * @retval -1 EOF was encountered before any character was read, or the line
@@ -1101,6 +1099,19 @@ bool asm_str_is_whitespace(const char * const s)
     return true;
 }
 
+/**
+ * @brief Allocate and copy up to @p length characters from @p s.
+ *
+ * Allocates a new buffer of size (length + 1) bytes using ASM_MALLOC, copies up
+ * to @p length characters from @p s, and always null-terminates the result.
+ *
+ * @param s      Source string (must be null-terminated).
+ * @param length Maximum number of characters to copy (excluding '\0').
+ * @return Newly allocated string, or NULL if allocation fails.
+ *
+ * @note This is not the same as POSIX strdup(): it does not compute length by
+ *       itself and may intentionally truncate.
+ */
 char * asm_strdup(const char * const s, size_t length)
 {
     char * res = (char *)ASM_MALLOC(sizeof(char) * length+1);
@@ -1173,8 +1184,9 @@ int asm_strncat(char * const s1, const char * const s2, const size_t N)
  */
 int asm_strncmp(const char *s1, const char *s2, const size_t N)
 {
+    size_t n = N == 0 ? ASM_MAX_LEN : N;
     size_t i = 0;
-    while (i < N) {
+    while (i < n) {
         if (s1[i] == '\0' && s2[i] == '\0') {
             break;
         }

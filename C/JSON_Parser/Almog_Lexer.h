@@ -224,6 +224,8 @@ struct Tokens {
     size_t capacity;
     struct Token* elements;
     size_t current_token;
+    const char *current_key;
+    size_t current_key_len;
     char *file_path;
 };
 
