@@ -31,6 +31,17 @@
 #endif /* AL_ASSERT */ 
 
 /**
+ * @def AL_MALLOC
+ * @brief Deallocation macro used by al_lexer_alloc() (defaults to @c malloc()).
+ *
+ * Define @c AL_MALLOC before including this header to override.
+ */
+#ifndef AL_MALLOC
+#include <stdlib.h>
+#define AL_MALLOC malloc
+#endif /* AL_MALLOC */ 
+
+/**
  * @def AL_FREE
  * @brief Deallocation macro used by al_tokens_free() (defaults to @c free()).
  *
@@ -212,6 +223,8 @@ struct Tokens {
     size_t length;
     size_t capacity;
     struct Token* elements;
+    size_t current_token;
+    char *file_path;
 };
 
 /**
@@ -338,7 +351,7 @@ static const char * const keywords[] = {
 
 bool            al_is_identifier(char c);
 bool            al_is_identifier_start(char c);
-struct Tokens   al_lex_entire_file(FILE *fp);
+struct Tokens   al_lex_entire_file(char *file_path);
 struct Lexer    al_lexer_alloc(const char *content, size_t len);
 char            al_lexer_chop_char(struct Lexer *l);
 void            al_lexer_chop_while(struct Lexer *l, bool (*pred)(char));
@@ -348,7 +361,7 @@ void            al_lexer_trim_left(struct Lexer *l);
 char            al_lexer_peek(const struct Lexer *l, size_t off);
 void            al_token_print(struct Token tok);
 const char *    al_token_kind_name(enum Token_Kind kind);
-struct Tokens   al_tokens_init(void);
+struct Tokens   al_tokens_alloc(void);
 void            al_tokens_free(struct Tokens tokens);
 
 #endif /*ALMOG_LEXER_H_*/
@@ -383,9 +396,15 @@ bool al_is_identifier_start(char c)
     return asm_isalpha(c) || c == '_';
 }
 
-struct Tokens al_lex_entire_file(FILE *fp)
+struct Tokens al_lex_entire_file(char *file_path)
 {
-    struct Tokens tokens = al_tokens_init();
+    FILE *fp = fopen(file_path, "r");
+    if (!fp) {
+        exit(1);
+    }
+
+    struct Tokens tokens = al_tokens_alloc();
+    asm_strncpy(tokens.file_path, file_path, ASM_MAX_LEN);
 
     char temp_str[ASM_MAX_LEN];
     int len = 0;
@@ -952,11 +971,13 @@ const char *al_token_kind_name(enum Token_Kind kind)
     return NULL;
 }
 
-struct Tokens al_tokens_init(void)
+struct Tokens al_tokens_alloc(void)
 {
     struct Tokens tokens = {0};
     ada_init_array(struct Token, tokens);
     ada_init_array(char, tokens.content);
+    tokens.current_token = 0;
+    tokens.file_path = (char *)malloc(sizeof(char) * ASM_MAX_LEN);
 
     return tokens;
 }
@@ -965,6 +986,7 @@ void al_tokens_free(struct Tokens tokens)
 {
     AL_FREE(tokens.content.elements);   
     AL_FREE(tokens.elements);   
+    AL_FREE(tokens.file_path);
 }
 
 #endif /*ALMOG_LEXER_IMPLEMENTATION*/
