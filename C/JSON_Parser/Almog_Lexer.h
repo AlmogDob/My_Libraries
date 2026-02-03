@@ -351,6 +351,10 @@ static const char * const keywords[] = {
  */
 #define AL_UNUSED(x) (void)x
 
+#define al_dprintERROR(fmt, ...) \
+    fprintf(stderr, "\n%s:%d:\n[Error] in function '%s':\n        " \
+    fmt "\n\n", __FILE__, __LINE__, __func__, __VA_ARGS__)
+
 bool            al_is_identifier(char c);
 bool            al_is_identifier_start(char c);
 struct Tokens   al_lex_entire_file(char *file_path);
@@ -402,6 +406,7 @@ struct Tokens al_lex_entire_file(char *file_path)
 {
     FILE *fp = fopen(file_path, "r");
     if (!fp) {
+        al_dprintERROR("Could not open file '%s'\n", file_path);
         exit(1);
     }
 

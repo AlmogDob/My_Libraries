@@ -83,12 +83,15 @@ bool parse_people(struct Tokens *tokens, struct People *people)
 
 int main(void)
 {
-    struct Tokens tokens = al_lex_entire_file("profile.json");
+    struct Tokens tokens = al_lex_entire_file("profiles.json");
 
     struct People people = {0};
     ada_init_array(struct Person, people);
 
-    parse_people(&tokens, &people);
+    if (!parse_people(&tokens, &people)) {
+        asm_dprintSIZE_T(people.length);
+        return 1;
+    }
 
     for (size_t i = 0; i < people.length; i++) {
         print_person(people.elements[i]);
