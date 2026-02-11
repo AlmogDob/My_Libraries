@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset = "UTF-8"/>
+        <meta name="adder"/>
+
+        <title>Adder</title>
+
+        <style>
+            body {
+                font-family: Gabriel;
+                margin: 0;
+                padding: 24px;
+                background: #181818;
+                color: #fff;
+            }
+        </style>
+    </head>
+
+
+    <body>
+        <h1>ADDER</h1>
+
+        <form action="http://localhost:42069" method="get">
+            <fieldset>
+                <legend>Numbers to Add</legend>
+                <p>
+                    <label for="first_num">First Number:</label>
+                    <input type="number" name="first_num" id="first_num" placeholder="1" autocomplete="on" required autofocus>
+                </p>
+                <p>
+                    <label for="second_num">Second Number:</label>
+                    <input type="number" name="second_num" id="second_num" placeholder="1" autocomplete="on" required autofocus>
+                </p>
+                <p>
+                    <label for="third_num">Third Number:</label>
+                    <input type="number" name="third_num" id="third_num" placeholder="1" autocomplete="on" required autofocus>
+                </p>
+            </fieldset>
+            <button type="submit">Save locally</button>
+        </form>
+    </body>
+</html>
