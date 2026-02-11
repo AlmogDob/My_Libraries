@@ -12,9 +12,6 @@ set "CCHECK=/Zi /Od /RTC1 /MTd /DDEBUG"
 REM Optional static analysis (slower)
 set "CCHECK=%CCHECK% /analyze"
 
-REM Optional AddressSanitizer (only if your MSVC supports it)
-REM set "CCHECK=%CCHECK% /fsanitize=address"
-
 REM ---- C standard ----
 REM Use /std:c11 or /std:c17 if your cl supports it.
 set "CSTD=/std:c11"
@@ -26,17 +23,22 @@ setlocal
 if "%~1"=="" (
   echo Usage: %~nx0 ^<file.c^>
   echo        %~nx0 ^<file.c^> --no-clean
-  exit /b 1
+  @REM exit /b 1
+  set "PROG=temp.c"
+
+) else (
+  set "PROG=%~1"
 )
+
 
 set "NOCLEAN=0"
 if /i "%~2"=="--no-clean" set "NOCLEAN=1"
 if /i "%~2"=="-nc" set "NOCLEAN=1"
 
-call :build "%~1" || exit /b 1
-call :run   "%~1" || exit /b 1
+call :build "%PROG%" || exit /b 1
+call :run   "%PROG%" || exit /b 1
 if "%NOCLEAN%"=="0" (
-  call :clean "%~1"
+  call :clean "%PROG%"
 )
 
 endlocal

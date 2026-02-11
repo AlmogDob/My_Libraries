@@ -303,7 +303,7 @@ int asm_get_line(FILE *fp, char * const dst)
     int i = 0;
     int c;
     while ((c = fgetc(fp)) != '\n' && c != EOF) {
-        dst[i++] = c;
+        dst[i++] = (char)c;
         if (i >= ASM_MAX_LEN) {
             #ifndef ASM_NO_ERRORS
             asm_dprintERROR("%s", "index exceeds ASM_MAX_LEN. Line in file is too long.");
@@ -924,7 +924,7 @@ float asm_str2float(const char * const s, const char ** const end, const size_t 
     float right = 0.0f;
     int expo = 0;
     for (; asm_check_char_belong_to_base(s[i+num_of_whitespace], base); i++) {
-        left = base * left + asm_get_char_value_in_base(s[i+num_of_whitespace], base);
+        left = (int)base * left + asm_get_char_value_in_base(s[i+num_of_whitespace], base);
     }
 
     if (s[i+num_of_whitespace] == '.') {
@@ -995,7 +995,7 @@ int asm_str2int(const char * const s, const char ** const end, const size_t base
     int sign = s[0+num_of_whitespace] == '-' ? -1 : 1;
 
     for (; asm_check_char_belong_to_base(s[i+num_of_whitespace], base); i++) {
-        n = base * n + asm_get_char_value_in_base(s[i+num_of_whitespace], base);
+        n = (int)base * n + asm_get_char_value_in_base(s[i+num_of_whitespace], base);
     }
 
     if (end) *end = s + i+num_of_whitespace;
@@ -1144,7 +1144,7 @@ int asm_strncat(char * const s1, const char * const s2, const size_t N)
 {
     size_t len_s1 = asm_length(s1);
 
-    int limit = N;
+    int limit = (int)N;
     if (limit == 0) {
         limit = ASM_MAX_LEN;
     }
@@ -1220,7 +1220,7 @@ int asm_strncpy(char * const s1, const char * const s2, const size_t N)
     }
     s1[i] = '\0';
 
-    return i;
+    return (int)i;
 }
 
 /**
