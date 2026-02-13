@@ -224,6 +224,8 @@ struct Tokens {
     size_t capacity;
     struct Token* elements;
     size_t current_token;
+    const char *current_key;
+    size_t current_key_len;
     char *file_path;
 };
 
@@ -349,6 +351,10 @@ static const char * const keywords[] = {
  */
 #define AL_UNUSED(x) (void)x
 
+#define al_dprintERROR(fmt, ...) \
+    fprintf(stderr, "\n%s:%d:\n[Error] in function '%s':\n        " \
+    fmt "\n\n", __FILE__, __LINE__, __func__, __VA_ARGS__)
+
 bool            al_is_identifier(char c);
 bool            al_is_identifier_start(char c);
 struct Tokens   al_lex_entire_file(char *file_path);
@@ -400,6 +406,7 @@ struct Tokens al_lex_entire_file(char *file_path)
 {
     FILE *fp = fopen(file_path, "r");
     if (!fp) {
+        al_dprintERROR("Could not open file '%s'\n", file_path);
         exit(1);
     }
 
@@ -570,6 +577,9 @@ struct Token al_lexer_next_token(struct Lexer *l)
     } else if (l->content[l->cursor] == '"') {
         token.kind = TOKEN_STRING_LIT;
         al_lexer_chop_char(l);
+        token.text++;
+        start = l->cursor+1;
+
         for ( ; (l->cursor < l->content_len) && (l->content[l->cursor] != '"') && (l->content[l->cursor] != '\n'); ) {
             al_lexer_chop_char(l);
         }
@@ -579,6 +589,9 @@ struct Token al_lexer_next_token(struct Lexer *l)
     } else if (l->content[l->cursor] == '\'') {
         token.kind = TOKEN_CHAR_LIT;
         al_lexer_chop_char(l);
+        token.text++;
+        start = l->cursor+1;
+
         for ( ; (l->cursor < l->content_len) && (l->content[l->cursor] != '\'') && (l->content[l->cursor] != '\n'); ) {
             al_lexer_chop_char(l);
         }
