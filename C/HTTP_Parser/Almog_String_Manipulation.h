@@ -192,8 +192,8 @@ char *  asm_strdup(const char * const s, size_t length);
 int     asm_strncat(char * const s1, const char * const s2, const size_t N);
 int     asm_strncmp(const char * const s1, const char * const s2, const size_t N);
 int     asm_strncpy(char * const s1, const char * const s2, const size_t N);
-void    asm_tolower(char * const s);
-void    asm_toupper(char * const s);
+void    asm_tolower(char * const s, const size_t len);
+void    asm_toupper(char * const s, const size_t len);
 void    asm_trim_left_whitespace(char *s);
 
 #endif /*ALMOG_STRING_MANIPULATION_H_*/
@@ -309,7 +309,7 @@ int asm_get_line(FILE *fp, char * const dst)
     int i = 0;
     int c;
     while ((c = fgetc(fp)) != '\n' && c != EOF) {
-        dst[i++] = c;
+        dst[i++] = (char)c;
         if (i >= ASM_MAX_LEN) {
             #ifndef ASM_NO_ERRORS
             asm_dprintERROR("%s", "index exceeds ASM_MAX_LEN. Line in file is too long.");
@@ -939,7 +939,7 @@ float asm_str2float(const char * const s, const char ** const end, const size_t 
     float right = 0.0f;
     int expo = 0;
     for (; asm_check_char_belong_to_base(s[i+num_of_whitespace], base); i++) {
-        left = base * left + asm_get_char_value_in_base(s[i+num_of_whitespace], base);
+        left = (int)base * left + asm_get_char_value_in_base(s[i+num_of_whitespace], base);
     }
 
     if (s[i+num_of_whitespace] == '.') {
@@ -1014,7 +1014,7 @@ int asm_str2int(const char * const s, const char ** const end, const size_t base
     int sign = s[0+num_of_whitespace] == '-' ? -1 : 1;
 
     for (; asm_check_char_belong_to_base(s[i+num_of_whitespace], base); i++) {
-        n = base * n + asm_get_char_value_in_base(s[i+num_of_whitespace], base);
+        n = (int)base * n + asm_get_char_value_in_base(s[i+num_of_whitespace], base);
     }
 
     if (end) *end = s + i+num_of_whitespace;
@@ -1167,26 +1167,26 @@ int asm_strncat(char * const s1, const char * const s2, const size_t N)
 {
     size_t len_s1 = asm_length(s1);
 
-    int limit = N;
+    size_t limit = N;
     if (limit == 0) {
         limit = ASM_MAX_LEN;
     }
 
-    int i = 0;
+    size_t i = 0;
     while (i < limit && s2[i] != '\0') {
         if (len_s1 + (size_t)i >= ASM_MAX_LEN-1) {
             #ifndef ASM_NO_ERRORS
             asm_dprintERROR("s2 or the first N=%zu digit of s2 does not fit into s1.", N);
             #endif
-            return i;
+            return (int)i;
         }
 
-        s1[len_s1+(size_t)i] = s2[i];
+        s1[len_s1+i] = s2[i];
         i++;
     }
-    s1[len_s1+(size_t)i] = '\0';
+    s1[len_s1+i] = '\0';
 
-    return i;
+    return (int)i;
 }
 
 /**
@@ -1251,7 +1251,7 @@ int asm_strncpy(char * const s1, const char * const s2, const size_t N)
     }
     s1[i] = '\0';
 
-    return i;
+    return (int)i;
 }
 
 /**
@@ -1259,9 +1259,8 @@ int asm_strncpy(char * const s1, const char * const s2, const size_t N)
  *
  * @param s String to modify in-place. Must be null-terminated.
  */
-void asm_tolower(char * const s)
+void asm_tolower(char * const s, const size_t len)
 {
-    size_t len = asm_length(s);
     for (size_t i = 0; i < len; i++) {
         if (asm_isupper(s[i])) {
             s[i] += 'a' - 'A';
@@ -1274,9 +1273,8 @@ void asm_tolower(char * const s)
  *
  * @param s String to modify in-place. Must be null-terminated.
  */
-void asm_toupper(char * const s)
+void asm_toupper(char * const s, const size_t len)
 {
-    size_t len = asm_length(s);
     for (size_t i = 0; i < len; i++) {
         if (asm_islower(s[i])) {
             s[i] += 'A' - 'a';

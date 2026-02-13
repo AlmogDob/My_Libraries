@@ -125,7 +125,7 @@ enum Ahp_Return_Types ahp_HTTP_field_line_parse(struct Ahp_HTTP_Message *msg, st
         return AHP_FAIL;
     }
     fl->field_name_len = &(msg->content[msg->cursor]) - fl->field_name;
-    if (!ahp_is_valid_field_name(fl->field_name, fl->field_name_len)) { /* there should be no space between the filed name and the colon */
+    if (!ahp_is_valid_field_name(fl->field_name, fl->field_name_len)) {
         asm_dprintERROR("invalid field name '%.*s'", (int)fl->field_name_len, fl->field_name);
         return AHP_FAIL;
     }
