@@ -22,20 +22,16 @@
     <body>
         <h1>ADDER</h1>
 
-        <form action="http://localhost:42069" method="get">
+        <form action="http://localhost:42069" method="post">
             <fieldset>
                 <legend>Numbers to Add</legend>
                 <p>
                     <label for="first_num">First Number:</label>
-                    <input type="number" name="first_num" id="first_num" placeholder="1" autocomplete="on" required autofocus>
+                    <input type="number" name="first_num" id="first_num" placeholder="0" autocomplete="on" required autofocus>
                 </p>
                 <p>
                     <label for="second_num">Second Number:</label>
-                    <input type="number" name="second_num" id="second_num" placeholder="1" autocomplete="on" required autofocus>
-                </p>
-                <p>
-                    <label for="third_num">Third Number:</label>
-                    <input type="number" name="third_num" id="third_num" placeholder="1" autocomplete="on" required autofocus>
+                    <input type="number" name="second_num" id="second_num" placeholder="0" autocomplete="on" required>
                 </p>
             </fieldset>
             <button type="submit">Save locally</button>

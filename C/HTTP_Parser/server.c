@@ -2,8 +2,21 @@
 #include <WinSock2.h>
 #include <WS2tcpip.h>
 
+#define ALMOG_STRING_MANIPULATION_IMPLEMENTATION
+#define ALMOG_HTTP_PARSER_IMPLEMENTATION
+#include "Almog_HTTP_Parser.h"
+
+struct String {
+    size_t length;
+    size_t capacity;
+    char *elements;
+};
+
 int main(void)
 {
+    struct String message_content;
+    ada_init_array(char, message_content);
+    
     printf("----------TCP SERVER----------\n\n");
 
     WSADATA winsock_data;
@@ -57,15 +70,19 @@ int main(void)
     // Handle client (blocking)
     send(client, sender_buffer, sender_buffer_len, 0);
 
-    printf("Received:\n");
-    printf("------------------------------\n");
+    printf("Received!\n");
+    // printf("------------------------------\n");
     int n = recv(client, receive_buffer, receive_buffer_len - 1, 0);
     while (n > 0) {
         receive_buffer[n] = '\0';
-        printf("%s\n", receive_buffer);
+        // printf("%s\n", receive_buffer);
+        for (int i = 0; i < n; i++) {
+            ada_appand(char, message_content, receive_buffer[i]);
+        }
         n = recv(client, receive_buffer, receive_buffer_len - 1, 0);
     }
-    printf("------------------------------\n");
+    ada_appand(char, message_content, '\0');
+    // printf("------------------------------\n");
     if (n < 0) {
         fprintf(stderr, "Receiving form client failed. %d\n", WSAGetLastError());
         return 1;
@@ -89,8 +106,34 @@ int main(void)
     }
     printf("Cleanup success\n");
 
-    printf("\nPRESS ANYTHING\n");
-    fgetc(stdin);
+
+    asm_print_many_times("-", 40);
+
+    printf("the message:\n%.*s\n", (int)message_content.length, message_content.elements);
+
+    struct Ahp_HTTP_Message msg;
+    msg.content = message_content.elements;
+    msg.content_len = message_content.length;
+    (void)message_content;
+
+
+    if (ahp_HTTP_message_parse(&msg) != 0) {
+        free((void *)msg.HTTP_head.field_lines.elements);
+        free((void *)msg.content);
+        return 1;
+    }
+
+    ahp_HTTP_request_line_print(msg.HTTP_request_line);
+    for (size_t i = 0; i < msg.HTTP_head.field_lines.length; i++) {
+        ahp_HTTP_field_line_print(msg.HTTP_head.field_lines.elements[i]);
+    }
+    printf("%.*s\n", (int)msg.HTTP_body.content_len, msg.HTTP_body.content);
+
+
+
+
+    free((void *)msg.HTTP_head.field_lines.elements);
+    free((void *)msg.content);
 
     return 0;
 }
