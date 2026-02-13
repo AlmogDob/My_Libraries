@@ -9,8 +9,8 @@
  *  - Measuring string length
  *  - Extracting the next token from a string using a delimiter
  *    (does not skip whitespace)
- *  - Cutting the extracted token (and leading whitespace) from the source
- *    buffer
+ *  - Cutting the extracted token from the source buffer (optionally also
+ *    removing the delimiter)
  *  - Copying a substring by indices
  *  - Counting occurrences of a substring
  *  - A boolean-style strncmp (returns 1 on equality, 0 otherwise)
@@ -29,9 +29,9 @@
  * Notes and limitations
  *  - All destination buffers must be large enough; functions do not grow or
  *    allocate buffers.
- *  - asm_get_line and asm_length enforce ASM_MAX_LEN characters (not counting
- *    the terminating '\0'). Longer lines cause an early return with an error
- *    message.
+ *  - asm_get_line stores at most ASM_MAX_LEN - 1 characters (plus '\0').
+ *    Lines longer than that cause an early return with an error message.
+ *    asm_length uses ASM_MAX_LEN as a sanity limit when scanning for '\0'.
  *  - asm_strncmp differs from the standard C strncmp: this version returns
  *    1 if equal and 0 otherwise.
  *  - Character classification and case-conversion helpers are ASCII-only and
@@ -55,10 +55,12 @@
  * @brief Maximum number of characters processed in some string operations.
  *
  * @details
- * This constant limits:
- *  - The number of characters read by asm_get_line from a stream (excluding
- *    the terminating null byte).
- *  - The maximum number of characters inspected by asm_length.
+ * This constant is used as a fixed, caller-provided buffer size / sanity
+ * limit:
+ *  - asm_get_line() writes at most ASM_MAX_LEN - 1 characters to the
+ *    destination buffer and always reserves 1 byte for the terminating '\0'.
+ *  - asm_length() uses ASM_MAX_LEN as a safety bound while searching for '\0'
+ *    (it returns SIZE_MAX if no terminator is found within that bound).
  *
  * If asm_get_line reads ASM_MAX_LEN characters without encountering '\n' or
  * EOF, it prints an error to stderr and returns -1. In that error case, the
@@ -296,6 +298,10 @@ int asm_get_char_value_in_base(const char c, const size_t base)
  *       is seen, the function prints an error message to stderr and returns
  *       -1. In that case, @p dst is truncated and null-terminated by
  *       overwriting the last stored character.
+ * @note On the "line too long" error path, this function returns immediately
+ *       after truncating @p dst and does not consume the rest of the current
+ *       line from @p fp. A subsequent call will continue reading from the
+ *       same (still-unfinished) line.
  * @note An empty line (just '\n') returns 0 (not -1).
  */
 int asm_get_line(FILE *fp, char * const dst)
@@ -366,12 +372,15 @@ int asm_get_next_token_from_str(char * const dst, const char * const src, const 
  * token from the beginning of @p src into @p dst. Then modifies @p src in-place
  * by left-shifting it.
  *
- * If @p leave_delimiter is true, @p src is left-shifted by the value returned
- * from asm_get_next_token_from_str() (i.e., the delimiter—if present—remains as
- * the first character in the updated @p src).
- *
- * If @p leave_delimiter is false, @p src is left-shifted by that return value
- * plus one (intended to also remove the delimiter).
+ *  - If @p leave_delimiter is true:
+ *      - @p src is shifted left by the token length.
+ *      - If a delimiter was present, it becomes the first character of the
+ *        updated @p src.
+ *  - If @p leave_delimiter is false:
+ *      - If a delimiter is present immediately after the token, @p src is
+ *        shifted left by (token length + 1), removing exactly one delimiter.
+ *      - If no delimiter is present (the token reaches '\0'), @p src is set
+ *        to the empty string.
  *
  * @param dst             Destination buffer for the extracted token (must be
  *                        large enough for the token plus the null terminator).
@@ -380,13 +389,13 @@ int asm_get_next_token_from_str(char * const dst, const char * const src, const 
  * @param leave_delimiter If true, do not remove the delimiter from @p src; if
  *                        false, remove one additional character after the token.
  *
- * @return 1 if asm_get_next_token_from_str() returned a non-zero value,
- *         otherwise 0.
+ * @return 1 if a non-empty token was extracted (token length != 0),
+ *         otherwise 0. (Note: an empty token may still cause @p src to change,
+ *         e.g., when @p src begins with the delimiter and @p leave_delimiter is
+ *         false, the delimiter is removed but 0 is returned.)
  *
- * @note This function always calls asm_shift_left() even when the returned value
- *       from asm_get_next_token_from_str() is 0. In particular, when
- *       @p leave_delimiter is false and the returned value is 0, @p src will be
- *       left-shifted by 1.
+ * @note This function does not skip whitespace. Any leading whitespace is part
+ *       of the extracted token (until the delimiter or '\0').
  */
 int asm_get_token_and_cut(char * const dst, char *src, const char delimiter, const bool leave_delimiter)
 {
@@ -802,6 +811,9 @@ int asm_str_in_str(const char * const src, const char * const word_to_search)
  *       power of the specified base. For example, "1.5e2" in base 10
  *       means 1.5 * 10^2 = 150, while "A.8e2" in base 16 means
  *       10.5 * 16^2 = 2688.
+ * @note The exponent is parsed via asm_str2int(), which skips leading ASCII
+ *       whitespace. As a result, strings like "1e 2" may be accepted (expo=2)
+ *       even though standard C conversions typically stop at the 'e'.
  * @note The exponent can be positive or negative (e.g., "1e-3" = 0.001).
  * @note On invalid base, an error is printed to stderr, *end (if non-NULL)
  *       is set to @p s, and 0.0 is returned.
@@ -889,6 +901,9 @@ double asm_str2double(const char * const s, const char ** const end, const size_
  *       power of the specified base. For example, "1.5e2" in base 10
  *       means 1.5 * 10^2 = 150, while "A.8e2" in base 16 means
  *       10.5 * 16^2 = 2688.
+ * @note The exponent is parsed via asm_str2int(), which skips leading ASCII
+ *       whitespace. As a result, strings like "1e 2" may be accepted (expo=2)
+ *       even though standard C conversions typically stop at the 'e'.
  * @note The exponent can be positive or negative (e.g., "1e-3" = 0.001).
  * @note On invalid base, an error is printed to stderr, *end (if non-NULL)
  *       is set to @p s, and 0.0f is returned.
@@ -971,8 +986,12 @@ float asm_str2float(const char * const s, const char ** const end, const size_t 
  *
  * @note Only digits '0'–'9', 'a'–'z', and 'A'–'Z' are recognized as
  *       base-N digits.
- * @note On invalid base, an error is printed to stderr, *end (if non-NULL)
- *       is set to @p s, and 0 is returned.
+ * @note On invalid base, an error is printed to stderr,
+ *       and 0 is returned. For @p end:
+ *         - if a negative sign is encountered, this implementation leaves
+ *           *end pointing to the original @p s (before whitespace skip);
+ *         - if the base is invalid, this implementation sets *end to the first
+ *           non-whitespace character (i.e., @p s after whitespace skip).
  */
 int asm_str2int(const char * const s, const char ** const end, const size_t base)
 {
@@ -1107,10 +1126,13 @@ bool asm_str_is_whitespace(const char * const s)
  *
  * @param s      Source string (must be null-terminated).
  * @param length Maximum number of characters to copy (excluding '\0').
- * @return Newly allocated string, or NULL if allocation fails.
+ * @return Newly allocated string.
  *
  * @note This is not the same as POSIX strdup(): it does not compute length by
  *       itself and may intentionally truncate.
+ * @note Allocation failure is not handled: if ASM_MALLOC returns NULL, this
+ *       implementation will pass NULL to asm_strncpy(), resulting in undefined
+ *       behavior.
  */
 char * asm_strdup(const char * const s, size_t length)
 {
@@ -1137,8 +1159,9 @@ char * asm_strdup(const char * const s, size_t length)
  * @return The number of characters appended to @p s1.
  *
  * @warning This function uses ASM_MAX_LEN as an upper bound for the resulting
- *          length (excluding the terminating '\0'). The caller must ensure
- *          @p s1 has capacity of at least ASM_MAX_LEN bytes.
+ *          buffer size and enforces a maximum resulting string length of
+ *          ASM_MAX_LEN - 1 (excluding the terminating '\0'). The caller must
+ *          ensure @p s1 has capacity of at least ASM_MAX_LEN bytes.
  */
 int asm_strncat(char * const s1, const char * const s2, const size_t N)
 {
@@ -1176,11 +1199,14 @@ int asm_strncat(char * const s1, const char * const s2, const size_t N)
  *
  * @param s1 First string (may be shorter than @p N).
  * @param s2 Second string (may be shorter than @p N).
- * @param N  Number of characters to compare.
+ * @param N  Number of characters to compare. If N == 0, this implementation
+ *           compares up to ASM_MAX_LEN characters.
  * @return 1 if equal for the first @p N characters, 0 otherwise.
  *
- * @note If either string ends before @p N characters and the other does
- *       not, the strings are considered different.
+ * @note If both strings terminate ('\0') at the same position before @p N,
+ *       they are considered equal.
+ * @note If either string ends before the other (within @p N), the strings are
+ *       considered different.
  */
 int asm_strncmp(const char *s1, const char *s2, const size_t N)
 {
@@ -1201,10 +1227,15 @@ int asm_strncmp(const char *s1, const char *s2, const size_t N)
 /**
  * @brief Copy up to @p N characters from @p s2 into @p s1 (non-standard).
  *
- * Copies N characters from @p s2 into @p s1
- * and then writes a terminating '\0'.
+ * Copies characters from @p s2 into @p s1 until either:
+ *  - @p N characters were copied, or
+ *  - a '\0' is encountered in @p s2,
+ * and then writes a terminating '\0' to @p s1.
  *
- * @param s1 Destination string buffer (must be null-terminated).
+ * This differs from the standard strncpy(): it does not pad with additional
+ * '\0' bytes up to @p N.
+ *
+ * @param s1 Destination string buffer (need not be null-terminated on entry).
  * @param s2 Source string buffer (must be null-terminated).
  * @param N  Maximum number of characters to copy from @p s2.
  *
