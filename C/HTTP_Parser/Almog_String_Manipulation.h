@@ -175,13 +175,15 @@ bool    asm_isspace(const char c);
 bool    asm_isupper(const char c);
 bool    asm_isxdigit(const char c);
 bool    asm_isXdigit(const char c);
-size_t  asm_length(const char * const str);
+#define asm_length(str) __asm_length(str, __FILE__, __LINE__, __func__)
+size_t  __asm_length(const char * const str, char *file_name, int line_num, char *function_name);
 void *  asm_memset(void * const des, const unsigned char value, const size_t n);
 void    asm_pad_left(char * const s, const size_t padding, const char pad);
 void    asm_print_many_times(const char * const str, const size_t n);
 void    asm_remove_char_from_string(char * const s, const size_t index);
 void    asm_shift_left(char * const s, const size_t shift);
-int     asm_str_in_str(const char * const src, const char * const word_to_search);
+int     asm_str_in_str(const char * const src, const size_t src_len, const char * const word_to_search, const char **first_occurrence);
+int     asm_str_in_str_case_insensitive(const char * const src, const size_t src_len, const char * const word_to_search, const char **first_occurrence);
 double  asm_str2double(const char * const s, const char ** const end, const size_t base);
 float   asm_str2float(const char * const s, const char ** const end, const size_t base);
 int     asm_str2int(const char * const s, const char ** const end, const size_t base);
@@ -191,6 +193,7 @@ bool    asm_str_is_whitespace(const char * const s);
 char *  asm_strdup(const char * const s, size_t length);
 int     asm_strncat(char * const s1, const char * const s2, const size_t N);
 int     asm_strncmp(const char * const s1, const char * const s2, const size_t N);
+int     asm_strncmp_case_insensitive(const char * const s1, const char * const s2, const size_t N);
 int     asm_strncpy(char * const s1, const char * const s2, const size_t N);
 void    asm_tolower(char * const s, const size_t len);
 void    asm_toupper(char * const s, const size_t len);
@@ -624,7 +627,7 @@ bool asm_isXdigit(char c)
  *       a null terminator, an error is printed to stderr and __SIZE_MAX__
  *       is returned.
  */
-size_t asm_length(const char * const str)
+size_t  __asm_length(const char * const str, char *file_name, int line_num, char *function_name)
 {
     char c;
     size_t i = 0;
@@ -632,7 +635,7 @@ size_t asm_length(const char * const str)
     while ((c = str[i++]) != '\0') {
         if (i > ASM_MAX_LEN) {
             #ifndef ASM_NO_ERRORS
-            asm_dprintERROR("%s", "index exceeds ASM_MAX_LEN. Probably no NULL termination.");
+            asm_dprintERROR("index exceeds ASM_MAX_LEN. Probably no NULL termination.\nCalled in function: '%s' in: %s:%d", function_name, file_name, line_num);
             #endif
             return SIZE_MAX;
         }
@@ -779,16 +782,36 @@ void asm_shift_left(char * const s, const size_t shift)
  * @note If @p word_to_search is the empty string, the behavior is not
  *       well-defined and should be avoided.
  */
-int asm_str_in_str(const char * const src, const char * const word_to_search)
+int asm_str_in_str(const char * const src, const size_t src_len, const char * const word_to_search, const char **first_occurrence)
 {
-    int i = 0, num_of_accur = 0;
-    while (src[i] != '\0') {
+    size_t num_of_accur = 0;
+    size_t n = src_len == 0 ? ASM_MAX_LEN : src_len;
+    for (size_t i = 0; src[i] != '\0' && i < n; i++) {
         if (asm_strncmp(src+i, word_to_search, asm_length(word_to_search))) {
             num_of_accur++;
+            if (num_of_accur == 1) {
+                *first_occurrence = &(src[i]);
+            }
         }
         i++;
     }
-    return num_of_accur;
+    return (int)num_of_accur;
+}
+
+int asm_str_in_str_case_insensitive(const char * const src, const size_t src_len, const char * const word_to_search, const char **first_occurrence)
+{
+    size_t num_of_accur = 0;
+    size_t n = src_len == 0 ? ASM_MAX_LEN : src_len;
+    for (size_t i = 0; src[i] != '\0' && i < n; i++) {
+        if (asm_strncmp_case_insensitive(src+i, word_to_search, asm_length(word_to_search))) {
+            num_of_accur++;
+            if (num_of_accur == 1) {
+                *first_occurrence = &(src[i]);
+            }
+        }
+        i++;
+    }
+    return (int)num_of_accur;
 }
 
 /**
@@ -1224,6 +1247,35 @@ int asm_strncmp(const char *s1, const char *s2, const size_t N)
     return 1;
 }
 
+int asm_strncmp_case_insensitive(const char * const s1, const char * const s2, const size_t N)
+{
+    size_t n = N == 0 ? ASM_MAX_LEN : N;
+    size_t i = 0;
+
+    char *s1dup = asm_strdup(s1, N);
+    char *s2dup = asm_strdup(s2, N);
+
+    asm_tolower(s1dup, N);
+    asm_tolower(s2dup, N);
+
+    while (i < n) {
+        if (s1dup[i] == '\0' && s2dup[i] == '\0') {
+            break;
+        }
+        if (s1dup[i] != s2dup[i] || (s1dup[i] == '\0') || (s2dup[i] == '\0')) {
+            free(s1dup);
+            free(s2dup);
+            return 0;
+        }
+        i++;
+    }
+
+    free(s1dup);
+    free(s2dup);
+
+    return 1;
+}
+
 /**
  * @brief Copy up to @p N characters from @p s2 into @p s1 (non-standard).
  *
@@ -1243,7 +1295,7 @@ int asm_strncmp(const char *s1, const char *s2, const size_t N)
  */
 int asm_strncpy(char * const s1, const char * const s2, const size_t N)
 {
-    size_t n = N;
+    size_t n = N == 0 ? ASM_MAX_LEN : N;
 
     size_t i;
     for (i = 0; i < n && s2[i] != '\0'; i++) {

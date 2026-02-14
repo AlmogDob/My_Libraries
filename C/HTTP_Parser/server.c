@@ -14,8 +14,10 @@ struct String {
 
 int main(void)
 {
+    struct Ahp_HTTP_Message msg;
     struct String message_content;
     ada_init_array(char, message_content);
+    bool read_head = false;
     
     printf("----------TCP SERVER----------\n\n");
 
@@ -67,27 +69,98 @@ int main(void)
         return 1; // or break if you want to stop the server
     }
 
-    // Handle client (blocking)
-    send(client, sender_buffer, sender_buffer_len, 0);
 
     printf("Received!\n");
     // printf("------------------------------\n");
     int n = recv(client, receive_buffer, receive_buffer_len - 1, 0);
     while (n > 0) {
-        receive_buffer[n] = '\0';
-        // printf("%s\n", receive_buffer);
         for (int i = 0; i < n; i++) {
             ada_appand(char, message_content, receive_buffer[i]);
+            /* checking if finished getting the head */
+            if (message_content.length < 4) {
+                continue;
+            } else {
+                if (message_content.elements[message_content.length-1] == '\n' &&
+                    message_content.elements[message_content.length-2] == '\r' &&
+                    message_content.elements[message_content.length-3] == '\n' &&
+                    message_content.elements[message_content.length-4] == '\r') {
+                        read_head = true;
+                        break;
+                    }
+            }
         }
-        n = recv(client, receive_buffer, receive_buffer_len - 1, 0);
+
+        if (read_head == false) {
+            n = recv(client, receive_buffer, receive_buffer_len - 1, 0);
+        } else {
+            /* checking if there is a body */
+            int body_len = (int)ahp_HTTP_body_len_get_from_head_no_parsing(message_content.elements, message_content.length);
+
+            if (body_len == 0) {
+                /* no body */
+                /* parsing request line and head */
+                msg.content = message_content.elements;
+                msg.content_len = message_content.length;
+                enum Ahp_Return_Types rt;
+                
+                rt = ahp_HTTP_request_line_and_head_parse(&msg);
+                if (rt != AHP_SUCCESS) {
+                    asm_dprintERROR("Unable to parse request line and head. Request line and head parser returned with: %d", rt);
+                    return 1;
+                }
+
+                if (msg.HTTP_request_line.HTTP_method == AHP_GET) {
+                    /* TODO: send OK and break */
+                    send(client, sender_buffer, sender_buffer_len, 0);
+                    break;
+                } else if (msg.HTTP_request_line.HTTP_method == AHP_POST) {
+                    /* TODO: send NOT OK and break */
+                    send(client, sender_buffer, sender_buffer_len, 0);
+                    break;
+                }
+            } else {
+                /* reading only the body length regardless of the buffer size */
+                if (n - (message_content.length % receive_buffer_len) > body_len) {
+                    for (int i = (message_content.length % receive_buffer_len); i < n; i++) {
+                        ada_appand(char, message_content, receive_buffer[i]);
+                    }
+                } else {
+                    for (int i = (message_content.length % receive_buffer_len); i < n; i++) {
+                        ada_appand(char, message_content, receive_buffer[i]);
+                    }
+                    body_len -= (message_content.length % receive_buffer_len);
+
+                    n = recv(client, receive_buffer, (int)fmin((float)body_len, (float)receive_buffer_len)-1, 0);
+                    while (body_len > 0) {
+                        for (int i = 0; i < n; i++) {
+                            ada_appand(char, message_content, receive_buffer[i]);
+                        }
+                        body_len -= n;
+                        n = recv(client, receive_buffer, (int)fmin((float)body_len, (float)receive_buffer_len)-1, 0);
+                    }
+                }
+
+                /* now it should be safe to parse the message */
+                msg.content = message_content.elements;
+                msg.content_len = message_content.length;
+                enum Ahp_Return_Types rt;
+
+                rt = ahp_HTTP_message_parse(&msg);
+                if (rt != AHP_SUCCESS) {
+                    asm_dprintERROR("Unable to parse message. Message parser returned with: %d", rt);
+                    return 1;
+                }
+
+                /* TODO: send OK and break */
+                send(client, sender_buffer, sender_buffer_len, 0);
+                break;
+            }
+        }
     }
-    ada_appand(char, message_content, '\0');
-    // printf("------------------------------\n");
     if (n < 0) {
         fprintf(stderr, "Receiving form client failed. %d\n", WSAGetLastError());
         return 1;
     }
-
 
     if (closesocket(client) == SOCKET_ERROR) {
         fprintf(stderr, "Closing client socket failed. %d\n", WSAGetLastError());
@@ -109,25 +182,24 @@ int main(void)
 
     asm_print_many_times("-", 40);
 
-    printf("the message:\n%.*s\n", (int)message_content.length, message_content.elements);
-
-    struct Ahp_HTTP_Message msg;
-    msg.content = message_content.elements;
-    msg.content_len = message_content.length;
-    (void)message_content;
+    // msg.content = message_content.elements;
+    // msg.content_len = message_content.length;
+    // (void)message_content;
 
 
-    if (ahp_HTTP_message_parse(&msg) != 0) {
-        free((void *)msg.HTTP_head.field_lines.elements);
-        free((void *)msg.content);
-        return 1;
-    }
+    // if (ahp_HTTP_message_parse(&msg) != 0) {
+    //     free((void *)msg.HTTP_head.field_lines.elements);
+    //     free((void *)msg.content);
+    //     return 1;
+    // }
 
+    printf("rl\t-> ");
     ahp_HTTP_request_line_print(msg.HTTP_request_line);
     for (size_t i = 0; i < msg.HTTP_head.field_lines.length; i++) {
+        printf("fl%zu\t-> ", i);
         ahp_HTTP_field_line_print(msg.HTTP_head.field_lines.elements[i]);
     }
-    printf("%.*s\n", (int)msg.HTTP_body.content_len, msg.HTTP_body.content);
+    printf("body\t-> %.*s\n", (int)msg.HTTP_body.content_len, msg.HTTP_body.content);
 
 
 
