@@ -73,6 +73,7 @@ void                    ahp_HTTP_message_cursor_advenc(struct Ahp_HTTP_Message *
 enum Ahp_Return_Types   ahp_HTTP_message_cursor_check_ahead(struct Ahp_HTTP_Message *msg, const char * const str);
 enum Ahp_Return_Types   ahp_HTTP_message_cursor_expect_and_advenc(struct Ahp_HTTP_Message *msg, char c);
 enum Ahp_Return_Types   ahp_HTTP_message_parse(struct Ahp_HTTP_Message *msg);
+void                    ahp_HTTP_message_debug_print(struct Ahp_HTTP_Message *msg);
 char *                  ahp_HTTP_message_method_name(enum Ahp_HTTP_Methods method);
 enum Ahp_Return_Types   ahp_HTTP_request_line_and_head_parse(struct Ahp_HTTP_Message *msg);
 enum Ahp_Return_Types   ahp_HTTP_request_line_parse(struct Ahp_HTTP_Message *msg);
@@ -242,6 +243,17 @@ enum Ahp_Return_Types ahp_HTTP_message_parse(struct Ahp_HTTP_Message *msg)
     }
 
     return AHP_SUCCESS;
+}
+
+void ahp_HTTP_message_debug_print(struct Ahp_HTTP_Message *msg)
+{
+    printf("rl\t-> ");
+    ahp_HTTP_request_line_print(msg->HTTP_request_line);
+    for (size_t i = 0; i < msg->HTTP_head.field_lines.length; i++) {
+        printf("fl%zu\t-> ", i);
+        ahp_HTTP_field_line_print(msg->HTTP_head.field_lines.elements[i]);
+    }
+    printf("body\t-> %.*s\n", (int)msg->HTTP_body.content_len, msg->HTTP_body.content);
 }
 
 char * ahp_HTTP_message_method_name(enum Ahp_HTTP_Methods method) 

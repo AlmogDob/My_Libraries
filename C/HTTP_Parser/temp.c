@@ -15,15 +15,7 @@ int main(void)
         return 1;
     }
 
-    printf("rl\t-> ");
-    ahp_HTTP_request_line_print(msg.HTTP_request_line);
-    for (size_t i = 0; i < msg.HTTP_head.field_lines.length; i++) {
-        printf("fl%zu\t-> ", i);
-        ahp_HTTP_field_line_print(msg.HTTP_head.field_lines.elements[i]);
-    }
-    printf("body\t-> %.*s\n", (int)msg.HTTP_body.content_len, msg.HTTP_body.content);
-
-
+    ahp_HTTP_message_debug_print(&msg);
 
 
     free(msg.HTTP_head.field_lines.elements);
