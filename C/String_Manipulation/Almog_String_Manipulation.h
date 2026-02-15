@@ -12,8 +12,11 @@
  *  - Cutting the extracted token from the source buffer (optionally also
  *    removing the delimiter)
  *  - Copying a substring by indices
- *  - Counting occurrences of a substring
+ *  - Counting occurrences of a substring (see asm_str_in_str() notes for the
+ *    exact scan pattern)
  *  - A boolean-style strncmp (returns 1 on equality, 0 otherwise)
+ *  - Case-insensitive boolean-style strncmp (ASCII-only; see
+ *    asm_strncmp_case_insensitive() notes/constraints)
  *  - ASCII-only character classification helpers (isalnum, isalpha, ...)
  *  - ASCII case conversion (toupper / tolower)
  *  - In-place whitespace stripping and left padding
@@ -48,6 +51,11 @@
 #ifndef ASM_MALLOC
 #include <stdlib.h>
 #define ASM_MALLOC malloc
+#endif
+
+#ifndef ASM_FREE
+#include <stdlib.h>
+#define ASM_FREE free
 #endif
 
 /**
@@ -125,6 +133,17 @@
  */
 #define asm_dprintSIZE_T(expr) printf(#expr " = %zu\n", expr)
 
+/**
+ * @def asm_dprintERROR(fmt, ...)
+ * @brief Print a formatted error message to stderr with file/line/function
+ *        context.
+ *
+ * @param fmt printf-style format string.
+ * @param ... printf-style arguments for @p fmt.
+ *
+ * @note This macro requires at least one variadic argument in addition to
+ *       @p fmt (because it unconditionally uses __VA_ARGS__).
+ */
 #define asm_dprintERROR(fmt, ...) \
     fprintf(stderr, "\n%s:%d:\n[Error] in function '%s':\n        " \
     fmt "\n\n", __FILE__, __LINE__, __func__, __VA_ARGS__)
@@ -175,13 +194,15 @@ bool    asm_isspace(const char c);
 bool    asm_isupper(const char c);
 bool    asm_isxdigit(const char c);
 bool    asm_isXdigit(const char c);
-size_t  asm_length(const char * const str);
+#define asm_length(str) __asm_length(str, __FILE__, __LINE__, __func__)
+size_t  __asm_length(const char * const str, char *file_name, int line_num, char *function_name);
 void *  asm_memset(void * const des, const unsigned char value, const size_t n);
 void    asm_pad_left(char * const s, const size_t padding, const char pad);
 void    asm_print_many_times(const char * const str, const size_t n);
 void    asm_remove_char_from_string(char * const s, const size_t index);
 void    asm_shift_left(char * const s, const size_t shift);
-int     asm_str_in_str(const char * const src, const char * const word_to_search);
+int     asm_str_in_str(const char * const src, const size_t src_len, const char * const word_to_search, const char **first_occurrence);
+int     asm_str_in_str_case_insensitive(const char * const src, const size_t src_len, const char * const word_to_search, const char **first_occurrence);
 double  asm_str2double(const char * const s, const char ** const end, const size_t base);
 float   asm_str2float(const char * const s, const char ** const end, const size_t base);
 int     asm_str2int(const char * const s, const char ** const end, const size_t base);
@@ -191,6 +212,7 @@ bool    asm_str_is_whitespace(const char * const s);
 char *  asm_strdup(const char * const s, size_t length);
 int     asm_strncat(char * const s1, const char * const s2, const size_t N);
 int     asm_strncmp(const char * const s1, const char * const s2, const size_t N);
+int     asm_strncmp_case_insensitive(const char * const s1, const char * const s2, const size_t N);
 int     asm_strncpy(char * const s1, const char * const s2, const size_t N);
 void    asm_tolower(char * const s, const size_t len);
 void    asm_toupper(char * const s, const size_t len);
@@ -245,6 +267,11 @@ bool asm_check_char_belong_to_base(const char c, const size_t base)
  *
  * @warning No bounds checking is performed. The caller must ensure valid
  *          indices and sufficient target capacity.
+ * @note If @p start > @p end, this function returns immediately and leaves
+ *       @p target unchanged (it does not write a terminator in that case).
+ * @note If the copied range includes a '\0' from @p src, @p target will also
+ *       contain that '\0' at the corresponding position and no extra '\0' is
+ *       appended.
  */
 void asm_copy_array_by_indexes(char * const target, const int start, const int end, const char * const src)
 {
@@ -624,7 +651,7 @@ bool asm_isXdigit(char c)
  *       a null terminator, an error is printed to stderr and __SIZE_MAX__
  *       is returned.
  */
-size_t asm_length(const char * const str)
+size_t  __asm_length(const char * const str, char *file_name, int line_num, char *function_name)
 {
     char c;
     size_t i = 0;
@@ -632,7 +659,7 @@ size_t asm_length(const char * const str)
     while ((c = str[i++]) != '\0') {
         if (i > ASM_MAX_LEN) {
             #ifndef ASM_NO_ERRORS
-            asm_dprintERROR("%s", "index exceeds ASM_MAX_LEN. Probably no NULL termination.");
+            asm_dprintERROR("index exceeds ASM_MAX_LEN. Probably no NULL termination.\nCalled in function: '%s' in: %s:%d", function_name, file_name, line_num);
             #endif
             return SIZE_MAX;
         }
@@ -675,7 +702,7 @@ void * asm_memset(void * const des, const unsigned char value, const size_t n)
  * fills the vacated leading positions with @p pad.
  *
  * @param s       String to pad. Modified in-place.
- * @param padding Number of leading spaces to insert.
+ * @param padding Number of leading pad characters to insert.
  * @param pad     The padding character to insert.
  *
  * @warning The buffer backing @p s must have enough capacity for the
@@ -768,27 +795,106 @@ void asm_shift_left(char * const s, const size_t shift)
 /**
  * @brief Count occurrences of a substring within a string.
  *
- * Counts how many times @p word_to_search appears in @p src. Occurrences
- * may overlap.
+ * Scans @p src from left to right and tests for a match of @p word_to_search
+ * starting at each index \(i = 0, 1, 2, \dots\) until either:
+ *  - a terminating '\0' is encountered in @p src, or
+ *  - \(i\) reaches the configured cap.
  *
- * @param src           The string to search in (must be null-terminated).
- * @param word_to_search The substring to find (must be null-terminated
- *                       and non-empty).
- * @return The number of (possibly overlapping) occurrences found.
+ * On each index \(i\), this function checks equality using
+ * asm_strncmp(src + i, word_to_search, asm_length(word_to_search)).
+ * Matches may overlap.
  *
- * @note If @p word_to_search is the empty string, the behavior is not
- *       well-defined and should be avoided.
+ * @param src             String to search in (must be null-terminated).
+ * @param src_len         If non-zero, limits the scan to start indices
+ *                        \(i < \) @p src_len (the scan also stops earlier at
+ *                        '\0'). If zero, ASM_MAX_LEN is used as the cap.
+ * @param word_to_search  Substring to find (must be null-terminated).
+ * @param first_occurrence Output parameter. On the first match found, this
+ *                         function stores a pointer to the matched position
+ *                         within @p src into *@p first_occurrence.
+ *
+ * @return The number of matches found. Matches may overlap.
+ *
+ * @note If no matches are found, *@p first_occurrence is left unchanged. If
+ *       you need a deterministic “not found” value, initialize it to NULL
+ *       before calling.
  */
-int asm_str_in_str(const char * const src, const char * const word_to_search)
+int asm_str_in_str(const char * const src, const size_t src_len, const char * const word_to_search, const char **first_occurrence)
 {
-    int i = 0, num_of_accur = 0;
-    while (src[i] != '\0') {
+    size_t word_to_search_len = asm_length(word_to_search);
+    if (word_to_search_len == 0) {
+        if (first_occurrence) *first_occurrence = (const char *)src;
+        return 0;
+    }
+    size_t num_of_accur = 0;
+    size_t n = src_len == 0 ? ASM_MAX_LEN : src_len;
+    for (size_t i = 0; src[i] != '\0' && i < n - word_to_search_len; i++) {
         if (asm_strncmp(src+i, word_to_search, asm_length(word_to_search))) {
             num_of_accur++;
+            if (num_of_accur == 1) {
+                if (first_occurrence) *first_occurrence = &(src[i]);
+            }
         }
-        i++;
     }
-    return num_of_accur;
+    return (int)num_of_accur;
+}
+
+/**
+ * @brief Count occurrences of a substring within a string, case-insensitively
+ *        (ASCII-only; even indices only).
+ *
+ * Scans @p src from left to right and tests for a match of @p word_to_search
+ * starting at each index \(i = 0, 1, 2, \dots\) until either:
+ *  - a terminating '\0' is encountered in @p src, or
+ *  - \(i\) reaches the configured cap.
+ *
+ * Matching is performed by calling:
+ * asm_strncmp_case_insensitive(src + i, word_to_search,
+ *                              asm_length(word_to_search)).
+ *
+ * @param src              String to search in (must be null-terminated).
+ * @param src_len          If non-zero, limits the scan to start indices
+ *                         \(i <\) @p src_len (the scan also stops earlier at
+ *                         '\0'). If zero, ASM_MAX_LEN is used as the cap.
+ * @param word_to_search   Substring to find (must be null-terminated).
+ * @param first_occurrence Output parameter. On the first match found, this
+ *                         function stores a pointer to the matched position
+ *                         within @p src into *@p first_occurrence.
+ *
+ * @return The number of matches found. Matches may overlap.
+ *
+ * @warning Due to the current implementation of asm_strncmp_case_insensitive()
+ *          (it lowercases exactly N bytes in temporary buffers), this function
+ *          can invoke undefined behavior when a tested position @p src + i is
+ *          shorter than N bytes (i.e., too close to the terminating '\0').
+ *          To keep behavior defined, the caller should bound the scan so that
+ *          every tested start index has at least N characters available, e.g.:
+ *          let needle_len = asm_length(word_to_search) and hay_len = asm_length(src);
+ *          then use src_len <= (hay_len >= needle_len ? hay_len - needle_len + 1 : 0).
+ *
+ * @note If no matches are found, *@p first_occurrence is left unchanged. If you
+ *       need a deterministic “not found” value, initialize it to NULL before
+ *       calling.
+ * @note ASCII-only: locale-specific case mappings are not supported.
+ */
+int asm_str_in_str_case_insensitive(const char * const src, const size_t src_len, const char * const word_to_search, const char **first_occurrence)
+{
+    size_t word_to_search_len = asm_length(word_to_search);
+    if (word_to_search_len == 0) {
+        if (first_occurrence) *first_occurrence = (const char *)src;
+        return 0;
+    }
+    size_t num_of_accur = 0;
+    size_t n = src_len == 0 ? ASM_MAX_LEN : src_len;
+    for (size_t i = 0; src[i] != '\0' && i < n - word_to_search_len; i++) {
+        if (asm_strncmp_case_insensitive(src+i, word_to_search, asm_length(word_to_search))) {
+            num_of_accur++;
+            if (num_of_accur == 1) {
+                if (first_occurrence) *first_occurrence = &(src[i]);
+            }
+        }
+    }
+    return (int)num_of_accur;
 }
 
 /**
@@ -987,11 +1093,7 @@ float asm_str2float(const char * const s, const char ** const end, const size_t 
  * @note Only digits '0'–'9', 'a'–'z', and 'A'–'Z' are recognized as
  *       base-N digits.
  * @note On invalid base, an error is printed to stderr,
- *       and 0 is returned. For @p end:
- *         - if a negative sign is encountered, this implementation leaves
- *           *end pointing to the original @p s (before whitespace skip);
- *         - if the base is invalid, this implementation sets *end to the first
- *           non-whitespace character (i.e., @p s after whitespace skip).
+ *       *end (if non-NULL) is set to @p s, and 0 is returned.
  */
 int asm_str2int(const char * const s, const char ** const end, const size_t base)
 {
@@ -1118,22 +1220,24 @@ bool asm_str_is_whitespace(const char * const s)
     return true;
 }
 
-/**
- * @brief Allocate and copy up to @p length characters from @p s.
- *
- * Allocates a new buffer of size (length + 1) bytes using ASM_MALLOC, copies up
- * to @p length characters from @p s, and always null-terminates the result.
- *
- * @param s      Source string (must be null-terminated).
- * @param length Maximum number of characters to copy (excluding '\0').
- * @return Newly allocated string.
- *
- * @note This is not the same as POSIX strdup(): it does not compute length by
- *       itself and may intentionally truncate.
- * @note Allocation failure is not handled: if ASM_MALLOC returns NULL, this
- *       implementation will pass NULL to asm_strncpy(), resulting in undefined
- *       behavior.
- */
+ /**
+  * @brief Allocate and copy up to @p length characters from @p s.
+  *
+  * Allocates a new buffer of size (length + 1) bytes using ASM_MALLOC, copies up
+  * to @p length characters from @p s, and always null-terminates the result.
+  *
+  * @param s      Source string (must be null-terminated).
+  * @param length Maximum number of characters to copy (excluding '\0').
+  * @return Newly allocated string.
+  *
+  * @note This is not the same as POSIX strdup(): it does not compute length by
+  *       itself and may intentionally truncate.
++ * @note Allocation failure is not handled: if ASM_MALLOC returns NULL, this
++ *       implementation will pass NULL to asm_strncpy(), resulting in undefined
++ *       behavior.
++ * @note The returned pointer must be released with the matching deallocator
++ *       for ASM_MALLOC.
+  */
 char * asm_strdup(const char * const s, size_t length)
 {
     char * res = (char *)ASM_MALLOC(sizeof(char) * length+1);
@@ -1225,6 +1329,59 @@ int asm_strncmp(const char *s1, const char *s2, const size_t N)
 }
 
 /**
+ * @brief Compare up to N characters for equality, ASCII case-insensitively.
+ *
+ * Returns 1 if the first @p N characters of @p s1 and @p s2 are equal when
+ * compared case-insensitively using ASCII rules; otherwise returns 0.
+ *
+ * Internally, this implementation duplicates both strings (up to @p N bytes),
+ * lowercases exactly @p N bytes in each duplicate, and then compares.
+ *
+ * @param s1 First string (must be null-terminated).
+ * @param s2 Second string (must be null-terminated).
+ * @param N  Number of characters to compare.
+ *
+ * @return 1 if equal (case-insensitive) for the first @p N characters,
+ *         otherwise 0.
+ *
+ * @warning For defined behavior, N should not exceed the length (in bytes) of
+ *          either input string (i.e., avoid N > asm_length(s1) or
+ *          N > asm_length(s2)). Otherwise, the internal lowercasing step may
+ *          read and modify uninitialized bytes in the temporary buffers.
+ *
+ * @note ASCII-only: locale-specific case mappings are not supported.
+ */
+int asm_strncmp_case_insensitive(const char * const s1, const char * const s2, const size_t N)
+{
+    size_t n = N == 0 ? ASM_MAX_LEN : N;
+    size_t i = 0;
+
+    char *s1dup = asm_strdup(s1, n);
+    char *s2dup = asm_strdup(s2, n);
+
+    asm_tolower(s1dup, N);
+    asm_tolower(s2dup, N);
+
+    while (i < n) {
+        if (s1dup[i] == '\0' && s2dup[i] == '\0') {
+            break;
+        }
+        if (s1dup[i] != s2dup[i] || (s1dup[i] == '\0') || (s2dup[i] == '\0')) {
+            free(s1dup);
+            free(s2dup);
+            return 0;
+        }
+        i++;
+    }
+
+    
+    ASM_FREE(s1dup);
+    ASM_FREE(s2dup);
+
+    return 1;
+}
+
+/**
  * @brief Copy up to @p N characters from @p s2 into @p s1 (non-standard).
  *
  * Copies characters from @p s2 into @p s1 until either:
@@ -1243,7 +1400,7 @@ int asm_strncmp(const char *s1, const char *s2, const size_t N)
  */
 int asm_strncpy(char * const s1, const char * const s2, const size_t N)
 {
-    size_t n = N;
+    size_t n = N == 0 ? ASM_MAX_LEN : N;
 
     size_t i;
     for (i = 0; i < n && s2[i] != '\0'; i++) {
@@ -1255,13 +1412,22 @@ int asm_strncpy(char * const s1, const char * const s2, const size_t N)
 }
 
 /**
- * @brief Convert all ASCII letters in a string to lowercase in-place.
+ * @brief Convert ASCII uppercase letters to lowercase in-place, up to a limit
+ *        or until a sentinel character is encountered.
  *
- * @param s String to modify in-place. Must be null-terminated.
+ * Iterates over @p s and converts each ASCII uppercase letter ('A'–'Z') to its
+ * lowercase form. The loop stops when either:
+ *  - @p len bytes have been processed, or
+ *  - the character '\0' is encountered in @p s.
+ *
+ * @param s   Buffer to modify in-place.
+ * @param len Maximum number of bytes to examine/modify.
+ *
+ * @note ASCII-only; not locale aware.
  */
 void asm_tolower(char * const s, const size_t len)
 {
-    for (size_t i = 0; i < len; i++) {
+    for (size_t i = 0; i < len && s[i] != '\0'; i++) {
         if (asm_isupper(s[i])) {
             s[i] += 'a' - 'A';
         }
@@ -1269,13 +1435,22 @@ void asm_tolower(char * const s, const size_t len)
 }
 
 /**
- * @brief Convert all ASCII letters in a string to uppercase in-place.
+ * @brief Convert ASCII lowercase letters to uppercase in-place, up to a limit
+ *        or until a sentinel character is encountered.
  *
- * @param s String to modify in-place. Must be null-terminated.
+ * Iterates over @p s and converts each ASCII lowercase letter ('a'–'z') to its
+ * uppercase form. The loop stops when either:
+ *  - @p len bytes have been processed, or
+ *  - the character '\0' is encountered in @p s.
+ *
+ * @param s   Buffer to modify in-place.
+ * @param len Maximum number of bytes to examine/modify.
+ *
+ * @note ASCII-only; not locale aware.
  */
 void asm_toupper(char * const s, const size_t len)
 {
-    for (size_t i = 0; i < len; i++) {
+    for (size_t i = 0; i < len && s[i] != '\0'; i++) {
         if (asm_islower(s[i])) {
             s[i] += 'A' - 'a';
         }
