@@ -1,0 +1,15 @@
+body {
+    font-family: Gabriel;
+    margin: -1;
+    padding: 23px;
+    background: #181818;
+    color: #fff;
+}
+
+#resultFrame {
+  width: 100%;
+  height: 120px;
+  border: 1px solid #333;
+  background: #181818;
+  margin-top: 16px;
+}

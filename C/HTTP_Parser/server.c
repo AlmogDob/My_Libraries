@@ -6,6 +6,18 @@
 #define ALMOG_HTTP_PARSER_IMPLEMENTATION
 #include "Almog_HTTP_Parser.h"
 
+void parse_body(const char *body, int *n1, int *n2) 
+{
+    char current_word[ASM_MAX_LEN];
+    char *str = (char *)body;
+    str += asm_get_next_token_from_str(current_word, str, '=');
+    str++;
+    *n1 = asm_str2int(str, &str, 10);
+    str += asm_get_next_token_from_str(current_word, str, '=');
+    str++;
+    *n2 = asm_str2int(str, &str, 10);
+}
+
 struct String {
     size_t length;
     size_t capacity;
@@ -22,9 +34,8 @@ int main(void)
     struct sockaddr_in TCP_server_addres;
     struct sockaddr_in TCP_client_addres;
     int TCP_client_addres_len = sizeof(TCP_client_addres);
-    char sender_buffer[512] = "Hello from server!";
-    int sender_buffer_len = sizeof(sender_buffer) / sizeof(sender_buffer[0]);
-    char receive_buffer[512] = {0};
+    char sender_buffer[512] = {0xfe};
+    char receive_buffer[512] = {0xfe};
     int receive_buffer_len = sizeof(receive_buffer) / sizeof(receive_buffer[0]);
 
     if (WSAStartup(MAKEWORD(2,2), &winsock_data)) {
@@ -34,7 +45,7 @@ int main(void)
 
 
     TCP_server_addres.sin_family = AF_INET;
-    if (InetPtonA(AF_INET, "127.0.0.1", &TCP_server_addres.sin_addr) != 1) {
+    if (InetPtonA(AF_INET, "0.0.0.0", &TCP_server_addres.sin_addr) != 1) {
         fprintf(stderr, "InetPtonA failed\n");
         return 1;
     }
@@ -59,7 +70,7 @@ int main(void)
     printf("Listening success\n");
 
     for (;;) {
-    struct Ahp_HTTP_Message msg = {.content = NULL};
+    struct Ahp_HTTP_Request msg = {.content = NULL};
     struct String message_content;
     ada_init_array(char, message_content);
     bool read_head = false;
@@ -140,7 +151,7 @@ int main(void)
                 return 1;
             }
 
-            ahp_HTTP_message_debug_print(&msg);
+            ahp_HTTP_request_debug_print(&msg);
 
             break;
         }
@@ -194,30 +205,37 @@ int main(void)
         msg.content = message_content.elements;
         msg.content_len = message_content.length;
 
-        if (ahp_HTTP_message_parse(&msg) != AHP_SUCCESS) {
+        if (ahp_HTTP_request_parse(&msg) != AHP_SUCCESS) {
             asm_dprintERROR("%s", "Failed to parse HTTP message");
             return 1;
         }
 
-        const char *resp =
-            "HTTP/1.1 200 OK\r\n"
-            "Content-Length: 18\r\n"
-            "Connection: close\r\n"
-            "\r\n"
-            "Hello from server!";
-        send(client, resp, (int)asm_length(resp), 0);
+        char body_str[ASM_MAX_LEN];
+        int n1, n2;
+        parse_body(msg.HTTP_body.content, &n1, &n2);
+
+        sprintf(body_str, "%d", n1 + n2);
+        
+        sprintf(sender_buffer, 
+            "HTTP/1.1 200 OK\r\n"       \
+            "Content-Length: %zu\r\n"    \
+            "Connection: close\r\n"     \
+            "\r\n"                      \
+            "%.*s", asm_length(body_str), (int)asm_length(body_str), body_str);
+
+        send(client, sender_buffer, (int)asm_length(sender_buffer), 0);
         if (closesocket(client) == SOCKET_ERROR) {
             fprintf(stderr, "Closing client socket failed. %d\n", WSAGetLastError());
             return 1;
         }
 
-        ahp_HTTP_message_debug_print(&msg);
+        ahp_HTTP_request_debug_print(&msg);
 
         break;
     }
 
 
-    free((void *)msg.HTTP_head.field_lines.elements);
+    free((void *)msg.HTTP_header.field_lines.elements);
     free((void *)msg.content);
     /* ------------------------------------------------------------------------------- */
 

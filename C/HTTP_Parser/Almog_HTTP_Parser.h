@@ -35,7 +35,7 @@ struct Ahp_HTTP_Field_Line {
     size_t field_value_len;
 };
 
-struct Ahp_HTTP_Head {
+struct Ahp_HTTP_Header {
     const char *content;
     size_t content_len;
     struct {
@@ -50,33 +50,33 @@ struct Ahp_HTTP_Body {
     size_t content_len;
 };
 
-struct Ahp_HTTP_Message {
+struct Ahp_HTTP_Request {
     const char *content;
     size_t cursor;
     size_t content_len;
 
     struct Ahp_HTTP_Request_Line HTTP_request_line;
 
-    struct Ahp_HTTP_Head HTTP_head;
+    struct Ahp_HTTP_Header HTTP_header;
 
     struct Ahp_HTTP_Body HTTP_body;
 
 };
 
-size_t                  ahp_HTTP_body_len_get_from_head(struct Ahp_HTTP_Head head);
+size_t                  ahp_HTTP_body_len_get_from_head(struct Ahp_HTTP_Header header);
 size_t                  ahp_HTTP_body_len_get_from_head_no_parsing(const char * const content, const size_t content_len);
-enum Ahp_Return_Types   ahp_HTTP_body_parse(struct Ahp_HTTP_Message *msg, size_t expected_len);
-enum Ahp_Return_Types   ahp_HTTP_field_line_parse(struct Ahp_HTTP_Message *msg, struct Ahp_HTTP_Field_Line *fl);
+enum Ahp_Return_Types   ahp_HTTP_body_parse(struct Ahp_HTTP_Request *msg, size_t expected_len);
+enum Ahp_Return_Types   ahp_HTTP_field_line_parse(struct Ahp_HTTP_Request *msg, struct Ahp_HTTP_Field_Line *fl);
 void                    ahp_HTTP_field_line_print(struct Ahp_HTTP_Field_Line fl);
-enum Ahp_Return_Types   ahp_HTTP_head_parse(struct Ahp_HTTP_Message *msg);
-void                    ahp_HTTP_message_cursor_advenc(struct Ahp_HTTP_Message *msg, size_t count);
-enum Ahp_Return_Types   ahp_HTTP_message_cursor_check_ahead(struct Ahp_HTTP_Message *msg, const char * const str);
-enum Ahp_Return_Types   ahp_HTTP_message_cursor_expect_and_advenc(struct Ahp_HTTP_Message *msg, char c);
-enum Ahp_Return_Types   ahp_HTTP_message_parse(struct Ahp_HTTP_Message *msg);
-void                    ahp_HTTP_message_debug_print(struct Ahp_HTTP_Message *msg);
-char *                  ahp_HTTP_message_method_name(enum Ahp_HTTP_Methods method);
-enum Ahp_Return_Types   ahp_HTTP_request_line_and_head_parse(struct Ahp_HTTP_Message *msg);
-enum Ahp_Return_Types   ahp_HTTP_request_line_parse(struct Ahp_HTTP_Message *msg);
+enum Ahp_Return_Types   ahp_HTTP_header_parse(struct Ahp_HTTP_Request *msg);
+void                    ahp_HTTP_request_cursor_advenc(struct Ahp_HTTP_Request *msg, size_t count);
+enum Ahp_Return_Types   ahp_HTTP_request_cursor_check_ahead(struct Ahp_HTTP_Request *msg, const char * const str);
+enum Ahp_Return_Types   ahp_HTTP_request_cursor_expect_and_advenc(struct Ahp_HTTP_Request *msg, char c);
+enum Ahp_Return_Types   ahp_HTTP_request_parse(struct Ahp_HTTP_Request *msg);
+void                    ahp_HTTP_request_debug_print(struct Ahp_HTTP_Request *msg);
+char *                  ahp_HTTP_request_method_name(enum Ahp_HTTP_Methods method);
+enum Ahp_Return_Types   ahp_HTTP_request_line_and_head_parse(struct Ahp_HTTP_Request *msg);
+enum Ahp_Return_Types   ahp_HTTP_request_line_parse(struct Ahp_HTTP_Request *msg);
 void                    ahp_HTTP_request_line_print(struct Ahp_HTTP_Request_Line rl);
 bool                    ahp_is_valid_field_name(const char * const name, const size_t len);
 bool                    ahp_is_valid_field_name_char(const char c);
@@ -86,7 +86,7 @@ bool                    ahp_is_valid_field_name_char(const char c);
 #ifdef ALMOG_HTTP_PARSER_IMPLEMENTATION
 #undef ALMOG_HTTP_PARSER_IMPLEMENTATION
 
-size_t ahp_HTTP_body_len_get_from_head(struct Ahp_HTTP_Head head)
+size_t ahp_HTTP_body_len_get_from_head(struct Ahp_HTTP_Header head)
 {
     for (size_t i = 0; i < head.field_lines.length; i++) {
         struct Ahp_HTTP_Field_Line fl = head.field_lines.elements[i];
@@ -115,7 +115,7 @@ size_t ahp_HTTP_body_len_get_from_head_no_parsing(const char * const content, co
     return asm_str2size_t(current_word, NULL, 10);
 }
 
-enum Ahp_Return_Types ahp_HTTP_body_parse(struct Ahp_HTTP_Message *msg, size_t expected_len)
+enum Ahp_Return_Types ahp_HTTP_body_parse(struct Ahp_HTTP_Request *msg, size_t expected_len)
 {
     msg->HTTP_body.content = &(msg->content[msg->cursor]);
     if (msg->cursor >= msg->content_len) {
@@ -131,7 +131,7 @@ enum Ahp_Return_Types ahp_HTTP_body_parse(struct Ahp_HTTP_Message *msg, size_t e
     return AHP_SUCCESS;
 }
 
-enum Ahp_Return_Types ahp_HTTP_field_line_parse(struct Ahp_HTTP_Message *msg, struct Ahp_HTTP_Field_Line *fl)
+enum Ahp_Return_Types ahp_HTTP_field_line_parse(struct Ahp_HTTP_Request *msg, struct Ahp_HTTP_Field_Line *fl)
 {
     char current_word[ASM_MAX_LEN] = {0xFe};
 
@@ -146,13 +146,13 @@ enum Ahp_Return_Types ahp_HTTP_field_line_parse(struct Ahp_HTTP_Message *msg, st
         asm_dprintERROR("invalid field name '%.*s'", (int)fl->field_name_len, fl->field_name);
         return AHP_FAIL;
     }
-    if (ahp_HTTP_message_cursor_expect_and_advenc(msg, ':')) return AHP_FAIL; /* skip ':' */
+    if (ahp_HTTP_request_cursor_expect_and_advenc(msg, ':')) return AHP_FAIL; /* skip ':' */
 
     fl->field_value = &(msg->content[msg->cursor]);
     msg->cursor += asm_get_next_token_from_str(current_word, &(msg->content[msg->cursor]), '\r');
     fl->field_value_len = &(msg->content[msg->cursor]) - fl->field_value;
-    if (ahp_HTTP_message_cursor_expect_and_advenc(msg, '\r')) return AHP_FAIL; /* skip '\r' */
-    if (ahp_HTTP_message_cursor_expect_and_advenc(msg, '\n')) return AHP_FAIL; /* skip '\n' */
+    if (ahp_HTTP_request_cursor_expect_and_advenc(msg, '\r')) return AHP_FAIL; /* skip '\r' */
+    if (ahp_HTTP_request_cursor_expect_and_advenc(msg, '\n')) return AHP_FAIL; /* skip '\n' */
 
     return AHP_SUCCESS;
 }
@@ -162,28 +162,28 @@ void ahp_HTTP_field_line_print(struct Ahp_HTTP_Field_Line fl)
     printf("%.*s:%.*s\n", (int)fl.field_name_len, fl.field_name, (int)fl.field_value_len, fl.field_value);
 }
 
-enum Ahp_Return_Types ahp_HTTP_head_parse(struct Ahp_HTTP_Message *msg)
+enum Ahp_Return_Types ahp_HTTP_header_parse(struct Ahp_HTTP_Request *msg)
 {
     enum Ahp_Return_Types rt;
 
-    msg->HTTP_head.content = &(msg->content[msg->cursor]);
-    while (AHP_SUCCESS != ahp_HTTP_message_cursor_check_ahead(msg, "\r\n")) {
+    msg->HTTP_header.content = &(msg->content[msg->cursor]);
+    while (AHP_SUCCESS != ahp_HTTP_request_cursor_check_ahead(msg, "\r\n")) {
         struct Ahp_HTTP_Field_Line fl = {0};
         rt = ahp_HTTP_field_line_parse(msg, &fl);
         if (AHP_SUCCESS != rt) {
             asm_dprintERROR("failed to parse field line. Field line parser returned with '%d'", rt);
             return AHP_FAIL;
         }
-        ada_appand(struct Ahp_HTTP_Field_Line, msg->HTTP_head.field_lines, fl);
-        msg->HTTP_head.content_len = &(msg->content[msg->cursor]) - msg->HTTP_head.content;
+        ada_appand(struct Ahp_HTTP_Field_Line, msg->HTTP_header.field_lines, fl);
+        msg->HTTP_header.content_len = &(msg->content[msg->cursor]) - msg->HTTP_header.content;
     }
-    if (ahp_HTTP_message_cursor_expect_and_advenc(msg, '\r')) return AHP_FAIL; /* skip '\r' */
-    if (ahp_HTTP_message_cursor_expect_and_advenc(msg, '\n')) return AHP_FAIL; /* skip '\n' */
+    if (ahp_HTTP_request_cursor_expect_and_advenc(msg, '\r')) return AHP_FAIL; /* skip '\r' */
+    if (ahp_HTTP_request_cursor_expect_and_advenc(msg, '\n')) return AHP_FAIL; /* skip '\n' */
 
     return AHP_SUCCESS;
 }
 
-void ahp_HTTP_message_cursor_advenc(struct Ahp_HTTP_Message *msg, size_t count)
+void ahp_HTTP_request_cursor_advenc(struct Ahp_HTTP_Request *msg, size_t count)
 {
     AHP_ASSERT(msg->cursor < msg->content_len);
 
@@ -192,7 +192,7 @@ void ahp_HTTP_message_cursor_advenc(struct Ahp_HTTP_Message *msg, size_t count)
     }
 }
 
-enum Ahp_Return_Types ahp_HTTP_message_cursor_check_ahead(struct Ahp_HTTP_Message *msg, const char * const str)
+enum Ahp_Return_Types ahp_HTTP_request_cursor_check_ahead(struct Ahp_HTTP_Request *msg, const char * const str)
 {
     size_t str_len = asm_length(str);
     if (msg->cursor + str_len > msg->content_len) {
@@ -207,20 +207,20 @@ enum Ahp_Return_Types ahp_HTTP_message_cursor_check_ahead(struct Ahp_HTTP_Messag
     return AHP_SUCCESS;
 }
 
-enum Ahp_Return_Types ahp_HTTP_message_cursor_expect_and_advenc(struct Ahp_HTTP_Message *msg, char c)
+enum Ahp_Return_Types ahp_HTTP_request_cursor_expect_and_advenc(struct Ahp_HTTP_Request *msg, char c)
 {
     if (msg->content[msg->cursor] != c) {
         asm_dprintERROR("expected '%c' of request target, but got '%c'", c, msg->content[msg->cursor]);
         return AHP_FAIL;
     }
-    ahp_HTTP_message_cursor_advenc(msg, 1); /* skip 'c' */
+    ahp_HTTP_request_cursor_advenc(msg, 1); /* skip 'c' */
     return AHP_SUCCESS;
 }
 
-enum Ahp_Return_Types ahp_HTTP_message_parse(struct Ahp_HTTP_Message *msg)
+enum Ahp_Return_Types ahp_HTTP_request_parse(struct Ahp_HTTP_Request *msg)
 {
     msg->cursor = 0;
-    ada_init_array(struct Ahp_HTTP_Field_Line, msg->HTTP_head.field_lines);
+    ada_init_array(struct Ahp_HTTP_Field_Line, msg->HTTP_header.field_lines);
     enum Ahp_Return_Types rt;
 
     rt = ahp_HTTP_request_line_parse(msg);
@@ -228,13 +228,13 @@ enum Ahp_Return_Types ahp_HTTP_message_parse(struct Ahp_HTTP_Message *msg)
         asm_dprintERROR("Unable to parse request line. Request line parser returned with: %d", rt);
         return AHP_FAIL;
     }
-    rt = ahp_HTTP_head_parse(msg);
+    rt = ahp_HTTP_header_parse(msg);
     if (rt != AHP_SUCCESS) {
         asm_dprintERROR("Unable to parse head. Head parser returned with: %d", rt);
         return AHP_FAIL;
     }
 
-    size_t body_len = ahp_HTTP_body_len_get_from_head(msg->HTTP_head);
+    size_t body_len = ahp_HTTP_body_len_get_from_head(msg->HTTP_header);
     
     rt = ahp_HTTP_body_parse(msg, body_len);
     if (rt != AHP_SUCCESS) {
@@ -245,18 +245,18 @@ enum Ahp_Return_Types ahp_HTTP_message_parse(struct Ahp_HTTP_Message *msg)
     return AHP_SUCCESS;
 }
 
-void ahp_HTTP_message_debug_print(struct Ahp_HTTP_Message *msg)
+void ahp_HTTP_request_debug_print(struct Ahp_HTTP_Request *msg)
 {
     printf("rl\t-> ");
     ahp_HTTP_request_line_print(msg->HTTP_request_line);
-    for (size_t i = 0; i < msg->HTTP_head.field_lines.length; i++) {
+    for (size_t i = 0; i < msg->HTTP_header.field_lines.length; i++) {
         printf("fl%zu\t-> ", i);
-        ahp_HTTP_field_line_print(msg->HTTP_head.field_lines.elements[i]);
+        ahp_HTTP_field_line_print(msg->HTTP_header.field_lines.elements[i]);
     }
     printf("body\t-> %.*s\n", (int)msg->HTTP_body.content_len, msg->HTTP_body.content);
 }
 
-char * ahp_HTTP_message_method_name(enum Ahp_HTTP_Methods method) 
+char * ahp_HTTP_request_method_name(enum Ahp_HTTP_Methods method) 
 {
     switch (method) {
         case AHP_GET:
@@ -269,10 +269,10 @@ char * ahp_HTTP_message_method_name(enum Ahp_HTTP_Methods method)
     }
 }
 
-enum Ahp_Return_Types ahp_HTTP_request_line_and_head_parse(struct Ahp_HTTP_Message *msg)
+enum Ahp_Return_Types ahp_HTTP_request_line_and_head_parse(struct Ahp_HTTP_Request *msg)
 {
     msg->cursor = 0;
-    ada_init_array(struct Ahp_HTTP_Field_Line, msg->HTTP_head.field_lines);
+    ada_init_array(struct Ahp_HTTP_Field_Line, msg->HTTP_header.field_lines);
     enum Ahp_Return_Types rt;
 
     rt = ahp_HTTP_request_line_parse(msg);
@@ -280,7 +280,7 @@ enum Ahp_Return_Types ahp_HTTP_request_line_and_head_parse(struct Ahp_HTTP_Messa
         asm_dprintERROR("Unable to parse request line. Request line parser returned with: %d", rt);
         return AHP_FAIL;
     }
-    rt = ahp_HTTP_head_parse(msg);
+    rt = ahp_HTTP_header_parse(msg);
     if (rt != AHP_SUCCESS) {
         asm_dprintERROR("Unable to parse head. Head parser returned with: %d", rt);
         return AHP_FAIL;
@@ -289,7 +289,7 @@ enum Ahp_Return_Types ahp_HTTP_request_line_and_head_parse(struct Ahp_HTTP_Messa
     return AHP_SUCCESS;
 }
 
-enum Ahp_Return_Types ahp_HTTP_request_line_parse(struct Ahp_HTTP_Message *msg)
+enum Ahp_Return_Types ahp_HTTP_request_line_parse(struct Ahp_HTTP_Request *msg)
 {
     char current_word[ASM_MAX_LEN] = {0xFe};
 
@@ -304,19 +304,19 @@ enum Ahp_Return_Types ahp_HTTP_request_line_parse(struct Ahp_HTTP_Message *msg)
         return AHP_FAIL;
     }
     asm_strncpy(msg->HTTP_request_line.HTTP_method_word, current_word, asm_length(current_word));
-    if (ahp_HTTP_message_cursor_expect_and_advenc(msg, ' ')) return AHP_FAIL; /* skip ' ' */
+    if (ahp_HTTP_request_cursor_expect_and_advenc(msg, ' ')) return AHP_FAIL; /* skip ' ' */
 
     /* parse request target */
-    if (ahp_HTTP_message_cursor_expect_and_advenc(msg, '/')) return AHP_FAIL; /* skip '/' */
+    if (ahp_HTTP_request_cursor_expect_and_advenc(msg, '/')) return AHP_FAIL; /* skip '/' */
     msg->HTTP_request_line.request_target = &(msg->content[msg->cursor]);
     if (msg->content[msg->cursor] == ' ') {
         msg->HTTP_request_line.request_target_len = 0;
     } else {
         enum Ahp_Return_Types rt = asm_get_next_token_from_str(current_word, &(msg->content[msg->cursor]), ' ');
-        ahp_HTTP_message_cursor_advenc(msg, rt);
+        ahp_HTTP_request_cursor_advenc(msg, rt);
         msg->HTTP_request_line.request_target_len = &(msg->content[msg->cursor]) - msg->HTTP_request_line.request_target;
     }
-    if (ahp_HTTP_message_cursor_expect_and_advenc(msg, ' ')) return AHP_FAIL; /* skip ' ' */
+    if (ahp_HTTP_request_cursor_expect_and_advenc(msg, ' ')) return AHP_FAIL; /* skip ' ' */
 
     /* parse HTTP version */
     msg->cursor += asm_get_next_token_from_str(current_word, &(msg->content[msg->cursor]), '/');
@@ -324,15 +324,15 @@ enum Ahp_Return_Types ahp_HTTP_request_line_parse(struct Ahp_HTTP_Message *msg)
         asm_dprintERROR("expected 'HTTP' befor HTTP-version but got: '%s'", current_word);
         return AHP_FAIL;
     }
-    if (ahp_HTTP_message_cursor_expect_and_advenc(msg, '/')) return AHP_FAIL; /* skip '/' */
+    if (ahp_HTTP_request_cursor_expect_and_advenc(msg, '/')) return AHP_FAIL; /* skip '/' */
     msg->cursor += asm_get_next_token_from_str(current_word, &(msg->content[msg->cursor]), '\r');
     if (!asm_strncmp(current_word, "1.1", 0)) {
         asm_dprintERROR("unsupported HTTP-version '%s'. Supports only version 1.1", current_word);
         return AHP_FAIL;
     }
     asm_strncpy(msg->HTTP_request_line.HTTP_version, current_word, 4);
-    if (ahp_HTTP_message_cursor_expect_and_advenc(msg, '\r')) return AHP_FAIL; /* skip '\r' */
-    if (ahp_HTTP_message_cursor_expect_and_advenc(msg, '\n')) return AHP_FAIL; /* skip '\n' */
+    if (ahp_HTTP_request_cursor_expect_and_advenc(msg, '\r')) return AHP_FAIL; /* skip '\r' */
+    if (ahp_HTTP_request_cursor_expect_and_advenc(msg, '\n')) return AHP_FAIL; /* skip '\n' */
 
     // asm_dprintSTRING(&(msg->content[msg->cursor]));
 
@@ -341,7 +341,7 @@ enum Ahp_Return_Types ahp_HTTP_request_line_parse(struct Ahp_HTTP_Message *msg)
 
 void ahp_HTTP_request_line_print(struct Ahp_HTTP_Request_Line rl)
 {
-    printf("%s /%.*s HTTP/%s\n", ahp_HTTP_message_method_name(rl.HTTP_method), (int)rl.request_target_len, rl.request_target, rl.HTTP_version);
+    printf("%s /%.*s HTTP/%s\n", ahp_HTTP_request_method_name(rl.HTTP_method), (int)rl.request_target_len, rl.request_target, rl.HTTP_version);
 }
 
 bool ahp_is_valid_field_name(const char * const name, const size_t len)
