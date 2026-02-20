@@ -7,13 +7,13 @@ REM set "CWARN=%CWARN% /WX"
 
 REM ---- "Checks" equivalents ----
 REM /RTC1 only works with /Od (debug-ish)
-set "CCHECK=/Zi /Od /RTC1 /MTd /DDEBUG"
+set "CCHECK=/Zi /Od /MDd /DDEBUG"
 
 REM Optional static analysis (slower)
 @REM set "CCHECK=%CCHECK% /analyze"
 
 REM Optional AddressSanitizer (only if your MSVC supports it)
-REM set "CCHECK=%CCHECK% /fsanitize=address"
+set "CCHECK=%CCHECK% /fsanitize=address"
 
 REM ---- C standard ----
 REM Use /std:c11 or /std:c17 if your cl supports it.
@@ -127,6 +127,9 @@ cl.exe %CWARN% %CCHECK% %CSTD% "%SRC%" ^
   /Fo:"%BUILDDIR%\%NAME%.obj" ^
   /Fd:"%BUILDDIR%\%NAME%.pdb" %CLINKS%
 set "RC=%errorlevel%"
+if exist "%VCToolsInstallDir%bin\Hostx64\x64\clang_rt.asan_dynamic-x86_64.dll" (
+    copy "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\bin\Hostx64\x64\clang_rt.asan_dynamic-x86_64.dll" "%BUILDDIR%" >nul
+)
 endlocal & exit /b %RC%
 
 
