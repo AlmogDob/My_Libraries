@@ -19,7 +19,7 @@ REM ---- C standard ----
 REM Use /std:c11 or /std:c17 if your cl supports it.
 set "CSTD=/std:c11"
 
-set "CLINKS= /link ws2_32.lib"
+@REM set "CLINKS= /link user32.lib"
 
 setlocal EnableExtensions EnableDelayedExpansion
 

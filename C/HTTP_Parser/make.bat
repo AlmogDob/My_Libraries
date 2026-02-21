@@ -174,6 +174,10 @@ if "%~1"=="" (
 
 set "NAME=%~n1"
 echo [INFO] removing %NAME% build files.
-del /q build\%NAME%.* >nul 2>nul
+del /q "build\%NAME%.*" >nul 2>nul
+
+REM Also remove the AddressSanitizer runtime DLL we copy into build\
+del /q "build\clang_rt.asan_dynamic-x86_64.dll" >nul 2>nul
+
 endlocal
 exit /b 0
