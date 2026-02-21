@@ -1,6 +1,6 @@
 @echo off
 REM ---- Warnings (roughly -W -Wall -Wextra) ----
-set "CWARN=/nologo /W4"
+set "CWARN=/nologo /W4 /Wall"
 
 REM Optional: treat warnings as errors (like stricter CI)
 REM set "CWARN=%CWARN% /WX"

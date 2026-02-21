@@ -37,7 +37,7 @@ LRESULT CALLBACK main_window_callback(HWND window, UINT message, WPARAM wparam, 
         } break;
         default:
         {
-            result = DefWindowProc(window, message, wparam, lparam);
+            result = DefWindowProcA(window, message, wparam, lparam);
         } break;
     }
 
@@ -55,11 +55,11 @@ int main(void)
         .hCursor   = LoadCursorA(NULL, IDC_ARROW),
         .lpszClassName = "apl_window_class", 
     };
-    if (!RegisterClass(&window_class)) {
+    if (!RegisterClassA(&window_class)) {
         apl_dprintERROR("%s", "register window class filed\n");
     }
 
-    HWND window_handle = CreateWindowEx(0,
+    HWND window_handle = CreateWindowExA(0,
                                         window_class.lpszClassName,
                                         "apl window",
                                         WS_OVERLAPPEDWINDOW | WS_VISIBLE,
@@ -77,12 +77,12 @@ int main(void)
 
     MSG message;
     for (;;) {
-        BOOL message_result = GetMessage(&message, 0, 0, 0);
+        BOOL message_result = GetMessageA(&message, 0, 0, 0);
         if (message_result <= 0) {
             break;
         }
-        TranslateMessage(&message);
-        DispatchMessage(&message);
+        TranslateMessageA(&message);
+        DispatchMessageA(&message);
     }
 
     return 0;
