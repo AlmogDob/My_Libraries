@@ -4,6 +4,12 @@
 #ifndef ALMOG_PLATFORM_LIBRARY_H_
 #define ALMOG_PLATFORM_LIBRARY_H_
 
+/**
+ * The Windows version is based on Handmade Hero, Casey Muratori's famous video series. 
+ * A link to the playlist on YouTube: https://youtube.com/playlist?list=PLnuhp3Xd9PYTt6svyQPyRO_AAuMWGxPzU&si=4QyqgS-84Dr8d8Cu
+ * A link to the website: https://mollyrocket.com/#handmade
+ */
+
 #define APL_PLATFORM_NAME "Windows"
 
 #include <windows.h>
