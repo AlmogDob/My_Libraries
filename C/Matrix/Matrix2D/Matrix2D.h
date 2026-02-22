@@ -215,6 +215,12 @@ typedef struct {
 #define MAT2D_PRINT(m) mat2D_print(m, #m, 0)
 
 /**
+ * @def MAT2D_PRINT_UINT32
+ * @brief Convenience macro to print a matrix with its variable name.
+ */
+#define MAT2D_PRINT_UINT32(m) mat2D_print_uint32(m, #m, 0)
+
+/**
  * @def MAT2D_PRINT_AS_COL
  * @brief Convenience macro to print a matrix as a single column with its name.
  */
@@ -239,6 +245,9 @@ typedef struct {
 #define mat2D_normalize(m) mat2D_mult((m), 1.0 / mat2D_calc_norma((m)))
 
 #define mat2D_normalize_inf(m) mat2D_mult((m), 1.0 / mat2D_calc_norma_inf((m)))
+
+#define mat2D_min(a, b) (a) < (b) ? (a) : (b)
+#define mat2D_max(a, b) (a) > (b) ? (a) : (b)
 
 #define mat2D_dprintDOUBLE(expr) printf(#expr " = %#g\n", expr)
 
@@ -308,6 +317,7 @@ void            mat2D_outer_product(Mat2D des, Mat2D v);
 
 int             mat2D_power_iterate(Mat2D A, Mat2D v, double *lambda, double shift, bool norm_inf_v);
 void            mat2D_print(Mat2D m, const char *name, size_t padding);
+void            mat2D_print_uint32(Mat2D_uint32 m, const char *name, size_t padding);
 void            mat2D_print_as_col(Mat2D m, const char *name, size_t padding);
 
 void            mat2D_rand(Mat2D m, double low, double high);
@@ -1169,7 +1179,7 @@ void mat2D_LUP_decomposition_with_swap(Mat2D src, Mat2D l, Mat2D p, Mat2D u)
     mat2D_set_identity(p);
     mat2D_fill(l, 0);
 
-    for (size_t i = 0; i < (size_t)fmin(u.rows-1, u.cols); i++) {
+    for (size_t i = 0; i < (size_t)mat2D_min(u.rows-1, u.cols); i++) {
         if (MAT2D_IS_ZERO(MAT2D_AT(u, i, i))) {   /* swapping only if it is zero */
             /* finding biggest first number (absolute value) */
             size_t biggest_r = i;
@@ -1678,6 +1688,25 @@ void mat2D_print(Mat2D m, const char *name, size_t padding)
 }
 
 /**
+ * @brief Print a matrix to stdout with a name and indentation padding.
+ * @param m Matrix to print.
+ * @param name Label to print.
+ * @param padding Left padding in spaces.
+ */
+void mat2D_print_uint32(Mat2D_uint32 m, const char *name, size_t padding)
+{
+    printf("%*s%s = [\n", (int) padding, "", name);
+    for (size_t i = 0; i < m.rows; ++i) {
+        printf("%*s    ", (int) padding, "");
+        for (size_t j = 0; j < m.cols; ++j) {
+            printf("%#10X ", MAT2D_AT_UINT32(m, i, j));
+        }
+        printf("\n");
+    }
+    printf("%*s]\n", (int) padding, "");
+}
+
+/**
  * @brief Print a matrix as a flattened column vector to stdout.
  * @param m Matrix to print (flattened in row-major).
  * @param name Label to print.
@@ -1748,7 +1777,7 @@ size_t mat2D_reduce(Mat2D m)
 
     size_t rank = 0;
 
-    for (int r = m.rows-1; r >= 0; r--) {
+    for (int r = (int)m.rows-1; r >= 0; r--) {
         size_t c = m.cols-1;
         if (!mat2D_find_first_non_zero_value(m, r, &c)) {
             continue; /* row of zeros */
@@ -1850,7 +1879,7 @@ void mat2D_set_rot_mat_x(Mat2D m, float angle_deg)
 {
     MAT2D_ASSERT(3 == m.cols && 3 == m.rows);
 
-    float angle_rad = angle_deg * MAT2D_PI / 180;
+    float angle_rad = angle_deg * (float)MAT2D_PI / 180.0f;
     mat2D_set_identity(m);
     MAT2D_AT(m, 1, 1) =  cos(angle_rad);
     MAT2D_AT(m, 1, 2) =  sin(angle_rad);
@@ -1874,7 +1903,7 @@ void mat2D_set_rot_mat_y(Mat2D m, float angle_deg)
 {
     MAT2D_ASSERT(3 == m.cols && 3 == m.rows);
 
-    float angle_rad = angle_deg * MAT2D_PI / 180;
+    float angle_rad = angle_deg * (float)MAT2D_PI / 180.0f;
     mat2D_set_identity(m);
     MAT2D_AT(m, 0, 0) =  cos(angle_rad);
     MAT2D_AT(m, 0, 2) = -sin(angle_rad);
@@ -1898,7 +1927,7 @@ void mat2D_set_rot_mat_z(Mat2D m, float angle_deg)
 {
     MAT2D_ASSERT(3 == m.cols && 3 == m.rows);
 
-    float angle_rad = angle_deg * MAT2D_PI / 180;
+    float angle_rad = angle_deg * (float)MAT2D_PI / 180.0f;
     mat2D_set_identity(m);
     MAT2D_AT(m, 0, 0) =  cos(angle_rad);
     MAT2D_AT(m, 0, 1) =  sin(angle_rad);
