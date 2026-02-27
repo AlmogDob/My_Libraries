@@ -76,6 +76,10 @@
 #define MAT2D_MALLOC malloc
 #endif //MAT2D_MALLOC
 
+#ifndef MAT2D_REALLOC
+#define MAT2D_REALLOC realloc
+#endif //MAT2D_REALLOC
+
 /**
  * @def MAT2D_FREE
  * @brief Deallocation function used by this library.
@@ -322,6 +326,7 @@ void            mat2D_print_as_col(Mat2D m, const char *name, size_t padding);
 
 void            mat2D_rand(Mat2D m, double low, double high);
 double          mat2D_rand_double(void);
+Mat2D_uint32    mat2D_realloc_uint32(Mat2D_uint32 m, size_t rows, size_t cols);
 size_t          mat2D_reduce(Mat2D m);
 bool            mat2D_row_is_all_digit(Mat2D m, double digit, size_t r);
 
@@ -1753,6 +1758,17 @@ void mat2D_rand(Mat2D m, double low, double high)
 double mat2D_rand_double(void)
 {
     return (double) rand() / (double) RAND_MAX;
+}
+
+Mat2D_uint32 mat2D_realloc_uint32(Mat2D_uint32 m, size_t rows, size_t cols)
+{
+    m.rows = rows;
+    m.cols = cols;
+    m.stride_r = cols;
+    m.elements = (uint32_t*)MAT2D_REALLOC(m.elements, sizeof(uint32_t)*rows*cols);
+    MAT2D_ASSERT(m.elements != NULL);
+    
+    return m;
 }
 
 /**
