@@ -220,25 +220,55 @@ typedef struct {
     char plane[3]; /**< Plane tag: "XY","XZ","YZ","YX","ZX","ZY". */
 } Grid; /* direction: e1, e2 */
 
+#define adl_min(a, b) ((a) < (b) ? (a) : (b))
+#define adl_max(a, b) ((a) > (b) ? (a) : (b))
 
-#ifndef HexARGB_RGBA
-#define HexARGB_RGBA(x) ((x)>>(8*2)&0xFF), ((x)>>(8*1)&0xFF), ((x)>>(8*0)&0xFF), ((x)>>(8*3)&0xFF)
-#endif
-#ifndef HexARGB_RGB_VAR
-#define HexARGB_RGB_VAR(x, r, g, b) r = ((x)>>(8*2)&0xFF); g = ((x)>>(8*1)&0xFF); b = ((x)>>(8*0)&0xFF);
-#endif
-#ifndef HexARGB_RGBA_VAR
-#define HexARGB_RGBA_VAR(x, r, g, b, a) r = ((x)>>(8*2)&0xFF); g = ((x)>>(8*1)&0xFF); b = ((x)>>(8*0)&0xFF); a = ((x)>>(8*3)&0xFF)
-#endif
-#ifndef RGB_hexRGB
-#define RGB_hexRGB(r, g, b) (int)(0x010000*(int)(r) + 0x000100*(int)(g) + 0x000001*(int)(b))
-#endif
-#ifndef RGBA_hexARGB
-#define RGBA_hexARGB(r, g, b, a) (int)(0x01000000l*(int)(fminf(a, 255)) + 0x010000*(int)(r) + 0x000100*(int)(g) + 0x000001*(int)(b))
-#endif
+#define ADL_HexARGB_RGBA(x) ((x)>>(8*2)&0xFF), ((x)>>(8*1)&0xFF), ((x)>>(8*0)&0xFF), ((x)>>(8*3)&0xFF)
+#define ADL_HexARGB_RGB_VAR(x, r, g, b) r = ((x)>>(8*2)&0xFF); g = ((x)>>(8*1)&0xFF); b = ((x)>>(8*0)&0xFF);
+#define ADL_HexARGB_RGBA_VAR(x, r, g, b, a) r = ((x)>>(8*2)&0xFF); g = ((x)>>(8*1)&0xFF); b = ((x)>>(8*0)&0xFF); a = ((x)>>(8*3)&0xFF)
+#define ADL_RGB_hexRGB(r, g, b) (int)(0x010000*(int)(r) + 0x000100*(int)(g) + 0x000001*(int)(b))
+#define ADL_RGBA_hexARGB(r, g, b, a) (int)(0x01000000l*(unsigned int)(adl_min(a, 255)) + 0x010000*(int)(r) + 0x000100*(int)(g) + 0x000001*(int)(b))
 
+#define ADL_COLOR_RED_hexARGB    0xFFFF0000
+#define ADL_COLOR_GREEN_hexARGB  0xFF00FF00
+#define ADL_COLOR_BLUE_hexARGB   0xFF0000FF
+#define ADL_COLOR_PURPLE_hexARGB 0xFFFF00FF
+#define ADL_COLOR_CYAN_hexARGB   0xFF00FFFF
+#define ADL_COLOR_YELLOW_hexARGB 0xFFFFFF00
 
-void    adl_point_draw(Mat2D_uint32 screen_mat, int x, int y, uint32_t color, Offset_zoom_param offset_zoom_param);
+#define adl_edge_cross_point(a1, b, a2, p) (b.x-a1.x)*(p.y-a2.y)-(b.y-a1.y)*(p.x-a2.x)
+#define adl_is_top_edge(x, y) (y == 0 && x > 0)
+#define adl_is_left_edge(x, y) (y < 0)
+#define adl_is_top_left(ps, pe) (adl_is_top_edge(pe.x-ps.x, pe.y-ps.y) || adl_is_left_edge(pe.x-ps.x, pe.y-ps.y))
+
+#define ADL_MAX_POINT_VAL 1e5
+#define adl_assert_point_is_valid(p) ADL_ASSERT(isfinite(p.x) && isfinite(p.y) && isfinite(p.z) && isfinite(p.w))
+#define adl_assert_tri_is_valid(tri) adl_assert_point_is_valid(tri.points[0]); \
+        adl_assert_point_is_valid(tri.points[1]);                              \
+        adl_assert_point_is_valid(tri.points[2])
+#define adl_assert_quad_is_valid(quad) adl_assert_point_is_valid(quad.points[0]);   \
+        adl_assert_point_is_valid(quad.points[1]);                                  \
+        adl_assert_point_is_valid(quad.points[2]);                                  \
+        adl_assert_point_is_valid(quad.points[3])
+
+#define ADL_FIGURE_PADDING_PRECENTAGE 20
+#define ADL_MAX_FIGURE_PADDING 70
+#define ADL_MIN_FIGURE_PADDING 20
+#define ADL_MAX_HEAD_SIZE 15
+#define ADL_FIGURE_HEAD_ANGLE_DEG 30
+#define ADL_FIGURE_AXIS_COLOR 0xff000000
+
+#define ADL_MAX_CHARACTER_OFFSET 10
+#define ADL_MIN_CHARACTER_OFFSET 5
+#define ADL_MAX_SENTENCE_LEN 256
+#define ADL_MAX_ZOOM 1e3
+
+#define ADL_DEFAULT_OFFSET_ZOOM (Offset_zoom_param){1,0,0,0,0}
+#define adl_offset_zoom_point(p, window_w, window_h, offset_zoom_param)                                             \
+    (p).x = ((p).x - (window_w)/2 + offset_zoom_param.offset_x) * offset_zoom_param.zoom_multiplier + (window_w)/2; \
+    (p).y = ((p).y - (window_h)/2 + offset_zoom_param.offset_y) * offset_zoom_param.zoom_multiplier + (window_h)/2
+
+void    adl_point_draw(Mat2D_uint32 screen_mat, float x, float y, uint32_t color, Offset_zoom_param offset_zoom_param);
 void    adl_line_draw(Mat2D_uint32 screen_mat, const float x1_input, const float y1_input, const float x2_input, const float y2_input, uint32_t color, Offset_zoom_param offset_zoom_param);
 void    adl_lines_draw(const Mat2D_uint32 screen_mat, const Point *points, const size_t len, const uint32_t color, Offset_zoom_param offset_zoom_param);
 void    adl_lines_loop_draw(const Mat2D_uint32 screen_mat, const Point *points, const size_t len, const uint32_t color, Offset_zoom_param offset_zoom_param);
@@ -247,8 +277,8 @@ void    adl_arrow_draw(Mat2D_uint32 screen_mat, int xs, int ys, int xe, int ye, 
 void    adl_character_draw(Mat2D_uint32 screen_mat, char c, int width_pixel, int hight_pixel, int x_top_left, int y_top_left, uint32_t color, Offset_zoom_param offset_zoom_param);
 void    adl_sentence_draw(Mat2D_uint32 screen_mat, const char sentence[], size_t len, const int x_top_left, const int y_top_left, const int hight_pixel, const uint32_t color, Offset_zoom_param offset_zoom_param);
 
-void    adl_rectangle_draw_min_max(Mat2D_uint32 screen_mat, int min_x, int max_x, int min_y, int max_y, uint32_t color, Offset_zoom_param offset_zoom_param);
-void    adl_rectangle_fill_min_max(Mat2D_uint32 screen_mat, int min_x, int max_x, int min_y, int max_y, uint32_t color, Offset_zoom_param offset_zoom_param);
+void    adl_rectangle_draw_min_max(Mat2D_uint32 screen_mat, float min_x, float max_x, float min_y, float max_y, uint32_t color, Offset_zoom_param offset_zoom_param);
+void    adl_rectangle_fill_min_max(Mat2D_uint32 screen_mat, float min_x, float max_x, float min_y, float max_y, uint32_t color, Offset_zoom_param offset_zoom_param);
 
 void    adl_quad_draw(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer, Quad quad, uint32_t color, Offset_zoom_param offset_zoom_param);
 void    adl_quad_fill(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer, Quad quad, uint32_t color, Offset_zoom_param offset_zoom_param);
@@ -298,44 +328,6 @@ void    adl_grid_draw(Mat2D_uint32 screen_mat, Grid grid, uint32_t color, Offset
 #ifdef ALMOG_DRAW_LIBRARY_IMPLEMENTATION
 #undef ALMOG_DRAW_LIBRARY_IMPLEMENTATION
 
-#define RED_hexARGB    0xFFFF0000
-#define GREEN_hexARGB  0xFF00FF00
-#define BLUE_hexARGB   0xFF0000FF
-#define PURPLE_hexARGB 0xFFFF00FF
-#define CYAN_hexARGB   0xFF00FFFF
-#define YELLOW_hexARGB 0xFFFFFF00
-
-#define edge_cross_point(a1, b, a2, p) (b.x-a1.x)*(p.y-a2.y)-(b.y-a1.y)*(p.x-a2.x)
-#define is_top_edge(x, y) (y == 0 && x > 0)
-#define is_left_edge(x, y) (y < 0)
-#define is_top_left(ps, pe) (is_top_edge(pe.x-ps.x, pe.y-ps.y) || is_left_edge(pe.x-ps.x, pe.y-ps.y))
-
-#define ADL_MAX_POINT_VAL 1e5
-#define adl_assert_point_is_valid(p) ADL_ASSERT(isfinite(p.x) && isfinite(p.y) && isfinite(p.z) && isfinite(p.w))
-#define adl_assert_tri_is_valid(tri) adl_assert_point_is_valid(tri.points[0]); \
-        adl_assert_point_is_valid(tri.points[1]);                              \
-        adl_assert_point_is_valid(tri.points[2])
-#define adl_assert_quad_is_valid(quad) adl_assert_point_is_valid(quad.points[0]);   \
-        adl_assert_point_is_valid(quad.points[1]);                                  \
-        adl_assert_point_is_valid(quad.points[2]);                                  \
-        adl_assert_point_is_valid(quad.points[3])
-
-#define ADL_FIGURE_PADDING_PRECENTAGE 20
-#define ADL_MAX_FIGURE_PADDING 70
-#define ADL_MIN_FIGURE_PADDING 20
-#define ADL_MAX_HEAD_SIZE 15
-#define ADL_FIGURE_HEAD_ANGLE_DEG 30
-#define ADL_FIGURE_AXIS_COLOR 0xff000000
-
-#define ADL_MAX_CHARACTER_OFFSET 10
-#define ADL_MIN_CHARACTER_OFFSET 5
-#define ADL_MAX_SENTENCE_LEN 256
-#define ADL_MAX_ZOOM 1e3
-
-#define ADL_DEFAULT_OFFSET_ZOOM (Offset_zoom_param){1,0,0,0,0}
-#define adl_offset_zoom_point(p, window_w, window_h, offset_zoom_param)                                             \
-    (p).x = ((p).x - (window_w)/2 + offset_zoom_param.offset_x) * offset_zoom_param.zoom_multiplier + (window_w)/2; \
-    (p).y = ((p).y - (window_h)/2 + offset_zoom_param.offset_y) * offset_zoom_param.zoom_multiplier + (window_h)/2
 
 /**
  * @brief Draw a single pixel with alpha blending.
@@ -351,20 +343,21 @@ void    adl_grid_draw(Mat2D_uint32 screen_mat, Grid grid, uint32_t color, Offset
  * @param offset_zoom_param Pan/zoom transform. Use ADL_DEFAULT_OFFSET_ZOOM
  *        for identity.
  */
-void adl_point_draw(Mat2D_uint32 screen_mat, int x, int y, uint32_t color, Offset_zoom_param offset_zoom_param)
+void adl_point_draw(Mat2D_uint32 screen_mat, float x, float y, uint32_t color, Offset_zoom_param offset_zoom_param)
 {
     float window_w = (float)screen_mat.cols;
     float window_h = (float)screen_mat.rows;
 
-    x = (x - window_w/2 + offset_zoom_param.offset_x) * offset_zoom_param.zoom_multiplier + window_w/2;
-    y = (y - window_h/2 + offset_zoom_param.offset_y) * offset_zoom_param.zoom_multiplier + window_h/2;
+    x = (((float)x - window_w/2 + offset_zoom_param.offset_x) * offset_zoom_param.zoom_multiplier + window_w/2);
+    y = (((float)y - window_h/2 + offset_zoom_param.offset_y) * offset_zoom_param.zoom_multiplier + window_h/2);
 
-    if ((x < (int)screen_mat.cols && y < (int)screen_mat.rows) && (x >= 0 && y >= 0)) { /* point is in screen */
+    if ((x < (float)screen_mat.cols && y < (float)screen_mat.rows) && (x >= 0 && y >= 0)) { /* point is in screen */
+        int ix = (int)x, iy = (int)y;
         uint8_t r_new, g_new, b_new, a_new;
         uint8_t r_current, g_current, b_current, a_current;
-        HexARGB_RGBA_VAR(MAT2D_AT_UINT32(screen_mat, y, x), r_current, g_current, b_current, a_current);
-        HexARGB_RGBA_VAR(color, r_new, g_new, b_new, a_new);
-        MAT2D_AT_UINT32(screen_mat, y, x) = RGBA_hexARGB(r_current*(1-a_new/255.0f) + r_new*a_new/255.0f, g_current*(1-a_new/255.0f) + g_new*a_new/255.0f, b_current*(1-a_new/255.0f) + b_new*a_new/255.0f, 255);
+        ADL_HexARGB_RGBA_VAR(MAT2D_AT_UINT32(screen_mat, iy, ix), r_current, g_current, b_current, a_current);
+        ADL_HexARGB_RGBA_VAR(color, r_new, g_new, b_new, a_new);
+        MAT2D_AT_UINT32(screen_mat, iy, ix) = ADL_RGBA_hexARGB(r_current*(1-a_new/255.0f) + r_new*a_new/255.0f, g_current*(1-a_new/255.0f) + g_new*a_new/255.0f, b_current*(1-a_new/255.0f) + b_new*a_new/255.0f, 255);
         (void)a_current;
     }
 }
@@ -391,10 +384,10 @@ void adl_line_draw(Mat2D_uint32 screen_mat, const float x1_input, const float y1
     float window_w = (float)screen_mat.cols;
     float window_h = (float)screen_mat.rows;
 
-    int x1 = (x1_input - window_w/2 + offset_zoom_param.offset_x) * offset_zoom_param.zoom_multiplier + window_w/2;
-    int x2 = (x2_input - window_w/2 + offset_zoom_param.offset_x) * offset_zoom_param.zoom_multiplier + window_w/2;
-    int y1 = (y1_input - window_h/2 + offset_zoom_param.offset_y) * offset_zoom_param.zoom_multiplier + window_h/2;
-    int y2 = (y2_input - window_h/2 + offset_zoom_param.offset_y) * offset_zoom_param.zoom_multiplier + window_h/2;
+    int x1 = (int)((x1_input - window_w/2 + offset_zoom_param.offset_x) * offset_zoom_param.zoom_multiplier + window_w/2);
+    int x2 = (int)((x2_input - window_w/2 + offset_zoom_param.offset_x) * offset_zoom_param.zoom_multiplier + window_w/2);
+    int y1 = (int)((y1_input - window_h/2 + offset_zoom_param.offset_y) * offset_zoom_param.zoom_multiplier + window_h/2);
+    int y2 = (int)((y2_input - window_h/2 + offset_zoom_param.offset_y) * offset_zoom_param.zoom_multiplier + window_h/2);
 
     ADL_ASSERT((int)fabsf(fabsf((float)x2) - fabsf((float)x1)) < ADL_MAX_POINT_VAL);
     ADL_ASSERT((int)fabsf(fabsf((float)y2) - fabsf((float)y1)) < ADL_MAX_POINT_VAL);
@@ -403,7 +396,7 @@ void adl_line_draw(Mat2D_uint32 screen_mat, const float x1_input, const float y1
     int y = y1;
     int dx, dy;
 
-    adl_point_draw(screen_mat, x, y, color, (Offset_zoom_param){1,0,0,0,0});
+    adl_point_draw(screen_mat, (float)x, (float)y, color, (Offset_zoom_param){1,0,0,0,0});
 
     dx = x2 - x1;
     dy = y2 - y1;
@@ -420,7 +413,7 @@ void adl_line_draw(Mat2D_uint32 screen_mat, const float x1_input, const float y1
             if (dy < 0) {
                 y--;
             }
-            adl_point_draw(screen_mat, x, y, color, (Offset_zoom_param){1,0,0,0,0});
+            adl_point_draw(screen_mat, (float)x, (float)y, color, (Offset_zoom_param){1,0,0,0,0});
         }
         return;
     }
@@ -432,7 +425,7 @@ void adl_line_draw(Mat2D_uint32 screen_mat, const float x1_input, const float y1
             if (dx < 0) {
                 x--;
             }
-            adl_point_draw(screen_mat, x, y, color, (Offset_zoom_param){1,0,0,0,0});
+            adl_point_draw(screen_mat, (float)x, (float)y, color, (Offset_zoom_param){1,0,0,0,0});
         }
         return;
     }
@@ -454,7 +447,7 @@ void adl_line_draw(Mat2D_uint32 screen_mat, const float x1_input, const float y1
             sy2 = temp_y;
         }
         for (y = sy1; y <= sy2; y++) {
-            adl_point_draw(screen_mat, x, y, color, (Offset_zoom_param){1,0,0,0,0});
+            adl_point_draw(screen_mat, (float)x, (float)y, color, (Offset_zoom_param){1,0,0,0,0});
         }
     }
 
@@ -538,8 +531,8 @@ void adl_arrow_draw(Mat2D_uint32 screen_mat, int xs, int ys, int xe, int ye, flo
     mat2D_fill(DCM_m, 0);
     mat2D_set_rot_mat_z(DCM_m, -angle_deg);
 
-    int x_center = xs*head_size + xe*(1-head_size);
-    int y_center = ys*head_size + ye*(1-head_size);
+    int x_center = (int)(xs*head_size + xe*(1-head_size));
+    int y_center = (int)(ys*head_size + ye*(1-head_size));
 
     MAT2D_AT(v1, 0, 0) = x_center;
     MAT2D_AT(v1, 1, 0) = y_center;
@@ -559,9 +552,9 @@ void adl_arrow_draw(Mat2D_uint32 screen_mat, int xs, int ys, int xe, int ye, flo
     mat2D_dot(v2, DCM_m, temp_v);
     mat2D_add(v2, pe);
 
-    adl_line_draw(screen_mat, MAT2D_AT(v1, 0, 0), MAT2D_AT(v1, 1, 0), xe, ye, color, offset_zoom_param);
-    adl_line_draw(screen_mat, MAT2D_AT(v2, 0, 0), MAT2D_AT(v2, 1, 0), xe, ye, color, offset_zoom_param);
-    adl_line_draw(screen_mat, xs, ys, xe, ye, color, offset_zoom_param);
+    adl_line_draw(screen_mat, (float)MAT2D_AT(v1, 0, 0), (float)MAT2D_AT(v1, 1, 0), (float)xe, (float)ye, color, offset_zoom_param);
+    adl_line_draw(screen_mat, (float)MAT2D_AT(v2, 0, 0), (float)MAT2D_AT(v2, 1, 0), (float)xe, (float)ye, color, offset_zoom_param);
+    adl_line_draw(screen_mat, (float)xs, (float)ys, (float)xe, (float)ye, color, offset_zoom_param);
 
     mat2D_free(pe);
     mat2D_free(v1);
@@ -593,344 +586,344 @@ void adl_character_draw(Mat2D_uint32 screen_mat, char c, int width_pixel, int hi
     {
     case 'a':
     case 'A':
-        adl_line_draw(screen_mat, x_top_left, y_top_left+hight_pixel, x_top_left+width_pixel/2, y_top_left, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+width_pixel/2, y_top_left, x_top_left+width_pixel, y_top_left+hight_pixel, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+width_pixel/6, y_top_left+2*hight_pixel/3, x_top_left+5*width_pixel/6, y_top_left+2*hight_pixel/3, color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left), (float)(y_top_left+hight_pixel), (float)(x_top_left+width_pixel/2), (float)(y_top_left), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+width_pixel/2), (float)(y_top_left), (float)(x_top_left+width_pixel), (float)(y_top_left+hight_pixel), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+width_pixel/6), (float)(y_top_left+2*hight_pixel/3), (float)(x_top_left+5*width_pixel/6), (float)(y_top_left+2*hight_pixel/3), color, offset_zoom_param);
         break;
     case 'b':
     case 'B':
-        adl_line_draw(screen_mat, x_top_left, y_top_left, x_top_left, y_top_left+hight_pixel, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left, y_top_left, x_top_left+2*width_pixel/3, y_top_left, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+2*width_pixel/3, y_top_left, x_top_left+width_pixel, y_top_left+hight_pixel/6, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+width_pixel, y_top_left+hight_pixel/6, x_top_left+width_pixel, y_top_left+hight_pixel/3, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+width_pixel, y_top_left+hight_pixel/3, x_top_left+2*width_pixel/3, y_top_left+hight_pixel/2, color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left), (float)(y_top_left), (float)(x_top_left), (float)(y_top_left+hight_pixel), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left), (float)(y_top_left), (float)(x_top_left+2*width_pixel/3), (float)(y_top_left), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+2*width_pixel/3), (float)(y_top_left), (float)(x_top_left+width_pixel), (float)(y_top_left+hight_pixel/6), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+width_pixel), (float)(y_top_left+hight_pixel/6), (float)(x_top_left+width_pixel), (float)(y_top_left+hight_pixel/3), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+width_pixel), (float)(y_top_left+hight_pixel/3), (float)(x_top_left+2*width_pixel/3), (float)(y_top_left+hight_pixel/2), color, offset_zoom_param);
 
-        adl_line_draw(screen_mat, x_top_left+2*width_pixel/3, y_top_left+hight_pixel/2, x_top_left, y_top_left+hight_pixel/2, color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+2*width_pixel/3), (float)(y_top_left+hight_pixel/2), (float)(x_top_left), (float)(y_top_left+hight_pixel/2), color, offset_zoom_param);
 
-        adl_line_draw(screen_mat, x_top_left+2*width_pixel/3, y_top_left+hight_pixel/2, x_top_left+width_pixel, y_top_left+2*hight_pixel/3, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+width_pixel, y_top_left+2*hight_pixel/3, x_top_left+width_pixel, y_top_left+5*hight_pixel/6, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+width_pixel, y_top_left+5*hight_pixel/6, x_top_left+2*width_pixel/3, y_top_left+hight_pixel, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+2*width_pixel/3, y_top_left+hight_pixel, x_top_left, y_top_left+hight_pixel, color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+2*width_pixel/3), (float)(y_top_left+hight_pixel/2), (float)(x_top_left+width_pixel), (float)(y_top_left+2*hight_pixel/3), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+width_pixel), (float)(y_top_left+2*hight_pixel/3), (float)(x_top_left+width_pixel), (float)(y_top_left+5*hight_pixel/6), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+width_pixel), (float)(y_top_left+5*hight_pixel/6), (float)(x_top_left+2*width_pixel/3), (float)(y_top_left+hight_pixel), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+2*width_pixel/3), (float)(y_top_left+hight_pixel), (float)(x_top_left), (float)(y_top_left+hight_pixel), color, offset_zoom_param);
         break;
     case 'c':
     case 'C':
-        adl_line_draw(screen_mat, x_top_left+width_pixel, y_top_left, x_top_left+width_pixel/3, y_top_left, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+width_pixel/3, y_top_left, x_top_left, y_top_left+hight_pixel/6, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left, y_top_left+hight_pixel/6, x_top_left, y_top_left+5*hight_pixel/6, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left, y_top_left+5*hight_pixel/6, x_top_left+width_pixel/3, y_top_left+hight_pixel, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+width_pixel/3, y_top_left+hight_pixel, x_top_left+width_pixel, y_top_left+hight_pixel, color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+width_pixel), (float)(y_top_left), (float)(x_top_left+width_pixel/3), (float)(y_top_left), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+width_pixel/3), (float)(y_top_left), (float)(x_top_left), (float)(y_top_left+hight_pixel/6), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left), (float)(y_top_left+hight_pixel/6), (float)(x_top_left), (float)(y_top_left+5*hight_pixel/6), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left), (float)(y_top_left+5*hight_pixel/6), (float)(x_top_left+width_pixel/3), (float)(y_top_left+hight_pixel), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+width_pixel/3), (float)(y_top_left+hight_pixel), (float)(x_top_left+width_pixel), (float)(y_top_left+hight_pixel), color, offset_zoom_param);
         break;
     case 'd':
     case 'D':
-        adl_line_draw(screen_mat, x_top_left, y_top_left, x_top_left+2*width_pixel/3, y_top_left, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+2*width_pixel/3, y_top_left, x_top_left+width_pixel, y_top_left+hight_pixel/6, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+width_pixel, y_top_left+hight_pixel/6, x_top_left+width_pixel, y_top_left+5*hight_pixel/6, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+width_pixel, y_top_left+5*hight_pixel/6, x_top_left+2*width_pixel/3, y_top_left+hight_pixel, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+2*width_pixel/3, y_top_left+hight_pixel, x_top_left, y_top_left+hight_pixel, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left, y_top_left+hight_pixel, x_top_left, y_top_left, color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left), (float)(y_top_left), (float)(x_top_left+2*width_pixel/3), (float)(y_top_left), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+2*width_pixel/3), (float)(y_top_left), (float)(x_top_left+width_pixel), (float)(y_top_left+hight_pixel/6), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+width_pixel), (float)(y_top_left+hight_pixel/6), (float)(x_top_left+width_pixel), (float)(y_top_left+5*hight_pixel/6), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+width_pixel), (float)(y_top_left+5*hight_pixel/6), (float)(x_top_left+2*width_pixel/3), (float)(y_top_left+hight_pixel), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+2*width_pixel/3), (float)(y_top_left+hight_pixel), (float)(x_top_left), (float)(y_top_left+hight_pixel), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left), (float)(y_top_left+hight_pixel), (float)(x_top_left), (float)(y_top_left), color, offset_zoom_param);
         break;
     case 'e':
     case 'E':
-        adl_line_draw(screen_mat, x_top_left+width_pixel, y_top_left, x_top_left, y_top_left, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left, y_top_left, x_top_left, y_top_left+hight_pixel, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left, y_top_left+hight_pixel, x_top_left+width_pixel, y_top_left+hight_pixel, color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+width_pixel), (float)(y_top_left), (float)(x_top_left), (float)(y_top_left), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left), (float)(y_top_left), (float)(x_top_left), (float)(y_top_left+hight_pixel), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left), (float)(y_top_left+hight_pixel), (float)(x_top_left+width_pixel), (float)(y_top_left+hight_pixel), color, offset_zoom_param);
 
-        adl_line_draw(screen_mat, x_top_left, y_top_left+hight_pixel/2, x_top_left+width_pixel, y_top_left+hight_pixel/2, color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left), (float)(y_top_left+hight_pixel/2), (float)(x_top_left+width_pixel), (float)(y_top_left+hight_pixel/2), color, offset_zoom_param);
         break;
     case 'f':
     case 'F':
-        adl_line_draw(screen_mat, x_top_left+width_pixel, y_top_left, x_top_left, y_top_left, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left, y_top_left, x_top_left, y_top_left+hight_pixel, color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+width_pixel), (float)(y_top_left), (float)(x_top_left), (float)(y_top_left), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left), (float)(y_top_left), (float)(x_top_left), (float)(y_top_left+hight_pixel), color, offset_zoom_param);
 
-        adl_line_draw(screen_mat, x_top_left, y_top_left+hight_pixel/2, x_top_left+width_pixel, y_top_left+hight_pixel/2, color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left), (float)(y_top_left+hight_pixel/2), (float)(x_top_left+width_pixel), (float)(y_top_left+hight_pixel/2), color, offset_zoom_param);
         break;
     case 'g':
     case 'G':
-        adl_line_draw(screen_mat, x_top_left+width_pixel, y_top_left+hight_pixel/6, x_top_left+2*width_pixel/3, y_top_left, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+2*width_pixel/3, y_top_left, x_top_left+width_pixel/3, y_top_left, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+width_pixel/3, y_top_left, x_top_left, y_top_left+hight_pixel/6, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left, y_top_left+hight_pixel/6, x_top_left, y_top_left+5*hight_pixel/6, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left, y_top_left+5*hight_pixel/6, x_top_left+width_pixel/3, y_top_left+hight_pixel, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+width_pixel/3, y_top_left+hight_pixel, x_top_left+2*width_pixel/3, y_top_left+hight_pixel, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+2*width_pixel/3, y_top_left+hight_pixel, x_top_left+width_pixel, y_top_left+5*hight_pixel/6, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+width_pixel, y_top_left+5*hight_pixel/6, x_top_left+width_pixel, y_top_left+hight_pixel/2, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+width_pixel, y_top_left+hight_pixel/2, x_top_left+width_pixel/2, y_top_left+hight_pixel/2, color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+width_pixel), (float)(y_top_left+hight_pixel/6), (float)(x_top_left+2*width_pixel/3), (float)(y_top_left), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+2*width_pixel/3), (float)(y_top_left), (float)(x_top_left+width_pixel/3), (float)(y_top_left), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+width_pixel/3), (float)(y_top_left), (float)(x_top_left), (float)(y_top_left+hight_pixel/6), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left), (float)(y_top_left+hight_pixel/6), (float)(x_top_left), (float)(y_top_left+5*hight_pixel/6), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left), (float)(y_top_left+5*hight_pixel/6), (float)(x_top_left+width_pixel/3), (float)(y_top_left+hight_pixel), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+width_pixel/3), (float)(y_top_left+hight_pixel), (float)(x_top_left+2*width_pixel/3), (float)(y_top_left+hight_pixel), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+2*width_pixel/3), (float)(y_top_left+hight_pixel), (float)(x_top_left+width_pixel), (float)(y_top_left+5*hight_pixel/6), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+width_pixel), (float)(y_top_left+5*hight_pixel/6), (float)(x_top_left+width_pixel), (float)(y_top_left+hight_pixel/2), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+width_pixel), (float)(y_top_left+hight_pixel/2), (float)(x_top_left+width_pixel/2), (float)(y_top_left+hight_pixel/2), color, offset_zoom_param);
         break;
     case 'h':
     case 'H':
-        adl_line_draw(screen_mat, x_top_left, y_top_left, x_top_left, y_top_left+hight_pixel, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+width_pixel, y_top_left, x_top_left+width_pixel, y_top_left+hight_pixel, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left, y_top_left+hight_pixel/2, x_top_left+width_pixel, y_top_left+hight_pixel/2, color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left), (float)(y_top_left), (float)(x_top_left), (float)(y_top_left+hight_pixel), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+width_pixel), (float)(y_top_left), (float)(x_top_left+width_pixel), (float)(y_top_left+hight_pixel), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left), (float)(y_top_left+hight_pixel/2), (float)(x_top_left+width_pixel), (float)(y_top_left+hight_pixel/2), color, offset_zoom_param);
         break;
     case 'i':
     case 'I':
-        adl_line_draw(screen_mat, x_top_left, y_top_left, x_top_left+width_pixel, y_top_left, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left, y_top_left+hight_pixel, x_top_left+width_pixel, y_top_left+hight_pixel, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+width_pixel/2, y_top_left, x_top_left+width_pixel/2, y_top_left+hight_pixel, color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left), (float)(y_top_left), (float)(x_top_left+width_pixel), (float)(y_top_left), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left), (float)(y_top_left+hight_pixel), (float)(x_top_left+width_pixel), (float)(y_top_left+hight_pixel), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+width_pixel/2), (float)(y_top_left), (float)(x_top_left+width_pixel/2), (float)(y_top_left+hight_pixel), color, offset_zoom_param);
         break;
     case 'j':
     case 'J':
-        adl_line_draw(screen_mat, x_top_left, y_top_left, x_top_left+width_pixel, y_top_left, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+2*width_pixel/3, y_top_left, x_top_left+2*width_pixel/3, y_top_left+5*hight_pixel/6, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+2*width_pixel/3, y_top_left+5*hight_pixel/6, x_top_left+width_pixel/2, y_top_left+hight_pixel, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+width_pixel/2, y_top_left+hight_pixel, x_top_left+width_pixel/3, y_top_left+hight_pixel, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+width_pixel/3, y_top_left+hight_pixel, x_top_left+width_pixel/6, y_top_left+5*hight_pixel/6, color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left), (float)(y_top_left), (float)(x_top_left+width_pixel), (float)(y_top_left), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+2*width_pixel/3), (float)(y_top_left), (float)(x_top_left+2*width_pixel/3), (float)(y_top_left+5*hight_pixel/6), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+2*width_pixel/3), (float)(y_top_left+5*hight_pixel/6), (float)(x_top_left+width_pixel/2), (float)(y_top_left+hight_pixel), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+width_pixel/2), (float)(y_top_left+hight_pixel), (float)(x_top_left+width_pixel/3), (float)(y_top_left+hight_pixel), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+width_pixel/3), (float)(y_top_left+hight_pixel), (float)(x_top_left+width_pixel/6), (float)(y_top_left+5*hight_pixel/6), color, offset_zoom_param);
         break;
     case 'k':
     case 'K':
-        adl_line_draw(screen_mat, x_top_left, y_top_left, x_top_left, y_top_left+hight_pixel, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left, y_top_left+hight_pixel/2, x_top_left+width_pixel, y_top_left+hight_pixel, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left, y_top_left+hight_pixel/2, x_top_left+width_pixel, y_top_left, color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left), (float)(y_top_left), (float)(x_top_left), (float)(y_top_left+hight_pixel), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left), (float)(y_top_left+hight_pixel/2), (float)(x_top_left+width_pixel), (float)(y_top_left+hight_pixel), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left), (float)(y_top_left+hight_pixel/2), (float)(x_top_left+width_pixel), (float)(y_top_left), color, offset_zoom_param);
         break;
     case 'l':
     case 'L':
-        adl_line_draw(screen_mat, x_top_left, y_top_left, x_top_left, y_top_left+hight_pixel, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left, y_top_left+hight_pixel, x_top_left+width_pixel, y_top_left+hight_pixel, color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left), (float)(y_top_left), (float)(x_top_left), (float)(y_top_left+hight_pixel), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left), (float)(y_top_left+hight_pixel), (float)(x_top_left+width_pixel), (float)(y_top_left+hight_pixel), color, offset_zoom_param);
         break;
     case 'm':
     case 'M':
-        adl_line_draw(screen_mat, x_top_left, y_top_left+hight_pixel, x_top_left, y_top_left, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left, y_top_left, x_top_left+width_pixel/2, y_top_left+hight_pixel, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+width_pixel/2, y_top_left+hight_pixel, x_top_left+width_pixel, y_top_left, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+width_pixel, y_top_left, x_top_left+width_pixel, y_top_left+hight_pixel, color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left), (float)(y_top_left+hight_pixel), (float)(x_top_left), (float)(y_top_left), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left), (float)(y_top_left), (float)(x_top_left+width_pixel/2), (float)(y_top_left+hight_pixel), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+width_pixel/2), (float)(y_top_left+hight_pixel), (float)(x_top_left+width_pixel), (float)(y_top_left), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+width_pixel), (float)(y_top_left), (float)(x_top_left+width_pixel), (float)(y_top_left+hight_pixel), color, offset_zoom_param);
         break;
     case 'n':
     case 'N':
-        adl_line_draw(screen_mat, x_top_left, y_top_left+hight_pixel, x_top_left, y_top_left, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left, y_top_left, x_top_left+width_pixel, y_top_left+hight_pixel, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+width_pixel, y_top_left+hight_pixel, x_top_left+width_pixel, y_top_left, color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left), (float)(y_top_left+hight_pixel), (float)(x_top_left), (float)(y_top_left), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left), (float)(y_top_left), (float)(x_top_left+width_pixel), (float)(y_top_left+hight_pixel), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+width_pixel), (float)(y_top_left+hight_pixel), (float)(x_top_left+width_pixel), (float)(y_top_left), color, offset_zoom_param);
         break;
     case 'o':
     case 'O':
-        adl_line_draw(screen_mat, x_top_left+2*width_pixel/3, y_top_left, x_top_left+width_pixel/3, y_top_left, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+width_pixel/3, y_top_left, x_top_left, y_top_left+hight_pixel/6, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left, y_top_left+hight_pixel/6, x_top_left, y_top_left+5*hight_pixel/6, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left, y_top_left+5*hight_pixel/6, x_top_left+width_pixel/3, y_top_left+hight_pixel, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+width_pixel/3, y_top_left+hight_pixel, x_top_left+2*width_pixel/3, y_top_left+hight_pixel, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+2*width_pixel/3, y_top_left+hight_pixel, x_top_left+width_pixel, y_top_left+5*hight_pixel/6, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+width_pixel, y_top_left+5*hight_pixel/6, x_top_left+width_pixel, y_top_left+hight_pixel/6, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+width_pixel, y_top_left+hight_pixel/6, x_top_left+2*width_pixel/3, y_top_left, color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+2*width_pixel/3), (float)(y_top_left), (float)(x_top_left+width_pixel/3), (float)(y_top_left), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+width_pixel/3), (float)(y_top_left), (float)(x_top_left), (float)(y_top_left+hight_pixel/6), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left), (float)(y_top_left+hight_pixel/6), (float)(x_top_left), (float)(y_top_left+5*hight_pixel/6), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left), (float)(y_top_left+5*hight_pixel/6), (float)(x_top_left+width_pixel/3), (float)(y_top_left+hight_pixel), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+width_pixel/3), (float)(y_top_left+hight_pixel), (float)(x_top_left+2*width_pixel/3), (float)(y_top_left+hight_pixel), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+2*width_pixel/3), (float)(y_top_left+hight_pixel), (float)(x_top_left+width_pixel), (float)(y_top_left+5*hight_pixel/6), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+width_pixel), (float)(y_top_left+5*hight_pixel/6), (float)(x_top_left+width_pixel), (float)(y_top_left+hight_pixel/6), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+width_pixel), (float)(y_top_left+hight_pixel/6), (float)(x_top_left+2*width_pixel/3), (float)(y_top_left), color, offset_zoom_param);
         break;
     case 'p':
     case 'P':
-        adl_line_draw(screen_mat, x_top_left, y_top_left, x_top_left, y_top_left+hight_pixel, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left, y_top_left, x_top_left+2*width_pixel/3, y_top_left, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+2*width_pixel/3, y_top_left, x_top_left+width_pixel, y_top_left+hight_pixel/6, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+width_pixel, y_top_left+hight_pixel/6, x_top_left+width_pixel, y_top_left+hight_pixel/3, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+width_pixel, y_top_left+hight_pixel/3, x_top_left+2*width_pixel/3, y_top_left+hight_pixel/2, color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left), (float)(y_top_left), (float)(x_top_left), (float)(y_top_left+hight_pixel), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left), (float)(y_top_left), (float)(x_top_left+2*width_pixel/3), (float)(y_top_left), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+2*width_pixel/3), (float)(y_top_left), (float)(x_top_left+width_pixel), (float)(y_top_left+hight_pixel/6), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+width_pixel), (float)(y_top_left+hight_pixel/6), (float)(x_top_left+width_pixel), (float)(y_top_left+hight_pixel/3), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+width_pixel), (float)(y_top_left+hight_pixel/3), (float)(x_top_left+2*width_pixel/3), (float)(y_top_left+hight_pixel/2), color, offset_zoom_param);
 
-        adl_line_draw(screen_mat, x_top_left+2*width_pixel/3, y_top_left+hight_pixel/2, x_top_left, y_top_left+hight_pixel/2, color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+2*width_pixel/3), (float)(y_top_left+hight_pixel/2), (float)(x_top_left), (float)(y_top_left+hight_pixel/2), color, offset_zoom_param);
         break;
     case 'q':
     case 'Q':
-        adl_line_draw(screen_mat, x_top_left+2*width_pixel/3, y_top_left, x_top_left+width_pixel/3, y_top_left, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+width_pixel/3, y_top_left, x_top_left, y_top_left+hight_pixel/6, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left, y_top_left+hight_pixel/6, x_top_left, y_top_left+5*hight_pixel/6, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left, y_top_left+5*hight_pixel/6, x_top_left+width_pixel/3, y_top_left+hight_pixel, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+width_pixel/3, y_top_left+hight_pixel, x_top_left+2*width_pixel/3, y_top_left+hight_pixel, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+2*width_pixel/3, y_top_left+hight_pixel, x_top_left+width_pixel, y_top_left+5*hight_pixel/6, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+width_pixel, y_top_left+5*hight_pixel/6, x_top_left+width_pixel, y_top_left+hight_pixel/6, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+width_pixel, y_top_left+hight_pixel/6, x_top_left+2*width_pixel/3, y_top_left, color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+2*width_pixel/3), (float)(y_top_left), (float)(x_top_left+width_pixel/3), (float)(y_top_left), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+width_pixel/3), (float)(y_top_left), (float)(x_top_left), (float)(y_top_left+hight_pixel/6), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left), (float)(y_top_left+hight_pixel/6), (float)(x_top_left), (float)(y_top_left+5*hight_pixel/6), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left), (float)(y_top_left+5*hight_pixel/6), (float)(x_top_left+width_pixel/3), (float)(y_top_left+hight_pixel), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+width_pixel/3), (float)(y_top_left+hight_pixel), (float)(x_top_left+2*width_pixel/3), (float)(y_top_left+hight_pixel), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+2*width_pixel/3), (float)(y_top_left+hight_pixel), (float)(x_top_left+width_pixel), (float)(y_top_left+5*hight_pixel/6), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+width_pixel), (float)(y_top_left+5*hight_pixel/6), (float)(x_top_left+width_pixel), (float)(y_top_left+hight_pixel/6), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+width_pixel), (float)(y_top_left+hight_pixel/6), (float)(x_top_left+2*width_pixel/3), (float)(y_top_left), color, offset_zoom_param);
 
-        adl_line_draw(screen_mat, x_top_left+2*width_pixel/3, y_top_left+5*hight_pixel/6, x_top_left+width_pixel, y_top_left+hight_pixel, color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+2*width_pixel/3), (float)(y_top_left+5*hight_pixel/6), (float)(x_top_left+width_pixel), (float)(y_top_left+hight_pixel), color, offset_zoom_param);
         break;
     case 'r':
     case 'R':
-        adl_line_draw(screen_mat, x_top_left, y_top_left, x_top_left, y_top_left+hight_pixel, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left, y_top_left, x_top_left+2*width_pixel/3, y_top_left, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+2*width_pixel/3, y_top_left, x_top_left+width_pixel, y_top_left+hight_pixel/6, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+width_pixel, y_top_left+hight_pixel/6, x_top_left+width_pixel, y_top_left+hight_pixel/3, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+width_pixel, y_top_left+hight_pixel/3, x_top_left+2*width_pixel/3, y_top_left+hight_pixel/2, color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left), (float)(y_top_left), (float)(x_top_left), (float)(y_top_left+hight_pixel), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left), (float)(y_top_left), (float)(x_top_left+2*width_pixel/3), (float)(y_top_left), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+2*width_pixel/3), (float)(y_top_left), (float)(x_top_left+width_pixel), (float)(y_top_left+hight_pixel/6), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+width_pixel), (float)(y_top_left+hight_pixel/6), (float)(x_top_left+width_pixel), (float)(y_top_left+hight_pixel/3), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+width_pixel), (float)(y_top_left+hight_pixel/3), (float)(x_top_left+2*width_pixel/3), (float)(y_top_left+hight_pixel/2), color, offset_zoom_param);
 
-        adl_line_draw(screen_mat, x_top_left+2*width_pixel/3, y_top_left+hight_pixel/2, x_top_left, y_top_left+hight_pixel/2, color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+2*width_pixel/3), (float)(y_top_left+hight_pixel/2), (float)(x_top_left), (float)(y_top_left+hight_pixel/2), color, offset_zoom_param);
 
-        adl_line_draw(screen_mat, x_top_left+2*width_pixel/3, y_top_left+hight_pixel/2, x_top_left+width_pixel, y_top_left+hight_pixel, color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+2*width_pixel/3), (float)(y_top_left+hight_pixel/2), (float)(x_top_left+width_pixel), (float)(y_top_left+hight_pixel), color, offset_zoom_param);
         break;
     case 's':
     case 'S':
-        adl_line_draw(screen_mat, x_top_left+width_pixel, y_top_left+hight_pixel/6, x_top_left+2*width_pixel/3, y_top_left, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+2*width_pixel/3, y_top_left, x_top_left+width_pixel/3, y_top_left, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+width_pixel/3, y_top_left, x_top_left, y_top_left+hight_pixel/6, color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+width_pixel), (float)(y_top_left+hight_pixel/6), (float)(x_top_left+2*width_pixel/3), (float)(y_top_left), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+2*width_pixel/3), (float)(y_top_left), (float)(x_top_left+width_pixel/3), (float)(y_top_left), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+width_pixel/3), (float)(y_top_left), (float)(x_top_left), (float)(y_top_left+hight_pixel/6), color, offset_zoom_param);
 
-        adl_line_draw(screen_mat, x_top_left, y_top_left+hight_pixel/6, x_top_left, y_top_left+hight_pixel/3, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left, y_top_left+hight_pixel/3, x_top_left+width_pixel/3, y_top_left+hight_pixel/2, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+width_pixel/3, y_top_left+hight_pixel/2, x_top_left+2*width_pixel/3, y_top_left+hight_pixel/2, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+2*width_pixel/3, y_top_left+hight_pixel/2, x_top_left+width_pixel, y_top_left+2*hight_pixel/3, color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left), (float)(y_top_left+hight_pixel/6), (float)(x_top_left), (float)(y_top_left+hight_pixel/3), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left), (float)(y_top_left+hight_pixel/3), (float)(x_top_left+width_pixel/3), (float)(y_top_left+hight_pixel/2), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+width_pixel/3), (float)(y_top_left+hight_pixel/2), (float)(x_top_left+2*width_pixel/3), (float)(y_top_left+hight_pixel/2), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+2*width_pixel/3), (float)(y_top_left+hight_pixel/2), (float)(x_top_left+width_pixel), (float)(y_top_left+2*hight_pixel/3), color, offset_zoom_param);
 
-        adl_line_draw(screen_mat, x_top_left, y_top_left+5*hight_pixel/6, x_top_left+width_pixel/3, y_top_left+hight_pixel, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+width_pixel/3, y_top_left+hight_pixel, x_top_left+2*width_pixel/3, y_top_left+hight_pixel, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+2*width_pixel/3, y_top_left+hight_pixel, x_top_left+width_pixel, y_top_left+5*hight_pixel/6, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+width_pixel, y_top_left+5*hight_pixel/6, x_top_left+width_pixel, y_top_left+2*hight_pixel/3, color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left), (float)(y_top_left+5*hight_pixel/6), (float)(x_top_left+width_pixel/3), (float)(y_top_left+hight_pixel), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+width_pixel/3), (float)(y_top_left+hight_pixel), (float)(x_top_left+2*width_pixel/3), (float)(y_top_left+hight_pixel), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+2*width_pixel/3), (float)(y_top_left+hight_pixel), (float)(x_top_left+width_pixel), (float)(y_top_left+5*hight_pixel/6), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+width_pixel), (float)(y_top_left+5*hight_pixel/6), (float)(x_top_left+width_pixel), (float)(y_top_left+2*hight_pixel/3), color, offset_zoom_param);
         break;
     case 't':
     case 'T':
-        adl_line_draw(screen_mat, x_top_left, y_top_left, x_top_left+width_pixel, y_top_left, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+width_pixel/2, y_top_left, x_top_left+width_pixel/2, y_top_left+hight_pixel, color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left), (float)(y_top_left), (float)(x_top_left+width_pixel), (float)(y_top_left), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+width_pixel/2), (float)(y_top_left), (float)(x_top_left+width_pixel/2), (float)(y_top_left+hight_pixel), color, offset_zoom_param);
         break;
     case 'u':
     case 'U':
-        adl_line_draw(screen_mat, x_top_left, y_top_left, x_top_left, y_top_left+hight_pixel/6, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left, y_top_left+hight_pixel/6, x_top_left, y_top_left+5*hight_pixel/6, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left, y_top_left+5*hight_pixel/6, x_top_left+width_pixel/3, y_top_left+hight_pixel, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+width_pixel/3, y_top_left+hight_pixel, x_top_left+2*width_pixel/3, y_top_left+hight_pixel, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+2*width_pixel/3, y_top_left+hight_pixel, x_top_left+width_pixel, y_top_left+5*hight_pixel/6, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+width_pixel, y_top_left+5*hight_pixel/6, x_top_left+width_pixel, y_top_left, color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left), (float)(y_top_left), (float)(x_top_left), (float)(y_top_left+hight_pixel/6), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left), (float)(y_top_left+hight_pixel/6), (float)(x_top_left), (float)(y_top_left+5*hight_pixel/6), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left), (float)(y_top_left+5*hight_pixel/6), (float)(x_top_left+width_pixel/3), (float)(y_top_left+hight_pixel), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+width_pixel/3), (float)(y_top_left+hight_pixel), (float)(x_top_left+2*width_pixel/3), (float)(y_top_left+hight_pixel), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+2*width_pixel/3), (float)(y_top_left+hight_pixel), (float)(x_top_left+width_pixel), (float)(y_top_left+5*hight_pixel/6), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+width_pixel), (float)(y_top_left+5*hight_pixel/6), (float)(x_top_left+width_pixel), (float)(y_top_left), color, offset_zoom_param);
         break;
     case 'v':
     case 'V':
-        adl_line_draw(screen_mat, x_top_left, y_top_left, x_top_left+width_pixel/2, y_top_left+hight_pixel, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+width_pixel/2, y_top_left+hight_pixel, x_top_left+width_pixel, y_top_left, color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left), (float)(y_top_left), (float)(x_top_left+width_pixel/2), (float)(y_top_left+hight_pixel), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+width_pixel/2), (float)(y_top_left+hight_pixel), (float)(x_top_left+width_pixel), (float)(y_top_left), color, offset_zoom_param);
         break;
     case 'w':
     case 'W':
-        adl_line_draw(screen_mat, x_top_left, y_top_left, x_top_left+width_pixel/3, y_top_left+hight_pixel, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+width_pixel/3, y_top_left+hight_pixel, x_top_left+width_pixel/2, y_top_left, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+width_pixel/2, y_top_left, x_top_left+2*width_pixel/3, y_top_left+hight_pixel, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+2*width_pixel/3, y_top_left+hight_pixel, x_top_left+width_pixel, y_top_left, color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left), (float)(y_top_left), (float)(x_top_left+width_pixel/3), (float)(y_top_left+hight_pixel), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+width_pixel/3), (float)(y_top_left+hight_pixel), (float)(x_top_left+width_pixel/2), (float)(y_top_left), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+width_pixel/2), (float)(y_top_left), (float)(x_top_left+2*width_pixel/3), (float)(y_top_left+hight_pixel), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+2*width_pixel/3), (float)(y_top_left+hight_pixel), (float)(x_top_left+width_pixel), (float)(y_top_left), color, offset_zoom_param);
         break;
     case 'x':
     case 'X':
-        adl_line_draw(screen_mat, x_top_left, y_top_left, x_top_left+width_pixel, y_top_left+hight_pixel, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left, y_top_left+hight_pixel, x_top_left+width_pixel, y_top_left, color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left), (float)(y_top_left), (float)(x_top_left+width_pixel), (float)(y_top_left+hight_pixel), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left), (float)(y_top_left+hight_pixel), (float)(x_top_left+width_pixel), (float)(y_top_left), color, offset_zoom_param);
         break;
     case 'y':
     case 'Y':
-        adl_line_draw(screen_mat, x_top_left, y_top_left, x_top_left+width_pixel/2, y_top_left+hight_pixel/2, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+width_pixel, y_top_left, x_top_left+width_pixel/2, y_top_left+hight_pixel/2, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+width_pixel/2, y_top_left+hight_pixel/2, x_top_left+width_pixel/2, y_top_left+hight_pixel, color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left), (float)(y_top_left), (float)(x_top_left+width_pixel/2), (float)(y_top_left+hight_pixel/2), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+width_pixel), (float)(y_top_left), (float)(x_top_left+width_pixel/2), (float)(y_top_left+hight_pixel/2), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+width_pixel/2), (float)(y_top_left+hight_pixel/2), (float)(x_top_left+width_pixel/2), (float)(y_top_left+hight_pixel), color, offset_zoom_param);
         break;
     case 'z':
     case 'Z':
-        adl_line_draw(screen_mat, x_top_left, y_top_left, x_top_left+width_pixel, y_top_left, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left, y_top_left+hight_pixel, x_top_left+width_pixel, y_top_left+hight_pixel, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+width_pixel, y_top_left, x_top_left, y_top_left+hight_pixel, color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left), (float)(y_top_left), (float)(x_top_left+width_pixel), (float)(y_top_left), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left), (float)(y_top_left+hight_pixel), (float)(x_top_left+width_pixel), (float)(y_top_left+hight_pixel), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+width_pixel), (float)(y_top_left), (float)(x_top_left), (float)(y_top_left+hight_pixel), color, offset_zoom_param);
         break;
     case '.':
-        adl_rectangle_fill_min_max(screen_mat, x_top_left+width_pixel/6, x_top_left+width_pixel/3, y_top_left+5*hight_pixel/6, y_top_left+hight_pixel, color, offset_zoom_param);
+        adl_rectangle_fill_min_max(screen_mat, (float)(x_top_left+width_pixel/6), (float)(x_top_left+width_pixel/3), (float)(y_top_left+5*hight_pixel/6), (float)(y_top_left+hight_pixel), color, offset_zoom_param);
         break;
     case ':':
-        adl_rectangle_fill_min_max(screen_mat, x_top_left+width_pixel/6, x_top_left+width_pixel/3, y_top_left+5*hight_pixel/6, y_top_left+hight_pixel, color, offset_zoom_param);
-        adl_rectangle_fill_min_max(screen_mat, x_top_left+width_pixel/6, x_top_left+width_pixel/3, y_top_left, y_top_left+hight_pixel/6, color, offset_zoom_param);
+        adl_rectangle_fill_min_max(screen_mat, (float)(x_top_left+width_pixel/6), (float)(x_top_left+width_pixel/3), (float)(y_top_left+5*hight_pixel/6), (float)(y_top_left+hight_pixel), color, offset_zoom_param);
+        adl_rectangle_fill_min_max(screen_mat, (float)(x_top_left+width_pixel/6), (float)(x_top_left+width_pixel/3), (float)(y_top_left), (float)(y_top_left+hight_pixel/6), color, offset_zoom_param);
         break;
     case '0':
-        adl_line_draw(screen_mat, x_top_left+2*width_pixel/3, y_top_left, x_top_left+width_pixel/3, y_top_left, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+width_pixel/3, y_top_left, x_top_left, y_top_left+hight_pixel/6, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left, y_top_left+hight_pixel/6, x_top_left, y_top_left+5*hight_pixel/6, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left, y_top_left+5*hight_pixel/6, x_top_left+width_pixel/3, y_top_left+hight_pixel, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+width_pixel/3, y_top_left+hight_pixel, x_top_left+2*width_pixel/3, y_top_left+hight_pixel, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+2*width_pixel/3, y_top_left+hight_pixel, x_top_left+width_pixel, y_top_left+5*hight_pixel/6, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+width_pixel, y_top_left+5*hight_pixel/6, x_top_left+width_pixel, y_top_left+hight_pixel/6, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+width_pixel, y_top_left+hight_pixel/6, x_top_left+2*width_pixel/3, y_top_left, color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+2*width_pixel/3), (float)(y_top_left), (float)(x_top_left+width_pixel/3), (float)(y_top_left), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+width_pixel/3), (float)(y_top_left), (float)(x_top_left), (float)(y_top_left+hight_pixel/6), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left), (float)(y_top_left+hight_pixel/6), (float)(x_top_left), (float)(y_top_left+5*hight_pixel/6), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left), (float)(y_top_left+5*hight_pixel/6), (float)(x_top_left+width_pixel/3), (float)(y_top_left+hight_pixel), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+width_pixel/3), (float)(y_top_left+hight_pixel), (float)(x_top_left+2*width_pixel/3), (float)(y_top_left+hight_pixel), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+2*width_pixel/3), (float)(y_top_left+hight_pixel), (float)(x_top_left+width_pixel), (float)(y_top_left+5*hight_pixel/6), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+width_pixel), (float)(y_top_left+5*hight_pixel/6), (float)(x_top_left+width_pixel), (float)(y_top_left+hight_pixel/6), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+width_pixel), (float)(y_top_left+hight_pixel/6), (float)(x_top_left+2*width_pixel/3), (float)(y_top_left), color, offset_zoom_param);
 
-        adl_line_draw(screen_mat, x_top_left+width_pixel, y_top_left+hight_pixel/6, x_top_left, y_top_left+5*hight_pixel/6, color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+width_pixel), (float)(y_top_left+hight_pixel/6), (float)(x_top_left), (float)(y_top_left+5*hight_pixel/6), color, offset_zoom_param);
         break;
     case '1':
-        adl_line_draw(screen_mat, x_top_left, y_top_left+hight_pixel/6, x_top_left+width_pixel/2, y_top_left, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+width_pixel/2, y_top_left, x_top_left+width_pixel/2, y_top_left+hight_pixel, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left, y_top_left+hight_pixel, x_top_left+width_pixel, y_top_left+hight_pixel, color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left), (float)(y_top_left+hight_pixel/6), (float)(x_top_left+width_pixel/2), (float)(y_top_left), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+width_pixel/2), (float)(y_top_left), (float)(x_top_left+width_pixel/2), (float)(y_top_left+hight_pixel), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left), (float)(y_top_left+hight_pixel), (float)(x_top_left+width_pixel), (float)(y_top_left+hight_pixel), color, offset_zoom_param);
         break;
     case '2':
-        adl_line_draw(screen_mat, x_top_left, y_top_left+hight_pixel/6, x_top_left+width_pixel/3, y_top_left, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+width_pixel/3, y_top_left, x_top_left+2*width_pixel/3, y_top_left, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+2*width_pixel/3, y_top_left, x_top_left+width_pixel, y_top_left+hight_pixel/6, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+width_pixel, y_top_left+hight_pixel/6, x_top_left+width_pixel, y_top_left+hight_pixel/3, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+width_pixel, y_top_left+hight_pixel/3, x_top_left, y_top_left+hight_pixel, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left, y_top_left+hight_pixel, x_top_left+width_pixel, y_top_left+hight_pixel, color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left), (float)(y_top_left+hight_pixel/6), (float)(x_top_left+width_pixel/3), (float)(y_top_left), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+width_pixel/3), (float)(y_top_left), (float)(x_top_left+2*width_pixel/3), (float)(y_top_left), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+2*width_pixel/3), (float)(y_top_left), (float)(x_top_left+width_pixel), (float)(y_top_left+hight_pixel/6), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+width_pixel), (float)(y_top_left+hight_pixel/6), (float)(x_top_left+width_pixel), (float)(y_top_left+hight_pixel/3), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+width_pixel), (float)(y_top_left+hight_pixel/3), (float)(x_top_left), (float)(y_top_left+hight_pixel), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left), (float)(y_top_left+hight_pixel), (float)(x_top_left+width_pixel), (float)(y_top_left+hight_pixel), color, offset_zoom_param);
         break;
     case '3':
-        adl_line_draw(screen_mat, x_top_left, y_top_left+hight_pixel/6, x_top_left+width_pixel/3, y_top_left, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+width_pixel/3, y_top_left, x_top_left+2*width_pixel/3, y_top_left, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+2*width_pixel/3, y_top_left, x_top_left+width_pixel, y_top_left+hight_pixel/6, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+width_pixel, y_top_left+hight_pixel/6, x_top_left+width_pixel, y_top_left+hight_pixel/3, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+width_pixel, y_top_left+hight_pixel/3, x_top_left+2*width_pixel/3, y_top_left+hight_pixel/2, color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left), (float)(y_top_left+hight_pixel/6), (float)(x_top_left+width_pixel/3), (float)(y_top_left), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+width_pixel/3), (float)(y_top_left), (float)(x_top_left+2*width_pixel/3), (float)(y_top_left), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+2*width_pixel/3), (float)(y_top_left), (float)(x_top_left+width_pixel), (float)(y_top_left+hight_pixel/6), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+width_pixel), (float)(y_top_left+hight_pixel/6), (float)(x_top_left+width_pixel), (float)(y_top_left+hight_pixel/3), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+width_pixel), (float)(y_top_left+hight_pixel/3), (float)(x_top_left+2*width_pixel/3), (float)(y_top_left+hight_pixel/2), color, offset_zoom_param);
 
-        adl_line_draw(screen_mat, x_top_left+2*width_pixel/3, y_top_left+hight_pixel/2, x_top_left+width_pixel/3, y_top_left+hight_pixel/2, color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+2*width_pixel/3), (float)(y_top_left+hight_pixel/2), (float)(x_top_left+width_pixel/3), (float)(y_top_left+hight_pixel/2), color, offset_zoom_param);
 
-        adl_line_draw(screen_mat, x_top_left+2*width_pixel/3, y_top_left+hight_pixel/2, x_top_left+width_pixel, y_top_left+2*hight_pixel/3, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+width_pixel, y_top_left+2*hight_pixel/3, x_top_left+width_pixel, y_top_left+5*hight_pixel/6, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+width_pixel, y_top_left+5*hight_pixel/6, x_top_left+2*width_pixel/3, y_top_left+hight_pixel, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+2*width_pixel/3, y_top_left+hight_pixel, x_top_left+width_pixel/3, y_top_left+hight_pixel, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+width_pixel/3, y_top_left+hight_pixel, x_top_left, y_top_left+5*hight_pixel/6, color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+2*width_pixel/3), (float)(y_top_left+hight_pixel/2), (float)(x_top_left+width_pixel), (float)(y_top_left+2*hight_pixel/3), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+width_pixel), (float)(y_top_left+2*hight_pixel/3), (float)(x_top_left+width_pixel), (float)(y_top_left+5*hight_pixel/6), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+width_pixel), (float)(y_top_left+5*hight_pixel/6), (float)(x_top_left+2*width_pixel/3), (float)(y_top_left+hight_pixel), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+2*width_pixel/3), (float)(y_top_left+hight_pixel), (float)(x_top_left+width_pixel/3), (float)(y_top_left+hight_pixel), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+width_pixel/3), (float)(y_top_left+hight_pixel), (float)(x_top_left), (float)(y_top_left+5*hight_pixel/6), color, offset_zoom_param);
         break;
     case '4':
-        adl_line_draw(screen_mat, x_top_left+2*width_pixel/3, y_top_left+hight_pixel, x_top_left+2*width_pixel/3, y_top_left, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+2*width_pixel/3, y_top_left, x_top_left, y_top_left+2*hight_pixel/3, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left, y_top_left+2*hight_pixel/3, x_top_left+width_pixel, y_top_left+2*hight_pixel/3, color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+2*width_pixel/3), (float)(y_top_left+hight_pixel), (float)(x_top_left+2*width_pixel/3), (float)(y_top_left), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+2*width_pixel/3), (float)(y_top_left), (float)(x_top_left), (float)(y_top_left+2*hight_pixel/3), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left), (float)(y_top_left+2*hight_pixel/3), (float)(x_top_left+width_pixel), (float)(y_top_left+2*hight_pixel/3), color, offset_zoom_param);
         break;
     case '5':
-        adl_line_draw(screen_mat, x_top_left+width_pixel, y_top_left, x_top_left, y_top_left, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left, y_top_left, x_top_left, y_top_left+hight_pixel/2, color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+width_pixel), (float)(y_top_left), (float)(x_top_left), (float)(y_top_left), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left), (float)(y_top_left), (float)(x_top_left), (float)(y_top_left+hight_pixel/2), color, offset_zoom_param);
 
-        adl_line_draw(screen_mat, x_top_left, y_top_left+hight_pixel/2, x_top_left+2*width_pixel/3, y_top_left+hight_pixel/2, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+2*width_pixel/3, y_top_left+hight_pixel/2, x_top_left+width_pixel, y_top_left+2*hight_pixel/3, color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left), (float)(y_top_left+hight_pixel/2), (float)(x_top_left+2*width_pixel/3), (float)(y_top_left+hight_pixel/2), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+2*width_pixel/3), (float)(y_top_left+hight_pixel/2), (float)(x_top_left+width_pixel), (float)(y_top_left+2*hight_pixel/3), color, offset_zoom_param);
 
-        adl_line_draw(screen_mat, x_top_left, y_top_left+hight_pixel, x_top_left+2*width_pixel/3, y_top_left+hight_pixel, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+2*width_pixel/3, y_top_left+hight_pixel, x_top_left+width_pixel, y_top_left+5*hight_pixel/6, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+width_pixel, y_top_left+5*hight_pixel/6, x_top_left+width_pixel, y_top_left+2*hight_pixel/3, color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left), (float)(y_top_left+hight_pixel), (float)(x_top_left+2*width_pixel/3), (float)(y_top_left+hight_pixel), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+2*width_pixel/3), (float)(y_top_left+hight_pixel), (float)(x_top_left+width_pixel), (float)(y_top_left+5*hight_pixel/6), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+width_pixel), (float)(y_top_left+5*hight_pixel/6), (float)(x_top_left+width_pixel), (float)(y_top_left+2*hight_pixel/3), color, offset_zoom_param);
         break;
     case '6':
-        adl_line_draw(screen_mat, x_top_left+width_pixel, y_top_left+hight_pixel/6, x_top_left+2*width_pixel/3, y_top_left, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+2*width_pixel/3, y_top_left, x_top_left+width_pixel/3, y_top_left, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+width_pixel/3, y_top_left, x_top_left, y_top_left+hight_pixel/6, color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+width_pixel), (float)(y_top_left+hight_pixel/6), (float)(x_top_left+2*width_pixel/3), (float)(y_top_left), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+2*width_pixel/3), (float)(y_top_left), (float)(x_top_left+width_pixel/3), (float)(y_top_left), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+width_pixel/3), (float)(y_top_left), (float)(x_top_left), (float)(y_top_left+hight_pixel/6), color, offset_zoom_param);
 
-        adl_line_draw(screen_mat, x_top_left, y_top_left+hight_pixel/6, x_top_left, y_top_left+5*hight_pixel/6, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left, y_top_left+5*hight_pixel/6, x_top_left+width_pixel/3, y_top_left+hight_pixel, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+width_pixel/3, y_top_left+hight_pixel, x_top_left+2*width_pixel/3, y_top_left+hight_pixel, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+2*width_pixel/3, y_top_left+hight_pixel, x_top_left+width_pixel, y_top_left+5*hight_pixel/6, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+width_pixel, y_top_left+5*hight_pixel/6, x_top_left+width_pixel, y_top_left+2*hight_pixel/3, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+width_pixel, y_top_left+2*hight_pixel/3, x_top_left+2*width_pixel/3, y_top_left+hight_pixel/2, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+2*width_pixel/3, y_top_left+hight_pixel/2, x_top_left+width_pixel/3, y_top_left+hight_pixel/2, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+width_pixel/3, y_top_left+hight_pixel/2, x_top_left, y_top_left+2*hight_pixel/3, color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left), (float)(y_top_left+hight_pixel/6), (float)(x_top_left), (float)(y_top_left+5*hight_pixel/6), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left), (float)(y_top_left+5*hight_pixel/6), (float)(x_top_left+width_pixel/3), (float)(y_top_left+hight_pixel), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+width_pixel/3), (float)(y_top_left+hight_pixel), (float)(x_top_left+2*width_pixel/3), (float)(y_top_left+hight_pixel), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+2*width_pixel/3), (float)(y_top_left+hight_pixel), (float)(x_top_left+width_pixel), (float)(y_top_left+5*hight_pixel/6), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+width_pixel), (float)(y_top_left+5*hight_pixel/6), (float)(x_top_left+width_pixel), (float)(y_top_left+2*hight_pixel/3), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+width_pixel), (float)(y_top_left+2*hight_pixel/3), (float)(x_top_left+2*width_pixel/3), (float)(y_top_left+hight_pixel/2), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+2*width_pixel/3), (float)(y_top_left+hight_pixel/2), (float)(x_top_left+width_pixel/3), (float)(y_top_left+hight_pixel/2), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+width_pixel/3), (float)(y_top_left+hight_pixel/2), (float)(x_top_left), (float)(y_top_left+2*hight_pixel/3), color, offset_zoom_param);
         break;
     case '7':
-        adl_line_draw(screen_mat, x_top_left, y_top_left, x_top_left+width_pixel, y_top_left, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+width_pixel, y_top_left, x_top_left+width_pixel/3, y_top_left+hight_pixel, color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left), (float)(y_top_left), (float)(x_top_left+width_pixel), (float)(y_top_left), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+width_pixel), (float)(y_top_left), (float)(x_top_left+width_pixel/3), (float)(y_top_left+hight_pixel), color, offset_zoom_param);
         break;
     case '8':
-        adl_line_draw(screen_mat, x_top_left+2*width_pixel/3, y_top_left+hight_pixel/2, x_top_left+width_pixel, y_top_left+hight_pixel/3, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+width_pixel, y_top_left+hight_pixel/3, x_top_left+width_pixel, y_top_left+hight_pixel/6, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+width_pixel, y_top_left+hight_pixel/6, x_top_left+2*width_pixel/3, y_top_left, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+2*width_pixel/3, y_top_left, x_top_left+width_pixel/3, y_top_left, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+width_pixel/3, y_top_left, x_top_left, y_top_left+hight_pixel/6, color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+2*width_pixel/3), (float)(y_top_left+hight_pixel/2), (float)(x_top_left+width_pixel), (float)(y_top_left+hight_pixel/3), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+width_pixel), (float)(y_top_left+hight_pixel/3), (float)(x_top_left+width_pixel), (float)(y_top_left+hight_pixel/6), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+width_pixel), (float)(y_top_left+hight_pixel/6), (float)(x_top_left+2*width_pixel/3), (float)(y_top_left), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+2*width_pixel/3), (float)(y_top_left), (float)(x_top_left+width_pixel/3), (float)(y_top_left), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+width_pixel/3), (float)(y_top_left), (float)(x_top_left), (float)(y_top_left+hight_pixel/6), color, offset_zoom_param);
 
-        adl_line_draw(screen_mat, x_top_left, y_top_left+hight_pixel/6, x_top_left, y_top_left+hight_pixel/3, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left, y_top_left+hight_pixel/3, x_top_left+width_pixel/3, y_top_left+hight_pixel/2, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+width_pixel/3, y_top_left+hight_pixel/2, x_top_left+2*width_pixel/3, y_top_left+hight_pixel/2, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+2*width_pixel/3, y_top_left+hight_pixel/2, x_top_left+width_pixel, y_top_left+2*hight_pixel/3, color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left), (float)(y_top_left+hight_pixel/6), (float)(x_top_left), (float)(y_top_left+hight_pixel/3), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left), (float)(y_top_left+hight_pixel/3), (float)(x_top_left+width_pixel/3), (float)(y_top_left+hight_pixel/2), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+width_pixel/3), (float)(y_top_left+hight_pixel/2), (float)(x_top_left+2*width_pixel/3), (float)(y_top_left+hight_pixel/2), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+2*width_pixel/3), (float)(y_top_left+hight_pixel/2), (float)(x_top_left+width_pixel), (float)(y_top_left+2*hight_pixel/3), color, offset_zoom_param);
 
-        adl_line_draw(screen_mat, x_top_left+width_pixel/3, y_top_left+hight_pixel/2, x_top_left, y_top_left+2*hight_pixel/3, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left, y_top_left+2*hight_pixel/3, x_top_left, y_top_left+5*hight_pixel/6, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left, y_top_left+5*hight_pixel/6, x_top_left+width_pixel/3, y_top_left+hight_pixel, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+width_pixel/3, y_top_left+hight_pixel, x_top_left+2*width_pixel/3, y_top_left+hight_pixel, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+2*width_pixel/3, y_top_left+hight_pixel, x_top_left+width_pixel, y_top_left+5*hight_pixel/6, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+width_pixel, y_top_left+5*hight_pixel/6, x_top_left+width_pixel, y_top_left+2*hight_pixel/3, color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+width_pixel/3), (float)(y_top_left+hight_pixel/2), (float)(x_top_left), (float)(y_top_left+2*hight_pixel/3), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left), (float)(y_top_left+2*hight_pixel/3), (float)(x_top_left), (float)(y_top_left+5*hight_pixel/6), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left), (float)(y_top_left+5*hight_pixel/6), (float)(x_top_left+width_pixel/3), (float)(y_top_left+hight_pixel), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+width_pixel/3), (float)(y_top_left+hight_pixel), (float)(x_top_left+2*width_pixel/3), (float)(y_top_left+hight_pixel), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+2*width_pixel/3), (float)(y_top_left+hight_pixel), (float)(x_top_left+width_pixel), (float)(y_top_left+5*hight_pixel/6), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+width_pixel), (float)(y_top_left+5*hight_pixel/6), (float)(x_top_left+width_pixel), (float)(y_top_left+2*hight_pixel/3), color, offset_zoom_param);
         break;
     case '9':
-        adl_line_draw(screen_mat, x_top_left, y_top_left+5*hight_pixel/6, x_top_left+width_pixel/3, y_top_left+hight_pixel, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+width_pixel/3, y_top_left+hight_pixel, x_top_left+2*width_pixel/3, y_top_left+hight_pixel, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+2*width_pixel/3, y_top_left+hight_pixel, x_top_left+width_pixel, y_top_left+5*hight_pixel/6, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+width_pixel, y_top_left+5*hight_pixel/6, x_top_left+width_pixel, y_top_left+hight_pixel/6, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+width_pixel, y_top_left+hight_pixel/6, x_top_left+2*width_pixel/3, y_top_left, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+2*width_pixel/3, y_top_left, x_top_left+width_pixel/3, y_top_left, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+width_pixel/3, y_top_left, x_top_left, y_top_left+hight_pixel/6, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left, y_top_left+hight_pixel/6, x_top_left, y_top_left+hight_pixel/3, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left, y_top_left+hight_pixel/3, x_top_left+width_pixel/3, y_top_left+hight_pixel/2, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+width_pixel/3, y_top_left+hight_pixel/2, x_top_left+2*width_pixel/3, y_top_left+hight_pixel/2, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+2*width_pixel/3, y_top_left+hight_pixel/2, x_top_left+width_pixel, y_top_left+hight_pixel/3, color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left), (float)(y_top_left+5*hight_pixel/6), (float)(x_top_left+width_pixel/3), (float)(y_top_left+hight_pixel), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+width_pixel/3), (float)(y_top_left+hight_pixel), (float)(x_top_left+2*width_pixel/3), (float)(y_top_left+hight_pixel), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+2*width_pixel/3), (float)(y_top_left+hight_pixel), (float)(x_top_left+width_pixel), (float)(y_top_left+5*hight_pixel/6), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+width_pixel), (float)(y_top_left+5*hight_pixel/6), (float)(x_top_left+width_pixel), (float)(y_top_left+hight_pixel/6), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+width_pixel), (float)(y_top_left+hight_pixel/6), (float)(x_top_left+2*width_pixel/3), (float)(y_top_left), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+2*width_pixel/3), (float)(y_top_left), (float)(x_top_left+width_pixel/3), (float)(y_top_left), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+width_pixel/3), (float)(y_top_left), (float)(x_top_left), (float)(y_top_left+hight_pixel/6), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left), (float)(y_top_left+hight_pixel/6), (float)(x_top_left), (float)(y_top_left+hight_pixel/3), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left), (float)(y_top_left+hight_pixel/3), (float)(x_top_left+width_pixel/3), (float)(y_top_left+hight_pixel/2), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+width_pixel/3), (float)(y_top_left+hight_pixel/2), (float)(x_top_left+2*width_pixel/3), (float)(y_top_left+hight_pixel/2), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+2*width_pixel/3), (float)(y_top_left+hight_pixel/2), (float)(x_top_left+width_pixel), (float)(y_top_left+hight_pixel/3), color, offset_zoom_param);
         break;
     case '-':
-        adl_line_draw(screen_mat, x_top_left, y_top_left+hight_pixel/2, x_top_left+width_pixel, y_top_left+hight_pixel/2, color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left), (float)(y_top_left+hight_pixel/2), (float)(x_top_left+width_pixel), (float)(y_top_left+hight_pixel/2), color, offset_zoom_param);
         break;
     case '+':
-        adl_line_draw(screen_mat, x_top_left, y_top_left+hight_pixel/2, x_top_left+width_pixel, y_top_left+hight_pixel/2, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left+width_pixel/2, y_top_left, x_top_left+width_pixel/2, y_top_left+hight_pixel, color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left), (float)(y_top_left+hight_pixel/2), (float)(x_top_left+width_pixel), (float)(y_top_left+hight_pixel/2), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left+width_pixel/2), (float)(y_top_left), (float)(x_top_left+width_pixel/2), (float)(y_top_left+hight_pixel), color, offset_zoom_param);
         break;
     case ' ':
         break;
     default:
-        adl_rectangle_draw_min_max(screen_mat, x_top_left, x_top_left+width_pixel, y_top_left, y_top_left+hight_pixel, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left, y_top_left, x_top_left+width_pixel, y_top_left+hight_pixel, color, offset_zoom_param);
-        adl_line_draw(screen_mat, x_top_left, y_top_left+hight_pixel, x_top_left+width_pixel, y_top_left, color, offset_zoom_param);
+        adl_rectangle_draw_min_max(screen_mat, (float)(x_top_left), (float)(x_top_left+width_pixel), (float)(y_top_left), (float)(y_top_left+hight_pixel), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left), (float)(y_top_left), (float)(x_top_left+width_pixel), (float)(y_top_left+hight_pixel), color, offset_zoom_param);
+        adl_line_draw(screen_mat, (float)(x_top_left), (float)(y_top_left+hight_pixel), (float)(x_top_left+width_pixel), (float)(y_top_left), color, offset_zoom_param);
         break;
     }
 }
@@ -954,7 +947,7 @@ void adl_sentence_draw(Mat2D_uint32 screen_mat, const char sentence[], size_t le
 {
     int character_width_pixel = hight_pixel/2;
     int current_x_top_left = x_top_left;
-    int character_x_offset = (int)fmaxf(fminf(ADL_MAX_CHARACTER_OFFSET, character_width_pixel / 5), ADL_MIN_CHARACTER_OFFSET);
+    int character_x_offset = adl_max(adl_min(ADL_MAX_CHARACTER_OFFSET, character_width_pixel / 5), ADL_MIN_CHARACTER_OFFSET);
 
     for (size_t char_index = 0; char_index < len; char_index++) {
         adl_character_draw(screen_mat, sentence[char_index], character_width_pixel, hight_pixel, current_x_top_left, y_top_left, color, offset_zoom_param);
@@ -974,7 +967,7 @@ void adl_sentence_draw(Mat2D_uint32 screen_mat, const char sentence[], size_t le
  * @param color Stroke color (0xAARRGGBB).
  * @param offset_zoom_param Pan/zoom transform. Use ADL_DEFAULT_OFFSET_ZOOM for identity.
  */
-void adl_rectangle_draw_min_max(Mat2D_uint32 screen_mat, int min_x, int max_x, int min_y, int max_y, uint32_t color, Offset_zoom_param offset_zoom_param)
+void adl_rectangle_draw_min_max(Mat2D_uint32 screen_mat, float min_x, float max_x, float min_y, float max_y, uint32_t color, Offset_zoom_param offset_zoom_param)
 {
     adl_line_draw(screen_mat, min_x, min_y, max_x, min_y, color, offset_zoom_param);
     adl_line_draw(screen_mat, min_x, max_y, max_x, max_y, color, offset_zoom_param);
@@ -993,9 +986,9 @@ void adl_rectangle_draw_min_max(Mat2D_uint32 screen_mat, int min_x, int max_x, i
  * @param color Fill color (0xAARRGGBB).
  * @param offset_zoom_param Pan/zoom transform. Use ADL_DEFAULT_OFFSET_ZOOM for identity.
  */
-void adl_rectangle_fill_min_max(Mat2D_uint32 screen_mat, int min_x, int max_x, int min_y, int max_y, uint32_t color, Offset_zoom_param offset_zoom_param)
+void adl_rectangle_fill_min_max(Mat2D_uint32 screen_mat, float min_x, float max_x, float min_y, float max_y, uint32_t color, Offset_zoom_param offset_zoom_param)
 {
-    for (int y = min_y; y <= max_y; y++) {
+    for (float y = min_y; y <= max_y; y+=1) {
         adl_line_draw(screen_mat, min_x, y, max_x, y, color, offset_zoom_param);
     }
 }
@@ -1036,29 +1029,29 @@ void adl_quad_fill(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer, Quad quad, uint3
     Point p2 = quad.points[2];
     Point p3 = quad.points[3];
 
-    int x_min = fminf(p0.x, fminf(p1.x, fminf(p2.x, p3.x)));
-    int x_max = fmaxf(p0.x, fmaxf(p1.x, fmaxf(p2.x, p3.x)));
-    int y_min = fminf(p0.y, fminf(p1.y, fminf(p2.y, p3.y)));
-    int y_max = fmaxf(p0.y, fmaxf(p1.y, fmaxf(p2.y, p3.y)));
+    int x_min = (int)fminf(p0.x, fminf(p1.x, fminf(p2.x, p3.x)));
+    int x_max = (int)fmaxf(p0.x, fmaxf(p1.x, fmaxf(p2.x, p3.x)));
+    int y_min = (int)fminf(p0.y, fminf(p1.y, fminf(p2.y, p3.y)));
+    int y_max = (int)fmaxf(p0.y, fmaxf(p1.y, fmaxf(p2.y, p3.y)));
 
     if (x_min < 0) x_min = 0;
     if (y_min < 0) y_min = 0;
     if (x_max >= (int)screen_mat.cols) x_max = (int)screen_mat.cols - 1;
     if (y_max >= (int)screen_mat.rows) y_max = (int)screen_mat.rows - 1;
 
-    float w = edge_cross_point(p0, p1, p1, p2) + edge_cross_point(p2, p3, p3, p0);
+    float w = adl_edge_cross_point(p0, p1, p1, p2) + adl_edge_cross_point(p2, p3, p3, p0);
     if (fabs(w) < 1e-6) {
         // adl_quad_draw(screen_mat, inv_z_buffer, quad, quad.colors[0], offset_zoom_param);
         return;
     }
 
-    float size_p3_to_p0 = sqrt((p0.x - p3.x)*(p0.x - p3.x) + (p0.y - p3.y)*(p0.y - p3.y));
-    float size_p0_to_p1 = sqrt((p1.x - p0.x)*(p1.x - p0.x) + (p1.y - p0.y)*(p1.y - p0.y));
-    float size_p1_to_p2 = sqrt((p2.x - p1.x)*(p2.x - p1.x) + (p2.y - p1.y)*(p2.y - p1.y));
-    float size_p2_to_p3 = sqrt((p3.x - p2.x)*(p3.x - p2.x) + (p3.y - p2.y)*(p3.y - p2.y));
+    float size_p3_to_p0 = sqrtf((p0.x - p3.x)*(p0.x - p3.x) + (p0.y - p3.y)*(p0.y - p3.y));
+    float size_p0_to_p1 = sqrtf((p1.x - p0.x)*(p1.x - p0.x) + (p1.y - p0.y)*(p1.y - p0.y));
+    float size_p1_to_p2 = sqrtf((p2.x - p1.x)*(p2.x - p1.x) + (p2.y - p1.y)*(p2.y - p1.y));
+    float size_p2_to_p3 = sqrtf((p3.x - p2.x)*(p3.x - p2.x) + (p3.y - p2.y)*(p3.y - p2.y));
 
     int r, g, b, a;
-    HexARGB_RGBA_VAR(color, r, g, b, a);
+    ADL_HexARGB_RGBA_VAR(color, r, g, b, a);
     float light_intensity = (quad.light_intensity[0] + quad.light_intensity[1] + quad.light_intensity[2] + quad.light_intensity[3]) / 4;
     uint8_t base_r = (uint8_t)fmaxf(0, fminf(255, r * light_intensity));
     uint8_t base_g = (uint8_t)fmaxf(0, fminf(255, g * light_intensity));
@@ -1066,19 +1059,19 @@ void adl_quad_fill(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer, Quad quad, uint3
 
     for (int y = y_min; y <= y_max; y++) {
         for (int x = x_min; x <= x_max; x++) {
-            Point p = {.x = x, .y = y, .z = 0};
+            Point p = {.x = (float)x, .y = (float)y, .z = 0.0f};
             bool in_01, in_12, in_23, in_30;
 
-            in_01 = (edge_cross_point(p0, p1, p0, p) >= 0) != (w < 0);
-            in_12 = (edge_cross_point(p1, p2, p1, p) >= 0) != (w < 0);
-            in_23 = (edge_cross_point(p2, p3, p2, p) >= 0) != (w < 0);
-            in_30 = (edge_cross_point(p3, p0, p3, p) >= 0) != (w < 0);
+            in_01 = (adl_edge_cross_point(p0, p1, p0, p) >= 0) != (w < 0);
+            in_12 = (adl_edge_cross_point(p1, p2, p1, p) >= 0) != (w < 0);
+            in_23 = (adl_edge_cross_point(p2, p3, p2, p) >= 0) != (w < 0);
+            in_30 = (adl_edge_cross_point(p3, p0, p3, p) >= 0) != (w < 0);
 
             /* https://www.mn.uio.no/math/english/people/aca/michaelf/papers/mv3d.pdf. */
-            float size_p_to_p0 = sqrt((p0.x - p.x)*(p0.x - p.x) + (p0.y - p.y)*(p0.y - p.y));
-            float size_p_to_p1 = sqrt((p1.x - p.x)*(p1.x - p.x) + (p1.y - p.y)*(p1.y - p.y));
-            float size_p_to_p2 = sqrt((p2.x - p.x)*(p2.x - p.x) + (p2.y - p.y)*(p2.y - p.y));
-            float size_p_to_p3 = sqrt((p3.x - p.x)*(p3.x - p.x) + (p3.y - p.y)*(p3.y - p.y));
+            float size_p_to_p0 = sqrtf((p0.x - p.x)*(p0.x - p.x) + (p0.y - p.y)*(p0.y - p.y));
+            float size_p_to_p1 = sqrtf((p1.x - p.x)*(p1.x - p.x) + (p1.y - p.y)*(p1.y - p.y));
+            float size_p_to_p2 = sqrtf((p2.x - p.x)*(p2.x - p.x) + (p2.y - p.y)*(p2.y - p.y));
+            float size_p_to_p3 = sqrtf((p3.x - p.x)*(p3.x - p.x) + (p3.y - p.y)*(p3.y - p.y));
 
             /* tangent of half the angle directly using vector math */
             float tan_theta_3_over_2 = size_p3_to_p0 / (size_p_to_p3 + size_p_to_p0);
@@ -1103,7 +1096,7 @@ void adl_quad_fill(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer, Quad quad, uint3
                 double inv_z = inv_w / z_over_w;
 
                 if (inv_z >= MAT2D_AT(inv_z_buffer, y, x)) {
-                    adl_point_draw(screen_mat, x, y, RGBA_hexARGB(base_r, base_g, base_b, a), offset_zoom_param);
+                    adl_point_draw(screen_mat, (float)x, (float)y, (uint32_t)ADL_RGBA_hexARGB(base_r, base_g, base_b, a), offset_zoom_param);
                     MAT2D_AT(inv_z_buffer, y, x) = inv_z;
                 }
             }
@@ -1130,41 +1123,41 @@ void adl_quad_fill_interpolate_normal_mean_value(Mat2D_uint32 screen_mat, Mat2D 
     Point p2 = quad.points[2];
     Point p3 = quad.points[3];
 
-    int x_min = fminf(p0.x, fminf(p1.x, fminf(p2.x, p3.x)));
-    int x_max = fmaxf(p0.x, fmaxf(p1.x, fmaxf(p2.x, p3.x)));
-    int y_min = fminf(p0.y, fminf(p1.y, fminf(p2.y, p3.y)));
-    int y_max = fmaxf(p0.y, fmaxf(p1.y, fmaxf(p2.y, p3.y)));
+    int x_min = (int)fminf(p0.x, fminf(p1.x, fminf(p2.x, p3.x)));
+    int x_max = (int)fmaxf(p0.x, fmaxf(p1.x, fmaxf(p2.x, p3.x)));
+    int y_min = (int)fminf(p0.y, fminf(p1.y, fminf(p2.y, p3.y)));
+    int y_max = (int)fmaxf(p0.y, fmaxf(p1.y, fmaxf(p2.y, p3.y)));
 
     if (x_min < 0) x_min = 0;
     if (y_min < 0) y_min = 0;
     if (x_max >= (int)screen_mat.cols) x_max = (int)screen_mat.cols - 1;
     if (y_max >= (int)screen_mat.rows) y_max = (int)screen_mat.rows - 1;
 
-    float w = edge_cross_point(p0, p1, p1, p2) + edge_cross_point(p2, p3, p3, p0);
+    float w = adl_edge_cross_point(p0, p1, p1, p2) + adl_edge_cross_point(p2, p3, p3, p0);
     if (fabs(w) < 1e-6) {
         // adl_quad_draw(screen_mat, inv_z_buffer, quad, quad.colors[0], offset_zoom_param);
         return;
     }
 
     int r, g, b, a;
-    HexARGB_RGBA_VAR(color, r, g, b, a);
+    ADL_HexARGB_RGBA_VAR(color, r, g, b, a);
 
     for (int y = y_min; y <= y_max; y++) {
         for (int x = x_min; x <= x_max; x++) {
-            Point p = {.x = x, .y = y, .z = 0};
+            Point p = {.x = (float)x, .y = (float)y, .z = 0.0f};
             bool in_01, in_12, in_23, in_30;
 
-            in_01 = (edge_cross_point(p0, p1, p0, p) >= 0) != (w < 0);
-            in_12 = (edge_cross_point(p1, p2, p1, p) >= 0) != (w < 0);
-            in_23 = (edge_cross_point(p2, p3, p2, p) >= 0) != (w < 0);
-            in_30 = (edge_cross_point(p3, p0, p3, p) >= 0) != (w < 0);
+            in_01 = (adl_edge_cross_point(p0, p1, p0, p) >= 0) != (w < 0);
+            in_12 = (adl_edge_cross_point(p1, p2, p1, p) >= 0) != (w < 0);
+            in_23 = (adl_edge_cross_point(p2, p3, p2, p) >= 0) != (w < 0);
+            in_30 = (adl_edge_cross_point(p3, p0, p3, p) >= 0) != (w < 0);
 
             /* using 'mean value coordinates'
              * https://www.mn.uio.no/math/english/people/aca/michaelf/papers/mv3d.pdf. */
-            float size_p_to_p0 = sqrt((p0.x - p.x)*(p0.x - p.x) + (p0.y - p.y)*(p0.y - p.y));
-            float size_p_to_p1 = sqrt((p1.x - p.x)*(p1.x - p.x) + (p1.y - p.y)*(p1.y - p.y));
-            float size_p_to_p2 = sqrt((p2.x - p.x)*(p2.x - p.x) + (p2.y - p.y)*(p2.y - p.y));
-            float size_p_to_p3 = sqrt((p3.x - p.x)*(p3.x - p.x) + (p3.y - p.y)*(p3.y - p.y));
+            float size_p_to_p0 = sqrtf((p0.x - p.x)*(p0.x - p.x) + (p0.y - p.y)*(p0.y - p.y));
+            float size_p_to_p1 = sqrtf((p1.x - p.x)*(p1.x - p.x) + (p1.y - p.y)*(p1.y - p.y));
+            float size_p_to_p2 = sqrtf((p2.x - p.x)*(p2.x - p.x) + (p2.y - p.y)*(p2.y - p.y));
+            float size_p_to_p3 = sqrtf((p3.x - p.x)*(p3.x - p.x) + (p3.y - p.y)*(p3.y - p.y));
 
             /* calculating the tangent of half the angle directly using vector math */
             float t0 = adl_tan_half_angle(p0, p1, p, size_p_to_p0, size_p_to_p1);
@@ -1198,7 +1191,7 @@ void adl_quad_fill_interpolate_normal_mean_value(Mat2D_uint32 screen_mat, Mat2D 
                 double inv_z = inv_w / z_over_w;
 
                 if (inv_z >= MAT2D_AT(inv_z_buffer, y, x)) {
-                    adl_point_draw(screen_mat, x, y, RGBA_hexARGB(r8, g8, b8, a), offset_zoom_param);
+                    adl_point_draw(screen_mat, (float)x, (float)y, (uint32_t)ADL_RGBA_hexARGB(r8, g8, b8, a), offset_zoom_param);
                     MAT2D_AT(inv_z_buffer, y, x) = inv_z;
                 }
             }
@@ -1224,17 +1217,17 @@ void adl_quad_fill_interpolate_color_mean_value(Mat2D_uint32 screen_mat, Mat2D i
     Point p2 = quad.points[2];
     Point p3 = quad.points[3];
 
-    int x_min = fminf(p0.x, fminf(p1.x, fminf(p2.x, p3.x)));
-    int x_max = fmaxf(p0.x, fmaxf(p1.x, fmaxf(p2.x, p3.x)));
-    int y_min = fminf(p0.y, fminf(p1.y, fminf(p2.y, p3.y)));
-    int y_max = fmaxf(p0.y, fmaxf(p1.y, fmaxf(p2.y, p3.y)));
+    int x_min = (int)fminf(p0.x, fminf(p1.x, fminf(p2.x, p3.x)));
+    int x_max = (int)fmaxf(p0.x, fmaxf(p1.x, fmaxf(p2.x, p3.x)));
+    int y_min = (int)fminf(p0.y, fminf(p1.y, fminf(p2.y, p3.y)));
+    int y_max = (int)fmaxf(p0.y, fmaxf(p1.y, fmaxf(p2.y, p3.y)));
 
     if (x_min < 0) x_min = 0;
     if (y_min < 0) y_min = 0;
     if (x_max >= (int)screen_mat.cols) x_max = (int)screen_mat.cols - 1;
     if (y_max >= (int)screen_mat.rows) y_max = (int)screen_mat.rows - 1;
 
-    float w = edge_cross_point(p0, p1, p1, p2) + edge_cross_point(p2, p3, p3, p0);
+    float w = adl_edge_cross_point(p0, p1, p1, p2) + adl_edge_cross_point(p2, p3, p3, p0);
     if (fabs(w) < 1e-6) {
         // adl_quad_draw(screen_mat, inv_z_buffer, quad, quad.colors[0], offset_zoom_param);
         return;
@@ -1242,20 +1235,20 @@ void adl_quad_fill_interpolate_color_mean_value(Mat2D_uint32 screen_mat, Mat2D i
 
     for (int y = y_min; y <= y_max; y++) {
         for (int x = x_min; x <= x_max; x++) {
-            Point p = {.x = x, .y = y, .z = 0};
+            Point p = {.x = (float)x, .y = (float)y, .z = 0.0f};
             bool in_01, in_12, in_23, in_30;
 
-            in_01 = (edge_cross_point(p0, p1, p0, p) >= 0) != (w < 0);
-            in_12 = (edge_cross_point(p1, p2, p1, p) >= 0) != (w < 0);
-            in_23 = (edge_cross_point(p2, p3, p2, p) >= 0) != (w < 0);
-            in_30 = (edge_cross_point(p3, p0, p3, p) >= 0) != (w < 0);
+            in_01 = (adl_edge_cross_point(p0, p1, p0, p) >= 0) != (w < 0);
+            in_12 = (adl_edge_cross_point(p1, p2, p1, p) >= 0) != (w < 0);
+            in_23 = (adl_edge_cross_point(p2, p3, p2, p) >= 0) != (w < 0);
+            in_30 = (adl_edge_cross_point(p3, p0, p3, p) >= 0) != (w < 0);
 
             /* using 'mean value coordinates'
              * https://www.mn.uio.no/math/english/people/aca/michaelf/papers/mv3d.pdf. */
-            float size_p_to_p0 = sqrt((p0.x - p.x)*(p0.x - p.x) + (p0.y - p.y)*(p0.y - p.y));
-            float size_p_to_p1 = sqrt((p1.x - p.x)*(p1.x - p.x) + (p1.y - p.y)*(p1.y - p.y));
-            float size_p_to_p2 = sqrt((p2.x - p.x)*(p2.x - p.x) + (p2.y - p.y)*(p2.y - p.y));
-            float size_p_to_p3 = sqrt((p3.x - p.x)*(p3.x - p.x) + (p3.y - p.y)*(p3.y - p.y));
+            float size_p_to_p0 = sqrtf((p0.x - p.x)*(p0.x - p.x) + (p0.y - p.y)*(p0.y - p.y));
+            float size_p_to_p1 = sqrtf((p1.x - p.x)*(p1.x - p.x) + (p1.y - p.y)*(p1.y - p.y));
+            float size_p_to_p2 = sqrtf((p2.x - p.x)*(p2.x - p.x) + (p2.y - p.y)*(p2.y - p.y));
+            float size_p_to_p3 = sqrtf((p3.x - p.x)*(p3.x - p.x) + (p3.y - p.y)*(p3.y - p.y));
 
             /* calculating the tangent of half the angle directly using vector math */
             float t0 = adl_tan_half_angle(p0, p1, p, size_p_to_p0, size_p_to_p1);
@@ -1279,15 +1272,15 @@ void adl_quad_fill_interpolate_color_mean_value(Mat2D_uint32 screen_mat, Mat2D i
                 int r1, g1, b1, a1;
                 int r2, g2, b2, a2;
                 int r3, g3, b3, a3;
-                HexARGB_RGBA_VAR(quad.colors[0], r0, g0, b0, a0);
-                HexARGB_RGBA_VAR(quad.colors[1], r1, g1, b1, a1);
-                HexARGB_RGBA_VAR(quad.colors[2], r2, g2, b2, a2);
-                HexARGB_RGBA_VAR(quad.colors[3], r3, g3, b3, a3);
+                ADL_HexARGB_RGBA_VAR(quad.colors[0], r0, g0, b0, a0);
+                ADL_HexARGB_RGBA_VAR(quad.colors[1], r1, g1, b1, a1);
+                ADL_HexARGB_RGBA_VAR(quad.colors[2], r2, g2, b2, a2);
+                ADL_HexARGB_RGBA_VAR(quad.colors[3], r3, g3, b3, a3);
                 
-                uint8_t current_r = r0*alpha + r1*beta + r2*gamma + r3*delta;
-                uint8_t current_g = g0*alpha + g1*beta + g2*gamma + g3*delta;
-                uint8_t current_b = b0*alpha + b1*beta + b2*gamma + b3*delta;
-                uint8_t current_a = a0*alpha + a1*beta + a2*gamma + a3*delta;
+                uint8_t current_r = (uint8_t)(r0*alpha + r1*beta + r2*gamma + r3*delta);
+                uint8_t current_g = (uint8_t)(g0*alpha + g1*beta + g2*gamma + g3*delta);
+                uint8_t current_b = (uint8_t)(b0*alpha + b1*beta + b2*gamma + b3*delta);
+                uint8_t current_a = (uint8_t)(a0*alpha + a1*beta + a2*gamma + a3*delta);
 
                 float light_intensity = (quad.light_intensity[0] + quad.light_intensity[1] + quad.light_intensity[2] + quad.light_intensity[3]) / 4;
                 float rf = current_r * light_intensity;
@@ -1302,7 +1295,7 @@ void adl_quad_fill_interpolate_color_mean_value(Mat2D_uint32 screen_mat, Mat2D i
                 double inv_z = inv_w / z_over_w;
 
                 if (inv_z >= MAT2D_AT(inv_z_buffer, y, x)) {
-                    adl_point_draw(screen_mat, x, y, RGBA_hexARGB(r8, g8, b8, current_a), offset_zoom_param);
+                    adl_point_draw(screen_mat, (float)x, (float)y, (uint32_t)ADL_RGBA_hexARGB(r8, g8, b8, current_a), offset_zoom_param);
                     MAT2D_AT(inv_z_buffer, y, x) = inv_z;
                 }
             }
@@ -1380,7 +1373,7 @@ void adl_quad_mesh_fill_interpolate_normal(Mat2D_uint32 screen_mat, Mat2D inv_z_
         adl_assert_quad_is_valid(quad);
 
         uint8_t a, r, g, b;
-        HexARGB_RGBA_VAR(color, a, r, g, b);
+        ADL_HexARGB_RGBA_VAR(color, a, r, g, b);
         (void)r;
         (void)g;
         (void)b;
@@ -1430,8 +1423,8 @@ void adl_quad_mesh_fill_interpolate_color(Mat2D_uint32 screen_mat, Mat2D inv_z_b
  */
 void adl_circle_draw(Mat2D_uint32 screen_mat, float center_x, float center_y, float r, uint32_t color, Offset_zoom_param offset_zoom_param)
 {
-    for (int dy = -r; dy <= r; dy++) {
-        for (int dx = -r; dx <= r; dx ++) {
+    for (float dy = -r; dy <= r; dy+=1) {
+        for (float dx = -r; dx <= r; dx+=1) {
             float diff = dx * dx + dy * dy - r * r;
             if (diff < 0 && diff > -r*2) {
                 adl_point_draw(screen_mat, center_x + dx, center_y + dy, color, offset_zoom_param);
@@ -1452,8 +1445,8 @@ void adl_circle_draw(Mat2D_uint32 screen_mat, float center_x, float center_y, fl
  */
 void adl_circle_fill(Mat2D_uint32 screen_mat, float center_x, float center_y, float r, uint32_t color, Offset_zoom_param offset_zoom_param)
 {
-    for (int dy = -r; dy <= r; dy++) {
-        for (int dx = -r; dx <= r; dx ++) {
+    for (float dy = -r; dy <= r; dy+=1) {
+        for (float dx = -r; dx <= r; dx+=1) {
             float diff = dx * dx + dy * dy - r * r;
             if (diff < 0) {
                 adl_point_draw(screen_mat, center_x + dx, center_y + dy, color, offset_zoom_param);
@@ -1503,19 +1496,19 @@ void adl_tri_fill_Pinedas_rasterizer(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer
     p2 = tri.points[2];
 
     /* finding bounding box */
-    int x_min = fmin(p0.x, fmin(p1.x, p2.x));
-    int x_max = fmax(p0.x, fmax(p1.x, p2.x));
-    int y_min = fmin(p0.y, fmin(p1.y, p2.y));
-    int y_max = fmax(p0.y, fmax(p1.y, p2.y));
+    int x_min = (int)fminf(p0.x, fminf(p1.x, p2.x));
+    int x_max = (int)fmaxf(p0.x, fmaxf(p1.x, p2.x));
+    int y_min = (int)fminf(p0.y, fminf(p1.y, p2.y));
+    int y_max = (int)fmaxf(p0.y, fmaxf(p1.y, p2.y));
 
     /* Clamp to screen bounds */
     if (x_min < 0) x_min = 0;
     if (y_min < 0) y_min = 0;
-    if (x_max >= (int)screen_mat.cols) x_max = screen_mat.cols - 1;
-    if (y_max >= (int)screen_mat.rows) y_max = screen_mat.rows - 1;
+    if (x_max >= (int)screen_mat.cols) x_max = (int)screen_mat.cols - 1;
+    if (y_max >= (int)screen_mat.rows) y_max = (int)screen_mat.rows - 1;
 
     /* draw only outline of the tri if there is no area */
-    float w = edge_cross_point(p0, p1, p1, p2);
+    float w = adl_edge_cross_point(p0, p1, p1, p2);
     if (fabsf(w) < 1e-6) {
         // adl_tri_draw(screen_mat, tri, tri.colors[0], offset_zoom_param);
         return;
@@ -1523,25 +1516,25 @@ void adl_tri_fill_Pinedas_rasterizer(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer
     ADA_ASSERT(fabsf(w) > 1e-6 && "triangle must have area");
 
     /* fill conventions */
-    int bias0 = is_top_left(p0, p1) ? 0 : -1;
-    int bias1 = is_top_left(p1, p2) ? 0 : -1;
-    int bias2 = is_top_left(p2, p0) ? 0 : -1;
+    int bias0 = adl_is_top_left(p0, p1) ? 0 : -1;
+    int bias1 = adl_is_top_left(p1, p2) ? 0 : -1;
+    int bias2 = adl_is_top_left(p2, p0) ? 0 : -1;
 
     for (int y = y_min; y <= y_max; y++) {
         for (int x = x_min; x <= x_max; x++) {
-            Point p = {.x = x, .y = y, .z = 0};
+            Point p = {.x = (float)x, .y = (float)y, .z = 0.0f};
 
-            float w0 = edge_cross_point(p0, p1, p0, p) + bias0;
-            float w1 = edge_cross_point(p1, p2, p1, p) + bias1;
-            float w2 = edge_cross_point(p2, p0, p2, p) + bias2;
+            float w0 = adl_edge_cross_point(p0, p1, p0, p) + bias0;
+            float w1 = adl_edge_cross_point(p1, p2, p1, p) + bias1;
+            float w2 = adl_edge_cross_point(p2, p0, p2, p) + bias2;
 
-            float alpha = fabs(w1 / w);
-            float beta  = fabs(w2 / w);
-            float gamma = fabs(w0 / w);
+            float alpha = fabsf(w1 / w);
+            float beta  = fabsf(w2 / w);
+            float gamma = fabsf(w0 / w);
 
             if (w0 * w >= 0 && w1 * w >= 0 &&  w2 * w >= 0) {
                 int r, b, g, a;
-                HexARGB_RGBA_VAR(color, r, g, b, a);
+                ADL_HexARGB_RGBA_VAR(color, r, g, b, a);
                 float light_intensity = (tri.light_intensity[0] + tri.light_intensity[1] + tri.light_intensity[2]) / 3;
                 float rf = r * light_intensity;
                 float gf = g * light_intensity;
@@ -1555,7 +1548,7 @@ void adl_tri_fill_Pinedas_rasterizer(Mat2D_uint32 screen_mat, Mat2D inv_z_buffer
                 double inv_z = inv_w / z_over_w;
 
                 if (inv_z >= MAT2D_AT(inv_z_buffer, y, x)) {
-                    adl_point_draw(screen_mat, x, y, RGBA_hexARGB(r8, g8, b8, a), offset_zoom_param);
+                    adl_point_draw(screen_mat, (float)x, (float)y, (uint32_t)ADL_RGBA_hexARGB(r8, g8, b8, a), offset_zoom_param);
                     MAT2D_AT(inv_z_buffer, y, x) = inv_z;
                 }
             }
@@ -1582,7 +1575,7 @@ void adl_tri_fill_Pinedas_rasterizer_interpolate_color(Mat2D_uint32 screen_mat, 
     p1 = tri.points[1];
     p2 = tri.points[2];
 
-    float w = edge_cross_point(p0, p1, p1, p2);
+    float w = adl_edge_cross_point(p0, p1, p1, p2);
     if (fabsf(w) < 1e-6) {
         // adl_tri_draw(screen_mat, tri, tri.colors[0], offset_zoom_param);
         return;
@@ -1590,47 +1583,47 @@ void adl_tri_fill_Pinedas_rasterizer_interpolate_color(Mat2D_uint32 screen_mat, 
     ADA_ASSERT(w != 0 && "triangle has area");
 
     /* fill conventions */
-    int bias0 = is_top_left(p0, p1) ? 0 : -1;
-    int bias1 = is_top_left(p1, p2) ? 0 : -1;
-    int bias2 = is_top_left(p2, p0) ? 0 : -1;
+    int bias0 = adl_is_top_left(p0, p1) ? 0 : -1;
+    int bias1 = adl_is_top_left(p1, p2) ? 0 : -1;
+    int bias2 = adl_is_top_left(p2, p0) ? 0 : -1;
 
     /* finding bounding box */
-    int x_min = fmin(p0.x, fmin(p1.x, p2.x));
-    int x_max = fmax(p0.x, fmax(p1.x, p2.x));
-    int y_min = fmin(p0.y, fmin(p1.y, p2.y));
-    int y_max = fmax(p0.y, fmax(p1.y, p2.y));
+    int x_min = (int)fminf(p0.x, fminf(p1.x, p2.x));
+    int x_max = (int)fmaxf(p0.x, fmaxf(p1.x, p2.x));
+    int y_min = (int)fminf(p0.y, fminf(p1.y, p2.y));
+    int y_max = (int)fmaxf(p0.y, fmaxf(p1.y, p2.y));
     // printf("xmin: %d, xmax: %d || ymin: %d, ymax: %d\n", x_min, x_max, y_min, y_max);
 
     /* Clamp to screen bounds */
     if (x_min < 0) x_min = 0;
     if (y_min < 0) y_min = 0;
-    if (x_max >= (int)screen_mat.cols) x_max = screen_mat.cols - 1;
-    if (y_max >= (int)screen_mat.rows) y_max = screen_mat.rows - 1;
+    if (x_max >= (int)screen_mat.cols) x_max = (int)screen_mat.cols - 1;
+    if (y_max >= (int)screen_mat.rows) y_max = (int)screen_mat.rows - 1;
 
     for (int y = y_min; y <= y_max; y++) {
         for (int x = x_min; x <= x_max; x++) {
-            Point p = {.x = x, .y = y, .z = 0};
+            Point p = {.x = (float)x, .y = (float)y, .z = 0.0f};
 
-            float w0 = edge_cross_point(p0, p1, p0, p) + bias0;
-            float w1 = edge_cross_point(p1, p2, p1, p) + bias1;
-            float w2 = edge_cross_point(p2, p0, p2, p) + bias2;
+            float w0 = adl_edge_cross_point(p0, p1, p0, p) + bias0;
+            float w1 = adl_edge_cross_point(p1, p2, p1, p) + bias1;
+            float w2 = adl_edge_cross_point(p2, p0, p2, p) + bias2;
 
-            float alpha = fabs(w1 / w);
-            float beta  = fabs(w2 / w);
-            float gamma = fabs(w0 / w);
+            float alpha = fabsf(w1 / w);
+            float beta  = fabsf(w2 / w);
+            float gamma = fabsf(w0 / w);
 
             if (w0 * w >= 0 && w1 * w >= 0 &&  w2 * w >= 0) {
                 int r0, b0, g0, a0;
                 int r1, b1, g1, a1;
                 int r2, b2, g2, a2;
-                HexARGB_RGBA_VAR(tri.colors[0], r0, g0, b0, a0);
-                HexARGB_RGBA_VAR(tri.colors[1], r1, g1, b1, a1);
-                HexARGB_RGBA_VAR(tri.colors[2], r2, g2, b2, a2);
+                ADL_HexARGB_RGBA_VAR(tri.colors[0], r0, g0, b0, a0);
+                ADL_HexARGB_RGBA_VAR(tri.colors[1], r1, g1, b1, a1);
+                ADL_HexARGB_RGBA_VAR(tri.colors[2], r2, g2, b2, a2);
                 
-                uint8_t current_r = r0*alpha + r1*beta + r2*gamma;
-                uint8_t current_g = g0*alpha + g1*beta + g2*gamma;
-                uint8_t current_b = b0*alpha + b1*beta + b2*gamma;
-                uint8_t current_a = a0*alpha + a1*beta + a2*gamma;
+                uint8_t current_r = (uint8_t)(r0*alpha + r1*beta + r2*gamma);
+                uint8_t current_g = (uint8_t)(g0*alpha + g1*beta + g2*gamma);
+                uint8_t current_b = (uint8_t)(b0*alpha + b1*beta + b2*gamma);
+                uint8_t current_a = (uint8_t)(a0*alpha + a1*beta + a2*gamma);
 
                 float light_intensity = (tri.light_intensity[0] + tri.light_intensity[1] + tri.light_intensity[2]) / 3;
                 float rf = current_r * light_intensity;
@@ -1645,7 +1638,7 @@ void adl_tri_fill_Pinedas_rasterizer_interpolate_color(Mat2D_uint32 screen_mat, 
                 double inv_z = inv_w / z_over_w;
 
                 if (inv_z >= MAT2D_AT(inv_z_buffer, y, x)) {
-                    adl_point_draw(screen_mat, x, y, RGBA_hexARGB(r8, g8, b8, current_a), offset_zoom_param);
+                    adl_point_draw(screen_mat, (float)x, (float)y, (uint32_t)ADL_RGBA_hexARGB(r8, g8, b8, current_a), offset_zoom_param);
                     MAT2D_AT(inv_z_buffer, y, x) = inv_z;
                 }
             }
@@ -1673,7 +1666,7 @@ void adl_tri_fill_Pinedas_rasterizer_interpolate_normal(Mat2D_uint32 screen_mat,
     p1 = tri.points[1];
     p2 = tri.points[2];
 
-    float w = edge_cross_point(p0, p1, p1, p2);
+    float w = adl_edge_cross_point(p0, p1, p1, p2);
     if (fabsf(w) < 1e-6) {
         // adl_tri_draw(screen_mat, tri, tri.colors[0], offset_zoom_param);
         return;
@@ -1681,37 +1674,37 @@ void adl_tri_fill_Pinedas_rasterizer_interpolate_normal(Mat2D_uint32 screen_mat,
     ADA_ASSERT(w != 0 && "triangle has area");
 
     /* fill conventions */
-    int bias0 = is_top_left(p0, p1) ? 0 : -1;
-    int bias1 = is_top_left(p1, p2) ? 0 : -1;
-    int bias2 = is_top_left(p2, p0) ? 0 : -1;
+    int bias0 = adl_is_top_left(p0, p1) ? 0 : -1;
+    int bias1 = adl_is_top_left(p1, p2) ? 0 : -1;
+    int bias2 = adl_is_top_left(p2, p0) ? 0 : -1;
 
     /* finding bounding box */
-    int x_min = fmin(p0.x, fmin(p1.x, p2.x));
-    int x_max = fmax(p0.x, fmax(p1.x, p2.x));
-    int y_min = fmin(p0.y, fmin(p1.y, p2.y));
-    int y_max = fmax(p0.y, fmax(p1.y, p2.y));
+    int x_min = (int)fminf(p0.x, fminf(p1.x, p2.x));
+    int x_max = (int)fmaxf(p0.x, fmaxf(p1.x, p2.x));
+    int y_min = (int)fminf(p0.y, fminf(p1.y, p2.y));
+    int y_max = (int)fmaxf(p0.y, fmaxf(p1.y, p2.y));
     // printf("xmin: %d, xmax: %d || ymin: %d, ymax: %d\n", x_min, x_max, y_min, y_max);
 
     /* Clamp to screen bounds */
     if (x_min < 0) x_min = 0;
     if (y_min < 0) y_min = 0;
-    if (x_max >= (int)screen_mat.cols) x_max = screen_mat.cols - 1;
-    if (y_max >= (int)screen_mat.rows) y_max = screen_mat.rows - 1;
+    if (x_max >= (int)screen_mat.cols) x_max = (int)screen_mat.cols - 1;
+    if (y_max >= (int)screen_mat.rows) y_max = (int)screen_mat.rows - 1;
 
     int r, b, g, a;
-    HexARGB_RGBA_VAR(color, r, g, b, a);
+    ADL_HexARGB_RGBA_VAR(color, r, g, b, a);
 
     for (int y = y_min; y <= y_max; y++) {
         for (int x = x_min; x <= x_max; x++) {
-            Point p = {.x = x, .y = y, .z = 0};
+            Point p = {.x = (float)x, .y = (float)y, .z = 0.0f};
 
-            float w0 = edge_cross_point(p0, p1, p0, p) + bias0;
-            float w1 = edge_cross_point(p1, p2, p1, p) + bias1;
-            float w2 = edge_cross_point(p2, p0, p2, p) + bias2;
+            float w0 = adl_edge_cross_point(p0, p1, p0, p) + bias0;
+            float w1 = adl_edge_cross_point(p1, p2, p1, p) + bias1;
+            float w2 = adl_edge_cross_point(p2, p0, p2, p) + bias2;
 
-            float alpha = fabs(w1 / w);
-            float beta  = fabs(w2 / w);
-            float gamma = fabs(w0 / w);
+            float alpha = fabsf(w1 / w);
+            float beta  = fabsf(w2 / w);
+            float gamma = fabsf(w0 / w);
 
             if (w0 * w >= 0 && w1 * w >= 0 &&  w2 * w >= 0) {
                 
@@ -1729,7 +1722,7 @@ void adl_tri_fill_Pinedas_rasterizer_interpolate_normal(Mat2D_uint32 screen_mat,
                 double inv_z = inv_w / z_over_w;
 
                 if (inv_z >= MAT2D_AT(inv_z_buffer, y, x)) {
-                    adl_point_draw(screen_mat, x, y, RGBA_hexARGB(r8, g8, b8, a), offset_zoom_param);
+                    adl_point_draw(screen_mat, (float)x, (float)y, (uint32_t)(r8, g8, b8, a), offset_zoom_param);
                     MAT2D_AT(inv_z_buffer, y, x) = inv_z;
                 }
             }
@@ -1951,11 +1944,11 @@ void adl_linear_sRGB_to_okLab(uint32_t hex_ARGB, float *L, float *a, float *b)
     /* https://bottosson.github.io/posts/oklab/
        https://en.wikipedia.org/wiki/Oklab_color_space */
     int R_255, G_255, B_255;
-    HexARGB_RGB_VAR(hex_ARGB, R_255, G_255, B_255);
+    ADL_HexARGB_RGB_VAR(hex_ARGB, R_255, G_255, B_255);
 
-    float R = R_255;
-    float G = G_255;
-    float B = B_255;
+    float R = (float)R_255;
+    float G = (float)G_255;
+    float B = (float)B_255;
 
     float l = 0.4122214705f * R + 0.5363325363f * G + 0.0514459929f * B;
     float m = 0.2119034982f * R + 0.6806995451f * G + 0.1073969566f * B;
@@ -2002,7 +1995,7 @@ void adl_okLab_to_linear_sRGB(float L, float a, float b, uint32_t *hex_ARGB)
     G = fmaxf(fminf(G, 255), 0);
     B = fmaxf(fminf(B, 255), 0);
 
-    *hex_ARGB = RGBA_hexARGB(R, G, B, 0xFF);
+    *hex_ARGB = (uint32_t)ADL_RGBA_hexARGB(R, G, B, 0xFF);
 }
 
 /**
@@ -2019,7 +2012,7 @@ void adl_linear_sRGB_to_okLch(uint32_t hex_ARGB, float *L, float *c, float *h_de
     adl_linear_sRGB_to_okLab(hex_ARGB, L, &a, &b);
 
     *c = sqrtf(a * a + b * b);
-    *h_deg = atan2f(b, a) * 180 / ADL_PI;
+    *h_deg = atan2f(b, a) * 180.0f / (float)ADL_PI;
 }
 
 /**
@@ -2035,8 +2028,8 @@ void adl_linear_sRGB_to_okLch(uint32_t hex_ARGB, float *L, float *c, float *h_de
 void adl_okLch_to_linear_sRGB(float L, float c, float h_deg, uint32_t *hex_ARGB)
 {
     h_deg = fmodf((h_deg + 360), 360);
-    float a = c * cosf(h_deg * ADL_PI / 180);
-    float b = c * sinf(h_deg * ADL_PI / 180);
+    float a = c * cosf(h_deg * (float)ADL_PI / 180.0f);
+    float b = c * sinf(h_deg * (float)ADL_PI / 180.0f);
     adl_okLab_to_linear_sRGB(L, a, b, hex_ARGB);
 }
 
@@ -2097,8 +2090,8 @@ Figure adl_figure_alloc(size_t rows, size_t cols, Point top_left_position)
 
     int max_i    = (int)(figure.pixels_mat.rows);
     int max_j    = (int)(figure.pixels_mat.cols);
-    int offset_i = (int)fminf(figure.pixels_mat.rows * ADL_FIGURE_PADDING_PRECENTAGE / 100.0f, ADL_MAX_FIGURE_PADDING);
-    int offset_j = (int)fminf(figure.pixels_mat.cols * ADL_FIGURE_PADDING_PRECENTAGE / 100.0f, ADL_MAX_FIGURE_PADDING);
+    int offset_i = adl_min((int)figure.pixels_mat.rows * ADL_FIGURE_PADDING_PRECENTAGE / 100, ADL_MAX_FIGURE_PADDING);
+    int offset_j = adl_min((int)figure.pixels_mat.cols * ADL_FIGURE_PADDING_PRECENTAGE / 100, ADL_MAX_FIGURE_PADDING);
 
     figure.min_x_pixel = offset_j;
     figure.max_x_pixel = max_j - offset_j;
@@ -2129,10 +2122,10 @@ void adl_figure_copy_to_screen(Mat2D_uint32 screen_mat, Figure figure)
 {
     for (size_t i = 0; i < figure.pixels_mat.rows; i++) {
         for (size_t j = 0; j < figure.pixels_mat.cols; j++) {
-            int offset_i = figure.top_left_position.y;
-            int offset_j = figure.top_left_position.x;
+            int offset_i = (int)figure.top_left_position.y;
+            int offset_j = (int)figure.top_left_position.x;
             
-            adl_point_draw(screen_mat, offset_j+j, offset_i+i, MAT2D_AT_UINT32(figure.pixels_mat, i, j), (Offset_zoom_param){1,0,0,0,0});
+            adl_point_draw(screen_mat, (float)(offset_j+j), (float)(offset_i+i), MAT2D_AT_UINT32(figure.pixels_mat, i, j), (Offset_zoom_param){1,0,0,0,0});
         }
     }
 }
@@ -2149,11 +2142,11 @@ void adl_axis_draw_on_figure(Figure *figure)
 {
     int max_i    = (int)(figure->pixels_mat.rows);
     int max_j    = (int)(figure->pixels_mat.cols);
-    int offset_i = (int)fmaxf(fminf(figure->pixels_mat.rows * ADL_FIGURE_PADDING_PRECENTAGE / 100.0f, ADL_MAX_FIGURE_PADDING), ADL_MIN_FIGURE_PADDING);
-    int offset_j = (int)fmaxf(fminf(figure->pixels_mat.cols * ADL_FIGURE_PADDING_PRECENTAGE / 100.0f, ADL_MAX_FIGURE_PADDING), ADL_MIN_FIGURE_PADDING);
+    int offset_i = adl_max(adl_min((int)figure->pixels_mat.rows * ADL_FIGURE_PADDING_PRECENTAGE / 100, ADL_MAX_FIGURE_PADDING), ADL_MIN_FIGURE_PADDING);
+    int offset_j = adl_max(adl_min((int)figure->pixels_mat.cols * ADL_FIGURE_PADDING_PRECENTAGE / 100, ADL_MAX_FIGURE_PADDING), ADL_MIN_FIGURE_PADDING);
 
-    int arrow_head_size_x = (int)fminf(ADL_MAX_HEAD_SIZE, ADL_FIGURE_PADDING_PRECENTAGE / 100.0f * (max_j - 2 * offset_j));
-    int arrow_head_size_y = (int)fminf(ADL_MAX_HEAD_SIZE, ADL_FIGURE_PADDING_PRECENTAGE / 100.0f * (max_i - 2 * offset_i));
+    int arrow_head_size_x = adl_min((int)ADL_MAX_HEAD_SIZE, ADL_FIGURE_PADDING_PRECENTAGE / 100 * (max_j - 2 * offset_j));
+    int arrow_head_size_y = adl_min((int)ADL_MAX_HEAD_SIZE, ADL_FIGURE_PADDING_PRECENTAGE / 100 * (max_i - 2 * offset_i));
 
     adl_arrow_draw(figure->pixels_mat, figure->min_x_pixel, figure->max_y_pixel, figure->max_x_pixel, figure->max_y_pixel, (float)arrow_head_size_x / (max_j-2*offset_j), ADL_FIGURE_HEAD_ANGLE_DEG, ADL_FIGURE_AXIS_COLOR, figure->offset_zoom_param);
     adl_arrow_draw(figure->pixels_mat, figure->min_x_pixel, figure->max_y_pixel, figure->min_x_pixel, figure->min_y_pixel, (float)arrow_head_size_y / (max_i-2*offset_i), ADL_FIGURE_HEAD_ANGLE_DEG, ADL_FIGURE_AXIS_COLOR, figure->offset_zoom_param);
@@ -2178,23 +2171,23 @@ void adl_max_min_values_draw_on_figure(Figure figure)
     snprintf(x_min_sentence, 256, "%g", figure.min_x);
     snprintf(x_max_sentence, 256, "%g", figure.max_x);
 
-    int x_sentence_hight_pixel = (figure.pixels_mat.rows - figure.max_y_pixel - ADL_MIN_CHARACTER_OFFSET * 3);
+    int x_sentence_hight_pixel = ((int)figure.pixels_mat.rows - figure.max_y_pixel - ADL_MIN_CHARACTER_OFFSET * 3);
     int x_min_char_width_pixel = x_sentence_hight_pixel / 2;
     int x_max_char_width_pixel = x_sentence_hight_pixel / 2;
 
-    int x_min_sentence_width_pixel = (int)fminf((figure.max_x_pixel - figure.min_x_pixel)/2, (x_min_char_width_pixel + ADL_MAX_CHARACTER_OFFSET)*strlen(x_min_sentence));
-    x_min_char_width_pixel = x_min_sentence_width_pixel / strlen(x_min_sentence) - ADL_MIN_CHARACTER_OFFSET;
+    int x_min_sentence_width_pixel = (int)fminf((figure.max_x_pixel - figure.min_x_pixel)/2.0f, (float)(x_min_char_width_pixel + ADL_MAX_CHARACTER_OFFSET)*strlen(x_min_sentence));
+    x_min_char_width_pixel = x_min_sentence_width_pixel / (int)strlen(x_min_sentence) - ADL_MIN_CHARACTER_OFFSET;
 
-    int x_max_sentence_width_pixel = (int)fminf((figure.max_x_pixel - figure.min_x_pixel)/2, (x_max_char_width_pixel + ADL_MAX_CHARACTER_OFFSET)*strlen(x_max_sentence)) - figure.x_axis_head_size;
-    x_max_char_width_pixel = (x_max_sentence_width_pixel + figure.x_axis_head_size) / strlen(x_max_sentence) - ADL_MIN_CHARACTER_OFFSET;
+    int x_max_sentence_width_pixel = (int)fminf((figure.max_x_pixel - figure.min_x_pixel)/2.0f, (float)(x_max_char_width_pixel + ADL_MAX_CHARACTER_OFFSET)*strlen(x_max_sentence)) - figure.x_axis_head_size;
+    x_max_char_width_pixel = (x_max_sentence_width_pixel + figure.x_axis_head_size) / (int)strlen(x_max_sentence) - ADL_MIN_CHARACTER_OFFSET;
 
-    int x_min_sentence_hight_pixel = (int)fminf(x_min_char_width_pixel * 2, x_sentence_hight_pixel);
-    int x_max_sentence_hight_pixel = (int)fminf(x_max_char_width_pixel * 2, x_sentence_hight_pixel);
+    int x_min_sentence_hight_pixel = (int)fminf((float)x_min_char_width_pixel * 2, (float)x_sentence_hight_pixel);
+    int x_max_sentence_hight_pixel = (int)fminf((float)x_max_char_width_pixel * 2, (float)x_sentence_hight_pixel);
 
-    x_min_sentence_hight_pixel = (int)fminf(x_min_sentence_hight_pixel, x_max_sentence_hight_pixel);
+    x_min_sentence_hight_pixel = (int)fminf((float)x_min_sentence_hight_pixel, (float)x_max_sentence_hight_pixel);
     x_max_sentence_hight_pixel = x_min_sentence_hight_pixel;
 
-    int x_max_x_top_left = figure.max_x_pixel - strlen(x_max_sentence) * (x_max_sentence_hight_pixel / 2 + ADL_MIN_CHARACTER_OFFSET) - figure.x_axis_head_size;
+    int x_max_x_top_left = figure.max_x_pixel - (int)strlen(x_max_sentence) * (x_max_sentence_hight_pixel / 2 + ADL_MIN_CHARACTER_OFFSET) - figure.x_axis_head_size;
 
     adl_sentence_draw(figure.pixels_mat, x_min_sentence, strlen(x_min_sentence), figure.min_x_pixel, figure.max_y_pixel+ADL_MIN_CHARACTER_OFFSET*2, x_min_sentence_hight_pixel, ADL_FIGURE_AXIS_COLOR, figure.offset_zoom_param);
     adl_sentence_draw(figure.pixels_mat, x_max_sentence, strlen(x_max_sentence), x_max_x_top_left, figure.max_y_pixel+ADL_MIN_CHARACTER_OFFSET*2, x_max_sentence_hight_pixel, ADL_FIGURE_AXIS_COLOR, figure.offset_zoom_param);
@@ -2206,14 +2199,14 @@ void adl_max_min_values_draw_on_figure(Figure figure)
 
     int y_sentence_width_pixel = figure.min_x_pixel - ADL_MAX_CHARACTER_OFFSET - figure.y_axis_head_size;
     int y_max_char_width_pixel = y_sentence_width_pixel;
-    y_max_char_width_pixel /= strlen(y_max_sentence);
+    y_max_char_width_pixel /= (int)strlen(y_max_sentence);
     int y_max_sentence_hight_pixel = y_max_char_width_pixel * 2;
 
     int y_min_char_width_pixel = y_sentence_width_pixel;
-    y_min_char_width_pixel /= strlen(y_min_sentence);
+    y_min_char_width_pixel /= (int)strlen(y_min_sentence);
     int y_min_sentence_hight_pixel = y_min_char_width_pixel * 2;
 
-    y_min_sentence_hight_pixel = (int)fmaxf(fminf(y_min_sentence_hight_pixel, y_max_sentence_hight_pixel), 1);
+    y_min_sentence_hight_pixel = (int)fmaxf(fminf((float)y_min_sentence_hight_pixel, (float)y_max_sentence_hight_pixel), 1);
     y_max_sentence_hight_pixel = y_min_sentence_hight_pixel;
 
     adl_sentence_draw(figure.pixels_mat, y_max_sentence, strlen(y_max_sentence), ADL_MAX_CHARACTER_OFFSET/2, figure.min_y_pixel, y_max_sentence_hight_pixel, ADL_FIGURE_AXIS_COLOR, figure.offset_zoom_param);
@@ -2281,11 +2274,11 @@ void adl_curves_plot_on_figure(Figure figure)
             Point des_start = {0};
             Point des_end = {0};
 
-            des_start.x = adl_linear_map(src_start.x, figure.min_x, figure.max_x, figure.min_x_pixel, figure.max_x_pixel);
-            des_start.y = ((figure.max_y_pixel + figure.min_y_pixel) - adl_linear_map(src_start.y, figure.min_y, figure.max_y, figure.min_y_pixel, figure.max_y_pixel));
+            des_start.x = adl_linear_map(src_start.x, figure.min_x, figure.max_x, (float)figure.min_x_pixel, (float)figure.max_x_pixel);
+            des_start.y = ((figure.max_y_pixel + figure.min_y_pixel) - adl_linear_map(src_start.y, figure.min_y, figure.max_y, (float)figure.min_y_pixel, (float)figure.max_y_pixel));
 
-            des_end.x = adl_linear_map(src_end.x, figure.min_x, figure.max_x, figure.min_x_pixel, figure.max_x_pixel);
-            des_end.y = ((figure.max_y_pixel + figure.min_y_pixel) - adl_linear_map(src_end.y, figure.min_y, figure.max_y, figure.min_y_pixel, figure.max_y_pixel));
+            des_end.x = adl_linear_map(src_end.x, figure.min_x, figure.max_x, (float)figure.min_x_pixel, (float)figure.max_x_pixel);
+            des_end.y = ((figure.max_y_pixel + figure.min_y_pixel) - adl_linear_map(src_end.y, figure.min_y, figure.max_y, (float)figure.min_y_pixel, (float)figure.max_y_pixel));
 
             adl_line_draw(figure.pixels_mat, des_start.x, des_start.y, des_end.x, des_end.y, figure.src_curve_array.elements[curve_index].color, figure.offset_zoom_param);
         }
@@ -2325,11 +2318,11 @@ void adl_2Dscalar_interp_on_figure(Figure figure, double *x_2Dmat, double *y_2Dm
     float max_scalar = FLT_MIN; 
     for (int i = 0; i < ni; i++) {
         for (int j = 0; j < nj; j++) {
-            float val = scalar_2Dmat[adl_offset2d(i, j, ni)];
+            float val = (float)scalar_2Dmat[adl_offset2d(i, j, ni)];
             if (val > max_scalar) max_scalar = val;
             if (val < min_scalar) min_scalar = val;
-            float current_x = x_2Dmat[adl_offset2d(i, j, ni)];
-            float current_y = y_2Dmat[adl_offset2d(i, j, ni)];
+            float current_x = (float)x_2Dmat[adl_offset2d(i, j, ni)];
+            float current_y = (float)y_2Dmat[adl_offset2d(i, j, ni)];
             if (current_x > figure.max_x) {
                 figure.max_x = current_x;
             }
@@ -2357,32 +2350,32 @@ void adl_2Dscalar_interp_on_figure(Figure figure, double *x_2Dmat, double *y_2Dm
             quad.light_intensity[3] = 1;
             quad.to_draw = 1;
 
-            quad.points[3].x = x_2Dmat[adl_offset2d(i  , j  , ni)];
-            quad.points[3].y = y_2Dmat[adl_offset2d(i  , j  , ni)];
-            quad.points[2].x = x_2Dmat[adl_offset2d(i+1, j  , ni)];
-            quad.points[2].y = y_2Dmat[adl_offset2d(i+1, j  , ni)];
-            quad.points[1].x = x_2Dmat[adl_offset2d(i+1, j+1, ni)];
-            quad.points[1].y = y_2Dmat[adl_offset2d(i+1, j+1, ni)];
-            quad.points[0].x = x_2Dmat[adl_offset2d(i  , j+1, ni)];
-            quad.points[0].y = y_2Dmat[adl_offset2d(i  , j+1, ni)];
+            quad.points[3].x = (float)x_2Dmat[adl_offset2d(i  , j  , ni)];
+            quad.points[3].y = (float)y_2Dmat[adl_offset2d(i  , j  , ni)];
+            quad.points[2].x = (float)x_2Dmat[adl_offset2d(i+1, j  , ni)];
+            quad.points[2].y = (float)y_2Dmat[adl_offset2d(i+1, j  , ni)];
+            quad.points[1].x = (float)x_2Dmat[adl_offset2d(i+1, j+1, ni)];
+            quad.points[1].y = (float)y_2Dmat[adl_offset2d(i+1, j+1, ni)];
+            quad.points[0].x = (float)x_2Dmat[adl_offset2d(i  , j+1, ni)];
+            quad.points[0].y = (float)y_2Dmat[adl_offset2d(i  , j+1, ni)];
 
             for (int p_index = 0; p_index < 4; p_index++) {
-                quad.points[p_index].z = 1;
-                quad.points[p_index].w = 1;
-                quad.points[p_index].x = adl_linear_map(quad.points[p_index].x, figure.min_x, figure.max_x, figure.min_x_pixel, figure.max_x_pixel);
-                quad.points[p_index].y = ((figure.max_y_pixel + figure.min_y_pixel) - adl_linear_map(quad.points[p_index].y, figure.min_y, figure.max_y, figure.min_y_pixel, figure.max_y_pixel));
+                quad.points[p_index].z = 1.0f;
+                quad.points[p_index].w = 1.0f;
+                quad.points[p_index].x = adl_linear_map((float)quad.points[p_index].x, (float)figure.min_x, (float)figure.max_x, (float)figure.min_x_pixel, (float)figure.max_x_pixel);
+                quad.points[p_index].y = ((figure.max_y_pixel + figure.min_y_pixel) - (float)adl_linear_map((float)quad.points[p_index].y, (float)figure.min_y, (float)figure.max_y, (float)figure.min_y_pixel, (float)figure.max_y_pixel));
 
                 adl_offset_zoom_point(quad.points[p_index], window_w, window_h, figure.offset_zoom_param);
             }
 
-            float t3 = adl_linear_map(scalar_2Dmat[adl_offset2d(i  , j  , ni)], min_scalar, max_scalar, 0, 1);
-            float t2 = adl_linear_map(scalar_2Dmat[adl_offset2d(i+1, j  , ni)], min_scalar, max_scalar, 0, 1);
-            float t1 = adl_linear_map(scalar_2Dmat[adl_offset2d(i+1, j+1, ni)], min_scalar, max_scalar, 0, 1);
-            float t0 = adl_linear_map(scalar_2Dmat[adl_offset2d(  i, j+1, ni)], min_scalar, max_scalar, 0, 1);
+            float t3 = adl_linear_map((float)scalar_2Dmat[adl_offset2d(i  , j  , ni)], (float)min_scalar, (float)max_scalar, 0.0f, 1.0f);
+            float t2 = adl_linear_map((float)scalar_2Dmat[adl_offset2d(i+1, j  , ni)], (float)min_scalar, (float)max_scalar, 0.0f, 1.0f);
+            float t1 = adl_linear_map((float)scalar_2Dmat[adl_offset2d(i+1, j+1, ni)], (float)min_scalar, (float)max_scalar, 0.0f, 1.0f);
+            float t0 = adl_linear_map((float)scalar_2Dmat[adl_offset2d(  i, j+1, ni)], (float)min_scalar, (float)max_scalar, 0.0f, 1.0f);
 
             /* https://en.wikipedia.org/wiki/Oklab_color_space */
             if (!strcmp(color_scale, "b-c")) {
-                uint32_t color = 0, color1 = BLUE_hexARGB, color2 = CYAN_hexARGB;
+                uint32_t color = 0, color1 = ADL_COLOR_BLUE_hexARGB, color2 = ADL_COLOR_CYAN_hexARGB;
                 adl_interpolate_ARGBcolor_on_okLch(color1, color2, t0, num_of_rotations, &color);
                 quad.colors[0] = color;
 
@@ -2395,7 +2388,7 @@ void adl_2Dscalar_interp_on_figure(Figure figure, double *x_2Dmat, double *y_2Dm
                 adl_interpolate_ARGBcolor_on_okLch(color1, color2, t3, num_of_rotations, &color);
                 quad.colors[3] = color;
             } else if (!strcmp(color_scale, "b-g")) {
-                uint32_t color = 0, color1 = BLUE_hexARGB, color2 = GREEN_hexARGB;
+                uint32_t color = 0, color1 = ADL_COLOR_BLUE_hexARGB, color2 = ADL_COLOR_GREEN_hexARGB;
                 adl_interpolate_ARGBcolor_on_okLch(color1, color2, t0, num_of_rotations, &color);
                 quad.colors[0] = color;
 
@@ -2408,7 +2401,7 @@ void adl_2Dscalar_interp_on_figure(Figure figure, double *x_2Dmat, double *y_2Dm
                 adl_interpolate_ARGBcolor_on_okLch(color1, color2, t3, num_of_rotations, &color);
                 quad.colors[3] = color;
             } else if (!strcmp(color_scale, "b-r")) {
-                uint32_t color = 0, color1 = BLUE_hexARGB, color2 = RED_hexARGB;
+                uint32_t color = 0, color1 = ADL_COLOR_BLUE_hexARGB, color2 = ADL_COLOR_RED_hexARGB;
                 adl_interpolate_ARGBcolor_on_okLch(color1, color2, t0, num_of_rotations, &color);
                 quad.colors[0] = color;
 
@@ -2421,7 +2414,7 @@ void adl_2Dscalar_interp_on_figure(Figure figure, double *x_2Dmat, double *y_2Dm
                 adl_interpolate_ARGBcolor_on_okLch(color1, color2, t3, num_of_rotations, &color);
                 quad.colors[3] = color;
             } else if (!strcmp(color_scale, "b-y")) {
-                uint32_t color = 0, color1 = BLUE_hexARGB, color2 = YELLOW_hexARGB;
+                uint32_t color = 0, color1 = ADL_COLOR_BLUE_hexARGB, color2 = ADL_COLOR_YELLOW_hexARGB;
                 adl_interpolate_ARGBcolor_on_okLch(color1, color2, t0, num_of_rotations, &color);
                 quad.colors[0] = color;
 
@@ -2434,7 +2427,7 @@ void adl_2Dscalar_interp_on_figure(Figure figure, double *x_2Dmat, double *y_2Dm
                 adl_interpolate_ARGBcolor_on_okLch(color1, color2, t3, num_of_rotations, &color);
                 quad.colors[3] = color;
             } else if (!strcmp(color_scale, "g-y")) {
-                uint32_t color = 0, color1 = GREEN_hexARGB, color2 = YELLOW_hexARGB;
+                uint32_t color = 0, color1 = ADL_COLOR_GREEN_hexARGB, color2 = ADL_COLOR_YELLOW_hexARGB;
                 adl_interpolate_ARGBcolor_on_okLch(color1, color2, t0, num_of_rotations, &color);
                 quad.colors[0] = color;
 
@@ -2447,7 +2440,7 @@ void adl_2Dscalar_interp_on_figure(Figure figure, double *x_2Dmat, double *y_2Dm
                 adl_interpolate_ARGBcolor_on_okLch(color1, color2, t3, num_of_rotations, &color);
                 quad.colors[3] = color;
             } else if (!strcmp(color_scale, "g-p")) {
-                uint32_t color = 0, color1 = GREEN_hexARGB, color2 = PURPLE_hexARGB;
+                uint32_t color = 0, color1 = ADL_COLOR_GREEN_hexARGB, color2 = ADL_COLOR_PURPLE_hexARGB;
                 adl_interpolate_ARGBcolor_on_okLch(color1, color2, t0, num_of_rotations, &color);
                 quad.colors[0] = color;
 
@@ -2460,7 +2453,7 @@ void adl_2Dscalar_interp_on_figure(Figure figure, double *x_2Dmat, double *y_2Dm
                 adl_interpolate_ARGBcolor_on_okLch(color1, color2, t3, num_of_rotations, &color);
                 quad.colors[3] = color;
             } else if (!strcmp(color_scale, "g-r")) {
-                uint32_t color = 0, color1 = GREEN_hexARGB, color2 = RED_hexARGB;
+                uint32_t color = 0, color1 = ADL_COLOR_GREEN_hexARGB, color2 = ADL_COLOR_RED_hexARGB;
                 adl_interpolate_ARGBcolor_on_okLch(color1, color2, t0, num_of_rotations, &color);
                 quad.colors[0] = color;
 
@@ -2473,7 +2466,7 @@ void adl_2Dscalar_interp_on_figure(Figure figure, double *x_2Dmat, double *y_2Dm
                 adl_interpolate_ARGBcolor_on_okLch(color1, color2, t3, num_of_rotations, &color);
                 quad.colors[3] = color;
             } else if (!strcmp(color_scale, "r-y")) {
-                uint32_t color = 0, color1 = RED_hexARGB, color2 = YELLOW_hexARGB;
+                uint32_t color = 0, color1 = ADL_COLOR_RED_hexARGB, color2 = ADL_COLOR_YELLOW_hexARGB;
                 adl_interpolate_ARGBcolor_on_okLch(color1, color2, t0, num_of_rotations, &color);
                 quad.colors[0] = color;
 
