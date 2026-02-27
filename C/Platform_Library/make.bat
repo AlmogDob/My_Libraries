@@ -6,7 +6,7 @@ REM Config
 REM ============================================================
 
 REM ---- Warnings (roughly -W -Wall -Wextra) ----
-set "CWARN=/nologo /W4"
+set "CWARN=/nologo /W4 /wd4996"
 
 REM Optional: treat warnings as errors
 REM set "CWARN=%CWARN% /WX"
