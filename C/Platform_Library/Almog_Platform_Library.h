@@ -17,6 +17,7 @@
 #pragma comment(lib, "Gdi32.lib")
 
 #ifdef APL_DEFINE_ALL_IMPLEMENTATIONS
+    #undef APL_DEFINE_ALL_IMPLEMENTATIONS
     #define MATRIX2D_IMPLEMENTATION
     #define ALMOG_DRAW_LIBRARY_IMPLEMENTATION
     #define ALMOG_PLATFORM_LIBRARY_IMPLEMENTATION
@@ -43,6 +44,7 @@ struct Apl_Window_State {
     size_t previous_frame_time;
     bool to_limit_fps;
     bool to_clear_renderer;
+    bool to_flip_y;
 
     float delta_time;
     float elapsed_time;
@@ -74,6 +76,8 @@ struct Apl_Window_State {
     fprintf(stderr, "[Warning] %s:%d:\n%*sIn function '%s':\n%*s" fmt "\n", __FILE__, __LINE__, 10, "", __func__, 10, "", __VA_ARGS__)
 #define apl_dprintERROR(fmt, ...) \
     fprintf(stderr, "[Error] %s:%d:\n%*sIn function '%s':\n%*s" fmt "\n", __FILE__, __LINE__, 8, "", __func__, 8, "", __VA_ARGS__)
+#define apl_min(a, b) ((a) < (b) ? (a) : (b))
+#define apl_max(a, b) ((a) > (b) ? (a) : (b))
 
 #define APL_INIT_WINDOW_WIDTH 800
 #define APL_INIT_WINDOW_HEIGHT 600
@@ -94,19 +98,20 @@ struct Apl_Window_State {
 
 enum Apl_Return_Types   apl_initialize_main_window(struct Apl_Window_State *ws, char *name);
 LRESULT CALLBACK        apl_main_window_callback(HWND window, UINT message, WPARAM wparam, LPARAM lparam);
-void                    apl_pixel_mat_copy_to_screen(struct Apl_Window_State *ws, HDC window_paint_device_context, int x, int y, int width, int height);
+void                    apl_pixel_mat_copy_to_screen(struct Apl_Window_State *ws, HDC window_paint_device_context);
 char *                  apl_platform_name(void);
 void                    apl_resize_window_pixel_mat(struct Apl_Window_State *ws, size_t new_w, size_t new_h);
+enum Apl_Return_Types   apl_window_destroy(struct Apl_Window_State *ws);
 enum Apl_Return_Types   apl_window_process_input(struct Apl_Window_State *ws);
 enum Apl_Return_Types   apl_window_render(struct Apl_Window_State *ws);
 enum Apl_Return_Types   apl_window_setup(struct Apl_Window_State *ws);
 enum Apl_Return_Types   apl_window_update(struct Apl_Window_State *ws);
 
 /* user supposed to define: */
+enum Apl_Return_Types   apl_destroy(struct Apl_Window_State *ws);
 enum Apl_Return_Types   apl_render(struct Apl_Window_State *ws);
 enum Apl_Return_Types   apl_setup(struct Apl_Window_State *ws);
 enum Apl_Return_Types   apl_update(struct Apl_Window_State *ws);
-enum Apl_Return_Types   apl_destroy(struct Apl_Window_State *ws);
 
 #endif /* ALMOG_PLATFORM_LIBRARY_H_*/
 
@@ -167,9 +172,13 @@ LRESULT CALLBACK apl_main_window_callback(HWND window, UINT message, WPARAM wpar
         } break;
         case WM_SIZE:
         {
-            RECT client_rect = {0};
-            GetClientRect(ws->platform.window_handle, &client_rect); /* client rect are the pixel we can draw at */
-            apl_resize_window_pixel_mat(ws, client_rect.right - client_rect.left, client_rect.bottom - client_rect.top);
+            if (ws == NULL) {
+                result = DefWindowProcA(window, message, wparam, lparam);
+            } else {
+                RECT client_rect = {0};
+                GetClientRect(ws->platform.window_handle, &client_rect); /* client rect are the pixel we can draw at */
+                apl_resize_window_pixel_mat(ws, client_rect.right - client_rect.left, client_rect.bottom - client_rect.top);
+            }
         } break;
         case WM_CLOSE:
         {
@@ -188,12 +197,9 @@ LRESULT CALLBACK apl_main_window_callback(HWND window, UINT message, WPARAM wpar
         {
             PAINTSTRUCT paint;
             HDC device_context = BeginPaint(window, &paint);
-            int x = paint.rcPaint.left;
-            int y = paint.rcPaint.top;
-            int width = paint.rcPaint.right - paint.rcPaint.left;
-            int height = paint.rcPaint.bottom - paint.rcPaint.top;
-            apl_pixel_mat_copy_to_screen(ws, device_context, x, y, width, height);
+            apl_pixel_mat_copy_to_screen(ws, device_context);
             EndPaint(window, &paint);
+            
         } break;
         default:
         {
@@ -204,11 +210,11 @@ LRESULT CALLBACK apl_main_window_callback(HWND window, UINT message, WPARAM wpar
     return result;
 }
 
-void apl_pixel_mat_copy_to_screen(struct Apl_Window_State *ws, HDC window_paint_device_context, int x, int y, int width, int height)
+void apl_pixel_mat_copy_to_screen(struct Apl_Window_State *ws, HDC window_paint_device_context)
 {
     StretchDIBits(window_paint_device_context,
-                  x, y, width, height,
-                  x, y, width, height,
+                  0, 0, (int)ws->window_w              , (int)ws->window_h,
+                  0, 0, (int)ws->window_pixels_mat.cols, (int)ws->window_pixels_mat.rows,
                   ws->window_pixels_mat.elements,
                   &ws->platform.bit_map_info,
                   DIB_RGB_COLORS, SRCCOPY);
@@ -221,19 +227,29 @@ char * apl_platform_name(void)
 
 void apl_resize_window_pixel_mat(struct Apl_Window_State *ws, size_t new_w, size_t new_h)
 {
-    ws->window_w = new_w;
-    ws->window_h = new_h;
+    ws->window_w = apl_max(new_w, 1); /* 1 so the pixel mat want be null */
+    ws->window_h = apl_max(new_h, 1); /* 1 so the pixel mat want be null */
     APL_UNUSED(new_w);
     APL_UNUSED(new_h);
     
     ws->platform.bit_map_info.bmiHeader.biSize = (LONG)sizeof(ws->platform.bit_map_info.bmiHeader);
     ws->platform.bit_map_info.bmiHeader.biWidth = (LONG)ws->window_w;
-    ws->platform.bit_map_info.bmiHeader.biHeight = -(LONG)ws->window_h;
+    ws->platform.bit_map_info.bmiHeader.biHeight = (-1 * !ws->to_flip_y + 1 * ws->to_flip_y) * (LONG)ws->window_h; /* minus for the origin to be in the top left corner */
     ws->platform.bit_map_info.bmiHeader.biPlanes = 1;
     ws->platform.bit_map_info.bmiHeader.biBitCount = 32;
     ws->platform.bit_map_info.bmiHeader.biCompression = BI_RGB;
 
     ws->window_pixels_mat = mat2D_realloc_uint32(ws->window_pixels_mat, ws->window_h, ws->window_w);
+    apl_window_render(ws);
+}
+
+enum Apl_Return_Types apl_window_destroy(struct Apl_Window_State *ws)
+{
+    /*------------------------------------------------------------*/
+
+    apl_destroy(ws);
+
+    return APL_OK;
 }
 
 enum Apl_Return_Types apl_window_process_input(struct Apl_Window_State *ws)
@@ -245,10 +261,17 @@ enum Apl_Return_Types apl_window_process_input(struct Apl_Window_State *ws)
 
 enum Apl_Return_Types apl_window_render(struct Apl_Window_State *ws)
 {
-    mat2D_fill_uint32(ws->window_pixels_mat, APL_BACKGROUND_COLOR_hexARGB);
-    adl_circle_fill(ws->window_pixels_mat, 100, 100, 100, APL_COLOR_BLUE_hexARGB, ADL_DEFAULT_OFFSET_ZOOM);
+    if (ws->to_clear_renderer) {
+        mat2D_fill_uint32(ws->window_pixels_mat, APL_BACKGROUND_COLOR_hexARGB);
+    }
+    /*------------------------------------------------------------*/
 
-    APL_UNUSED(ws);
+    apl_render(ws);
+            
+    /*------------------------------------------------------------*/
+    HDC device_context = GetDC(ws->platform.window_handle);
+    apl_pixel_mat_copy_to_screen(ws, device_context);
+    ReleaseDC(ws->platform.window_handle, device_context);
 
     return APL_OK;
 }
@@ -268,7 +291,9 @@ enum Apl_Return_Types apl_window_setup(struct Apl_Window_State *ws)
 
 enum Apl_Return_Types apl_window_update(struct Apl_Window_State *ws)
 {
-    APL_UNUSED(ws);
+    /*------------------------------------------------------------*/
+
+    apl_update(ws);
 
     return APL_OK;
 }
@@ -298,6 +323,7 @@ int main(void)
     // window_state.previous_frame_time = 0;
     window_state.to_limit_fps = true;
     window_state.to_clear_renderer = true;
+    // window_state.to_flip_y;
     // window_state.delta_time = 0;
     // window_state.elapsed_time = 0;
     // window_state.fps = 0;
@@ -348,13 +374,19 @@ int main(void)
 
     MSG message;
     for (window_state.running = true; window_state.running ; ) {
-        /* windows magic */
-        BOOL message_result = GetMessageA(&message, 0, 0, 0);
-        if (message_result <= 0) {
+        /* flash all the messages in the que */
+        for ( ; PeekMessageA(&message, 0, 0, 0, PM_REMOVE) ; ) {
+            if (message.message == WM_QUIT) {
+                window_state.running = false;
+                rt = APL_FAIL;
+                break; 
+            }
+            TranslateMessage(&message);
+            DispatchMessageA(&message);
+        }
+        if (window_state.running == false) {
             break;
         }
-        TranslateMessage(&message);
-        DispatchMessageA(&message);
 
         /* the loop */
         rt = apl_window_process_input(&window_state);
@@ -376,7 +408,11 @@ int main(void)
                 break;
             }
         }
+    }
 
+    rt = apl_window_destroy(&window_state);
+    if (rt == APL_FAIL) {
+        apl_dprintERROR("%s", "failed to window destroy");
     }
 
     return rt;
@@ -386,6 +422,12 @@ int main(void)
  * end of main
  * ============================================================
  */
+
+#ifndef APL_DESTROY
+#define APL_DESTROY
+enum Apl_Return_Types apl_destroy(struct Apl_Window_State *ws) { APL_UNUSED(ws); return APL_OK; }
+#endif
+
 #ifndef APL_SETUP
 #define APL_SETUP
 enum Apl_Return_Types apl_setup(struct Apl_Window_State *ws) { APL_UNUSED(ws); return APL_OK }
@@ -399,11 +441,6 @@ enum Apl_Return_Types apl_update(struct Apl_Window_State *ws) { APL_UNUSED(ws); 
 #ifndef APL_RENDER
 #define APL_RENDER
 enum Apl_Return_Types apl_render(struct Apl_Window_State *ws) { APL_UNUSED(ws); return APL_OK; }
-#endif
-
-#ifndef APL_DESTROY
-#define APL_DESTROY
-enum Apl_Return_Types apl_destroy(struct Apl_Window_State *ws) { APL_UNUSED(ws); return APL_OK; }
 #endif
 
 
