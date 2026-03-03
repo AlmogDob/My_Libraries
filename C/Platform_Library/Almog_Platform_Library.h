@@ -98,7 +98,7 @@ struct Apl_Window_State {
 
 enum Apl_Return_Types   apl_initialize_main_window(struct Apl_Window_State *ws, char *name);
 LRESULT CALLBACK        apl_main_window_callback(HWND window, UINT message, WPARAM wparam, LPARAM lparam);
-void                    apl_pixel_mat_copy_to_screen(struct Apl_Window_State *ws, HDC window_paint_device_context);
+void                    apl_pixel_mat_copy_to_screen(struct Apl_Window_State *ws);
 char *                  apl_platform_name(void);
 void                    apl_resize_window_pixel_mat(struct Apl_Window_State *ws, size_t new_w, size_t new_h);
 enum Apl_Return_Types   apl_window_destroy(struct Apl_Window_State *ws);
@@ -121,7 +121,7 @@ enum Apl_Return_Types   apl_update(struct Apl_Window_State *ws);
 enum Apl_Return_Types apl_initialize_main_window(struct Apl_Window_State *ws, char *name)
 {
     WNDCLASS window_class = {
-        .style = CS_OWNDC | CS_HREDRAW | CS_VREDRAW,
+        .style = CS_HREDRAW | CS_VREDRAW,
         .lpfnWndProc = apl_main_window_callback,
         .hInstance = GetModuleHandleA(NULL),
         .hCursor   = LoadCursorA(NULL, IDC_ARROW),
@@ -196,8 +196,8 @@ LRESULT CALLBACK apl_main_window_callback(HWND window, UINT message, WPARAM wpar
         case WM_PAINT:
         {
             PAINTSTRUCT paint;
-            HDC device_context = BeginPaint(window, &paint);
-            apl_pixel_mat_copy_to_screen(ws, device_context);
+            BeginPaint(window, &paint);
+            apl_pixel_mat_copy_to_screen(ws);
             EndPaint(window, &paint);
             
         } break;
@@ -210,14 +210,16 @@ LRESULT CALLBACK apl_main_window_callback(HWND window, UINT message, WPARAM wpar
     return result;
 }
 
-void apl_pixel_mat_copy_to_screen(struct Apl_Window_State *ws, HDC window_paint_device_context)
+void apl_pixel_mat_copy_to_screen(struct Apl_Window_State *ws)
 {
-    StretchDIBits(window_paint_device_context,
+    HDC device_context = GetDC(ws->platform.window_handle);
+    StretchDIBits(device_context,
                   0, 0, (int)ws->window_w              , (int)ws->window_h,
                   0, 0, (int)ws->window_pixels_mat.cols, (int)ws->window_pixels_mat.rows,
                   ws->window_pixels_mat.elements,
                   &ws->platform.bit_map_info,
                   DIB_RGB_COLORS, SRCCOPY);
+    ReleaseDC(ws->platform.window_handle, device_context);
 }
 
 char * apl_platform_name(void)
@@ -269,9 +271,7 @@ enum Apl_Return_Types apl_window_render(struct Apl_Window_State *ws)
     apl_render(ws);
             
     /*------------------------------------------------------------*/
-    HDC device_context = GetDC(ws->platform.window_handle);
-    apl_pixel_mat_copy_to_screen(ws, device_context);
-    ReleaseDC(ws->platform.window_handle, device_context);
+    apl_pixel_mat_copy_to_screen(ws);
 
     return APL_OK;
 }
@@ -280,7 +280,7 @@ enum Apl_Return_Types apl_window_setup(struct Apl_Window_State *ws)
 {
     RECT client_rect = {0};
     GetClientRect(ws->platform.window_handle, &client_rect); /* client rect are the pixel we can draw at */
-    apl_resize_window_pixel_mat(ws, client_rect.right - client_rect.left, client_rect.bottom - client_rect.top);
+    apl_resize_window_pixel_mat(ws, client_rect.right - client_rect.left, client_rect.bottom - client_rect.top); /* allocate a pixel mat */
     
     /*------------------------------------------------------------*/
 
