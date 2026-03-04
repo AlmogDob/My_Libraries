@@ -3,6 +3,7 @@
 #include <stdlib.h>
 
 #define APL_SETUP
+#define APL_INPUT
 #define APL_UPDATE
 #define APL_RENDER
 #define APL_DEFINE_ALL_IMPLEMENTATIONS
@@ -11,6 +12,28 @@
 
 enum Apl_Return_Types apl_setup(struct Apl_Window_State *ws)
 {
+    APL_UNUSED(ws);
+
+    return APL_SUCCESS;
+}
+
+enum Apl_Return_Types apl_input(struct Apl_Window_State *ws)
+{
+    if (ws->buttons.w_is_pressed) {
+        printf("w");
+    }
+    if (ws->buttons.a_is_pressed) {
+        printf("a");
+    }
+    if (ws->buttons.s_is_pressed) {
+        printf("s");
+    }
+    if (ws->buttons.d_is_pressed) {
+        printf("d");
+    }
+    if (ws->buttons.space_bar_is_pressed) {
+        printf("\n");
+    }
     APL_UNUSED(ws);
 
     return APL_SUCCESS;

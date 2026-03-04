@@ -52,14 +52,20 @@ struct Apl_Window_State {
     float const_fps;
     float frame_target_time;
 
-    bool space_bar_was_pressed;
-    bool w_was_pressed;
-    bool s_was_pressed;
-    bool a_was_pressed;
-    bool d_was_pressed;
-    bool e_was_pressed;
-    bool q_was_pressed;
-    bool left_button_pressed;
+    struct {
+        bool space_bar_is_pressed;
+        bool w_is_pressed;
+        bool s_is_pressed;
+        bool a_is_pressed;
+        bool d_is_pressed;
+        bool e_is_pressed;
+        bool q_is_pressed;
+        bool up_is_pressed;
+        bool down_is_pressed;
+        bool left_is_pressed;
+        bool right_is_pressed;
+        bool left_button_pressed;
+    } buttons;
 
     size_t window_w;
     size_t window_h;
@@ -100,7 +106,7 @@ enum Apl_Return_Types   apl_initialize_main_window(struct Apl_Window_State *ws, 
 LRESULT CALLBACK        apl_main_window_callback(HWND window, UINT message, WPARAM wparam, LPARAM lparam);
 void                    apl_pixel_mat_copy_to_screen(struct Apl_Window_State *ws);
 char *                  apl_platform_name(void);
-void                    apl_resize_window_pixel_mat(struct Apl_Window_State *ws, size_t new_w, size_t new_h);
+enum Apl_Return_Types   apl_resize_window_pixel_mat(struct Apl_Window_State *ws, size_t new_w, size_t new_h);
 enum Apl_Return_Types   apl_window_destroy(struct Apl_Window_State *ws);
 enum Apl_Return_Types   apl_window_process_input(struct Apl_Window_State *ws);
 enum Apl_Return_Types   apl_window_render(struct Apl_Window_State *ws);
@@ -109,6 +115,7 @@ enum Apl_Return_Types   apl_window_update(struct Apl_Window_State *ws);
 
 /* user supposed to define: */
 enum Apl_Return_Types   apl_destroy(struct Apl_Window_State *ws);
+enum Apl_Return_Types   apl_input(struct Apl_Window_State *ws);
 enum Apl_Return_Types   apl_render(struct Apl_Window_State *ws);
 enum Apl_Return_Types   apl_setup(struct Apl_Window_State *ws);
 enum Apl_Return_Types   apl_update(struct Apl_Window_State *ws);
@@ -168,16 +175,17 @@ LRESULT CALLBACK apl_main_window_callback(HWND window, UINT message, WPARAM wpar
         case WM_NCCREATE: {
             CREATESTRUCTA *cs = (CREATESTRUCTA *)lparam;
             SetWindowLongPtrA(window, GWLP_USERDATA, (LONG_PTR)cs->lpCreateParams);
-            result = DefWindowProcA(window, message, wparam, lparam);
         } break;
         case WM_SIZE:
         {
-            if (ws == NULL) {
-                result = DefWindowProcA(window, message, wparam, lparam);
-            } else {
+            if (ws != NULL) {
                 RECT client_rect = {0};
                 GetClientRect(ws->platform.window_handle, &client_rect); /* client rect are the pixel we can draw at */
-                apl_resize_window_pixel_mat(ws, client_rect.right - client_rect.left, client_rect.bottom - client_rect.top);
+                if (apl_resize_window_pixel_mat(ws, client_rect.right - client_rect.left, client_rect.bottom - client_rect.top) != APL_SUCCESS) {
+                    apl_dprintERROR("%s", "resize window pixel mat failed");
+                    PostQuitMessage(0);
+                    ws->running = false;
+                }
             }
         } break;
         case WM_CLOSE:
@@ -187,11 +195,6 @@ LRESULT CALLBACK apl_main_window_callback(HWND window, UINT message, WPARAM wpar
         case WM_DESTROY:
         {
             ws->running = false;
-            PostQuitMessage(0);
-        } break;
-        case WM_ACTIVATEAPP:
-        {
-            // apl_dprintINFO("%s", "WM_ACTIVATEAPP");
         } break;
         case WM_PAINT:
         {
@@ -201,12 +204,92 @@ LRESULT CALLBACK apl_main_window_callback(HWND window, UINT message, WPARAM wpar
             EndPaint(window, &paint);
             
         } break;
+        case WM_SYSKEYUP:
+        /* fall through */
+        case WM_KEYUP:
+        /* fall through */
+        case WM_SYSKEYDOWN:
+        /* fall through */
+        case WM_KEYDOWN:
+        {
+            WPARAM VK_code = wparam;
+            bool was_down = ((lparam & (1 << 30)) != 0);
+            bool is_down = ((lparam & (1 << 31)) == 0);
+            if (is_down == was_down) {
+                break;
+            }
+            switch (VK_code) {
+                case 'Q':
+                {
+                    if (is_down)  ws->buttons.q_is_pressed = true;
+                    if (was_down) ws->buttons.q_is_pressed = false;
+                } break;
+                case 'W':
+                {
+                    if (is_down)  ws->buttons.w_is_pressed = true;
+                    if (was_down) ws->buttons.w_is_pressed = false;
+                } break;
+                case 'E':
+                {
+                    if (is_down)  ws->buttons.e_is_pressed = true;
+                    if (was_down) ws->buttons.e_is_pressed = false;
+                } break;
+                case 'A':
+                {
+                    if (is_down)  ws->buttons.a_is_pressed = true;
+                    if (was_down) ws->buttons.a_is_pressed = false;
+                } break;
+                case 'S':
+                {
+                    if (is_down)  ws->buttons.s_is_pressed = true;
+                    if (was_down) ws->buttons.s_is_pressed = false;
+                } break;
+                case 'D':
+                {
+                    if (is_down)  ws->buttons.d_is_pressed = true;
+                    if (was_down) ws->buttons.d_is_pressed = false;
+                } break;
+                case VK_UP:
+                {
+                    if (is_down)  ws->buttons.up_is_pressed = true;
+                    if (was_down) ws->buttons.up_is_pressed = false;
+                } break;
+                case VK_DOWN:
+                {
+                    if (is_down)  ws->buttons.down_is_pressed = true;
+                    if (was_down) ws->buttons.down_is_pressed = false;
+                } break;
+                case VK_LEFT:
+                {
+                    if (is_down)  ws->buttons.left_is_pressed = true;
+                    if (was_down) ws->buttons.left_is_pressed = false;
+                } break;
+                case VK_RIGHT:
+                {
+                    if (is_down)  ws->buttons.right_is_pressed = true;
+                    if (was_down) ws->buttons.right_is_pressed = false;
+                } break;
+                case VK_SPACE:
+                {
+                    if (is_down)  ws->buttons.space_bar_is_pressed = true;
+                    if (was_down) ws->buttons.space_bar_is_pressed = false;
+                } break;
+                case VK_ESCAPE:
+                {
+                    PostQuitMessage(0);
+                    ws->running = false;
+                } break;
+                default:
+                {
+                } break;
+            }
+        } break;
         default:
         {
-            result = DefWindowProcA(window, message, wparam, lparam);
         } break;
     }
 
+    result = DefWindowProcA(window, message, wparam, lparam);
     return result;
 }
 
@@ -227,7 +310,7 @@ char * apl_platform_name(void)
     return APL_PLATFORM_NAME;
 }
 
-void apl_resize_window_pixel_mat(struct Apl_Window_State *ws, size_t new_w, size_t new_h)
+enum Apl_Return_Types apl_resize_window_pixel_mat(struct Apl_Window_State *ws, size_t new_w, size_t new_h)
 {
     ws->window_w = apl_max(new_w, 1); /* 1 so the pixel mat want be null */
     ws->window_h = apl_max(new_h, 1); /* 1 so the pixel mat want be null */
@@ -242,23 +325,30 @@ void apl_resize_window_pixel_mat(struct Apl_Window_State *ws, size_t new_w, size
     ws->platform.bit_map_info.bmiHeader.biCompression = BI_RGB;
 
     ws->window_pixels_mat = mat2D_realloc_uint32(ws->window_pixels_mat, ws->window_h, ws->window_w);
-    apl_window_render(ws);
+    if (!ws->window_pixels_mat.elements) {
+        apl_dprintERROR("%s", "realloc pixel mat failed");
+        return APL_FAIL;
+    }
+    return apl_window_render(ws);
 }
 
 enum Apl_Return_Types apl_window_destroy(struct Apl_Window_State *ws)
 {
     /*------------------------------------------------------------*/
-
-    apl_destroy(ws);
-
-    return APL_OK;
+    if (apl_destroy(ws) != APL_SUCCESS) {
+        apl_dprintERROR("%s", "apl_destroy failed");
+        return APL_FAIL;
+    }
+    return APL_SUCCESS;
 }
 
 enum Apl_Return_Types apl_window_process_input(struct Apl_Window_State *ws)
 {
-    APL_UNUSED(ws);
-
-    return APL_OK;
+    if (apl_input(ws) != APL_SUCCESS) {
+        apl_dprintERROR("%s", "apl_input failed");
+        return APL_FAIL;
+    }
+    return APL_SUCCESS;
 }
 
 enum Apl_Return_Types apl_window_render(struct Apl_Window_State *ws)
@@ -268,7 +358,10 @@ enum Apl_Return_Types apl_window_render(struct Apl_Window_State *ws)
     }
     /*------------------------------------------------------------*/
 
-    apl_render(ws);
+    if (apl_render(ws) != APL_SUCCESS) {
+        apl_dprintERROR("%s", "apl_render failed");
+        return APL_FAIL;
+    }
             
     /*------------------------------------------------------------*/
     apl_pixel_mat_copy_to_screen(ws);
@@ -280,12 +373,18 @@ enum Apl_Return_Types apl_window_setup(struct Apl_Window_State *ws)
 {
     RECT client_rect = {0};
     GetClientRect(ws->platform.window_handle, &client_rect); /* client rect are the pixel we can draw at */
-    apl_resize_window_pixel_mat(ws, client_rect.right - client_rect.left, client_rect.bottom - client_rect.top); /* allocate a pixel mat */
+    /* allocate a pixel mat */
+    if (apl_resize_window_pixel_mat(ws, client_rect.right - client_rect.left, client_rect.bottom - client_rect.top) != APL_SUCCESS) {
+        apl_dprintERROR("%s", "resize window pixel mat failed");
+        return APL_FAIL;
+    }
     
     /*------------------------------------------------------------*/
 
-    apl_setup(ws);
-
+    if (apl_setup(ws) != APL_SUCCESS) {
+        apl_dprintERROR("%s", "apl_setup failed");
+        return APL_FAIL;
+    }
     return APL_OK;
 }
 
@@ -293,7 +392,10 @@ enum Apl_Return_Types apl_window_update(struct Apl_Window_State *ws)
 {
     /*------------------------------------------------------------*/
 
-    apl_update(ws);
+    if (apl_update(ws) != APL_SUCCESS) {
+        apl_dprintERROR("%s", "apl_update failed");
+        return APL_FAIL;
+    }
 
     return APL_OK;
 }
@@ -329,14 +431,14 @@ int main(void)
     // window_state.fps = 0;
     window_state.const_fps = APL_TARGET_FPS;
     window_state.frame_target_time = APL_FRAME_TARGET_TIME;
-    // window_state.space_bar_was_pressed = 0;
-    // window_state.w_was_pressed = 0;
-    // window_state.s_was_pressed = 0;
-    // window_state.a_was_pressed = 0;
-    // window_state.d_was_pressed = 0;
-    // window_state.e_was_pressed = 0;
-    // window_state.q_was_pressed = 0;
-    // window_state.left_button_pressed = 0;
+    // window_state.buttons.space_bar_is_pressed = 0;
+    // window_state.buttons.w_is_pressed = 0;
+    // window_state.buttons.s_is_pressed = 0;
+    // window_state.buttons.a_is_pressed = 0;
+    // window_state.buttons.d_is_pressed = 0;
+    // window_state.buttons.e_is_pressed = 0;
+    // window_state.buttons.q_is_pressed = 0;
+    // window_state.buttons.left_button_pressed = 0;
     window_state.window_w = APL_INIT_WINDOW_WIDTH;
     window_state.window_h = APL_INIT_WINDOW_HEIGHT;
     // Mat2D_uint32 window_pixels_mat;
@@ -426,6 +528,11 @@ int main(void)
 #ifndef APL_DESTROY
 #define APL_DESTROY
 enum Apl_Return_Types apl_destroy(struct Apl_Window_State *ws) { APL_UNUSED(ws); return APL_OK; }
+#endif
+
+#ifndef APL_INPUT
+#define APL_INPUT
+enum Apl_Return_Types apl_input(struct Apl_Window_State *ws) { APL_UNUSED(ws); return APL_OK; }
 #endif
 
 #ifndef APL_SETUP
