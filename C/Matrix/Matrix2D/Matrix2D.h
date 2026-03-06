@@ -246,8 +246,8 @@ typedef struct {
 
 #define mat2D_normalize_inf(m) mat2D_mult((m), 1.0 / mat2D_calc_norma_inf((m)))
 
-#define mat2D_min(a, b) (a) < (b) ? (a) : (b)
-#define mat2D_max(a, b) (a) > (b) ? (a) : (b)
+#define mat2D_min(a, b) ((a) < (b) ? (a) : (b))
+#define mat2D_max(a, b) ((a) > (b) ? (a) : (b))
 
 #define mat2D_dprintDOUBLE(expr) printf(#expr " = %#g\n", expr)
 
@@ -319,6 +319,7 @@ int             mat2D_power_iterate(Mat2D A, Mat2D v, double *lambda, double shi
 void            mat2D_print(Mat2D m, const char *name, size_t padding);
 void            mat2D_print_uint32(Mat2D_uint32 m, const char *name, size_t padding);
 void            mat2D_print_as_col(Mat2D m, const char *name, size_t padding);
+void            mat2D_project_out_columns(Mat2D v, Mat2D basis, size_t used_cols);
 
 void            mat2D_rand(Mat2D m, double low, double high);
 double          mat2D_rand_double(void);
@@ -946,6 +947,103 @@ void mat2D_eig_check(Mat2D A, Mat2D eigenvalues, Mat2D eigenvectors, Mat2D res)
  *
  * @pre A is square; eigenvalues/eigenvectors are N x N; init_vector is N x 1.
  */
+#if 1
+void mat2D_eig_power_iteration(
+    Mat2D A,
+    Mat2D eigenvalues,
+    Mat2D eigenvectors,
+    Mat2D init_vector,
+    bool norm_inf_vectors
+)
+{
+    MAT2D_ASSERT(A.cols == A.rows);
+    MAT2D_ASSERT(eigenvalues.cols == A.cols);
+    MAT2D_ASSERT(eigenvalues.rows == A.rows);
+    MAT2D_ASSERT(eigenvectors.cols == A.cols);
+    MAT2D_ASSERT(eigenvectors.rows == A.rows);
+    MAT2D_ASSERT(init_vector.cols == 1);
+    MAT2D_ASSERT(init_vector.rows == A.rows);
+    MAT2D_ASSERT(mat2D_calc_norma_inf(init_vector) > 0);
+
+    mat2D_fill(eigenvalues, 0);
+    Mat2D B = mat2D_alloc(A.rows, A.cols);
+    Mat2D temp_mat = mat2D_alloc(A.rows, A.cols);
+    mat2D_copy(B, A);
+
+    for (int i = 0; i < (int)A.rows; i++) {
+        int shift_value = 0;
+        int retries = 0;
+        const int max_retries = 32;
+
+        for (;;) {
+            mat2D_copy_src_to_des_window(
+                eigenvectors,
+                init_vector,
+                0,
+                i,
+                init_vector.rows - 1,
+                i
+            );
+
+            Mat2D v = {
+                .cols = init_vector.cols,
+                .elements = &MAT2D_AT(eigenvectors, 0, i),
+                .rows = init_vector.rows,
+                .stride_r = eigenvectors.stride_r,
+            };
+
+            mat2D_project_out_columns(v, eigenvectors, i);
+            if (!MAT2D_IS_ZERO(mat2D_calc_norma(v))) {
+                mat2D_normalize(v);
+            }
+
+            if (mat2D_power_iterate(
+                    B,
+                    v,
+                    &MAT2D_AT(eigenvalues, i, i),
+                    shift_value,
+                    false
+                ) == 0) {
+                if (!MAT2D_IS_ZERO(mat2D_calc_norma(v))) {
+                    mat2D_normalize(v);
+                }
+                mat2D_outer_product(temp_mat, v);
+                mat2D_mult(temp_mat, MAT2D_AT(eigenvalues, i, i));
+                mat2D_sub(B, temp_mat);
+                break;
+            }
+
+            shift_value++;
+            retries++;
+            if (retries >= max_retries) {
+                fprintf(
+                    stderr,
+                    "mat2D_eig_power_iteration: failed to converge for "
+                    "eigenpair %d after %d retries\n",
+                    i,
+                    retries
+                );
+                MAT2D_ASSERT(0);
+            }
+        }
+    }
+
+    if (norm_inf_vectors) {
+        for (size_t c = 0; c < eigenvectors.cols; c++) {
+            Mat2D v = {
+                .cols = init_vector.cols,
+                .elements = &MAT2D_AT(eigenvectors, 0, c),
+                .rows = init_vector.rows,
+                .stride_r = eigenvectors.stride_r,
+            };
+            mat2D_normalize_inf(v);
+        }
+    }
+
+    mat2D_free(B);
+    mat2D_free(temp_mat);
+}
+#else
 void mat2D_eig_power_iteration(Mat2D A, Mat2D eigenvalues, Mat2D eigenvectors, Mat2D init_vector, bool norm_inf_vectors)
 {
     /* https://www.youtube.com/watch?v=c8DIOzuZqBs */
@@ -964,7 +1062,7 @@ void mat2D_eig_power_iteration(Mat2D A, Mat2D eigenvalues, Mat2D eigenvectors, M
     MAT2D_ASSERT(init_vector.rows == A.rows);
     MAT2D_ASSERT(mat2D_calc_norma_inf(init_vector) > 0);
 
-    mat2D_set_identity(eigenvalues);
+    mat2D_fill(eigenvalues, 0);
     Mat2D B = mat2D_alloc(A.rows, A.cols);
     Mat2D temp_mat = mat2D_alloc(A.rows, A.cols);
     mat2D_copy(B, A);
@@ -975,12 +1073,19 @@ void mat2D_eig_power_iteration(Mat2D A, Mat2D eigenvalues, Mat2D eigenvectors, M
                    .elements = &MAT2D_AT(eigenvectors, 0, i),
                    .rows = init_vector.rows,
                    .stride_r = eigenvectors.stride_r};
+        mat2D_project_out_columns(v, eigenvectors, i);
+        if (!MAT2D_IS_ZERO(mat2D_calc_norma(v))) {
+            mat2D_normalize(v);
+        }
         if (mat2D_power_iterate(B, v, &MAT2D_AT(eigenvalues, i, i), shift_value, 0)) { /* norm_inf_v must be zero*/
             shift_value++;
             i--;
             continue;
         } else {
             shift_value = 0;
+        }
+        if (!MAT2D_IS_ZERO(mat2D_calc_norma(v))) {
+            mat2D_normalize(v);
         }
         mat2D_outer_product(temp_mat, v);
         mat2D_mult(temp_mat, MAT2D_AT(eigenvalues, i, i));
@@ -1000,6 +1105,7 @@ void mat2D_eig_power_iteration(Mat2D A, Mat2D eigenvalues, Mat2D eigenvectors, M
     mat2D_free(B);
     mat2D_free(temp_mat);
 }
+#endif
 
 /**
  * @brief Fill all elements of a matrix of doubles with a scalar value.
@@ -1194,7 +1300,7 @@ void mat2D_LUP_decomposition_with_swap(Mat2D src, Mat2D l, Mat2D p, Mat2D u)
                 mat2D_swap_rows(l, i, biggest_r);
             }
         }
-        for (size_t j = i+1; j < u.cols; j++) {
+        for (size_t j = i+1; j < u.rows; j++) {
             double factor = 1 / MAT2D_AT(u, i, i);
             if (!isfinite(factor)) {
                 printf("%s:%d:\n%s:\n[Error] unable to transfrom into uper triangular matrix. Probably some of the rows are not independent.\n", __FILE__, __LINE__, __func__);
@@ -1298,19 +1404,20 @@ void mat2D_make_orthogonal_modified_Gram_Schmidt(Mat2D des, Mat2D A)
 
     size_t num_non_zero_vec = 0;
     for (size_t c = 0; c < A.cols; c++) {
-        if (MAT2D_IS_ZERO(mat2D_calc_col_norma(A, c))) {
-            break;
+        if (!MAT2D_IS_ZERO(mat2D_calc_col_norma(A, c))) {
+            num_non_zero_vec++;
         }
-        num_non_zero_vec++;
     }
-
-    mat2D_dprintSIZE_T(num_non_zero_vec);
 
     mat2D_rand(des, 1, 2);
 
     Mat2D temp_col = mat2D_alloc(des.rows, 1);
-    for (size_t c = 0; c < num_non_zero_vec; c++) {
-        mat2D_copy_col_from_src_to_des(des, c, A, c);
+    size_t out_c = 0;
+    for (size_t c = 0; c < A.cols; c++) {
+        if (!MAT2D_IS_ZERO(mat2D_calc_col_norma(A, c))) {
+            mat2D_copy_col_from_src_to_des(des, out_c, A, c);
+            out_c++;
+        }
     }
     for (size_t c = 0; c < des.cols-1; c++) {
         Mat2D vc = mat2D_create_col_ref(des, c);
@@ -1633,6 +1740,8 @@ int mat2D_power_iterate(Mat2D A, Mat2D v, double *lambda, double shift, bool nor
 
     double temp_lambda = 0;
     double diff = 0;
+    double diff1 = 0;
+    double diff2 = 0;
 
     /* Rayleigh quotient */
     mat2D_dot(temp_v, B, v);
@@ -1648,7 +1757,11 @@ int mat2D_power_iterate(Mat2D A, Mat2D v, double *lambda, double shift, bool nor
         temp_lambda = mat2D_dot_product(temp_v, v);
 
         mat2D_sub(current_v, v);
-        diff = mat2D_calc_norma_inf(current_v);
+        diff1 = mat2D_calc_norma_inf(current_v);
+        mat2D_add(current_v, v);
+        mat2D_add(current_v, v);
+        diff2 = mat2D_calc_norma_inf(current_v);
+        diff = mat2D_min(diff1, diff2);
         if (diff < MAT2D_EPS) {
             break;
         }
@@ -1720,6 +1833,25 @@ void mat2D_print_as_col(Mat2D m, const char *name, size_t padding)
             printf("%f\n", m.elements[i]);
     }
     printf("%*s]\n", (int) padding, "");
+}
+
+void mat2D_project_out_columns(Mat2D v, Mat2D basis, size_t used_cols)
+{
+    /* Gram-Schmidt */
+    MAT2D_ASSERT(v.cols == 1);
+    MAT2D_ASSERT(basis.rows == v.rows);
+
+    Mat2D temp = mat2D_alloc(v.rows, 1);
+
+    for (size_t c = 0; c < used_cols; ++c) {
+        Mat2D bc = mat2D_create_col_ref(basis, c);
+        double alpha = mat2D_dot_product(v, bc);
+        mat2D_copy(temp, bc);
+        mat2D_mult(temp, alpha);
+        mat2D_sub(v, temp);
+    }
+
+    mat2D_free(temp);
 }
 
 /**
@@ -2383,5 +2515,6 @@ double mat2D_upper_triangulate(Mat2D m, uint8_t flags)
     }
     return factor_to_return;
 }
+
 
 #endif // MATRIX2D_IMPLEMENTATION

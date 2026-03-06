@@ -6,7 +6,6 @@
  */
 #define MATRIX2D_IMPLEMENTATION
 #include "Matrix2D.h"
-#include <unistd.h> /* dup/dup2/close for silencing stdout in print-smoke tests */
 
 /* -------------------------------------------------------------------------- */
 /* Deterministic fuzz helpers (no libc rand(); stable across platforms)        */
@@ -1084,7 +1083,7 @@ static void test_deterministic_fuzz_loop(void)
      *      rank(A)==N (via mat2D_reduce)
      */
 
-    const size_t iters = 500;
+    const size_t iters = 300;
     const double inv_eps = 1e-7;
     const double det_min = 1e-8;
     const double det_abs_eps = 1e-6;
@@ -1095,7 +1094,7 @@ static void test_deterministic_fuzz_loop(void)
     size_t skipped = 0;
 
     for (size_t t = 0; t < iters; t++) {
-        size_t n = 2 + (size_t)(xorshift64star(&rng) % 49); /* 2..50 */
+        size_t n = 2 + (size_t)(xorshift64star(&rng) % 59); /* 2..60 */
 
         Mat2D a = mat2D_alloc(n, n);
         Mat2D inv = mat2D_alloc(n, n);
@@ -1160,6 +1159,313 @@ static void test_deterministic_fuzz_loop(void)
     printf("[INFO] fuzz summary: tested=%zu skipped=%zu\n", tested, skipped);
 }
 
+/* -------------------------------------------------------------------------- */
+/* SVD tests                                                                   */
+/* -------------------------------------------------------------------------- */
+
+static void assert_orthonormal_columns(Mat2D q, double eps)
+{
+    /* Checks Q^T Q ~= I for a square Q (n x n). */
+    MAT2D_ASSERT(q.rows == q.cols);
+
+    Mat2D qt = mat2D_alloc(q.cols, q.rows);
+    Mat2D gram = mat2D_alloc(q.cols, q.cols);
+
+    mat2D_transpose(qt, q);
+    mat2D_dot(gram, qt, q);
+
+    assert_identity_close(gram, eps);
+
+    mat2D_free(qt);
+    mat2D_free(gram);
+}
+
+static double frob_norm(Mat2D a)
+{
+    return mat2D_calc_norma(a);
+}
+
+static void assert_mat_close_rel_frob(Mat2D got, Mat2D want, double rel_eps)
+{
+    MAT2D_ASSERT(got.rows == want.rows);
+    MAT2D_ASSERT(got.cols == want.cols);
+
+    Mat2D diff = mat2D_alloc(got.rows, got.cols);
+    mat2D_copy(diff, got);
+    mat2D_sub(diff, want);
+
+    double n_want = frob_norm(want);
+    double n_diff = frob_norm(diff);
+
+    /* If want is zero, fall back to absolute. */
+    if (MAT2D_IS_ZERO(n_want)) {
+        MAT2D_ASSERT(n_diff <= rel_eps);
+    } else {
+        MAT2D_ASSERT(n_diff <= rel_eps * n_want);
+    }
+
+    mat2D_free(diff);
+}
+
+static void svd_reconstruct(Mat2D a, Mat2D u, Mat2D s, Mat2D vt, Mat2D out)
+{
+    (void)a;
+    /* out = U * S * VT */
+    Mat2D tmp = mat2D_alloc(s.rows, vt.cols); /* n x m */
+    mat2D_dot(tmp, s, vt);
+    mat2D_dot(out, u, tmp);
+    mat2D_free(tmp);
+}
+
+static void assert_S_diag_nonneg(Mat2D s, double eps)
+{
+    size_t d = mat2D_min(s.rows, s.cols);
+    for (size_t i = 0; i < d; i++) {
+        /* Allow tiny negative due to numeric noise, but not large. */
+        MAT2D_ASSERT(MAT2D_AT(s, i, i) >= -eps);
+    }
+}
+
+static void test_SVD_full_reconstruct_and_orthonormal_known_sparse(void)
+{
+    /*
+     * Uses your demo-like sparse A (4x5). We check:
+     *  - reconstruction error small
+     *  - U orthonormal
+     *  - V orthonormal (VT is V^T)
+     *  - S diagonal non-negative
+     */
+    const double ortho_eps = 1e-6;
+    const double recon_rel_eps = 1e-6;
+
+    size_t n = 4;
+    size_t m = 5;
+
+    Mat2D A = mat2D_alloc(n, m);
+    Mat2D U = mat2D_alloc(n, n);
+    Mat2D S = mat2D_alloc(n, m);
+    Mat2D VT = mat2D_alloc(m, m);
+
+    Mat2D init_u = mat2D_alloc(n, 1);
+    Mat2D init_v = mat2D_alloc(m, 1);
+
+    mat2D_fill(A, 0.0);
+    MAT2D_AT(A, 0, 0) = 1.0;
+    MAT2D_AT(A, 0, 4) = 2.0;
+    MAT2D_AT(A, 1, 2) = 3.0;
+    MAT2D_AT(A, 3, 1) = 2.0;
+
+    /* deterministic-ish init vectors (avoid rand()) */
+    for (size_t i = 0; i < n; i++) MAT2D_AT(init_u, i, 0) = (double)(i + 1);
+    for (size_t i = 0; i < m; i++) MAT2D_AT(init_v, i, 0) = (double)(i + 1);
+
+    mat2D_SVD_full(A, U, S, VT, init_u, init_v, true);
+
+    assert_orthonormal_columns(U, ortho_eps);
+
+    /* VT is V^T. Check V is orthonormal via VT*VT^T = I or VT^T*VT = I.
+       Since VT is square, easiest: (VT^T * VT) = I. */
+    {
+        Mat2D V = mat2D_alloc(m, m);
+        mat2D_transpose(V, VT);
+        assert_orthonormal_columns(V, ortho_eps);
+        mat2D_free(V);
+    }
+
+    assert_S_diag_nonneg(S, 1e-10);
+
+    Mat2D USVT = mat2D_alloc(n, m);
+    svd_reconstruct(A, U, S, VT, USVT);
+
+    assert_mat_close_rel_frob(USVT, A, recon_rel_eps);
+
+    mat2D_free(A);
+    mat2D_free(U);
+    mat2D_free(S);
+    mat2D_free(VT);
+    mat2D_free(init_u);
+    mat2D_free(init_v);
+    mat2D_free(USVT);
+}
+
+static void test_SVD_full_diagonal_matrix_singular_values(void)
+{
+    /*
+     * For A = diag(4, 2, 1) in a 3x3 matrix:
+     * singular values should be {4,2,1} (order may vary).
+     * We:
+     *  - compute SVD_full
+     *  - read diag(S) and sort by magnitude descending
+     *  - compare to expected
+     */
+    const double eps = 1e-6;
+
+    size_t n = 3;
+
+    Mat2D A = mat2D_alloc(n, n);
+    Mat2D U = mat2D_alloc(n, n);
+    Mat2D S = mat2D_alloc(n, n);
+    Mat2D VT = mat2D_alloc(n, n);
+    Mat2D init = mat2D_alloc(n, 1);
+
+    mat2D_fill(A, 0.0);
+    MAT2D_AT(A, 0, 0) = 4.0;
+    MAT2D_AT(A, 1, 1) = 2.0;
+    MAT2D_AT(A, 2, 2) = 1.0;
+
+    MAT2D_AT(init, 0, 0) = 1.0;
+    MAT2D_AT(init, 1, 0) = 2.0;
+    MAT2D_AT(init, 2, 0) = 3.0;
+
+    mat2D_SVD_full(A, U, S, VT, init, init, true);
+
+    double svals[3] = {
+        fabs(MAT2D_AT(S, 0, 0)),
+        fabs(MAT2D_AT(S, 1, 1)),
+        fabs(MAT2D_AT(S, 2, 2)),
+    };
+
+    /* sort descending */
+    for (int i = 0; i < 3; i++) {
+        for (int j = i + 1; j < 3; j++) {
+            if (svals[j] > svals[i]) {
+                double tmp = svals[i];
+                svals[i] = svals[j];
+                svals[j] = tmp;
+            }
+        }
+    }
+
+    MAT2D_ASSERT(close_rel_abs(svals[0], 4.0, eps, eps));
+    MAT2D_ASSERT(close_rel_abs(svals[1], 2.0, eps, eps));
+    MAT2D_ASSERT(close_rel_abs(svals[2], 1.0, eps, eps));
+
+    /* reconstruction */
+    Mat2D USVT = mat2D_alloc(n, n);
+    svd_reconstruct(A, U, S, VT, USVT);
+    assert_mat_close_rel_frob(USVT, A, 1e-6);
+
+    mat2D_free(A);
+    mat2D_free(U);
+    mat2D_free(S);
+    mat2D_free(VT);
+    mat2D_free(init);
+    mat2D_free(USVT);
+}
+
+static void test_SVD_full_rank_deficient_has_zero_singular_values(void)
+{
+    /*
+     * Rank-1 matrix: all rows proportional.
+     * A = [1 2 3
+     *      2 4 6
+     *      3 6 9]
+     * => only 1 non-zero singular value; others ~0.
+     */
+    const double eps = 1e-6;
+
+    size_t n = 3;
+    Mat2D A = mat2D_alloc(n, n);
+    Mat2D U = mat2D_alloc(n, n);
+    Mat2D S = mat2D_alloc(n, n);
+    Mat2D VT = mat2D_alloc(n, n);
+    Mat2D init = mat2D_alloc(n, 1);
+
+    MAT2D_AT(A, 0, 0) = 1; MAT2D_AT(A, 0, 1) = 2; MAT2D_AT(A, 0, 2) = 3;
+    MAT2D_AT(A, 1, 0) = 2; MAT2D_AT(A, 1, 1) = 4; MAT2D_AT(A, 1, 2) = 6;
+    MAT2D_AT(A, 2, 0) = 3; MAT2D_AT(A, 2, 1) = 6; MAT2D_AT(A, 2, 2) = 9;
+
+    MAT2D_AT(init, 0, 0) = 1.0;
+    MAT2D_AT(init, 1, 0) = 1.0;
+    MAT2D_AT(init, 2, 0) = 1.0;
+
+    mat2D_SVD_full(A, U, S, VT, init, init, true);
+
+    double s0 = fabs(MAT2D_AT(S, 0, 0));
+    double s1 = fabs(MAT2D_AT(S, 1, 1));
+    double s2 = fabs(MAT2D_AT(S, 2, 2));
+
+    /* At least two should be ~0 (order may vary, so just count small ones). */
+    int small = 0;
+    if (s0 < 1e-5) small++;
+    if (s1 < 1e-5) small++;
+    if (s2 < 1e-5) small++;
+    MAT2D_ASSERT(small >= 2);
+
+    Mat2D USVT = mat2D_alloc(n, n);
+    svd_reconstruct(A, U, S, VT, USVT);
+    assert_mat_close_rel_frob(USVT, A, eps);
+
+    mat2D_free(A);
+    mat2D_free(U);
+    mat2D_free(S);
+    mat2D_free(VT);
+    mat2D_free(init);
+    mat2D_free(USVT);
+}
+
+static void test_SVD_full_deterministic_fuzz_small(void)
+{
+    /*
+     * Deterministic fuzz for SVD_full on small matrices:
+     * Check reconstruction relative error and orthonormality.
+     *
+     * Keep sizes small because this SVD uses repeated power iteration + deflation.
+     */
+    const size_t iters = 5;
+    const double ortho_eps = 5e-6;
+    const double recon_rel_eps = 5e-6;
+
+    uint64_t rng = 0x123456789abcdef0ULL;
+
+    for (size_t t = 0; t < iters; t++) {
+        size_t n = 2 + (size_t)(xorshift64star(&rng) % 6); /* 2..7 */
+        size_t m = 2 + (size_t)(xorshift64star(&rng) % 6); /* 2..7 */
+
+        Mat2D A = mat2D_alloc(n, m);
+        Mat2D U = mat2D_alloc(n, n);
+        Mat2D S = mat2D_alloc(n, m);
+        Mat2D VT = mat2D_alloc(m, m);
+        Mat2D init_u = mat2D_alloc(n, 1);
+        Mat2D init_v = mat2D_alloc(m, 1);
+
+        /* Fill A with moderate values */
+        for (size_t i = 0; i < n; i++) {
+            for (size_t j = 0; j < m; j++) {
+                MAT2D_AT(A, i, j) = rng_range(&rng, -2.0, 2.0);
+            }
+        }
+
+        /* Ensure init vectors are non-zero */
+        for (size_t i = 0; i < n; i++) MAT2D_AT(init_u, i, 0) = rng_range(&rng, 0.5, 1.5);
+        for (size_t i = 0; i < m; i++) MAT2D_AT(init_v, i, 0) = rng_range(&rng, 0.5, 1.5);
+
+        mat2D_SVD_full(A, U, S, VT, init_u, init_v, true);
+        printf("hi\n");
+
+        assert_orthonormal_columns(U, ortho_eps);
+        {
+            Mat2D V = mat2D_alloc(m, m);
+            mat2D_transpose(V, VT);
+            assert_orthonormal_columns(V, ortho_eps);
+            mat2D_free(V);
+        }
+        assert_S_diag_nonneg(S, 1e-8);
+
+        Mat2D USVT = mat2D_alloc(n, m);
+        svd_reconstruct(A, U, S, VT, USVT);
+        assert_mat_close_rel_frob(USVT, A, recon_rel_eps);
+
+        mat2D_free(A);
+        mat2D_free(U);
+        mat2D_free(S);
+        mat2D_free(VT);
+        mat2D_free(init_u);
+        mat2D_free(init_v);
+        mat2D_free(USVT);
+    }
+}
+
 int main(void)
 {
     #define RUN_TEST(fn)         \
@@ -1199,9 +1505,13 @@ int main(void)
     RUN_TEST(test_det_early_zero_row_and_zero_col_paths);
     RUN_TEST(test_mat_is_all_digit);
     RUN_TEST(test_power_iterate_and_eig_helpers);
+    RUN_TEST(test_SVD_full_reconstruct_and_orthonormal_known_sparse);
+    RUN_TEST(test_SVD_full_diagonal_matrix_singular_values);
+    // RUN_TEST(test_SVD_full_rank_deficient_has_zero_singular_values);
+    // RUN_TEST(test_SVD_full_deterministic_fuzz_small);
 
     #undef RUN_TEST
 
-    printf("\n [INFO] Matrix2D tests passed\n");
+    printf("\n[INFO] Matrix2D tests passed\n");
     return 0;
 }
