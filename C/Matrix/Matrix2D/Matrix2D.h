@@ -973,7 +973,7 @@ void mat2D_eig_power_iteration(
     for (int i = 0; i < (int)A.rows; i++) {
         int shift_value = 0;
         int retries = 0;
-        const int max_retries = 32;
+        const int max_retries = MAT2D_MAX_POWER_ITERATION;
 
         for (;;) {
             mat2D_copy_src_to_des_window(

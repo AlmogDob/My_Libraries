@@ -24,6 +24,7 @@ int main(void)
     MAT2D_AT(A, 0, 4) = 2;
     MAT2D_AT(A, 1, 2) = 3;
     MAT2D_AT(A, 3, 1) = 2;
+    MAT2D_AT(A, 3, 4) = 5;
 
     mat2D_SVD_full(A, U, S, VT, init_vec_u, init_vec_v, 1);
     // mat2D_SVD_thin(A, U, S, VT, init_vec_u, init_vec_v, 1);
