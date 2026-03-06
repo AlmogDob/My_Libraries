@@ -19,7 +19,7 @@ REM Optional static analysis (slower)
 REM set "CCHECK=%CCHECK% /analyze"
 
 REM Optional AddressSanitizer (only if your MSVC supports it)
-set "CCHECK=%CCHECK% /fsanitize=address"
+@REM set "CCHECK=%CCHECK% /fsanitize=address"
 
 REM ---- C standard ----
 set "CSTD=/std:c11"

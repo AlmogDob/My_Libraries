@@ -152,7 +152,7 @@ enum Apl_Return_Types apl_initialize_main_window(struct Apl_Window_State *ws, ch
                                          APL_INIT_WINDOW_HEIGHT,
                                          0,
                                          0,
-                                         GetModuleHandleA(NULL),
+                                         ws->platform.window_class.hInstance,
                                          ws);
     if (!window_handle) {
         apl_dprintERROR("%s", "failed to create window\n");
