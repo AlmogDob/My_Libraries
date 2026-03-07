@@ -11,15 +11,11 @@ set "CWARN=/nologo /W4 /wd4996"
 REM Optional: treat warnings as errors
 REM set "CWARN=%CWARN% /WX"
 
-REM ---- "Checks" equivalents ----
-REM /RTC1 only works with /Od (debug-ish); using /MDd for debug CRT
-set "CCHECK=/Zi /Od /MDd /DDEBUG"
-
-REM Optional static analysis (slower)
-REM set "CCHECK=%CCHECK% /analyze"
-
-REM Optional AddressSanitizer (only if your MSVC supports it)
-set "CCHECK=%CCHECK% /fsanitize=address"
+REM ---- Build mode flags are selected later ----
+REM Debug defaults:
+REM   /Zi /Od /MDd /DDEBUG
+REM Release defaults:
+REM   /O2 /DNDEBUG /MD
 
 REM ---- C standard ----
 set "CSTD=/std:c11"
@@ -35,6 +31,7 @@ REM ============================================================
 set "NOCLEAN=0"
 set "BUILDONLY=0"
 set "CLEANONLY=0"
+set "RELEASE=0"
 set "FILES="
 
 :parse
@@ -46,6 +43,8 @@ if /i "%~1"=="--build-only" (set "BUILDONLY=1" & shift & goto parse)
 if /i "%~1"=="-b"           (set "BUILDONLY=1" & shift & goto parse)
 if /i "%~1"=="--clean-only" (set "CLEANONLY=1" & shift & goto parse)
 if /i "%~1"=="-c"           (set "CLEANONLY=1" & shift & goto parse)
+if /i "%~1"=="--release"    (set "RELEASE=1"   & shift & goto parse)
+if /i "%~1"=="-r"           (set "RELEASE=1"   & shift & goto parse)
 
 REM Otherwise treat as file
 set "FILES=!FILES! "%~1""
@@ -54,9 +53,27 @@ goto parse
 
 :doneparse
 
+
+REM ============================================================
+REM Select build mode flags
+REM ============================================================
+if "%RELEASE%"=="1" (
+  set "CCHECK=/O2 /GL /Gy /MT /DNDEBUG"
+  set "CLINKS=/link /LTCG /OPT:REF /OPT:ICF"
+) else (
+  REM /RTC1 only works with /Od (debug-ish); using /MDd for debug CRT
+  set "CCHECK=/Zi /Od /MDd /DDEBUG /RTC1"
+
+  REM Optional static analysis (slower)
+  REM set "CCHECK=%CCHECK% /analyze"
+
+  REM Optional AddressSanitizer (only if your MSVC supports it)
+  @REM set "CCHECK=%CCHECK% /fsanitize=address"
+)
+
 if not defined FILES (
   set "FAIL_RC=1"
-  set "FAIL_MSG=Usage: %~nx0 <file1.c> [file2.c ...] [--no-clean|-nc] [--build-only|-b] [--clean-only|-c]"
+  set "FAIL_MSG=Usage: %~nx0 <file1.c> [file2.c ...] [--no-clean|-nc] [--build-only|-b] [--clean-only|-c] [--release|-r]"
   goto fail
 )
 
@@ -185,7 +202,11 @@ set "SRC=%~1"
 set "NAME=%~n1"
 set "NAME_AND_EXTENSION=%~nx1"
 
-echo [INFO] building:
+if "%RELEASE%"=="1" (
+  echo [INFO] building release:
+) else (
+  echo [INFO] building debug:
+)
 
 cl.exe %CWARN% %CCHECK% %CSTD% "%SRC%" ^
   /Fe:"%BUILDDIR%\%NAME%.exe" ^
