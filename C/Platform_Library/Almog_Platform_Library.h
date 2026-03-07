@@ -13,6 +13,8 @@
 #define APL_PLATFORM_NAME "Windows"
 
 #include <windows.h>
+#include <dbghelp.h>
+#pragma comment(lib, "Dbghelp.lib")
 #pragma comment(lib, "user32.lib")
 #pragma comment(lib, "Gdi32.lib")
 
@@ -36,21 +38,22 @@ struct Apl_Window_State {
         HWND window_handle;
         WNDPROC window_call_back;
         BITMAPINFO bit_map_info;
+        size_t previous_frame_ticks;
     } platform;
 
     bool running;
     bool to_render;
     bool to_update;
-    size_t previous_frame_time;
     bool to_limit_fps;
     bool to_clear_renderer;
     bool to_flip_y;
 
-    float delta_time;
-    float elapsed_time;
+    float delta_time_sec;
+    size_t delta_time_micro_sec;
+    size_t elapsed_time_micro_sec;
+    size_t previous_frame_time_micro_sec;
     float fps;
-    float const_fps;
-    float frame_target_time;
+    float wanted_fps;
 
     struct {
         bool space_bar_is_pressed;
@@ -76,6 +79,12 @@ struct Apl_Window_State {
 #define APL_OK APL_SUCCESS
 #define APL_UNUSED(x) (void)x
 
+#define apl_dprintSTRING(expr) printf("[Info] %s:%d:\n" #expr " = %s\n", __FILE__, __LINE__, expr)
+#define apl_dprintCHAR(expr) printf("[Info] %s:%d:\n" #expr " = %c\n", __FILE__, __LINE__, expr)
+#define apl_dprintINT(expr) printf("[Info] %s:%d:\n" #expr " = %d\n", __FILE__, __LINE__, expr)
+#define apl_dprintFLOAT(expr) printf("[Info] %s:%d:\n" #expr " = %#g\n", __FILE__, __LINE__, expr)
+#define apl_dprintDOUBLE(expr) printf("[Info] %s:%d:\n" #expr " = %#g\n", __FILE__, __LINE__, expr)
+#define apl_dprintSIZE_T(expr) printf("[Info] %s:%d:\n" #expr " = %zu\n", __FILE__, __LINE__, expr)
 #define apl_dprintINFO(fmt, ...) \
     fprintf(stderr, "[Info] %s:%d:\n%*sIn function '%s':\n%*s" fmt "\n", __FILE__, __LINE__, 7, "", __func__, 7, "", __VA_ARGS__)
 #define apl_dprintWARNING(fmt, ...) \
@@ -88,7 +97,7 @@ struct Apl_Window_State {
 #define APL_INIT_WINDOW_WIDTH 800
 #define APL_INIT_WINDOW_HEIGHT 600
 #define APL_TARGET_FPS 100
-#define APL_FRAME_TARGET_TIME (1000 / APL_TARGET_FPS)
+#define APL_DELTA_TIME_MAX_MICRO_SEC (10 * 60 * 1000 * 1000)
 
 #define APL_COLOR_GRAY_hexARGB      0xFF181818
 #define APL_COLOR_RED_hexARGB       0xFFFF0000
@@ -102,11 +111,16 @@ struct Apl_Window_State {
 #define APL_BACKGROUND_COLOR_hexARGB APL_COLOR_GRAY_hexARGB
 
 
+void                    apl_fix_framerate(struct Apl_Window_State *ws);
+const char *            apl_get_exception_name(DWORD code);
 enum Apl_Return_Types   apl_initialize_main_window(struct Apl_Window_State *ws, char *name);
 LRESULT CALLBACK        apl_main_window_callback(HWND window, UINT message, WPARAM wparam, LPARAM lparam);
 void                    apl_pixel_mat_copy_to_screen(struct Apl_Window_State *ws);
 char *                  apl_platform_name(void);
+void                    apl_print_module_plus_offset(DWORD64 instruction_pointer);
 enum Apl_Return_Types   apl_resize_window_pixel_mat(struct Apl_Window_State *ws, size_t new_w, size_t new_h);
+void                    apl_sleep(size_t wait_time_us);
+LONG WINAPI             apl_unhandled_exception_filter(EXCEPTION_POINTERS *ep);
 enum Apl_Return_Types   apl_window_destroy(struct Apl_Window_State *ws);
 enum Apl_Return_Types   apl_window_process_input(struct Apl_Window_State *ws);
 enum Apl_Return_Types   apl_window_render(struct Apl_Window_State *ws);
@@ -124,6 +138,45 @@ enum Apl_Return_Types   apl_update(struct Apl_Window_State *ws);
 
 #ifdef ALMOG_PLATFORM_LIBRARY_IMPLEMENTATION
 #undef ALMOG_PLATFORM_LIBRARY_IMPLEMENTATION
+
+void apl_fix_framerate(struct Apl_Window_State *ws)
+{
+    LARGE_INTEGER count_freq;
+    QueryPerformanceFrequency(&count_freq);
+    LARGE_INTEGER current_count;
+    QueryPerformanceCounter(&current_count);
+    size_t delta_ticks = current_count.QuadPart - ws->platform.previous_frame_ticks; /* count_freq is in seconds */
+    size_t delta_time_from_previous_frame_micro_sec = (1000 * 1000 * delta_ticks) / (count_freq.QuadPart);
+    size_t wanted_delta_time_from_previous_frame_micro_sec = (size_t)((1000 * 1000) / ws->wanted_fps);
+    
+    if (delta_time_from_previous_frame_micro_sec < wanted_delta_time_from_previous_frame_micro_sec && ws->to_limit_fps) {
+        size_t time_to_wait_micro_sec = wanted_delta_time_from_previous_frame_micro_sec - delta_time_from_previous_frame_micro_sec;
+        apl_sleep((time_to_wait_micro_sec / 1000));
+    }
+
+    QueryPerformanceCounter(&current_count);
+    delta_ticks = current_count.QuadPart - (ws->previous_frame_time_micro_sec / 1000) * (count_freq.QuadPart / 1000); /* count_freq is in seconds */
+    ws->delta_time_micro_sec = (1000 * 1000 * delta_ticks) / (count_freq.QuadPart);
+    ws->delta_time_sec = ws->delta_time_micro_sec / 1e6f;
+    ws->platform.previous_frame_ticks = current_count.QuadPart;
+    ws->previous_frame_time_micro_sec = (1000 * current_count.QuadPart) / (count_freq.QuadPart / 1000);
+    ws->elapsed_time_micro_sec += ws->delta_time_micro_sec * (ws->delta_time_micro_sec > APL_DELTA_TIME_MAX_MICRO_SEC ? 0 : 1);
+    ws->fps = 1.0f / ws->delta_time_sec;
+}
+
+const char * apl_get_exception_name(DWORD code)
+{
+    switch (code) {
+        case EXCEPTION_ACCESS_VIOLATION:
+            return "EXCEPTION_ACCESS_VIOLATION";
+        case EXCEPTION_IN_PAGE_ERROR:
+            return "EXCEPTION_IN_PAGE_ERROR";
+        case EXCEPTION_STACK_OVERFLOW:
+            return "EXCEPTION_STACK_OVERFLOW";
+        default:
+            return "UNKNOWN_EXCEPTION";
+    }
+}
 
 enum Apl_Return_Types apl_initialize_main_window(struct Apl_Window_State *ws, char *name)
 {
@@ -310,6 +363,37 @@ char * apl_platform_name(void)
     return APL_PLATFORM_NAME;
 }
 
+void apl_print_module_plus_offset(DWORD64 instruction_pointer)
+{
+    HMODULE mod = NULL;
+
+    if (!GetModuleHandleExA( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
+                            GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+                            (LPCSTR)(uintptr_t)instruction_pointer, &mod) && mod) {
+        fprintf(stderr, "Module: (unknown) @ %#llx\n",
+                (unsigned long long)instruction_pointer);
+    }
+    char path[MAX_PATH] = {0};
+    DWORD n = GetModuleFileNameA(mod, path, (DWORD)sizeof(path));
+    if (n == 0) {
+        strncpy(path, "<unknown module>", sizeof(path) - 1);
+    }
+
+    DWORD64 base = (DWORD64)(uintptr_t)mod;
+    DWORD64 offset = instruction_pointer - base;
+
+    // Print basename if possible (optional; keep full path if you prefer).
+    const char *base_name = path;
+    for (const char *p = path; *p; ++p) {
+        if (*p == '\\' || *p == '/') base_name = p + 1;
+    }
+
+    fprintf(stderr, "Module: %s + %#llx (base=%#llx)\n",
+            base_name,
+            (unsigned long long)offset,
+            (unsigned long long)base);
+}
+
 enum Apl_Return_Types apl_resize_window_pixel_mat(struct Apl_Window_State *ws, size_t new_w, size_t new_h)
 {
     ws->window_w = apl_max(new_w, 1); /* 1 so the pixel mat want be null */
@@ -330,6 +414,130 @@ enum Apl_Return_Types apl_resize_window_pixel_mat(struct Apl_Window_State *ws, s
         return APL_FAIL;
     }
     return apl_window_render(ws);
+}
+
+void apl_sleep(size_t wait_time_us)
+{
+    if (wait_time_us == 0) {
+        return;
+    }
+
+    LARGE_INTEGER freq;
+    QueryPerformanceFrequency(&freq);
+    LARGE_INTEGER counter;
+    QueryPerformanceCounter(&counter);
+    uint64_t start_ticks = counter.QuadPart;
+    uint64_t target_ticks = start_ticks + ((wait_time_us * (uint64_t)freq.QuadPart) / 1000000ULL);
+
+    for (;;) {
+        QueryPerformanceCounter(&counter);
+        uint64_t now_ticks = counter.QuadPart;
+        if (now_ticks >= target_ticks) {
+            break;
+        }
+
+        uint64_t remaining_ticks = target_ticks - now_ticks;
+        uint64_t remaining_us = (remaining_ticks * 1000000ULL) / (uint64_t)freq.QuadPart;
+
+        /*
+         * Sleep only while we still have a comfortable margin left.
+         * Leave the last ~2 ms for spinning to reduce overshoot.
+         */
+        if (remaining_us > 3000ULL) {
+            DWORD sleep_ms = (DWORD)((remaining_us - 2000ULL) / 1000ULL);
+            if (sleep_ms > 0) {
+                Sleep(sleep_ms);
+            } else {
+                SwitchToThread();
+            }
+        } else {
+            /*
+             * Final precise wait: spin.
+             * You can use YieldProcessor() on x86/x64 to be nicer to the CPU.
+             */
+            #if defined(_M_IX86) || defined(_M_X64)
+                YieldProcessor();
+            #endif
+        }
+    }
+}
+
+LONG WINAPI apl_unhandled_exception_filter(EXCEPTION_POINTERS *ep)
+{
+    DWORD code = ep->ExceptionRecord->ExceptionCode;
+
+    if (code != EXCEPTION_ACCESS_VIOLATION &&
+        code != EXCEPTION_IN_PAGE_ERROR &&
+        code != EXCEPTION_STACK_OVERFLOW) {
+        return EXCEPTION_CONTINUE_SEARCH;
+    }
+
+    #if defined(_M_X64) || defined(__x86_64__)
+        DWORD64 instruction_pointer = (DWORD64)ep->ContextRecord->Rip;
+    #elif defined(_M_IX86) || defined(__i386__)
+        DWORD64 instruction_pointer = (DWORD64)ep->ContextRecord->Eip;
+    #else
+        DWORD64 instruction_pointer = 0;
+    #endif
+
+    fprintf(stderr, "\nFatal exception: %s (%#08lx)\n",
+            apl_get_exception_name(code), code);
+    fprintf(stderr, "Faulting Instruction Pointer: %#llx\n",
+            (unsigned long long)instruction_pointer);
+
+    HANDLE process = GetCurrentProcess();
+    BOOL sym_ok = FALSE;
+
+    SymSetOptions(SYMOPT_LOAD_LINES | SYMOPT_UNDNAME);
+
+    if (!SymInitialize(process, NULL, TRUE)) {
+        fprintf(stderr, "SymInitialize failed; gle=%lu\n", GetLastError());
+        goto exit;
+    }
+    sym_ok = TRUE;
+
+    char buf[sizeof(SYMBOL_INFO) + MAX_SYM_NAME] = {0};
+    SYMBOL_INFO *sym = (SYMBOL_INFO *)buf;
+    sym->SizeOfStruct = sizeof(SYMBOL_INFO);
+    sym->MaxNameLen = MAX_SYM_NAME;
+
+    DWORD64 displacement64 = 0;
+
+    IMAGEHLP_LINE64 line = {0};
+    line.SizeOfStruct = sizeof(IMAGEHLP_LINE64);
+    DWORD displacement32 = 0;
+
+    BOOL have_symbol = SymFromAddr(process, instruction_pointer,
+                                   &displacement64, sym);
+    if (have_symbol) {
+        fprintf(stderr, "Function: %s + %#llx\n",
+                sym->Name,
+                (unsigned long long)displacement64);
+    } else {
+        // print module+offset as a baseline.
+        apl_print_module_plus_offset(instruction_pointer);
+        fprintf(stderr, "Function: (no symbols)\n");
+    }
+
+    BOOL have_line = SymGetLineFromAddr64(process, instruction_pointer,
+                                          &displacement32, &line);
+    if (have_line) {
+        fprintf(stderr, "Location: %s:%lu (+%lu/col %lu)\n",
+                line.FileName,
+                line.LineNumber,
+                (unsigned long)displacement32,
+                (unsigned long)displacement32);
+    } else {
+        fprintf(stderr, "Location: (no line info; ensure PDBs are available)\n");
+        // Fallback already printed module+offset above.
+    }
+
+exit:
+    if (sym_ok) {
+        SymCleanup(process);
+    }
+
+    ExitProcess(1);
 }
 
 enum Apl_Return_Types apl_window_destroy(struct Apl_Window_State *ws)
@@ -390,6 +598,16 @@ enum Apl_Return_Types apl_window_setup(struct Apl_Window_State *ws)
 
 enum Apl_Return_Types apl_window_update(struct Apl_Window_State *ws)
 {
+    char fps_count[100];
+    if (!ws->to_limit_fps) {
+        sprintf(fps_count, "dt = %5.02f [ms]", ws->delta_time_micro_sec / 1000.0f);
+    } else {
+        sprintf(fps_count, "FPS = %5.2f", ws->fps);
+    }
+    if (!(ws->elapsed_time_micro_sec % 50)) {
+        SetWindowTextA(ws->platform.window_handle, fps_count);
+    }
+
     /*------------------------------------------------------------*/
 
     if (apl_update(ws) != APL_SUCCESS) {
@@ -407,6 +625,8 @@ enum Apl_Return_Types apl_window_update(struct Apl_Window_State *ws)
  */
 int main(void) 
 {
+    SetUnhandledExceptionFilter(apl_unhandled_exception_filter);
+
     printf("hello from %s\n", apl_platform_name());
 
     struct Apl_Window_State window_state = {0};
@@ -422,15 +642,14 @@ int main(void)
     // window_state.running = 0;
     window_state.to_render = true;
     window_state.to_update = true;
-    // window_state.previous_frame_time = 0;
     window_state.to_limit_fps = true;
     window_state.to_clear_renderer = true;
     // window_state.to_flip_y;
     // window_state.delta_time = 0;
-    // window_state.elapsed_time = 0;
+    // window_state.elapsed_time_sec = 0;
+    // window_state.previous_frame_time = 0;
     // window_state.fps = 0;
-    window_state.const_fps = APL_TARGET_FPS;
-    window_state.frame_target_time = APL_FRAME_TARGET_TIME;
+    window_state.wanted_fps = APL_TARGET_FPS;
     // window_state.buttons.space_bar_is_pressed = 0;
     // window_state.buttons.w_is_pressed = 0;
     // window_state.buttons.s_is_pressed = 0;
@@ -469,7 +688,6 @@ int main(void)
      *     if (window_state.to_render) {
      *         render_window(&window_state);
      *     }
-     *     
      * }
      * destroy_window(&window_state);
      */
@@ -510,6 +728,12 @@ int main(void)
                 break;
             }
         }
+        apl_fix_framerate(&window_state);
+        /*
+        if (game_state->elapsed_time*10-(int)(game_state->elapsed_time*10) < 0.1) {
+            SDL_SetWindowTitle(game_state->window, fps_count);
+        }
+        */
     }
 
     rt = apl_window_destroy(&window_state);
@@ -537,7 +761,7 @@ enum Apl_Return_Types apl_input(struct Apl_Window_State *ws) { APL_UNUSED(ws); r
 
 #ifndef APL_SETUP
 #define APL_SETUP
-enum Apl_Return_Types apl_setup(struct Apl_Window_State *ws) { APL_UNUSED(ws); return APL_OK }
+enum Apl_Return_Types apl_setup(struct Apl_Window_State *ws) { APL_UNUSED(ws); return APL_OK; }
 #endif
 
 #ifndef APL_UPDATE
@@ -549,7 +773,6 @@ enum Apl_Return_Types apl_update(struct Apl_Window_State *ws) { APL_UNUSED(ws); 
 #define APL_RENDER
 enum Apl_Return_Types apl_render(struct Apl_Window_State *ws) { APL_UNUSED(ws); return APL_OK; }
 #endif
-
 
 #endif /* ALMOG_PLATFORM_LIBRARY_IMPLEMENTATION*/
 
