@@ -4,7 +4,7 @@
  * written by AI
  * 
  */
-#define MAT2D_DOUBLE_PRECISION
+// #define MAT2D_SINGLE_PRECISION
 #define MATRIX2D_IMPLEMENTATION
 #include "Matrix2D.h"
 
@@ -38,22 +38,22 @@ static uint64_t xorshift64star(uint64_t *state)
     return x * 2685821657736338717ULL;
 }
 
-static mat2d_real rng_unit01(uint64_t *state)
+static mat2D_real rng_unit01(uint64_t *state)
 {
-    /* Convert top 53 bits to a mat2d_real in [0, 1). */
+    /* Convert top 53 bits to a mat2D_real in [0, 1). */
     uint64_t x = xorshift64star(state);
     uint64_t top53 = x >> 11;
-    return (mat2d_real)top53 * (1.0 / 9007199254740992.0); /* 2^53 */
+    return (mat2D_real)top53 * (1.0 / 9007199254740992.0); /* 2^53 */
 }
 
-static mat2d_real rng_range(uint64_t *state, mat2d_real low, mat2d_real high)
+static mat2D_real rng_range(uint64_t *state, mat2D_real low, mat2D_real high)
 {
     return low + (high - low) * rng_unit01(state);
 }
 
-static int close_rel_abs(mat2d_real a, mat2d_real b, mat2d_real abs_eps, mat2d_real rel_eps)
+static int close_rel_abs(mat2D_real a, mat2D_real b, mat2D_real abs_eps, mat2D_real rel_eps)
 {
-    mat2d_real diff = fabs(a - b);
+    mat2D_real diff = fabs(a - b);
     if (diff <= abs_eps) return 1;
     return diff <= rel_eps * fmax(fabs(a), fabs(b));
 }
@@ -62,13 +62,13 @@ static void fill_strictly_diag_dominant(Mat2D a, uint64_t *rng)
 {
     /* Strict diagonal dominance => nonsingular (and usually stable to invert). */
     MAT2D_ASSERT(a.rows == a.cols);
-    mat2d_real mag = 2.0;
+    mat2D_real mag = 2.0;
 
     for (size_t i = 0; i < a.rows; i++) {
-        mat2d_real row_sum = 0.0;
+        mat2D_real row_sum = 0.0;
         for (size_t j = 0; j < a.cols; j++) {
             if (i == j) continue;
-            mat2d_real v = rng_range(rng, -mag, mag);
+            mat2D_real v = rng_range(rng, -mag, mag);
             MAT2D_AT(a, i, j) = v;
             row_sum += fabs(v);
         }
@@ -77,22 +77,22 @@ static void fill_strictly_diag_dominant(Mat2D a, uint64_t *rng)
 }
 
 
-static mat2d_real det_by_minors_first_col(Mat2D a);
+static mat2D_real det_by_minors_first_col(Mat2D a);
 
-static int nearly_equal(mat2d_real a, mat2d_real b, mat2d_real eps)
+static int nearly_equal(mat2D_real a, mat2D_real b, mat2D_real eps)
 {
     return fabs(a - b) <= eps;
 }
 
-static void assert_mat_close(Mat2D a, Mat2D b, mat2d_real eps)
+static void assert_mat_close(Mat2D a, Mat2D b, mat2D_real eps)
 {
     MAT2D_ASSERT(a.rows == b.rows);
     MAT2D_ASSERT(a.cols == b.cols);
 
     for (size_t i = 0; i < a.rows; i++) {
         for (size_t j = 0; j < a.cols; j++) {
-            mat2d_real va = MAT2D_AT(a, i, j);
-            mat2d_real vb = MAT2D_AT(b, i, j);
+            mat2D_real va = MAT2D_AT(a, i, j);
+            mat2D_real vb = MAT2D_AT(b, i, j);
             if (!nearly_equal(va, vb, eps)) {
                 fprintf(stderr,
                         "Matrix mismatch at (%zu,%zu): a=%g b=%g\n",
@@ -106,19 +106,19 @@ static void assert_mat_close(Mat2D a, Mat2D b, mat2d_real eps)
     }
 }
 
-static void assert_identity_close_rel_abs( Mat2D m, mat2d_real abs_eps, mat2d_real rel_eps)
+static void assert_identity_close_rel_abs( Mat2D m, mat2D_real abs_eps, mat2D_real rel_eps)
 {
     MAT2D_ASSERT(m.rows == m.cols);
     for (size_t i = 0; i < m.rows; i++) {
         for (size_t j = 0; j < m.cols; j++) {
-            mat2d_real expected = (i == j) ? 1.0 : 0.0;
+            mat2D_real expected = (i == j) ? 1.0 : 0.0;
             MAT2D_ASSERT(
                 close_rel_abs(MAT2D_AT(m, i, j), expected, abs_eps, rel_eps));
         }
     }
 }
 
-static void fill_mat_from_array(Mat2D m, const mat2d_real *data)
+static void fill_mat_from_array(Mat2D m, const mat2D_real *data)
 {
     for (size_t i = 0; i < m.rows; i++) {
         for (size_t j = 0; j < m.cols; j++) {
@@ -132,9 +132,9 @@ static void assert_permutation_matrix(Mat2D p)
     MAT2D_ASSERT(p.rows == p.cols);
 
     for (size_t i = 0; i < p.rows; i++) {
-        mat2d_real row_sum = 0.0;
+        mat2D_real row_sum = 0.0;
         for (size_t j = 0; j < p.cols; j++) {
-            mat2d_real v = MAT2D_AT(p, i, j);
+            mat2D_real v = MAT2D_AT(p, i, j);
             MAT2D_ASSERT(v == 0.0 || v == 1.0);
             row_sum += v;
         }
@@ -142,7 +142,7 @@ static void assert_permutation_matrix(Mat2D p)
     }
 
     for (size_t j = 0; j < p.cols; j++) {
-        mat2d_real col_sum = 0.0;
+        mat2D_real col_sum = 0.0;
         for (size_t i = 0; i < p.rows; i++) {
             col_sum += MAT2D_AT(p, i, j);
         }
@@ -150,11 +150,11 @@ static void assert_permutation_matrix(Mat2D p)
     }
 
     /* det(P) must be ±1 for a permutation matrix */
-    mat2d_real dp = mat2D_det(p);
+    mat2D_real dp = mat2D_det(p);
     MAT2D_ASSERT(nearly_equal(fabs(dp), 1.0, MAT2D_EPS));
 }
 
-static void assert_inverse_identity_both_sides(Mat2D a, mat2d_real eps)
+static void assert_inverse_identity_both_sides(Mat2D a, mat2D_real eps)
 {
     MAT2D_ASSERT(a.rows == a.cols);
 
@@ -210,7 +210,7 @@ static void test_transpose(void)
     // a =
     // [1 2 3
     //  4 5 6]
-    mat2d_real v = 1.0;
+    mat2D_real v = 1.0;
     for (size_t i = 0; i < a.rows; i++) {
         for (size_t j = 0; j < a.cols; j++) {
             MAT2D_AT(a, i, j) = v++;
@@ -290,8 +290,8 @@ static void test_det_and_minor_det_agree_3x3(void)
     MAT2D_AT(a, 2, 1) = 8;
     MAT2D_AT(a, 2, 2) = 7;
 
-    mat2d_real det_gauss = mat2D_det(a);
-    mat2d_real det_minor = det_by_minors_first_col(a);
+    mat2D_real det_gauss = mat2D_det(a);
+    mat2D_real det_minor = det_by_minors_first_col(a);
 
     MAT2D_ASSERT(nearly_equal(det_gauss, -306.0, TEST_EPS_DET));
     MAT2D_ASSERT(nearly_equal(det_minor, -306.0, TEST_EPS_DET));
@@ -310,8 +310,8 @@ static void test_invert(void)
      */
     struct {
         const char *name;
-        mat2d_real eps;
-        mat2d_real data[9];
+        mat2D_real eps;
+        mat2D_real data[9];
     } cases[] = {
         {
             "baseline det=3",
@@ -335,7 +335,7 @@ static void test_invert(void)
         fill_mat_from_array(a, cases[k].data);
 
         /* basic sanity: det should be finite and not ~0 for these cases */
-        mat2d_real d = mat2D_det(a);
+        mat2D_real d = mat2D_det(a);
         MAT2D_ASSERT(isfinite(d));
         MAT2D_ASSERT(fabs(d) > MAT2D_EPS);
 
@@ -346,7 +346,7 @@ static void test_invert(void)
 
 static void test_LUP_decomposition_identity_P_no_swap_case(void)
 {
-    const mat2d_real eps = MAT2D_EPS;
+    const mat2D_real eps = MAT2D_EPS;
 
     Mat2D a = mat2D_alloc(3, 3);
     Mat2D l = mat2D_alloc(3, 3);
@@ -384,7 +384,7 @@ static void test_LUP_decomposition_identity_P_no_swap_case(void)
 
 static void test_LUP_decomposition_swap_required_case(void)
 {
-    const mat2d_real eps = MAT2D_EPS;
+    const mat2D_real eps = MAT2D_EPS;
 
     Mat2D a = mat2D_alloc(3, 3);
     Mat2D l = mat2D_alloc(3, 3);
@@ -402,7 +402,7 @@ static void test_LUP_decomposition_swap_required_case(void)
      *  1 0 1
      *  1 1 0]
      */
-    mat2d_real data[9] = {0, 1, 1, 1, 0, 1, 1, 1, 0};
+    mat2D_real data[9] = {0, 1, 1, 1, 0, 1, 1, 1, 0};
     fill_mat_from_array(a, data);
 
     mat2D_LUP_decomposition_with_swap(a, l, p, u);
@@ -490,7 +490,7 @@ static void test_non_contiguous_stride_views(void)
     const size_t cols = 2;
     const size_t stride = 7; /* intentional padding */
 
-    mat2d_real *buf = (mat2d_real *)MAT2D_MALLOC(sizeof(mat2d_real) * rows * stride);
+    mat2D_real *buf = (mat2D_real *)MAT2D_MALLOC(sizeof(mat2D_real) * rows * stride);
     MAT2D_ASSERT(buf != NULL);
 
     /* poison padding so accidental reads are obvious */
@@ -582,7 +582,7 @@ static void test_shift_and_identity(void)
 
     for (size_t i = 0; i < a.rows; i++) {
         for (size_t j = 0; j < a.cols; j++) {
-            mat2d_real expected = (i == j) ? 3.0 : 0.0;
+            mat2D_real expected = (i == j) ? 3.0 : 0.0;
             MAT2D_ASSERT(nearly_equal(MAT2D_AT(a, i, j), expected, 0.0));
         }
     }
@@ -592,7 +592,7 @@ static void test_shift_and_identity(void)
 
 static void test_norms_and_normalize(void)
 {
-    const mat2d_real eps = MAT2D_EPS;
+    const mat2D_real eps = MAT2D_EPS;
 
     Mat2D v = mat2D_alloc(2, 1);
     MAT2D_AT(v, 0, 0) = 3.0;
@@ -610,7 +610,7 @@ static void test_norms_and_normalize(void)
 
 static void test_outer_product_and_cross(void)
 {
-    const mat2d_real eps = MAT2D_EPS;
+    const mat2D_real eps = MAT2D_EPS;
 
     Mat2D v = mat2D_alloc(3, 1);
     Mat2D out = mat2D_alloc(3, 3);
@@ -665,14 +665,14 @@ static void test_det_2x2_and_upper_triangulate_sign(void)
     // upper triangulation should have exactly one row swap => factor = -1
     Mat2D tmp = mat2D_alloc(2, 2);
     mat2D_copy(tmp, a);
-    mat2d_real f = mat2D_upper_triangulate(tmp, MAT2D_ROW_SWAPPING);
+    mat2D_real f = mat2D_upper_triangulate(tmp, MAT2D_ROW_SWAPPING);
     MAT2D_ASSERT(nearly_equal(f, -1.0, 0.0));
 
     mat2D_free(a);
     mat2D_free(tmp);
 }
 
-static mat2d_real det_by_minors_first_col(Mat2D a)
+static mat2D_real det_by_minors_first_col(Mat2D a)
 {
     MAT2D_ASSERT(a.rows == a.cols);
     size_t n = a.rows;
@@ -684,16 +684,16 @@ static mat2d_real det_by_minors_first_col(Mat2D a)
         return mat2D_det_2x2_mat(a);
     }
 
-    mat2d_real det = 0.0;
+    mat2D_real det = 0.0;
     size_t j = 0;
     for (size_t i = 0; i < n; i++) {
-        mat2d_real aij = MAT2D_AT(a, i, j);
+        mat2D_real aij = MAT2D_AT(a, i, j);
         if (aij == 0.0) {
             continue;
         }
 
         Mat2D_Minor mm = mat2D_minor_alloc_fill_from_mat(a, i, j);
-        mat2d_real minor_det = 0.0;
+        mat2D_real minor_det = 0.0;
         if (mm.rows == 2 && mm.cols == 2) {
             minor_det = mat2D_det_2x2_mat_minor(mm);
         } else {
@@ -701,7 +701,7 @@ static mat2d_real det_by_minors_first_col(Mat2D a)
         }
         mat2D_minor_free(mm);
 
-        mat2d_real sign = ((i + j) % 2 == 0) ? 1.0 : -1.0;
+        mat2D_real sign = ((i + j) % 2 == 0) ? 1.0 : -1.0;
         det += aij * sign * minor_det;
     }
 
@@ -710,7 +710,7 @@ static mat2d_real det_by_minors_first_col(Mat2D a)
 
 static void test_minor_det_matches_gauss_4x4_known(void)
 {
-    const mat2d_real eps = TEST_EPS_DET;
+    const mat2D_real eps = TEST_EPS_DET;
 
     Mat2D a = mat2D_alloc(4, 4);
     // det = 72
@@ -718,7 +718,7 @@ static void test_minor_det_matches_gauss_4x4_known(void)
     //  5 6 7 8
     //  2 6 4 8
     //  3 1 1 2]
-    mat2d_real data[16] = {
+    mat2D_real data[16] = {
         1, 2, 3, 4, //
         5, 6, 7, 8, //
         2, 6, 4, 8, //
@@ -730,8 +730,8 @@ static void test_minor_det_matches_gauss_4x4_known(void)
         }
     }
 
-    mat2d_real det_gauss = mat2D_det(a);
-    mat2d_real det_minor = det_by_minors_first_col(a);
+    mat2D_real det_gauss = mat2D_det(a);
+    mat2D_real det_minor = det_by_minors_first_col(a);
 
     MAT2D_ASSERT(nearly_equal(det_gauss, 72.0, eps));
     MAT2D_ASSERT(nearly_equal(det_minor, 72.0, eps));
@@ -765,7 +765,7 @@ static void test_reduce_rank(void)
 
 static void test_rotation_matrices_orthonormal(void)
 {
-    const mat2d_real eps = TEST_EPS_ORTHO;
+    const mat2D_real eps = TEST_EPS_ORTHO;
 
     Mat2D r = mat2D_alloc(3, 3);
     Mat2D rt = mat2D_alloc(3, 3);
@@ -808,7 +808,7 @@ static void test_rotation_matrices_orthonormal(void)
 
 static void test_DCM_zyx_matches_product(void)
 {
-    const mat2d_real eps = MAT2D_EPS;
+    const mat2D_real eps = MAT2D_EPS;
 
     Mat2D dcm = mat2D_alloc(3, 3);
     Mat2D rz = mat2D_alloc(3, 3);
@@ -841,7 +841,7 @@ static void test_DCM_zyx_matches_product(void)
 
 static void test_solve_linear_system_LUP(void)
 {
-    const mat2d_real eps = MAT2D_EPS;
+    const mat2D_real eps = MAT2D_EPS;
 
     Mat2D a = mat2D_alloc(3, 3);
     Mat2D x = mat2D_alloc(3, 1);
@@ -888,7 +888,7 @@ static void test_rand_range(void)
 
     for (size_t i = 0; i < a.rows; i++) {
         for (size_t j = 0; j < a.cols; j++) {
-            mat2d_real v = MAT2D_AT(a, i, j);
+            mat2D_real v = MAT2D_AT(a, i, j);
             MAT2D_ASSERT(v >= -2.0);
             MAT2D_ASSERT(v <= 5.0);
         }
@@ -929,7 +929,7 @@ static void test_copy_row_and_col_helpers(void)
 
 static void test_dot_product_and_vector_variants(void)
 {
-    const mat2d_real eps = TEST_EPS_TINY;
+    const mat2D_real eps = TEST_EPS_TINY;
 
     /* Column vectors */
     Mat2D a = mat2D_alloc(3, 1);
@@ -970,7 +970,7 @@ static void test_dot_product_and_vector_variants(void)
 
 static void test_outer_product_row_vector_path(void)
 {
-    const mat2d_real eps = TEST_EPS_TINY;
+    const mat2D_real eps = TEST_EPS_TINY;
 
     Mat2D v = mat2D_alloc(1, 3);   /* row-vector form */
     Mat2D out = mat2D_alloc(3, 3);
@@ -1039,7 +1039,7 @@ static void test_power_iterate_and_eig_helpers(void)
      * Power iteration should find lambda=5 with eigenvector ~ e1.
      * eig_power_iteration should recover (5,3,1) and eig_check residual small.
      */
-    const mat2d_real eps = TEST_EPS_EIG;
+    const mat2D_real eps = TEST_EPS_EIG;
 
     Mat2D A = mat2D_alloc(3, 3);
     mat2D_fill(A, 0.0);
@@ -1052,7 +1052,7 @@ static void test_power_iterate_and_eig_helpers(void)
     MAT2D_AT(v, 0, 0) = 1.0;
     MAT2D_AT(v, 1, 0) = 1.0;
     MAT2D_AT(v, 2, 0) = 1.0;
-    mat2d_real lambda = 0.0;
+    mat2D_real lambda = 0.0;
     int rc = mat2D_power_iterate(A, v, &lambda, 0.0, true);
     MAT2D_ASSERT(rc == 0);
     MAT2D_ASSERT(close_rel_abs(lambda, 5.0, TEST_EPS_EIG, TEST_EPS_EIG));
@@ -1102,15 +1102,15 @@ static void test_deterministic_fuzz_loop(void)
 
     const size_t iters = 300;
     #if defined(MAT2D_SINGLE_PRECISION)
-        const mat2d_real inv_eps = 2e-3f;
-        const mat2d_real det_min = 1e-5f;
-        const mat2d_real det_abs_eps = 1e-2f;
-        const mat2d_real det_rel_eps = 1e-2f;
+        const mat2D_real inv_eps = 2e-3f;
+        const mat2D_real det_min = 1e-5f;
+        const mat2D_real det_abs_eps = 1e-2f;
+        const mat2D_real det_rel_eps = 1e-2f;
     #else
-        const mat2d_real inv_eps = 1e-7;
-        const mat2d_real det_min = 1e-8;
-        const mat2d_real det_abs_eps = 1e-6;
-        const mat2d_real det_rel_eps = 1e-6;
+        const mat2D_real inv_eps = 1e-7;
+        const mat2D_real det_min = 1e-8;
+        const mat2D_real det_abs_eps = 1e-6;
+        const mat2D_real det_rel_eps = 1e-6;
     #endif
 
     uint64_t rng = 0x9e3779b97f4a7c15ULL; /* fixed seed */
@@ -1132,7 +1132,7 @@ static void test_deterministic_fuzz_loop(void)
 
         fill_strictly_diag_dominant(a, &rng);
 
-        mat2d_real det_a = mat2D_det(a);
+        mat2D_real det_a = mat2D_det(a);
         if (!isfinite(det_a) || fabs(det_a) < det_min) {
             skipped++;
             mat2D_free(a);
@@ -1153,12 +1153,12 @@ static void test_deterministic_fuzz_loop(void)
 
         /* det(A^T) == det(A) */
         mat2D_transpose(at, a);
-        mat2d_real det_at = mat2D_det(at);
+        mat2D_real det_at = mat2D_det(at);
         MAT2D_ASSERT(
             close_rel_abs(det_at, det_a, det_abs_eps, det_rel_eps));
 
         /* det(A) * det(inv(A)) == 1 */
-        mat2d_real det_inv = mat2D_det(inv);
+        mat2D_real det_inv = mat2D_det(inv);
         MAT2D_ASSERT(isfinite(det_inv));
         MAT2D_ASSERT(close_rel_abs(
             det_a * det_inv,
@@ -1190,7 +1190,7 @@ static void test_deterministic_fuzz_loop(void)
 /* SVD tests                                                                   */
 /* -------------------------------------------------------------------------- */
 
-static void assert_orthonormal_columns(Mat2D q, mat2d_real eps)
+static void assert_orthonormal_columns(Mat2D q, mat2D_real eps)
 {
     /* Checks Q^T Q ~= I for a square Q (n x n). */
     MAT2D_ASSERT(q.rows == q.cols);
@@ -1207,12 +1207,12 @@ static void assert_orthonormal_columns(Mat2D q, mat2d_real eps)
     mat2D_free(gram);
 }
 
-static mat2d_real frob_norm(Mat2D a)
+static mat2D_real frob_norm(Mat2D a)
 {
     return mat2D_calc_norma(a);
 }
 
-static void assert_mat_close_rel_frob(Mat2D got, Mat2D want, mat2d_real rel_eps)
+static void assert_mat_close_rel_frob(Mat2D got, Mat2D want, mat2D_real rel_eps)
 {
     MAT2D_ASSERT(got.rows == want.rows);
     MAT2D_ASSERT(got.cols == want.cols);
@@ -1221,8 +1221,8 @@ static void assert_mat_close_rel_frob(Mat2D got, Mat2D want, mat2d_real rel_eps)
     mat2D_copy(diff, got);
     mat2D_sub(diff, want);
 
-    mat2d_real n_want = frob_norm(want);
-    mat2d_real n_diff = frob_norm(diff);
+    mat2D_real n_want = frob_norm(want);
+    mat2D_real n_diff = frob_norm(diff);
 
     /* If want is zero, fall back to absolute. */
     if (MAT2D_IS_ZERO(n_want)) {
@@ -1244,7 +1244,7 @@ static void svd_reconstruct(Mat2D a, Mat2D u, Mat2D s, Mat2D vt, Mat2D out)
     mat2D_free(tmp);
 }
 
-static void assert_S_diag_nonneg(Mat2D s, mat2d_real eps)
+static void assert_S_diag_nonneg(Mat2D s, mat2D_real eps)
 {
     size_t d = mat2D_min(s.rows, s.cols);
     for (size_t i = 0; i < d; i++) {
@@ -1262,8 +1262,8 @@ static void test_SVD_full_reconstruct_and_orthonormal_known_sparse(void)
      *  - V orthonormal (VT is V^T)
      *  - S diagonal non-negative
      */
-    const mat2d_real ortho_eps = TEST_EPS_ORTHO;
-    const mat2d_real recon_rel_eps = TEST_EPS_RECON;
+    const mat2D_real ortho_eps = TEST_EPS_ORTHO;
+    const mat2D_real recon_rel_eps = TEST_EPS_RECON;
 
     size_t n = 4;
     size_t m = 5;
@@ -1283,8 +1283,8 @@ static void test_SVD_full_reconstruct_and_orthonormal_known_sparse(void)
     MAT2D_AT(A, 3, 1) = 2.0;
 
     /* deterministic-ish init vectors (avoid rand()) */
-    for (size_t i = 0; i < n; i++) MAT2D_AT(init_u, i, 0) = (mat2d_real)(i + 1);
-    for (size_t i = 0; i < m; i++) MAT2D_AT(init_v, i, 0) = (mat2d_real)(i + 1);
+    for (size_t i = 0; i < n; i++) MAT2D_AT(init_u, i, 0) = (mat2D_real)(i + 1);
+    for (size_t i = 0; i < m; i++) MAT2D_AT(init_v, i, 0) = (mat2D_real)(i + 1);
 
     mat2D_SVD_full(A, U, S, VT, init_u, init_v, true);
 
@@ -1326,11 +1326,11 @@ static void test_SVD_full_diagonal_matrix_singular_values(void)
      *  - compare to expected
      */
     #if defined(MAT2D_SINGLE_PRECISION)
-        const mat2d_real eps = 2e-3f;
-        const mat2d_real recon_rel_eps = 2e-3f;
+        const mat2D_real eps = 2e-3f;
+        const mat2D_real recon_rel_eps = 2e-3f;
     #else
-        const mat2d_real eps = 1e-6;
-        const mat2d_real recon_rel_eps = 1e-6;
+        const mat2D_real eps = 1e-6;
+        const mat2D_real recon_rel_eps = 1e-6;
     #endif
 
     size_t n = 3;
@@ -1352,7 +1352,7 @@ static void test_SVD_full_diagonal_matrix_singular_values(void)
 
     mat2D_SVD_full(A, U, S, VT, init, init, true);
 
-    mat2d_real svals[3] = {
+    mat2D_real svals[3] = {
         fabs(MAT2D_AT(S, 0, 0)),
         fabs(MAT2D_AT(S, 1, 1)),
         fabs(MAT2D_AT(S, 2, 2)),
@@ -1362,7 +1362,7 @@ static void test_SVD_full_diagonal_matrix_singular_values(void)
     for (int i = 0; i < 3; i++) {
         for (int j = i + 1; j < 3; j++) {
             if (svals[j] > svals[i]) {
-                mat2d_real tmp = svals[i];
+                mat2D_real tmp = svals[i];
                 svals[i] = svals[j];
                 svals[j] = tmp;
             }
@@ -1395,7 +1395,7 @@ static void test_SVD_full_rank_deficient_has_zero_singular_values(void)
      *      3 6 9]
      * => only 1 non-zero singular value; others ~0.
      */
-    const mat2d_real eps = TEST_EPS_RECON;
+    const mat2D_real eps = TEST_EPS_RECON;
 
     size_t n = 3;
     Mat2D A = mat2D_alloc(n, n);
@@ -1414,9 +1414,9 @@ static void test_SVD_full_rank_deficient_has_zero_singular_values(void)
 
     mat2D_SVD_full(A, U, S, VT, init, init, true);
 
-    mat2d_real s0 = fabs(MAT2D_AT(S, 0, 0));
-    mat2d_real s1 = fabs(MAT2D_AT(S, 1, 1));
-    mat2d_real s2 = fabs(MAT2D_AT(S, 2, 2));
+    mat2D_real s0 = fabs(MAT2D_AT(S, 0, 0));
+    mat2D_real s1 = fabs(MAT2D_AT(S, 1, 1));
+    mat2D_real s2 = fabs(MAT2D_AT(S, 2, 2));
 
     /* At least two should be ~0 (order may vary, so just count small ones). */
     int small = 0;
@@ -1446,8 +1446,8 @@ static void test_SVD_full_deterministic_fuzz_small(void)
      * Keep sizes small because this SVD uses repeated power iteration + deflation.
      */
     const size_t iters = 5;
-    const mat2d_real ortho_eps = TEST_EPS_ORTHO;
-    const mat2d_real recon_rel_eps = TEST_EPS_RECON;
+    const mat2D_real ortho_eps = TEST_EPS_ORTHO;
+    const mat2D_real recon_rel_eps = TEST_EPS_RECON;
 
     uint64_t rng = 0x123456789abcdef0ULL;
 

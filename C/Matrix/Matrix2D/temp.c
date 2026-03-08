@@ -1,3 +1,4 @@
+#define MAT2D_SINGLE_PRECISION
 #define MATRIX2D_IMPLEMENTATION
 #include "Matrix2D.h"
 
