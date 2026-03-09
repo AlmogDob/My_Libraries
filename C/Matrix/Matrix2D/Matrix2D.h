@@ -263,94 +263,97 @@ enum mat2D_upper_triangulate_flag{
     MAT2D_ROW_SWAPPING = 1 << 1,
 };
 
-void            mat2D_add(Mat2D dst, Mat2D a);
-void            mat2D_add_col_to_col(Mat2D des, size_t des_col, Mat2D src, size_t src_col);
-void            mat2D_add_row_to_row(Mat2D des, size_t des_row, Mat2D src, size_t src_row);
-void            mat2D_add_row_time_factor_to_row(Mat2D m, size_t des_r, size_t src_r, mat2D_real factor);
-Mat2D           mat2D_alloc(size_t rows, size_t cols);
-Mat2D_uint32    mat2D_alloc_uint32(size_t rows, size_t cols);
+#ifndef MAT2D_DEF
+    #define MAT2D_DEF static inline
+#endif
 
-mat2D_real      mat2D_calc_col_norma(Mat2D m, size_t c);
-mat2D_real      mat2D_calc_norma(Mat2D m);
-mat2D_real      mat2D_calc_norma_inf(Mat2D m);
-bool            mat2D_col_is_all_digit(Mat2D m, mat2D_real digit, size_t c);
-void            mat2D_copy(Mat2D des, Mat2D src);
-void            mat2D_copy_col_from_src_to_des(Mat2D des, size_t des_col, Mat2D src, size_t src_col);
-void            mat2D_copy_row_from_src_to_des(Mat2D des, size_t des_row, Mat2D src, size_t src_row);
-void            mat2D_copy_src_to_des_window(Mat2D des, Mat2D src, size_t is, size_t js, size_t ie, size_t je);
-void            mat2D_copy_src_window_to_des(Mat2D des, Mat2D src, size_t is, size_t js, size_t ie, size_t je);
-Mat2D           mat2D_create_col_ref(Mat2D src, size_t c);
-void            mat2D_cross(Mat2D dst, Mat2D v1, Mat2D v2);
+MAT2D_DEF void          mat2D_add(Mat2D dst, Mat2D a);
+MAT2D_DEF void          mat2D_add_col_to_col(Mat2D des, size_t des_col, Mat2D src, size_t src_col);
+MAT2D_DEF void          mat2D_add_row_to_row(Mat2D des, size_t des_row, Mat2D src, size_t src_row);
+MAT2D_DEF void          mat2D_add_row_time_factor_to_row(Mat2D m, size_t des_r, size_t src_r, mat2D_real factor);
+MAT2D_DEF Mat2D         mat2D_alloc(size_t rows, size_t cols);
+MAT2D_DEF Mat2D_uint32  mat2D_alloc_uint32(size_t rows, size_t cols);
 
-void            mat2D_dot(Mat2D dst, Mat2D a, Mat2D b);
-mat2D_real      mat2D_dot_product(Mat2D v1, Mat2D v2);
-mat2D_real      mat2D_det(Mat2D m);
-mat2D_real      mat2D_det_2x2_mat(Mat2D m);
-mat2D_real      mat2D_det_2x2_mat_minor(Mat2D_Minor mm);
+MAT2D_DEF mat2D_real    mat2D_calc_col_norma(Mat2D m, size_t c);
+MAT2D_DEF mat2D_real    mat2D_calc_norma(Mat2D m);
+MAT2D_DEF mat2D_real    mat2D_calc_norma_inf(Mat2D m);
+MAT2D_DEF bool          mat2D_col_is_all_digit(Mat2D m, mat2D_real digit, size_t c);
+MAT2D_DEF void          mat2D_copy(Mat2D des, Mat2D src);
+MAT2D_DEF void          mat2D_copy_col_from_src_to_des(Mat2D des, size_t des_col, Mat2D src, size_t src_col);
+MAT2D_DEF void          mat2D_copy_row_from_src_to_des(Mat2D des, size_t des_row, Mat2D src, size_t src_row);
+MAT2D_DEF void          mat2D_copy_src_to_des_window(Mat2D des, Mat2D src, size_t is, size_t js, size_t ie, size_t je);
+MAT2D_DEF void          mat2D_copy_src_window_to_des(Mat2D des, Mat2D src, size_t is, size_t js, size_t ie, size_t je);
+MAT2D_DEF Mat2D         mat2D_create_col_ref(Mat2D src, size_t c);
+MAT2D_DEF void          mat2D_cross(Mat2D dst, Mat2D v1, Mat2D v2);
 
-void            mat2D_eig_check(Mat2D A, Mat2D eigenvalues, Mat2D eigenvectors, Mat2D res);
-void            mat2D_eig_power_iteration(Mat2D A, Mat2D eigenvalues, Mat2D eigenvectors, Mat2D init_vector, bool norm_inf_vectors);
+MAT2D_DEF void          mat2D_dot(Mat2D dst, Mat2D a, Mat2D b);
+MAT2D_DEF mat2D_real    mat2D_dot_product(Mat2D v1, Mat2D v2);
+MAT2D_DEF mat2D_real    mat2D_det(Mat2D m);
+MAT2D_DEF mat2D_real    mat2D_det_2x2_mat(Mat2D m);
+MAT2D_DEF mat2D_real    mat2D_det_2x2_mat_minor(Mat2D_Minor mm);
 
-void            mat2D_fill(Mat2D m, mat2D_real x);
-void            mat2D_fill_sequence(Mat2D m, mat2D_real start, mat2D_real step);
-void            mat2D_fill_uint32(Mat2D_uint32 m, uint32_t x);
-bool            mat2D_find_first_non_zero_value(Mat2D m, size_t r, size_t *non_zero_col);
-void            mat2D_free(Mat2D m);
-void            mat2D_free_uint32(Mat2D_uint32 m);
+MAT2D_DEF void          mat2D_eig_check(Mat2D A, Mat2D eigenvalues, Mat2D eigenvectors, Mat2D res);
+MAT2D_DEF void          mat2D_eig_power_iteration(Mat2D A, Mat2D eigenvalues, Mat2D eigenvectors, Mat2D init_vector, bool norm_inf_vectors);
 
-mat2D_real      mat2D_inner_product(Mat2D v);
-void            mat2D_invert(Mat2D des, Mat2D src);
+MAT2D_DEF void          mat2D_fill(Mat2D m, mat2D_real x);
+MAT2D_DEF void          mat2D_fill_sequence(Mat2D m, mat2D_real start, mat2D_real step);
+MAT2D_DEF void          mat2D_fill_uint32(Mat2D_uint32 m, uint32_t x);
+MAT2D_DEF bool          mat2D_find_first_non_zero_value(Mat2D m, size_t r, size_t *non_zero_col);
+MAT2D_DEF void          mat2D_free(Mat2D m);
+MAT2D_DEF void          mat2D_free_uint32(Mat2D_uint32 m);
 
-void            mat2D_LUP_decomposition_with_swap(Mat2D src, Mat2D l, Mat2D p, Mat2D u);
+MAT2D_DEF mat2D_real    mat2D_inner_product(Mat2D v);
+MAT2D_DEF void          mat2D_invert(Mat2D des, Mat2D src);
 
-void            mat2D_make_orthogonal_Gaussian_elimination(Mat2D des, Mat2D A);
-void            mat2D_make_orthogonal_modified_Gram_Schmidt(Mat2D des, Mat2D A);
-bool            mat2D_mat_is_all_digit(Mat2D m, mat2D_real digit);
-Mat2D_Minor     mat2D_minor_alloc_fill_from_mat(Mat2D ref_mat, size_t i, size_t j);
-Mat2D_Minor     mat2D_minor_alloc_fill_from_mat_minor(Mat2D_Minor ref_mm, size_t i, size_t j);
-mat2D_real      mat2D_minor_det(Mat2D_Minor mm);
-void            mat2D_minor_free(Mat2D_Minor mm);
-void            mat2D_minor_print(Mat2D_Minor mm, const char *name, size_t padding);
-void            mat2D_mult(Mat2D m, mat2D_real factor);
-void            mat2D_mult_row(Mat2D m, size_t r, mat2D_real factor);
+MAT2D_DEF void          mat2D_LUP_decomposition_with_swap(Mat2D src, Mat2D l, Mat2D p, Mat2D u);
 
-void            mat2D_normalize(Mat2D m);
-void            mat2D_normalize_inf(Mat2D m);
+MAT2D_DEF void          mat2D_make_orthogonal_Gaussian_elimination(Mat2D des, Mat2D A);
+MAT2D_DEF void          mat2D_make_orthogonal_modified_Gram_Schmidt(Mat2D des, Mat2D A);
+MAT2D_DEF bool          mat2D_mat_is_all_digit(Mat2D m, mat2D_real digit);
+MAT2D_DEF Mat2D_Minor   mat2D_minor_alloc_fill_from_mat(Mat2D ref_mat, size_t i, size_t j);
+MAT2D_DEF Mat2D_Minor   mat2D_minor_alloc_fill_from_mat_minor(Mat2D_Minor ref_mm, size_t i, size_t j);
+MAT2D_DEF mat2D_real    mat2D_minor_det(Mat2D_Minor mm);
+MAT2D_DEF void          mat2D_minor_free(Mat2D_Minor mm);
+MAT2D_DEF void          mat2D_minor_print(Mat2D_Minor mm, const char *name, size_t padding);
+MAT2D_DEF void          mat2D_mult(Mat2D m, mat2D_real factor);
+MAT2D_DEF void          mat2D_mult_row(Mat2D m, size_t r, mat2D_real factor);
 
+MAT2D_DEF void          mat2D_normalize(Mat2D m);
+MAT2D_DEF void          mat2D_normalize_inf(Mat2D m);
 
-size_t          mat2D_offset2d(Mat2D m, size_t i, size_t j);
-size_t          mat2D_offset2d_uint32(Mat2D_uint32 m, size_t i, size_t j);
-void            mat2D_outer_product(Mat2D des, Mat2D v);
+MAT2D_DEF size_t        mat2D_offset2d(Mat2D m, size_t i, size_t j);
+MAT2D_DEF size_t        mat2D_offset2d_uint32(Mat2D_uint32 m, size_t i, size_t j);
+MAT2D_DEF void          mat2D_outer_product(Mat2D des, Mat2D v);
 
-int             mat2D_power_iterate(Mat2D A, Mat2D v, mat2D_real *lambda, mat2D_real shift, bool norm_inf_v);
-void            mat2D_print(Mat2D m, const char *name, size_t padding);
-void            mat2D_print_uint32(Mat2D_uint32 m, const char *name, size_t padding);
-void            mat2D_print_as_col(Mat2D m, const char *name, size_t padding);
-void            mat2D_project_out_columns(Mat2D v, Mat2D basis, size_t used_cols);
+MAT2D_DEF int           mat2D_power_iterate(Mat2D A, Mat2D v, mat2D_real *lambda, mat2D_real shift, bool norm_inf_v);
+MAT2D_DEF void          mat2D_print(Mat2D m, const char *name, size_t padding);
+MAT2D_DEF void          mat2D_print_uint32(Mat2D_uint32 m, const char *name, size_t padding);
+MAT2D_DEF void          mat2D_print_as_col(Mat2D m, const char *name, size_t padding);
+MAT2D_DEF void          mat2D_project_out_columns(Mat2D v, Mat2D basis, size_t used_cols);
 
-void            mat2D_rand(Mat2D m, mat2D_real low, mat2D_real high);
-mat2D_real      mat2D_rand_mat2D_real(void);
-size_t          mat2D_reduce(Mat2D m);
-bool            mat2D_row_is_all_digit(Mat2D m, mat2D_real digit, size_t r);
+MAT2D_DEF void          mat2D_rand(Mat2D m, mat2D_real low, mat2D_real high);
+MAT2D_DEF mat2D_real    mat2D_rand_mat2D_real(void);
+MAT2D_DEF size_t        mat2D_reduce(Mat2D m);
+MAT2D_DEF bool          mat2D_row_is_all_digit(Mat2D m, mat2D_real digit, size_t r);
 
-void            mat2D_set_DCM_zyx(Mat2D DCM, float yaw_deg, float pitch_deg, float roll_deg);
-void            mat2D_set_identity(Mat2D m);
-void            mat2D_set_rot_mat_x(Mat2D m, float angle_deg);
-void            mat2D_set_rot_mat_y(Mat2D m, float angle_deg);
-void            mat2D_set_rot_mat_z(Mat2D m, float angle_deg);
-void            mat2D_shift(Mat2D m, mat2D_real shift);
-void            mat2D_solve_linear_sys_LUP_decomposition(Mat2D A, Mat2D x, Mat2D B);
-void            mat2D_sub(Mat2D dst, Mat2D a);
-void            mat2D_sub_col_to_col(Mat2D des, size_t des_col, Mat2D src, size_t src_col);
-void            mat2D_sub_row_to_row(Mat2D des, size_t des_row, Mat2D src, size_t src_row);
-void            mat2D_sub_row_time_factor_to_row(Mat2D m, size_t des_r, size_t src_r, mat2D_real factor);
-void            mat2D_SVD_full(Mat2D A, Mat2D U, Mat2D S, Mat2D V, Mat2D init_vec_u, Mat2D init_vec_v, bool return_v_transpose);
-void            mat2D_SVD_thin(Mat2D A, Mat2D U, Mat2D S, Mat2D V, Mat2D init_vec_u, Mat2D init_vec_v, bool return_v_transpose);
-void            mat2D_swap_rows(Mat2D m, size_t r1, size_t r2);
+MAT2D_DEF void          mat2D_set_DCM_zyx(Mat2D DCM, float yaw_deg, float pitch_deg, float roll_deg);
+MAT2D_DEF void          mat2D_set_identity(Mat2D m);
+MAT2D_DEF void          mat2D_set_rot_mat_x(Mat2D m, float angle_deg);
+MAT2D_DEF void          mat2D_set_rot_mat_y(Mat2D m, float angle_deg);
+MAT2D_DEF void          mat2D_set_rot_mat_z(Mat2D m, float angle_deg);
+MAT2D_DEF void          mat2D_shift(Mat2D m, mat2D_real shift);
+MAT2D_DEF void          mat2D_solve_linear_sys_LUP_decomposition(Mat2D A, Mat2D x, Mat2D B);
+MAT2D_DEF void          mat2D_sub(Mat2D dst, Mat2D a);
+MAT2D_DEF void          mat2D_sub_col_to_col(Mat2D des, size_t des_col, Mat2D src, size_t src_col);
+MAT2D_DEF void          mat2D_sub_row_to_row(Mat2D des, size_t des_row, Mat2D src, size_t src_row);
+MAT2D_DEF void          mat2D_sub_row_time_factor_to_row(Mat2D m, size_t des_r, size_t src_r, mat2D_real factor);
+MAT2D_DEF void          mat2D_SVD_full(Mat2D A, Mat2D U, Mat2D S, Mat2D V, Mat2D init_vec_u, Mat2D init_vec_v, bool return_v_transpose);
+MAT2D_DEF void          mat2D_SVD_thin(Mat2D A, Mat2D U, Mat2D S, Mat2D V, Mat2D init_vec_u, Mat2D init_vec_v, bool return_v_transpose);
+MAT2D_DEF void          mat2D_swap_rows(Mat2D m, size_t r1, size_t r2);
 
-void            mat2D_transpose(Mat2D des, Mat2D src);
+MAT2D_DEF void          mat2D_transpose(Mat2D des, Mat2D src);
 
-mat2D_real      mat2D_upper_triangulate(Mat2D m, uint8_t flags);
+MAT2D_DEF mat2D_real    mat2D_upper_triangulate(Mat2D m, uint8_t flags);
 
 #endif // MATRIX2D_H_
 
@@ -366,7 +369,7 @@ mat2D_real      mat2D_upper_triangulate(Mat2D m, uint8_t flags);
  *
  * @pre dst and a have identical shape.
  */
-void mat2D_add(Mat2D dst, Mat2D a)
+MAT2D_DEF void mat2D_add(Mat2D dst, Mat2D a)
 {
     MAT2D_ASSERT(dst.rows == a.rows);
     MAT2D_ASSERT(dst.cols == a.cols);
@@ -387,7 +390,7 @@ void mat2D_add(Mat2D dst, Mat2D a)
  * @param src Source matrix.
  * @param src_col Column index in source.
  */
-void mat2D_add_col_to_col(Mat2D des, size_t des_col, Mat2D src, size_t src_col)
+MAT2D_DEF void mat2D_add_col_to_col(Mat2D des, size_t des_col, Mat2D src, size_t src_col)
 {
     MAT2D_ASSERT(src_col < src.cols);
     MAT2D_ASSERT(des.rows == src.rows);
@@ -411,7 +414,7 @@ void mat2D_add_col_to_col(Mat2D des, size_t des_col, Mat2D src, size_t src_col)
  *
  * @pre des.cols == src.cols
  */
-void mat2D_add_row_to_row(Mat2D des, size_t des_row, Mat2D src, size_t src_row)
+MAT2D_DEF void mat2D_add_row_to_row(Mat2D des, size_t des_row, Mat2D src, size_t src_row)
 {
     MAT2D_ASSERT(src_row < src.rows);
     MAT2D_ASSERT(des.cols == src.cols);
@@ -431,7 +434,7 @@ void mat2D_add_row_to_row(Mat2D des, size_t des_row, Mat2D src, size_t src_row)
  * 
  * @warning Indices are not bounds-checked in this routine.
  */
-void mat2D_add_row_time_factor_to_row(Mat2D m, size_t des_r, size_t src_r, mat2D_real factor)
+MAT2D_DEF void mat2D_add_row_time_factor_to_row(Mat2D m, size_t des_r, size_t src_r, mat2D_real factor)
 {
     for (size_t j = 0; j < m.cols; ++j) {
         MAT2D_AT(m, des_r, j) += factor * MAT2D_AT(m, src_r, j);
@@ -450,7 +453,7 @@ void mat2D_add_row_time_factor_to_row(Mat2D m, size_t des_r, size_t src_r, mat2D
  *
  * @warning This function asserts allocation success via MAT2D_ASSERT.
  */
-Mat2D mat2D_alloc(size_t rows, size_t cols)
+MAT2D_DEF Mat2D mat2D_alloc(size_t rows, size_t cols)
 {
     Mat2D m;
     m.rows = rows;
@@ -474,7 +477,7 @@ Mat2D mat2D_alloc(size_t rows, size_t cols)
  *
  * @warning This function asserts allocation success via MAT2D_ASSERT.
  */
-Mat2D_uint32 mat2D_alloc_uint32(size_t rows, size_t cols)
+MAT2D_DEF Mat2D_uint32 mat2D_alloc_uint32(size_t rows, size_t cols)
 {
     Mat2D_uint32 m;
     m.rows = rows;
@@ -495,7 +498,7 @@ Mat2D_uint32 mat2D_alloc_uint32(size_t rows, size_t cols)
  *
  * @pre c < m.cols
  */
-mat2D_real mat2D_calc_col_norma(Mat2D m, size_t c)
+MAT2D_DEF mat2D_real mat2D_calc_col_norma(Mat2D m, size_t c)
 {
     MAT2D_ASSERT(c < m.cols);
 
@@ -511,7 +514,7 @@ mat2D_real mat2D_calc_col_norma(Mat2D m, size_t c)
  * @param m Matrix.
  * @return Frobenius norm.
  */
-mat2D_real mat2D_calc_norma(Mat2D m)
+MAT2D_DEF mat2D_real mat2D_calc_norma(Mat2D m)
 {
     mat2D_real sum = 0;
 
@@ -532,7 +535,7 @@ mat2D_real mat2D_calc_norma(Mat2D m)
  * @note Despite the name, this is not the induced matrix infinity norm
  *       (maximum row sum). It is the max-absolute-entry metric.
  */
-mat2D_real mat2D_calc_norma_inf(Mat2D m)
+MAT2D_DEF mat2D_real mat2D_calc_norma_inf(Mat2D m)
 {
     mat2D_real max = 0;
     for (size_t i = 0; i < m.rows; ++i) {
@@ -556,7 +559,7 @@ mat2D_real mat2D_calc_norma_inf(Mat2D m)
  *
  * @warning Uses exact floating-point equality.
  */
-bool mat2D_col_is_all_digit(Mat2D m, mat2D_real digit, size_t c)
+MAT2D_DEF bool mat2D_col_is_all_digit(Mat2D m, mat2D_real digit, size_t c)
 {
     for (size_t i = 0; i < m.rows; ++i) {
         if (MAT2D_AT(m, i, c) != digit) {
@@ -574,7 +577,7 @@ bool mat2D_col_is_all_digit(Mat2D m, mat2D_real digit, size_t c)
  *
  * @pre des and src have identical shape.
  */
-void mat2D_copy(Mat2D des, Mat2D src)
+MAT2D_DEF void mat2D_copy(Mat2D des, Mat2D src)
 {
     MAT2D_ASSERT(des.cols == src.cols);
     MAT2D_ASSERT(des.rows == src.rows);
@@ -596,7 +599,7 @@ void mat2D_copy(Mat2D des, Mat2D src)
  * @pre des.rows == src.rows
  * @pre des_col < des.cols and src_col < src.cols
  */ 
-void mat2D_copy_col_from_src_to_des(Mat2D des, size_t des_col, Mat2D src, size_t src_col)
+MAT2D_DEF void mat2D_copy_col_from_src_to_des(Mat2D des, size_t des_col, Mat2D src, size_t src_col)
 {
     MAT2D_ASSERT(src_col < src.cols);
     MAT2D_ASSERT(des.rows == src.rows);
@@ -616,7 +619,7 @@ void mat2D_copy_col_from_src_to_des(Mat2D des, size_t des_col, Mat2D src, size_t
  *
  * @pre des.cols == src.cols
  */
-void mat2D_copy_row_from_src_to_des(Mat2D des, size_t des_row, Mat2D src, size_t src_row)
+MAT2D_DEF void mat2D_copy_row_from_src_to_des(Mat2D des, size_t des_row, Mat2D src, size_t src_row)
 {
     MAT2D_ASSERT(src_row < src.rows);
     MAT2D_ASSERT(des.cols == src.cols);
@@ -643,7 +646,7 @@ void mat2D_copy_row_from_src_to_des(Mat2D des, size_t des_row, Mat2D src, size_t
  *
  * @pre (je - js + 1) == src.cols and (ie - is + 1) == src.rows.
  */
-void mat2D_copy_src_to_des_window(Mat2D des, Mat2D src, size_t is, size_t js, size_t ie, size_t je)
+MAT2D_DEF void mat2D_copy_src_to_des_window(Mat2D des, Mat2D src, size_t is, size_t js, size_t ie, size_t je)
 {
     MAT2D_ASSERT(je >= js && ie >= is);
     MAT2D_ASSERT(je-js+1 == src.cols);
@@ -668,7 +671,7 @@ void mat2D_copy_src_to_des_window(Mat2D des, Mat2D src, size_t is, size_t js, si
  * @param je End column index in src (inclusive).
  * @pre 0 <= is <= ie < src.rows, 0 <= js <= je < src.cols.
  */
-void mat2D_copy_src_window_to_des(Mat2D des, Mat2D src, size_t is, size_t js, size_t ie, size_t je)
+MAT2D_DEF void mat2D_copy_src_window_to_des(Mat2D des, Mat2D src, size_t is, size_t js, size_t ie, size_t je)
 {
     MAT2D_ASSERT(je >= js && ie >= is);
     MAT2D_ASSERT(je-js+1 == des.cols);
@@ -699,7 +702,7 @@ void mat2D_copy_src_window_to_des(Mat2D des, Mat2D src, size_t is, size_t js, si
  * @warning The returned matrix aliases @p src: modifying it modifies @p src.
  * @warning The returned view is invalid after @p src.elements is freed/reallocated.
  */
-Mat2D mat2D_create_col_ref(Mat2D src, size_t c)
+MAT2D_DEF Mat2D mat2D_create_col_ref(Mat2D src, size_t c)
 {
     MAT2D_ASSERT(c < src.cols);
 
@@ -744,7 +747,7 @@ void mat2D_cross(Mat2D dst, Mat2D v1, Mat2D v2)
  *
  * @warning dst must not alias a or b (overlap is not handled).
  */
-void mat2D_dot(Mat2D dst, Mat2D a, Mat2D b)
+MAT2D_DEF void mat2D_dot(Mat2D dst, Mat2D a, Mat2D b)
 {
     MAT2D_ASSERT(a.cols == b.rows);
     MAT2D_ASSERT(a.rows == dst.rows);
@@ -773,7 +776,7 @@ void mat2D_dot(Mat2D dst, Mat2D a, Mat2D b)
  * @pre a.rows == b.rows and a.cols == b.cols
  * @pre (a.cols == 1 && b.cols == 1) || (a.rows == 1 && b.rows == 1)
  */
-mat2D_real mat2D_dot_product(Mat2D v1, Mat2D v2)
+MAT2D_DEF mat2D_real mat2D_dot_product(Mat2D v1, Mat2D v2)
 {
     MAT2D_ASSERT(v1.rows == v2.rows);
     MAT2D_ASSERT(v1.cols == v2.cols);
@@ -807,7 +810,7 @@ mat2D_real mat2D_dot_product(Mat2D v1, Mat2D v2)
  * @warning The early “all-zero row/column” check uses exact comparisons to 0.
  * @warning Limited pivoting may cause poor numerical results for some inputs.
  */
-mat2D_real mat2D_det(Mat2D m)
+MAT2D_DEF mat2D_real mat2D_det(Mat2D m)
 {
     MAT2D_ASSERT(m.cols == m.rows && "should be a square matrix");
 
@@ -859,7 +862,7 @@ mat2D_real mat2D_det(Mat2D m)
  * @param m Matrix (must be 2x2).
  * @return det(m) = m00*m11 - m01*m10.
  */
-mat2D_real mat2D_det_2x2_mat(Mat2D m)
+MAT2D_DEF mat2D_real mat2D_det_2x2_mat(Mat2D m)
 {
     MAT2D_ASSERT(2 == m.cols && 2 == m.rows && "Not a 2x2 matrix");
     return MAT2D_AT(m, 0, 0) * MAT2D_AT(m, 1, 1) - MAT2D_AT(m, 0, 1) * MAT2D_AT(m, 1, 0);
@@ -870,7 +873,7 @@ mat2D_real mat2D_det_2x2_mat(Mat2D m)
  * @param mm Minor (must be 2x2).
  * @return det(mm).
  */
-mat2D_real mat2D_det_2x2_mat_minor(Mat2D_Minor mm)
+MAT2D_DEF mat2D_real mat2D_det_2x2_mat_minor(Mat2D_Minor mm)
 {
     MAT2D_ASSERT(2 == mm.cols && 2 == mm.rows && "Not a 2x2 matrix");
     return MAT2D_MINOR_AT(mm, 0, 0) * MAT2D_MINOR_AT(mm, 1, 1) - MAT2D_MINOR_AT(mm, 0, 1) * MAT2D_MINOR_AT(mm, 1, 0);
@@ -889,7 +892,7 @@ mat2D_real mat2D_det_2x2_mat_minor(Mat2D_Minor mm)
  *
  * @pre All inputs are N x N and shapes match.
  */
-void mat2D_eig_check(Mat2D A, Mat2D eigenvalues, Mat2D eigenvectors, Mat2D res)
+MAT2D_DEF void mat2D_eig_check(Mat2D A, Mat2D eigenvalues, Mat2D eigenvectors, Mat2D res)
 {
     MAT2D_ASSERT(A.cols == A.rows); 
     MAT2D_ASSERT(eigenvalues.cols == A.cols);
@@ -955,7 +958,7 @@ void mat2D_eig_check(Mat2D A, Mat2D eigenvalues, Mat2D eigenvectors, Mat2D res)
  * @pre A is square; eigenvalues/eigenvectors are N x N; init_vector is N x 1.
  */
 #if 1
-void mat2D_eig_power_iteration(
+MAT2D_DEF void mat2D_eig_power_iteration(
     Mat2D A,
     Mat2D eigenvalues,
     Mat2D eigenvectors,
@@ -1119,7 +1122,7 @@ void mat2D_eig_power_iteration(Mat2D A, Mat2D eigenvalues, Mat2D eigenvectors, M
  * @param m Matrix to fill.
  * @param x Value to assign to every element.
  */
-void mat2D_fill(Mat2D m, mat2D_real x)
+MAT2D_DEF void mat2D_fill(Mat2D m, mat2D_real x)
 {
     for (size_t i = 0; i < m.rows; ++i) {
         for (size_t j = 0; j < m.cols; ++j) {
@@ -1135,7 +1138,7 @@ void mat2D_fill(Mat2D m, mat2D_real x)
  * @param step Increment between consecutive elements.
  * @details Element at linear index k gets value start + step * k.
  */
-void mat2D_fill_sequence(Mat2D m, mat2D_real start, mat2D_real step) {
+MAT2D_DEF void mat2D_fill_sequence(Mat2D m, mat2D_real start, mat2D_real step) {
     for (size_t i = 0; i < m.rows; i++) {
         for (size_t j = 0; j < m.cols; j++) {
             MAT2D_AT(m, i, j) = start + step * mat2D_offset2d(m, i, j);
@@ -1148,7 +1151,7 @@ void mat2D_fill_sequence(Mat2D m, mat2D_real start, mat2D_real step) {
  * @param m Matrix to fill.
  * @param x Value to assign to every element.
  */
-void mat2D_fill_uint32(Mat2D_uint32 m, uint32_t x)
+MAT2D_DEF void mat2D_fill_uint32(Mat2D_uint32 m, uint32_t x)
 {
     for (size_t i = 0; i < m.rows; ++i) {
         for (size_t j = 0; j < m.cols; ++j) {
@@ -1169,7 +1172,7 @@ void mat2D_fill_uint32(Mat2D_uint32 m, uint32_t x)
  *
  * @note Scans columns from 0 to m.cols-1 (left to right).
  */
-bool mat2D_find_first_non_zero_value(Mat2D m, size_t r, size_t *non_zero_col)
+MAT2D_DEF bool mat2D_find_first_non_zero_value(Mat2D m, size_t r, size_t *non_zero_col)
 {
     for (size_t c = 0; c < m.cols; ++c) {
         if (!MAT2D_IS_ZERO(MAT2D_AT(m, r, c))) {
@@ -1188,7 +1191,7 @@ bool mat2D_find_first_non_zero_value(Mat2D m, size_t r, size_t *non_zero_col)
  * @note This does not modify @p m (it is passed by value).
  * @note It is safe to call with m.elements == NULL.
  */
-void mat2D_free(Mat2D m)
+MAT2D_DEF void mat2D_free(Mat2D m)
 {
     MAT2D_FREE(m.elements);
 }
@@ -1201,7 +1204,7 @@ void mat2D_free(Mat2D m)
  * @note This does not modify @p m (it is passed by value).
  * @note It is safe to call with m.elements == NULL.
  */
-void mat2D_free_uint32(Mat2D_uint32 m)
+MAT2D_DEF void mat2D_free_uint32(Mat2D_uint32 m)
 {
     MAT2D_FREE(m.elements);
 }
@@ -1214,7 +1217,7 @@ void mat2D_free_uint32(Mat2D_uint32 m)
  *
  * @pre v.cols == 1 || v.rows == 1
  */
-mat2D_real mat2D_inner_product(Mat2D v)
+MAT2D_DEF mat2D_real mat2D_inner_product(Mat2D v)
 {
     MAT2D_ASSERT((1 == v.cols) || (1 == v.rows));
 
@@ -1250,7 +1253,7 @@ mat2D_real mat2D_inner_product(Mat2D v)
  *          @p src is singular (or nearly singular), mat2D_reduce() may assert
  *          on a near-zero pivot or produce unstable/undefined results.
  */
-void mat2D_invert(Mat2D des, Mat2D src)
+MAT2D_DEF void mat2D_invert(Mat2D des, Mat2D src)
 {
     MAT2D_ASSERT(src.cols == src.rows && "Must be an NxN matrix");
     MAT2D_ASSERT(des.cols == src.cols && des.rows == des.cols);
@@ -1284,7 +1287,7 @@ void mat2D_invert(Mat2D des, Mat2D src)
  * @warning This routine swaps rows of L during decomposition; for a standard
  *          LUP implementation, care is required when swapping partially-built L.
  */
-void mat2D_LUP_decomposition_with_swap(Mat2D src, Mat2D l, Mat2D p, Mat2D u)
+MAT2D_DEF void mat2D_LUP_decomposition_with_swap(Mat2D src, Mat2D l, Mat2D p, Mat2D u)
 {
     /* performing LU decomposition Following the Wikipedia page: https://en.wikipedia.org/wiki/LU_decomposition */
 
@@ -1341,7 +1344,7 @@ void mat2D_LUP_decomposition_with_swap(Mat2D src, Mat2D l, Mat2D p, Mat2D u)
  *          implementation and may be numerically unstable.
  * @warning Prints debug output via MAT2D_PRINT(temp).
  */
-void mat2D_make_orthogonal_Gaussian_elimination(Mat2D des, Mat2D A)
+MAT2D_DEF void mat2D_make_orthogonal_Gaussian_elimination(Mat2D des, Mat2D A)
 {
     /* https://en.wikipedia.org/wiki/Gram%E2%80%93Schmidt_process */
     /** 
@@ -1403,7 +1406,7 @@ void mat2D_make_orthogonal_Gaussian_elimination(Mat2D des, Mat2D A)
  *
  * @warning Uses rand() via mat2D_rand() for the extra columns.
  */
-void mat2D_make_orthogonal_modified_Gram_Schmidt(Mat2D des, Mat2D A)
+MAT2D_DEF void mat2D_make_orthogonal_modified_Gram_Schmidt(Mat2D des, Mat2D A)
 {
     /* https://en.wikipedia.org/wiki/Gram%E2%80%93Schmidt_process */
     MAT2D_ASSERT(des.rows == A.rows);
@@ -1457,7 +1460,7 @@ void mat2D_make_orthogonal_modified_Gram_Schmidt(Mat2D des, Mat2D A)
  *
  * @warning Uses exact floating-point equality.
  */
-bool mat2D_mat_is_all_digit(Mat2D m, mat2D_real digit)
+MAT2D_DEF bool mat2D_mat_is_all_digit(Mat2D m, mat2D_real digit)
 {
     for (size_t i = 0; i < m.rows; ++i) {
         for (size_t j = 0; j < m.cols; ++j) {
@@ -1480,7 +1483,7 @@ bool mat2D_mat_is_all_digit(Mat2D m, mat2D_real digit)
  *       with mat2D_minor_free().
  * @note The returned minor does not own ref_mat.elements.
  */
-Mat2D_Minor mat2D_minor_alloc_fill_from_mat(Mat2D ref_mat, size_t i, size_t j)
+MAT2D_DEF Mat2D_Minor mat2D_minor_alloc_fill_from_mat(Mat2D ref_mat, size_t i, size_t j)
 {
     MAT2D_ASSERT(ref_mat.cols == ref_mat.rows && "minor is defined only for square matrix");
 
@@ -1522,7 +1525,7 @@ Mat2D_Minor mat2D_minor_alloc_fill_from_mat(Mat2D ref_mat, size_t i, size_t j)
  *       with mat2D_minor_free().
  * @note The returned minor does not own the underlying reference matrix data.
  */
-Mat2D_Minor mat2D_minor_alloc_fill_from_mat_minor(Mat2D_Minor ref_mm, size_t i, size_t j)
+MAT2D_DEF Mat2D_Minor mat2D_minor_alloc_fill_from_mat_minor(Mat2D_Minor ref_mm, size_t i, size_t j)
 {
     MAT2D_ASSERT(ref_mm.cols == ref_mm.rows && "minor is defined only for square matrix");
 
@@ -1559,7 +1562,7 @@ Mat2D_Minor mat2D_minor_alloc_fill_from_mat_minor(Mat2D_Minor ref_mm, size_t i, 
  * @warning Exponential complexity (factorial). Intended for educational or
  *          very small matrices only.
  */
-mat2D_real mat2D_minor_det(Mat2D_Minor mm)
+MAT2D_DEF mat2D_real mat2D_minor_det(Mat2D_Minor mm)
 {
     MAT2D_ASSERT(mm.cols == mm.rows && "should be a square matrix");
 
@@ -1585,7 +1588,7 @@ mat2D_real mat2D_minor_det(Mat2D_Minor mm)
  * @param mm Minor to free.
  * @note After this call, mm.rows_list and mm.cols_list are invalid.
  */
-void mat2D_minor_free(Mat2D_Minor mm)
+MAT2D_DEF void mat2D_minor_free(Mat2D_Minor mm)
 {
     MAT2D_FREE(mm.cols_list);
     MAT2D_FREE(mm.rows_list);
@@ -1597,7 +1600,7 @@ void mat2D_minor_free(Mat2D_Minor mm)
  * @param name Label to print.
  * @param padding Left padding in spaces.
  */
-void mat2D_minor_print(Mat2D_Minor mm, const char *name, size_t padding)
+MAT2D_DEF void mat2D_minor_print(Mat2D_Minor mm, const char *name, size_t padding)
 {
     printf("%*s%s = [\n", (int) padding, "", name);
     for (size_t i = 0; i < mm.rows; ++i) {
@@ -1615,7 +1618,7 @@ void mat2D_minor_print(Mat2D_Minor mm, const char *name, size_t padding)
  * @param m Matrix.
  * @param factor Scalar multiplier.
  */
-void mat2D_mult(Mat2D m, mat2D_real factor)
+MAT2D_DEF void mat2D_mult(Mat2D m, mat2D_real factor)
 {
     for (size_t i = 0; i < m.rows; ++i) {
         for (size_t j = 0; j < m.cols; ++j) {
@@ -1632,14 +1635,14 @@ void mat2D_mult(Mat2D m, mat2D_real factor)
  * 
  * @warning Indices are not bounds-checked in this routine.
  */
-void mat2D_mult_row(Mat2D m, size_t r, mat2D_real factor)
+MAT2D_DEF void mat2D_mult_row(Mat2D m, size_t r, mat2D_real factor)
 {
     for (size_t j = 0; j < m.cols; ++j) {
         MAT2D_AT(m, r, j) *= factor;
     }
 }
 
-void mat2D_normalize(Mat2D m)
+MAT2D_DEF void mat2D_normalize(Mat2D m)
 {
     mat2D_real norma = mat2D_calc_norma(m);
     if (MAT2D_IS_ZERO(norma)) {
@@ -1649,7 +1652,7 @@ void mat2D_normalize(Mat2D m)
     mat2D_mult(m, (mat2D_real)1 / norma);
 }
 
-void mat2D_normalize_inf(Mat2D m)
+MAT2D_DEF void mat2D_normalize_inf(Mat2D m)
 {
     mat2D_real norma = mat2D_calc_norma_inf(m);
     if (MAT2D_IS_ZERO(norma)) {
@@ -1669,7 +1672,7 @@ void mat2D_normalize_inf(Mat2D m)
  *
  * @pre 0 <= i < m.rows and 0 <= j < m.cols (checked by MAT2D_ASSERT).
  */
-size_t mat2D_offset2d(Mat2D m, size_t i, size_t j)
+MAT2D_DEF size_t mat2D_offset2d(Mat2D m, size_t i, size_t j)
 {
     MAT2D_ASSERT(i < m.rows && j < m.cols);
     return i * m.stride_r + j;
@@ -1685,7 +1688,7 @@ size_t mat2D_offset2d(Mat2D m, size_t i, size_t j)
  *
  * @pre 0 <= i < m.rows and 0 <= j < m.cols (checked by MAT2D_ASSERT).
  */
-size_t mat2D_offset2d_uint32(Mat2D_uint32 m, size_t i, size_t j)
+MAT2D_DEF size_t mat2D_offset2d_uint32(Mat2D_uint32 m, size_t i, size_t j)
 {
     MAT2D_ASSERT(i < m.rows && j < m.cols);
     return i * m.stride_r + j;
@@ -1702,7 +1705,7 @@ size_t mat2D_offset2d_uint32(Mat2D_uint32 m, size_t i, size_t j)
  * @pre des.rows == des.cols
  * @pre (v.cols == 1 && des.rows == v.rows) || (v.rows == 1 && des.cols == v.cols)
  */
-void mat2D_outer_product(Mat2D des, Mat2D v)
+MAT2D_DEF void mat2D_outer_product(Mat2D des, Mat2D v)
 {
     MAT2D_ASSERT(des.cols == des.rows);
     MAT2D_ASSERT((1 == v.cols && des.rows == v.rows) || (1 == v.rows && des.cols == v.cols));
@@ -1745,7 +1748,7 @@ void mat2D_outer_product(Mat2D des, Mat2D v)
  *
  * @pre A is square and v has shape (A.rows x 1).
  */
-int mat2D_power_iterate(Mat2D A, Mat2D v, mat2D_real *lambda, mat2D_real shift, bool norm_inf_v)
+MAT2D_DEF int mat2D_power_iterate(Mat2D A, Mat2D v, mat2D_real *lambda, mat2D_real shift, bool norm_inf_v)
 {
     /* https://www.youtube.com/watch?v=SkPusgctgpI */
 
@@ -1814,7 +1817,7 @@ int mat2D_power_iterate(Mat2D A, Mat2D v, mat2D_real *lambda, mat2D_real shift, 
  * @param name Label to print.
  * @param padding Left padding in spaces.
  */
-void mat2D_print(Mat2D m, const char *name, size_t padding)
+MAT2D_DEF void mat2D_print(Mat2D m, const char *name, size_t padding)
 {
     printf("%*s%s = [\n", (int) padding, "", name);
     for (size_t i = 0; i < m.rows; ++i) {
@@ -1833,7 +1836,7 @@ void mat2D_print(Mat2D m, const char *name, size_t padding)
  * @param name Label to print.
  * @param padding Left padding in spaces.
  */
-void mat2D_print_uint32(Mat2D_uint32 m, const char *name, size_t padding)
+MAT2D_DEF void mat2D_print_uint32(Mat2D_uint32 m, const char *name, size_t padding)
 {
     printf("%*s%s = [\n", (int) padding, "", name);
     for (size_t i = 0; i < m.rows; ++i) {
@@ -1852,7 +1855,7 @@ void mat2D_print_uint32(Mat2D_uint32 m, const char *name, size_t padding)
  * @param name Label to print.
  * @param padding Left padding in spaces.
  */
-void mat2D_print_as_col(Mat2D m, const char *name, size_t padding)
+MAT2D_DEF void mat2D_print_as_col(Mat2D m, const char *name, size_t padding)
 {
     printf("%*s%s = [\n", (int) padding, "", name);
     for (size_t i = 0; i < m.rows*m.cols; ++i) {
@@ -1862,7 +1865,7 @@ void mat2D_print_as_col(Mat2D m, const char *name, size_t padding)
     printf("%*s]\n", (int) padding, "");
 }
 
-void mat2D_project_out_columns(Mat2D v, Mat2D basis, size_t used_cols)
+MAT2D_DEF void mat2D_project_out_columns(Mat2D v, Mat2D basis, size_t used_cols)
 {
     /* Gram-Schmidt */
     MAT2D_ASSERT(v.cols == 1);
@@ -1891,7 +1894,7 @@ void mat2D_project_out_columns(Mat2D v, Mat2D basis, size_t used_cols)
  * @pre high > low (not checked here; caller responsibility).
  * @note Uses mat2D_rand_double() (rand()).
  */
-void mat2D_rand(Mat2D m, mat2D_real low, mat2D_real high)
+MAT2D_DEF void mat2D_rand(Mat2D m, mat2D_real low, mat2D_real high)
 {
     for (size_t i = 0; i < m.rows; ++i) {
         for (size_t j = 0; j < m.cols; ++j) {
@@ -1909,7 +1912,7 @@ void mat2D_rand(Mat2D m, mat2D_real low, mat2D_real high)
  * @note This RNG is not cryptographically secure and may have weak statistical
  *       properties depending on the platform.
  */
-mat2D_real mat2D_rand_mat2D_real(void)
+MAT2D_DEF mat2D_real mat2D_rand_mat2D_real(void)
 {
     return (mat2D_real) rand() / (mat2D_real) RAND_MAX;
 }
@@ -1927,7 +1930,7 @@ mat2D_real mat2D_rand_mat2D_real(void)
  * @note When used on an augmented matrix (e.g. [A | I]), this can be used as
  *       part of Gauss-Jordan inversion when A is nonsingular.
  */
-size_t mat2D_reduce(Mat2D m)
+MAT2D_DEF size_t mat2D_reduce(Mat2D m)
 {
     /* preforming Gauss–Jordan reduction to Reduced Row Echelon Form (RREF) */
     /* Gauss elimination: https://en.wikipedia.org/wiki/Gaussian_elimination */
@@ -1960,7 +1963,7 @@ size_t mat2D_reduce(Mat2D m)
  *
  * @warning Uses exact floating-point equality.
  */
-bool mat2D_row_is_all_digit(Mat2D m, mat2D_real digit, size_t r)
+MAT2D_DEF bool mat2D_row_is_all_digit(Mat2D m, mat2D_real digit, size_t r)
 {
     for (size_t j = 0; j < m.cols; ++j) {
         if (MAT2D_AT(m, r, j) != digit) {
@@ -1981,7 +1984,7 @@ bool mat2D_row_is_all_digit(Mat2D m, mat2D_real digit, size_t r)
  * 
  * @note This routine allocates temporary 3x3 matrices internally. 
  */
-void mat2D_set_DCM_zyx(Mat2D DCM, float yaw_deg, float pitch_deg, float roll_deg)
+MAT2D_DEF void mat2D_set_DCM_zyx(Mat2D DCM, float yaw_deg, float pitch_deg, float roll_deg)
 {
     Mat2D RotZ = mat2D_alloc(3,3);
     mat2D_set_rot_mat_z(RotZ, yaw_deg);
@@ -2006,7 +2009,7 @@ void mat2D_set_DCM_zyx(Mat2D DCM, float yaw_deg, float pitch_deg, float roll_deg
  *
  * @pre m.rows == m.cols (checked by MAT2D_ASSERT).
  */
-void mat2D_set_identity(Mat2D m)
+MAT2D_DEF void mat2D_set_identity(Mat2D m)
 {
     MAT2D_ASSERT(m.cols == m.rows);
     for (size_t i = 0; i < m.rows; ++i) {
@@ -2034,7 +2037,7 @@ void mat2D_set_identity(Mat2D m)
  *   [ 0, cos(a),  sin(a) ]
  *   [ 0,-sin(a),  cos(a) ]
  */ 
-void mat2D_set_rot_mat_x(Mat2D m, float angle_deg)
+MAT2D_DEF void mat2D_set_rot_mat_x(Mat2D m, float angle_deg)
 {
     MAT2D_ASSERT(3 == m.cols && 3 == m.rows);
 
@@ -2058,7 +2061,7 @@ void mat2D_set_rot_mat_x(Mat2D m, float angle_deg)
  *   [ 0     , 1, 0      ]
  *   [ sin(a), 0, cos(a) ]
  */
-void mat2D_set_rot_mat_y(Mat2D m, float angle_deg)
+MAT2D_DEF void mat2D_set_rot_mat_y(Mat2D m, float angle_deg)
 {
     MAT2D_ASSERT(3 == m.cols && 3 == m.rows);
 
@@ -2082,7 +2085,7 @@ void mat2D_set_rot_mat_y(Mat2D m, float angle_deg)
  *   [-sin(a), cos(a), 0 ]
  *   [ 0     , 0     , 1 ]
  */
-void mat2D_set_rot_mat_z(Mat2D m, float angle_deg)
+MAT2D_DEF void mat2D_set_rot_mat_z(Mat2D m, float angle_deg)
 {
     MAT2D_ASSERT(3 == m.cols && 3 == m.rows);
 
@@ -2102,7 +2105,7 @@ void mat2D_set_rot_mat_z(Mat2D m, float angle_deg)
  *
  * @pre m.rows == m.cols
  */
-void mat2D_shift(Mat2D m, mat2D_real shift)
+MAT2D_DEF void mat2D_shift(Mat2D m, mat2D_real shift)
 {
     MAT2D_ASSERT(m.cols == m.rows); 
     for (size_t i = 0; i < m.rows; i++) {
@@ -2126,7 +2129,7 @@ void mat2D_shift(Mat2D m, mat2D_real shift)
  *          than forward/back substitution. Prefer substitution for
  *          production-quality solvers.
  */
-void mat2D_solve_linear_sys_LUP_decomposition(Mat2D A, Mat2D x, Mat2D B)
+MAT2D_DEF void mat2D_solve_linear_sys_LUP_decomposition(Mat2D A, Mat2D x, Mat2D B)
 {
     MAT2D_ASSERT(A.cols == x.rows);
     MAT2D_ASSERT(1 == x.cols);
@@ -2168,7 +2171,7 @@ void mat2D_solve_linear_sys_LUP_decomposition(Mat2D A, Mat2D x, Mat2D B)
  *
  * @pre dst and a have identical shape.
  */
-void mat2D_sub(Mat2D dst, Mat2D a)
+MAT2D_DEF void mat2D_sub(Mat2D dst, Mat2D a)
 {
     MAT2D_ASSERT(dst.rows == a.rows);
     MAT2D_ASSERT(dst.cols == a.cols);
@@ -2189,7 +2192,7 @@ void mat2D_sub(Mat2D dst, Mat2D a)
  * @param src Source matrix.
  * @param src_col Column index in source.
  */
-void mat2D_sub_col_to_col(Mat2D des, size_t des_col, Mat2D src, size_t src_col)
+MAT2D_DEF void mat2D_sub_col_to_col(Mat2D des, size_t des_col, Mat2D src, size_t src_col)
 {
     MAT2D_ASSERT(src_col < src.cols);
     MAT2D_ASSERT(des.rows == src.rows);
@@ -2210,7 +2213,7 @@ void mat2D_sub_col_to_col(Mat2D des, size_t des_col, Mat2D src, size_t src_col)
  * @param src Source matrix.
  * @param src_row Row index in source.
  */
-void mat2D_sub_row_to_row(Mat2D des, size_t des_row, Mat2D src, size_t src_row)
+MAT2D_DEF void mat2D_sub_row_to_row(Mat2D des, size_t des_row, Mat2D src, size_t src_row)
 {
     MAT2D_ASSERT(src_row < src.rows);
     MAT2D_ASSERT(des.cols == src.cols);
@@ -2230,7 +2233,7 @@ void mat2D_sub_row_to_row(Mat2D des, size_t des_row, Mat2D src, size_t src_row)
  * 
  * @warning Indices are not bounds-checked in this routine.
  */
-void mat2D_sub_row_time_factor_to_row(Mat2D m, size_t des_r, size_t src_r, mat2D_real factor)
+MAT2D_DEF void mat2D_sub_row_time_factor_to_row(Mat2D m, size_t des_r, size_t src_r, mat2D_real factor)
 {
     for (size_t j = 0; j < m.cols; ++j) {
         MAT2D_AT(m, des_r, j) -= factor * MAT2D_AT(m, src_r, j);
@@ -2265,7 +2268,7 @@ void mat2D_sub_row_time_factor_to_row(Mat2D m, size_t des_r, size_t src_r, mat2D
  * @pre V.rows==V.cols==A.cols
  * @pre S.rows==A.rows and S.cols==A.cols
  */
-void mat2D_SVD_full(Mat2D A, Mat2D U, Mat2D S, Mat2D V, Mat2D init_vec_u, Mat2D init_vec_v, bool return_v_transpose)
+MAT2D_DEF void mat2D_SVD_full(Mat2D A, Mat2D U, Mat2D S, Mat2D V, Mat2D init_vec_u, Mat2D init_vec_v, bool return_v_transpose)
 {
     mat2D_SVD_thin(A, U, S, V, init_vec_u, init_vec_v, false);
 
@@ -2334,7 +2337,7 @@ void mat2D_SVD_full(Mat2D A, Mat2D U, Mat2D S, Mat2D V, Mat2D init_vec_u, Mat2D 
  *          It is sensitive to convergence issues of power iteration and to
  *          deflation error accumulation.
  */
-void mat2D_SVD_thin(Mat2D A, Mat2D U, Mat2D S, Mat2D V, Mat2D init_vec_u, Mat2D init_vec_v, bool return_v_transpose)
+MAT2D_DEF void mat2D_SVD_thin(Mat2D A, Mat2D U, Mat2D S, Mat2D V, Mat2D init_vec_u, Mat2D init_vec_v, bool return_v_transpose)
 {
     /* https://www.youtube.com/watch?v=nbBvuuNVfco */
     /* https://en.wikipedia.org/wiki/Singular_value_decomposition */
@@ -2449,7 +2452,7 @@ void mat2D_SVD_thin(Mat2D A, Mat2D U, Mat2D S, Mat2D V, Mat2D init_vec_u, Mat2D 
  * 
  * @warning Row indices are not bounds-checked in this routine. 
  */
-void mat2D_swap_rows(Mat2D m, size_t r1, size_t r2)
+MAT2D_DEF void mat2D_swap_rows(Mat2D m, size_t r1, size_t r2)
 {
     for (size_t j = 0; j < m.cols; j++) {
         mat2D_real temp = MAT2D_AT(m, r1, j);
@@ -2465,7 +2468,7 @@ void mat2D_swap_rows(Mat2D m, size_t r1, size_t r2)
  *
  * @warning If des aliases src, results are undefined (no in-place transpose).
  */
-void mat2D_transpose(Mat2D des, Mat2D src)
+MAT2D_DEF void mat2D_transpose(Mat2D des, Mat2D src)
 {
     MAT2D_ASSERT(des.cols == src.rows);
     MAT2D_ASSERT(des.rows == src.cols);
@@ -2495,7 +2498,7 @@ void mat2D_transpose(Mat2D des, Mat2D src)
  *
  * @warning Not robust for linearly dependent rows or very small pivots.
  */
-mat2D_real mat2D_upper_triangulate(Mat2D m, uint8_t flags)
+MAT2D_DEF mat2D_real mat2D_upper_triangulate(Mat2D m, uint8_t flags)
 {
     /* preforming Gauss elimination: https://en.wikipedia.org/wiki/Gaussian_elimination */
     /* returns the factor multiplying the determinant */
