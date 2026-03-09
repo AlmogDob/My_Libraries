@@ -55,11 +55,11 @@ strip_comments_Almog_Draw_Library.h: ./Almog_Draw_Library.h
 	gcc -fpreprocessed -dD -E -P ./Almog_Draw_Library.h > striped_Almog_Draw_Library.h
 
 
-docs: doxygen.txt
-	@if [$(wildcard docs)]; then\
-		rm -r docs;\
+docs: docs/doxygen.txt
+	@if [$(wildcard docs/docs)]; then\
+		rm -r docs/docs;\
 	fi
-	doxygen doxygen.txt
-	cd docs/latex; make;
-	cp docs/latex/refman.pdf .
-	rm -r docs
+	doxygen docs/doxygen.txt
+	cd docs/docs/latex; make;
+	cp docs/docs/latex/refman.pdf docs.
+	rm -r docs/docs

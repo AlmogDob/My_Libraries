@@ -1,12 +1,12 @@
 #include <stdio.h>
 #include <stdbool.h>
-#include <stdlib.h>
 
 #define APL_SETUP
 #define APL_INPUT
 #define APL_UPDATE
 #define APL_RENDER
-#define APL_DEFINE_ALL_IMPLEMENTATIONS
+#define MATRIX2D_IMPLEMENTATION
+#define ALMOG_PLATFORM_LIBRARY_IMPLEMENTATION
 #include "Almog_Platform_Library.h"
 #define ALMOG_DRAW_LIBRARY_IMPLEMENTATION
 #include "Almog_Draw_Library.h"

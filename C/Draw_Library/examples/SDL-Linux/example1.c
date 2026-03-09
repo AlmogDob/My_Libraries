@@ -2,10 +2,10 @@
 #define UPDATE
 #define RENDER
 #define ALMOG_DRAW_LIBRARY_IMPLEMENTATION
-#include "./Almog_Draw_Library.h"
+#include "../../src/Almog_Draw_Library.h"
 #define MATRIX2D_IMPLEMENTATION
-#include "./Matrix2D.h"
-#include "./display.c"
+#include "../../src/Matrix2D.h"
+#include "../../src/display.c"
 
 
 Figure figure1;
