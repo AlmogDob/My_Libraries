@@ -33,10 +33,6 @@
 #include "./Almog_Dynamic_Array.h"
 #include "./Matrix2D.h"
 #include "./Almog_Draw_Library.h"
-
-#ifndef ALMOG_STRING_MANIPULATION_IMPLEMENTATION
-#define ALMOG_STRING_MANIPULATION_IMPLEMENTATION
-#endif
 #include "./Almog_String_Manipulation.h"
 
 #ifndef AE_ASSERT

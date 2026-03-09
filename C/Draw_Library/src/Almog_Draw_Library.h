@@ -1722,7 +1722,7 @@ void adl_tri_fill_Pinedas_rasterizer_interpolate_normal(Mat2D_uint32 screen_mat,
                 double inv_z = inv_w / z_over_w;
 
                 if (inv_z >= MAT2D_AT(inv_z_buffer, y, x)) {
-                    adl_point_draw(screen_mat, (float)x, (float)y, (uint32_t)(r8, g8, b8, a), offset_zoom_param);
+                    adl_point_draw(screen_mat, (float)x, (float)y, (uint32_t)ADL_RGBA_hexARGB(r8, g8, b8, a), offset_zoom_param);
                     MAT2D_AT(inv_z_buffer, y, x) = inv_z;
                 }
             }
