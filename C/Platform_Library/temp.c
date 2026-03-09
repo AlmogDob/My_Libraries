@@ -8,6 +8,8 @@
 #define APL_RENDER
 #define APL_DEFINE_ALL_IMPLEMENTATIONS
 #include "Almog_Platform_Library.h"
+#define ALMOG_DRAW_LIBRARY_IMPLEMENTATION
+#include "Almog_Draw_Library.h"
 
 enum Apl_Return_Types apl_setup(struct Apl_Window_State *ws)
 {

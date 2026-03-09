@@ -1,9 +1,81 @@
-/* -------------------------------------------------------------------------------- */
-#if defined(_WIN32) || defined(_WIN64)
-/* -------------------------------------------------------------------------------- */
+/** Structure of the file:
+ * 
+ * ################################################################################
+ * ################################################################################
+ * HEADER
+ * ################################################################################
+ * ################################################################################
+ * 
+ * #ifndef ALMOG_PLATFORM_LIBRARY_H_
+ * #define ALMOG_PLATFORM_LIBRARY_H_
+ * 
+ * shared header (except for the Platform_State definition)
+ * 
+ * --------------------------------------------------------------------------------
+ * #if defined(_WIN32) || defined(_WIN64) //platform.h
+ * --------------------------------------------------------------------------------
+ * window header
+ * 
+ * --------------------------------------------------------------------------------
+ * #elif defined(__linux__) //platform.h
+ * --------------------------------------------------------------------------------
+ * Linux header
+ * 
+ * --------------------------------------------------------------------------------
+ * #endif //platform.h
+ * --------------------------------------------------------------------------------
+ * #endif //ALMOG_PLATFORM_LIBRARY_H_
+ * 
+ * 
+ * ################################################################################
+ * ################################################################################
+ * IMPLEMENTATION
+ * ################################################################################
+ * ################################################################################
+ * 
+ * #ifdef ALMOG_PLATFORM_LIBRARY_IMPLEMENTATION
+ * #undef ALMOG_PLATFORM_LIBRARY_IMPLEMENTATION
+ * 
+ * shared implementation
+ * 
+ * --------------------------------------------------------------------------------
+ * #if defined(_WIN32) || defined(_WIN64) //platform.c
+ * --------------------------------------------------------------------------------
+ * window implementation
+ * 
+ * --------------------------------------------------------------------------------
+ * #elif defined(__linux__) //platform.c
+ * --------------------------------------------------------------------------------
+ * Linux implementation
+ * 
+ * --------------------------------------------------------------------------------
+ * #endif //platform.c
+ * --------------------------------------------------------------------------------
+ * #endif //ALMOG_PLATFORM_LIBRARY_IMPLEMENTATION
+ */
+
+
+
+/**
+ * ################################################################################
+ * ################################################################################
+ * HEADER
+ * ################################################################################
+ * ################################################################################
+ */
 #ifndef ALMOG_PLATFORM_LIBRARY_H_
 #define ALMOG_PLATFORM_LIBRARY_H_
 
+#ifdef APL_DEFINE_ALL_IMPLEMENTATIONS
+    #undef APL_DEFINE_ALL_IMPLEMENTATIONS
+    #define MATRIX2D_IMPLEMENTATION
+    #define ALMOG_PLATFORM_LIBRARY_IMPLEMENTATION
+#endif
+#include "Matrix2D.h"
+
+/* -------------------------------------------------------------------------------- */
+#if defined(_WIN32) || defined(_WIN64) /* PLATFORM_STATE_H_ */
+/* -------------------------------------------------------------------------------- */
 /**
  * The Windows version is based on Handmade Hero, Casey Muratori's famous video series. 
  * A link to the playlist on YouTube: https://youtube.com/playlist?list=PLnuhp3Xd9PYTt6svyQPyRO_AAuMWGxPzU&si=4QyqgS-84Dr8d8Cu
@@ -13,33 +85,41 @@
 #define APL_PLATFORM_NAME "Windows"
 
 #include <windows.h>
-#include <dbghelp.h>
+#include <dbghelp.h> /* for SIGSEGV help */
 #pragma comment(lib, "Dbghelp.lib")
 #pragma comment(lib, "user32.lib")
 #pragma comment(lib, "Gdi32.lib")
 
-#ifdef APL_DEFINE_ALL_IMPLEMENTATIONS
-    #undef APL_DEFINE_ALL_IMPLEMENTATIONS
-    #define MATRIX2D_IMPLEMENTATION
-    #define ALMOG_DRAW_LIBRARY_IMPLEMENTATION
-    #define ALMOG_PLATFORM_LIBRARY_IMPLEMENTATION
-#endif
-#include "Matrix2D.h"
-#include "Almog_Draw_Library.h"
+struct Platform_State {
+    WNDCLASS window_class;
+    HWND window_handle;
+    WNDPROC window_call_back;
+    BITMAPINFO bit_map_info;
+    size_t previous_frame_ticks;
+};
+
+/* -------------------------------------------------------------------------------- */
+#elif defined(__linux__) /* PLATFORM_STATE_H_ */
+/* -------------------------------------------------------------------------------- */
+
+#define APL_PLATFORM_NAME "Linux"
+
+struct Platform_State {
+    int x;
+};
+
+#endif /* PLATFORM_STATE_H_*/
 
 enum Apl_Return_Types {
     APL_SUCCESS,
     APL_FAIL,
 };
 
+#define APL_WINDOW_NAME_LEN 256
 struct Apl_Window_State {
-    struct {
-        WNDCLASS window_class;
-        HWND window_handle;
-        WNDPROC window_call_back;
-        BITMAPINFO bit_map_info;
-        size_t previous_frame_ticks;
-    } platform;
+    struct Platform_State platform;
+
+    char window_name[APL_WINDOW_NAME_LEN];
 
     bool running;
     bool to_render;
@@ -72,12 +152,14 @@ struct Apl_Window_State {
 
     size_t window_w;
     size_t window_h;
-
     Mat2D_uint32 window_pixels_mat;
 };
 
 #define APL_OK APL_SUCCESS
 #define APL_UNUSED(x) (void)x
+#ifndef APL_DEF
+    #define APL_DEF static inline
+#endif
 
 #define apl_dprintSTRING(expr) printf("[Info] %s:%d:\n" #expr " = %s\n", __FILE__, __LINE__, expr)
 #define apl_dprintCHAR(expr) printf("[Info] %s:%d:\n" #expr " = %c\n", __FILE__, __LINE__, expr)
@@ -91,12 +173,13 @@ struct Apl_Window_State {
     fprintf(stderr, "[Warning] %s:%d:\n%*sIn function '%s':\n%*s" fmt "\n", __FILE__, __LINE__, 10, "", __func__, 10, "", __VA_ARGS__)
 #define apl_dprintERROR(fmt, ...) \
     fprintf(stderr, "[Error] %s:%d:\n%*sIn function '%s':\n%*s" fmt "\n", __FILE__, __LINE__, 8, "", __func__, 8, "", __VA_ARGS__)
+
 #define apl_min(a, b) ((a) < (b) ? (a) : (b))
 #define apl_max(a, b) ((a) > (b) ? (a) : (b))
 
 #define APL_INIT_WINDOW_WIDTH 800
 #define APL_INIT_WINDOW_HEIGHT 600
-#define APL_TARGET_FPS 100
+#define APL_WANTED_FPS 100
 #define APL_DELTA_TIME_MAX_MICRO_SEC (10 * 60 * 1000 * 1000)
 
 #define APL_COLOR_GRAY_hexARGB      0xFF181818
@@ -110,36 +193,139 @@ struct Apl_Window_State {
 
 #define APL_BACKGROUND_COLOR_hexARGB APL_COLOR_GRAY_hexARGB
 
+/* shared implementation */
+APL_DEF char *                  apl_platform_name(void);
+APL_DEF enum Apl_Return_Types   apl_window_destroy(struct Apl_Window_State *ws);
+APL_DEF enum Apl_Return_Types   apl_window_process_input(struct Apl_Window_State *ws);
+APL_DEF enum Apl_Return_Types   apl_window_render(struct Apl_Window_State *ws);
 
-void                    apl_fix_framerate(struct Apl_Window_State *ws);
-const char *            apl_get_exception_name(DWORD code);
-enum Apl_Return_Types   apl_initialize_main_window(struct Apl_Window_State *ws, char *name);
-LRESULT CALLBACK        apl_main_window_callback(HWND window, UINT message, WPARAM wparam, LPARAM lparam);
-void                    apl_pixel_mat_copy_to_screen(struct Apl_Window_State *ws);
-char *                  apl_platform_name(void);
-void                    apl_print_module_plus_offset(DWORD64 instruction_pointer);
-enum Apl_Return_Types   apl_resize_window_pixel_mat(struct Apl_Window_State *ws, size_t new_w, size_t new_h);
-void                    apl_sleep(size_t wait_time_us);
-LONG WINAPI             apl_unhandled_exception_filter(EXCEPTION_POINTERS *ep);
-enum Apl_Return_Types   apl_window_destroy(struct Apl_Window_State *ws);
-enum Apl_Return_Types   apl_window_process_input(struct Apl_Window_State *ws);
-enum Apl_Return_Types   apl_window_render(struct Apl_Window_State *ws);
-enum Apl_Return_Types   apl_window_setup(struct Apl_Window_State *ws);
-enum Apl_Return_Types   apl_window_update(struct Apl_Window_State *ws);
+/* shared_platform_implementation */
+APL_DEF void                    apl_fix_framerate(struct Apl_Window_State *ws);
+APL_DEF enum Apl_Return_Types   apl_initialize_main_window(struct Apl_Window_State *ws);
+APL_DEF void                    apl_pixel_mat_copy_to_screen(struct Apl_Window_State *ws);
+APL_DEF enum Apl_Return_Types   apl_resize_window_pixel_mat(struct Apl_Window_State *ws, size_t new_w, size_t new_h);
+APL_DEF void                    apl_sleep(size_t wait_time_us);
+APL_DEF enum Apl_Return_Types   apl_window_setup(struct Apl_Window_State *ws);
+APL_DEF enum Apl_Return_Types   apl_window_update(struct Apl_Window_State *ws);
 
 /* user supposed to define: */
-enum Apl_Return_Types   apl_destroy(struct Apl_Window_State *ws);
-enum Apl_Return_Types   apl_input(struct Apl_Window_State *ws);
-enum Apl_Return_Types   apl_render(struct Apl_Window_State *ws);
-enum Apl_Return_Types   apl_setup(struct Apl_Window_State *ws);
-enum Apl_Return_Types   apl_update(struct Apl_Window_State *ws);
+        enum Apl_Return_Types   apl_destroy(struct Apl_Window_State *ws);
+        enum Apl_Return_Types   apl_input(struct Apl_Window_State *ws);
+        enum Apl_Return_Types   apl_render(struct Apl_Window_State *ws);
+        enum Apl_Return_Types   apl_setup(struct Apl_Window_State *ws);
+        enum Apl_Return_Types   apl_update(struct Apl_Window_State *ws);
 
+/* -------------------------------------------------------------------------------- */
+#if defined(_WIN32) || defined(_WIN64) /* PLATFORM_H_ */
+/* -------------------------------------------------------------------------------- */
+
+/* specific_platform_implementation */
+APL_DEF const char *        apl_get_exception_name(DWORD code);
+        LRESULT CALLBACK    apl_main_window_callback(HWND window, UINT message, WPARAM wparam, LPARAM lparam);
+APL_DEF void                apl_print_module_plus_offset(DWORD64 instruction_pointer);
+        LONG WINAPI         apl_unhandled_exception_filter(EXCEPTION_POINTERS *ep);
+
+
+/* -------------------------------------------------------------------------------- */
+#elif defined(__linux__) /* PLATFORM_H_ */
+/* -------------------------------------------------------------------------------- */
+
+/* specific_platform_implementation */
+
+#endif /* PLATFORM_H_ */
 #endif /* ALMOG_PLATFORM_LIBRARY_H_*/
+
+/**
+ * ################################################################################
+ * ################################################################################
+ * IMPLEMENTATION
+ * ################################################################################
+ * ################################################################################
+ */
 
 #ifdef ALMOG_PLATFORM_LIBRARY_IMPLEMENTATION
 #undef ALMOG_PLATFORM_LIBRARY_IMPLEMENTATION
 
-void apl_fix_framerate(struct Apl_Window_State *ws)
+/**
+ * shared implementation
+ */ 
+
+APL_DEF char * apl_platform_name(void)
+{
+    return APL_PLATFORM_NAME;
+}
+
+APL_DEF enum Apl_Return_Types apl_window_destroy(struct Apl_Window_State *ws)
+{
+    /*------------------------------------------------------------*/
+    if (apl_destroy(ws) != APL_SUCCESS) {
+        apl_dprintERROR("%s", "apl_destroy failed");
+        return APL_FAIL;
+    }
+    return APL_SUCCESS;
+}
+
+APL_DEF enum Apl_Return_Types apl_window_process_input(struct Apl_Window_State *ws)
+{
+    if (apl_input(ws) != APL_SUCCESS) {
+        apl_dprintERROR("%s", "apl_input failed");
+        return APL_FAIL;
+    }
+    return APL_SUCCESS;
+}
+
+APL_DEF enum Apl_Return_Types apl_window_render(struct Apl_Window_State *ws)
+{
+    if (ws->to_clear_renderer) {
+        mat2D_fill_uint32(ws->window_pixels_mat, APL_BACKGROUND_COLOR_hexARGB);
+    }
+    /*------------------------------------------------------------*/
+
+    if (apl_render(ws) != APL_SUCCESS) {
+        apl_dprintERROR("%s", "apl_render failed");
+        return APL_FAIL;
+    }
+            
+    /*------------------------------------------------------------*/
+    apl_pixel_mat_copy_to_screen(ws);
+
+    return APL_OK;
+}
+
+#ifndef APL_DESTROY
+#define APL_DESTROY
+enum Apl_Return_Types apl_destroy(struct Apl_Window_State *ws) { APL_UNUSED(ws); return APL_OK; }
+#endif
+
+#ifndef APL_INPUT
+#define APL_INPUT
+enum Apl_Return_Types apl_input(struct Apl_Window_State *ws) { APL_UNUSED(ws); return APL_OK; }
+#endif
+
+#ifndef APL_SETUP
+#define APL_SETUP
+enum Apl_Return_Types apl_setup(struct Apl_Window_State *ws) { APL_UNUSED(ws); return APL_OK; }
+#endif
+
+#ifndef APL_UPDATE
+#define APL_UPDATE
+enum Apl_Return_Types apl_update(struct Apl_Window_State *ws) { APL_UNUSED(ws); return APL_OK; }
+#endif
+
+#ifndef APL_RENDER
+#define APL_RENDER
+enum Apl_Return_Types apl_render(struct Apl_Window_State *ws) { APL_UNUSED(ws); return APL_OK; }
+#endif
+
+/* -------------------------------------------------------------------------------- */
+#if defined(_WIN32) || defined(_WIN64) //PLATFORM_C_
+/* -------------------------------------------------------------------------------- */
+
+/**
+ * start shared_Windows_implementation
+ */ 
+
+APL_DEF void apl_fix_framerate(struct Apl_Window_State *ws)
 {
     LARGE_INTEGER count_freq;
     QueryPerformanceFrequency(&count_freq);
@@ -164,21 +350,7 @@ void apl_fix_framerate(struct Apl_Window_State *ws)
     ws->fps = 1.0f / ws->delta_time_sec;
 }
 
-const char * apl_get_exception_name(DWORD code)
-{
-    switch (code) {
-        case EXCEPTION_ACCESS_VIOLATION:
-            return "EXCEPTION_ACCESS_VIOLATION";
-        case EXCEPTION_IN_PAGE_ERROR:
-            return "EXCEPTION_IN_PAGE_ERROR";
-        case EXCEPTION_STACK_OVERFLOW:
-            return "EXCEPTION_STACK_OVERFLOW";
-        default:
-            return "UNKNOWN_EXCEPTION";
-    }
-}
-
-enum Apl_Return_Types apl_initialize_main_window(struct Apl_Window_State *ws, char *name)
+APL_DEF enum Apl_Return_Types apl_initialize_main_window(struct Apl_Window_State *ws)
 {
     WNDCLASS window_class = {
         .style = CS_HREDRAW | CS_VREDRAW,
@@ -197,7 +369,7 @@ enum Apl_Return_Types apl_initialize_main_window(struct Apl_Window_State *ws, ch
 
     HWND window_handle = CreateWindowExA(0,
                                          ws->platform.window_class.lpszClassName,
-                                         name,
+                                         ws->window_name,
                                          WS_OVERLAPPEDWINDOW | WS_VISIBLE,
                                          CW_USEDEFAULT,
                                          CW_USEDEFAULT,
@@ -218,6 +390,152 @@ enum Apl_Return_Types apl_initialize_main_window(struct Apl_Window_State *ws, ch
     return APL_SUCCESS;
 }
 
+APL_DEF void apl_pixel_mat_copy_to_screen(struct Apl_Window_State *ws)
+{
+    HDC device_context = GetDC(ws->platform.window_handle);
+    StretchDIBits(device_context,
+                  0, 0, (int)ws->window_w              , (int)ws->window_h,
+                  0, 0, (int)ws->window_pixels_mat.cols, (int)ws->window_pixels_mat.rows,
+                  ws->window_pixels_mat.elements,
+                  &ws->platform.bit_map_info,
+                  DIB_RGB_COLORS, SRCCOPY);
+    ReleaseDC(ws->platform.window_handle, device_context);
+}
+
+APL_DEF enum Apl_Return_Types apl_resize_window_pixel_mat(struct Apl_Window_State *ws, size_t new_w, size_t new_h)
+{
+    ws->window_w = apl_max(new_w, 1); /* 1 so the pixel mat want be null */
+    ws->window_h = apl_max(new_h, 1); /* 1 so the pixel mat want be null */
+    APL_UNUSED(new_w);
+    APL_UNUSED(new_h);
+    
+    ws->platform.bit_map_info.bmiHeader.biSize = (LONG)sizeof(ws->platform.bit_map_info.bmiHeader);
+    ws->platform.bit_map_info.bmiHeader.biWidth = (LONG)ws->window_w;
+    ws->platform.bit_map_info.bmiHeader.biHeight = (-1 * !ws->to_flip_y + 1 * ws->to_flip_y) * (LONG)ws->window_h; /* minus for the origin to be in the top left corner */
+    ws->platform.bit_map_info.bmiHeader.biPlanes = 1;
+    ws->platform.bit_map_info.bmiHeader.biBitCount = 32;
+    ws->platform.bit_map_info.bmiHeader.biCompression = BI_RGB;
+
+    ws->window_pixels_mat = mat2D_realloc_uint32(ws->window_pixels_mat, ws->window_h, ws->window_w);
+    if (!ws->window_pixels_mat.elements) {
+        apl_dprintERROR("%s", "realloc pixel mat failed");
+        return APL_FAIL;
+    }
+    return apl_window_render(ws);
+}
+
+APL_DEF void apl_sleep(size_t wait_time_us)
+{
+    if (wait_time_us == 0) {
+        return;
+    }
+
+    LARGE_INTEGER freq;
+    QueryPerformanceFrequency(&freq);
+    LARGE_INTEGER counter;
+    QueryPerformanceCounter(&counter);
+    uint64_t start_ticks = counter.QuadPart;
+    uint64_t target_ticks = start_ticks + ((wait_time_us * (uint64_t)freq.QuadPart) / 1000000ULL);
+
+    for (;;) {
+        QueryPerformanceCounter(&counter);
+        uint64_t now_ticks = counter.QuadPart;
+        if (now_ticks >= target_ticks) {
+            break;
+        }
+
+        uint64_t remaining_ticks = target_ticks - now_ticks;
+        uint64_t remaining_us = (remaining_ticks * 1000000ULL) / (uint64_t)freq.QuadPart;
+
+        /*
+         * Sleep only while we still have a comfortable margin left.
+         * Leave the last ~2 ms for spinning to reduce overshoot.
+         */
+        if (remaining_us > 3000ULL) {
+            DWORD sleep_ms = (DWORD)((remaining_us - 2000ULL) / 1000ULL);
+            if (sleep_ms > 0) {
+                Sleep(sleep_ms);
+            } else {
+                SwitchToThread();
+            }
+        } else {
+            /*
+             * Final precise wait: spin.
+             * You can use YieldProcessor() on x86/x64 to be nicer to the CPU.
+             */
+            #if defined(_M_IX86) || defined(_M_X64)
+                YieldProcessor();
+            #endif
+        }
+    }
+}
+
+APL_DEF enum Apl_Return_Types apl_window_setup(struct Apl_Window_State *ws)
+{
+    RECT client_rect = {0};
+    GetClientRect(ws->platform.window_handle, &client_rect); /* client rect are the pixel we can draw at */
+    /* allocate a pixel mat */
+    if (apl_resize_window_pixel_mat(ws, client_rect.right - client_rect.left, client_rect.bottom - client_rect.top) != APL_SUCCESS) {
+        apl_dprintERROR("%s", "resize window pixel mat failed");
+        return APL_FAIL;
+    }
+    
+    /*------------------------------------------------------------*/
+
+    if (apl_setup(ws) != APL_SUCCESS) {
+        apl_dprintERROR("%s", "apl_setup failed");
+        return APL_FAIL;
+    }
+    return APL_OK;
+}
+
+APL_DEF enum Apl_Return_Types apl_window_update(struct Apl_Window_State *ws)
+{
+    char temp_buf[APL_WINDOW_NAME_LEN];
+    char fps_count[APL_WINDOW_NAME_LEN];
+    if (!ws->to_limit_fps) {
+        sprintf(fps_count, "dt = %5.02f [ms]", ws->delta_time_micro_sec / 1000.0f);
+    } else {
+        sprintf(fps_count, "FPS = %5.02f", ws->fps);
+    }
+
+    snprintf(temp_buf, APL_WINDOW_NAME_LEN, "%s | %s", ws->window_name, fps_count);
+    if (!(ws->elapsed_time_micro_sec % 50)) {
+        SetWindowTextA(ws->platform.window_handle, temp_buf);
+    }
+
+    /*------------------------------------------------------------*/
+
+    if (apl_update(ws) != APL_SUCCESS) {
+        apl_dprintERROR("%s", "apl_update failed");
+        return APL_FAIL;
+    }
+
+    return APL_OK;
+}
+
+/**
+ * end shared_Windows_implementation
+ */ 
+
+/**
+ * start specific_Windows_implementation
+ */ 
+
+APL_DEF const char * apl_get_exception_name(DWORD code)
+{
+    switch (code) {
+        case EXCEPTION_ACCESS_VIOLATION:
+            return "EXCEPTION_ACCESS_VIOLATION";
+        case EXCEPTION_IN_PAGE_ERROR:
+            return "EXCEPTION_IN_PAGE_ERROR";
+        case EXCEPTION_STACK_OVERFLOW:
+            return "EXCEPTION_STACK_OVERFLOW";
+        default:
+            return "UNKNOWN_EXCEPTION";
+    }
+}
+
 LRESULT CALLBACK apl_main_window_callback(HWND window, UINT message, WPARAM wparam, LPARAM lparam)
 {
     struct Apl_Window_State *ws = (struct Apl_Window_State *)GetWindowLongPtrA(window, GWLP_USERDATA);
@@ -228,6 +546,7 @@ LRESULT CALLBACK apl_main_window_callback(HWND window, UINT message, WPARAM wpar
         case WM_NCCREATE: {
             CREATESTRUCTA *cs = (CREATESTRUCTA *)lparam;
             SetWindowLongPtrA(window, GWLP_USERDATA, (LONG_PTR)cs->lpCreateParams);
+            result = 1;
         } break;
         case WM_SIZE:
         {
@@ -239,6 +558,8 @@ LRESULT CALLBACK apl_main_window_callback(HWND window, UINT message, WPARAM wpar
                     PostQuitMessage(0);
                     ws->running = false;
                 }
+            } else {
+                result = DefWindowProcA(window, message, wparam, lparam);
             }
         } break;
         case WM_CLOSE:
@@ -255,7 +576,6 @@ LRESULT CALLBACK apl_main_window_callback(HWND window, UINT message, WPARAM wpar
             BeginPaint(window, &paint);
             apl_pixel_mat_copy_to_screen(ws);
             EndPaint(window, &paint);
-            
         } break;
         case WM_SYSKEYUP:
         /* fall through */
@@ -334,36 +654,19 @@ LRESULT CALLBACK apl_main_window_callback(HWND window, UINT message, WPARAM wpar
                 } break;
                 default:
                 {
+                    result = DefWindowProcA(window, message, wparam, lparam);
                 } break;
             }
         } break;
         default:
         {
+            result = DefWindowProcA(window, message, wparam, lparam);
         } break;
     }
-
-    result = DefWindowProcA(window, message, wparam, lparam);
     return result;
 }
 
-void apl_pixel_mat_copy_to_screen(struct Apl_Window_State *ws)
-{
-    HDC device_context = GetDC(ws->platform.window_handle);
-    StretchDIBits(device_context,
-                  0, 0, (int)ws->window_w              , (int)ws->window_h,
-                  0, 0, (int)ws->window_pixels_mat.cols, (int)ws->window_pixels_mat.rows,
-                  ws->window_pixels_mat.elements,
-                  &ws->platform.bit_map_info,
-                  DIB_RGB_COLORS, SRCCOPY);
-    ReleaseDC(ws->platform.window_handle, device_context);
-}
-
-char * apl_platform_name(void)
-{
-    return APL_PLATFORM_NAME;
-}
-
-void apl_print_module_plus_offset(DWORD64 instruction_pointer)
+APL_DEF void apl_print_module_plus_offset(DWORD64 instruction_pointer)
 {
     HMODULE mod = NULL;
 
@@ -392,74 +695,6 @@ void apl_print_module_plus_offset(DWORD64 instruction_pointer)
             base_name,
             (unsigned long long)offset,
             (unsigned long long)base);
-}
-
-enum Apl_Return_Types apl_resize_window_pixel_mat(struct Apl_Window_State *ws, size_t new_w, size_t new_h)
-{
-    ws->window_w = apl_max(new_w, 1); /* 1 so the pixel mat want be null */
-    ws->window_h = apl_max(new_h, 1); /* 1 so the pixel mat want be null */
-    APL_UNUSED(new_w);
-    APL_UNUSED(new_h);
-    
-    ws->platform.bit_map_info.bmiHeader.biSize = (LONG)sizeof(ws->platform.bit_map_info.bmiHeader);
-    ws->platform.bit_map_info.bmiHeader.biWidth = (LONG)ws->window_w;
-    ws->platform.bit_map_info.bmiHeader.biHeight = (-1 * !ws->to_flip_y + 1 * ws->to_flip_y) * (LONG)ws->window_h; /* minus for the origin to be in the top left corner */
-    ws->platform.bit_map_info.bmiHeader.biPlanes = 1;
-    ws->platform.bit_map_info.bmiHeader.biBitCount = 32;
-    ws->platform.bit_map_info.bmiHeader.biCompression = BI_RGB;
-
-    ws->window_pixels_mat = mat2D_realloc_uint32(ws->window_pixels_mat, ws->window_h, ws->window_w);
-    if (!ws->window_pixels_mat.elements) {
-        apl_dprintERROR("%s", "realloc pixel mat failed");
-        return APL_FAIL;
-    }
-    return apl_window_render(ws);
-}
-
-void apl_sleep(size_t wait_time_us)
-{
-    if (wait_time_us == 0) {
-        return;
-    }
-
-    LARGE_INTEGER freq;
-    QueryPerformanceFrequency(&freq);
-    LARGE_INTEGER counter;
-    QueryPerformanceCounter(&counter);
-    uint64_t start_ticks = counter.QuadPart;
-    uint64_t target_ticks = start_ticks + ((wait_time_us * (uint64_t)freq.QuadPart) / 1000000ULL);
-
-    for (;;) {
-        QueryPerformanceCounter(&counter);
-        uint64_t now_ticks = counter.QuadPart;
-        if (now_ticks >= target_ticks) {
-            break;
-        }
-
-        uint64_t remaining_ticks = target_ticks - now_ticks;
-        uint64_t remaining_us = (remaining_ticks * 1000000ULL) / (uint64_t)freq.QuadPart;
-
-        /*
-         * Sleep only while we still have a comfortable margin left.
-         * Leave the last ~2 ms for spinning to reduce overshoot.
-         */
-        if (remaining_us > 3000ULL) {
-            DWORD sleep_ms = (DWORD)((remaining_us - 2000ULL) / 1000ULL);
-            if (sleep_ms > 0) {
-                Sleep(sleep_ms);
-            } else {
-                SwitchToThread();
-            }
-        } else {
-            /*
-             * Final precise wait: spin.
-             * You can use YieldProcessor() on x86/x64 to be nicer to the CPU.
-             */
-            #if defined(_M_IX86) || defined(_M_X64)
-                YieldProcessor();
-            #endif
-        }
-    }
 }
 
 LONG WINAPI apl_unhandled_exception_filter(EXCEPTION_POINTERS *ep)
@@ -540,87 +775,13 @@ exit:
     ExitProcess(1);
 }
 
-enum Apl_Return_Types apl_window_destroy(struct Apl_Window_State *ws)
-{
-    /*------------------------------------------------------------*/
-    if (apl_destroy(ws) != APL_SUCCESS) {
-        apl_dprintERROR("%s", "apl_destroy failed");
-        return APL_FAIL;
-    }
-    return APL_SUCCESS;
-}
-
-enum Apl_Return_Types apl_window_process_input(struct Apl_Window_State *ws)
-{
-    if (apl_input(ws) != APL_SUCCESS) {
-        apl_dprintERROR("%s", "apl_input failed");
-        return APL_FAIL;
-    }
-    return APL_SUCCESS;
-}
-
-enum Apl_Return_Types apl_window_render(struct Apl_Window_State *ws)
-{
-    if (ws->to_clear_renderer) {
-        mat2D_fill_uint32(ws->window_pixels_mat, APL_BACKGROUND_COLOR_hexARGB);
-    }
-    /*------------------------------------------------------------*/
-
-    if (apl_render(ws) != APL_SUCCESS) {
-        apl_dprintERROR("%s", "apl_render failed");
-        return APL_FAIL;
-    }
-            
-    /*------------------------------------------------------------*/
-    apl_pixel_mat_copy_to_screen(ws);
-
-    return APL_OK;
-}
-
-enum Apl_Return_Types apl_window_setup(struct Apl_Window_State *ws)
-{
-    RECT client_rect = {0};
-    GetClientRect(ws->platform.window_handle, &client_rect); /* client rect are the pixel we can draw at */
-    /* allocate a pixel mat */
-    if (apl_resize_window_pixel_mat(ws, client_rect.right - client_rect.left, client_rect.bottom - client_rect.top) != APL_SUCCESS) {
-        apl_dprintERROR("%s", "resize window pixel mat failed");
-        return APL_FAIL;
-    }
-    
-    /*------------------------------------------------------------*/
-
-    if (apl_setup(ws) != APL_SUCCESS) {
-        apl_dprintERROR("%s", "apl_setup failed");
-        return APL_FAIL;
-    }
-    return APL_OK;
-}
-
-enum Apl_Return_Types apl_window_update(struct Apl_Window_State *ws)
-{
-    char fps_count[100];
-    if (!ws->to_limit_fps) {
-        sprintf(fps_count, "dt = %5.02f [ms]", ws->delta_time_micro_sec / 1000.0f);
-    } else {
-        sprintf(fps_count, "FPS = %5.2f", ws->fps);
-    }
-    if (!(ws->elapsed_time_micro_sec % 50)) {
-        SetWindowTextA(ws->platform.window_handle, fps_count);
-    }
-
-    /*------------------------------------------------------------*/
-
-    if (apl_update(ws) != APL_SUCCESS) {
-        apl_dprintERROR("%s", "apl_update failed");
-        return APL_FAIL;
-    }
-
-    return APL_OK;
-}
+/**
+ * end specific_Windows_implementation
+ */ 
 
 /**
  * ============================================================
- * main
+ * start Windows_main
  * ============================================================
  */
 int main(void) 
@@ -649,7 +810,7 @@ int main(void)
     // window_state.elapsed_time_sec = 0;
     // window_state.previous_frame_time = 0;
     // window_state.fps = 0;
-    window_state.wanted_fps = APL_TARGET_FPS;
+    window_state.wanted_fps = APL_WANTED_FPS;
     // window_state.buttons.space_bar_is_pressed = 0;
     // window_state.buttons.w_is_pressed = 0;
     // window_state.buttons.s_is_pressed = 0;
@@ -662,7 +823,8 @@ int main(void)
     window_state.window_h = APL_INIT_WINDOW_HEIGHT;
     // Mat2D_uint32 window_pixels_mat;
 
-    rt = apl_initialize_main_window(&window_state, "apl window");
+    strncpy(window_state.window_name, "apl window", APL_WINDOW_NAME_LEN);
+    rt = apl_initialize_main_window(&window_state);
     if (rt == APL_FAIL) {
         apl_dprintERROR("%s", "failed to initialize main window");
         window_state.running = false;
@@ -677,20 +839,6 @@ int main(void)
     } else {
         window_state.running = true;
     }
-
-    /**
-     * The game loop
-     * while (window_state.running) {
-     *     process_input_window(&window_state);
-     *     if (window_state.to_update) {
-     *         update_window(&window_state);
-     *     }
-     *     if (window_state.to_render) {
-     *         render_window(&window_state);
-     *     }
-     * }
-     * destroy_window(&window_state);
-     */
 
     MSG message;
     for (window_state.running = true; window_state.running ; ) {
@@ -745,107 +893,29 @@ int main(void)
 }
 /**
  * ============================================================
- * end of main
+ * end Windows_main
  * ============================================================
  */
 
-#ifndef APL_DESTROY
-#define APL_DESTROY
-enum Apl_Return_Types apl_destroy(struct Apl_Window_State *ws) { APL_UNUSED(ws); return APL_OK; }
-#endif
-
-#ifndef APL_INPUT
-#define APL_INPUT
-enum Apl_Return_Types apl_input(struct Apl_Window_State *ws) { APL_UNUSED(ws); return APL_OK; }
-#endif
-
-#ifndef APL_SETUP
-#define APL_SETUP
-enum Apl_Return_Types apl_setup(struct Apl_Window_State *ws) { APL_UNUSED(ws); return APL_OK; }
-#endif
-
-#ifndef APL_UPDATE
-#define APL_UPDATE
-enum Apl_Return_Types apl_update(struct Apl_Window_State *ws) { APL_UNUSED(ws); return APL_OK; }
-#endif
-
-#ifndef APL_RENDER
-#define APL_RENDER
-enum Apl_Return_Types apl_render(struct Apl_Window_State *ws) { APL_UNUSED(ws); return APL_OK; }
-#endif
-
-#endif /* ALMOG_PLATFORM_LIBRARY_IMPLEMENTATION*/
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 /* -------------------------------------------------------------------------------- */
-#elif defined(__linux__)
+#elif defined(__linux__) //PLATFORM_C_
 /* -------------------------------------------------------------------------------- */
+/**
+ * start shared_Linux_implementation
+ */ 
+/**
+ * end shared_Linux_implementation
+ */ 
+/**
+ * start specific_Linux_implementation
+ */ 
+/**
+ * end specific_Linux_implementation
+ */ 
 
-#ifndef ALMOG_PLATFORM_LIBRARY_H_
-#define ALMOG_PLATFORM_LIBRARY_H_
-
-#define APL_PLATFORM_NAME "Linux"
-
-
-
-
-
-
-#define APL_INIT_WINDOW_WIDTH 800
-#define APL_INIT_WINDOW_HEIGHT 600
-#define APL_TARGET_FPS 100
-#define APL_FRAME_TARGET_TIME (1000 / APL_TARGET_FPS)
-
-#define apl_dprintINFO(fmt, ...) \
-    fprintf(stderr, "[Info] %s:%d:\n%*sIn function '%s':\n%*s" fmt "\n", __FILE__, __LINE__, 7, "", __func__, 7, "", __VA_ARGS__)
-#define apl_dprintWARNING(fmt, ...) \
-    fprintf(stderr, "[Warning] %s:%d:\n%*sIn function '%s':\n%*s" fmt "\n", __FILE__, __LINE__, 10, "", __func__, 10, "", __VA_ARGS__)
-#define apl_dprintERROR(fmt, ...) \
-    fprintf(stderr, "[Error] %s:%d:\n%*sIn function '%s':\n%*s" fmt "\n", __FILE__, __LINE__, 8, "", __func__, 8, "", __VA_ARGS__)
-
-#define APL_UNUSED(x) (void)x
-
-
-
-
-
-char * apl_platform_name(void);
-
-#endif /* ALMOG_PLATFORM_LIBRARY_H_*/
-
-#ifdef ALMOG_PLATFORM_LIBRARY_IMPLEMENTATION
-#undef ALMOG_PLATFORM_LIBRARY_IMPLEMENTATION
-
-char * apl_platform_name(void)
-{
-    return APL_PLATFORM_NAME;
-}
-
-
+/* -------------------------------------------------------------------------------- */
+#endif //PLATFORM_C_
+/* -------------------------------------------------------------------------------- */
 #endif /* ALMOG_PLATFORM_LIBRARY_IMPLEMENTATION*/
 
-#endif /* platform */

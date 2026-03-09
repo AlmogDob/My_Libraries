@@ -62,7 +62,7 @@ if "%RELEASE%"=="1" (
   set "CLINKS=/link /LTCG /OPT:REF /OPT:ICF"
 ) else (
   REM /RTC1 only works with /Od (debug-ish); using /MDd for debug CRT
-  set "CCHECK=/Zi /Od /MDd /DDEBUG /RTC1"
+  set "CCHECK=/FC /Zi /Od /MDd /DDEBUG /RTC1"
 
   REM Optional static analysis (slower)
   REM set "CCHECK=%CCHECK% /analyze"
