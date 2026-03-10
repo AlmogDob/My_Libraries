@@ -242,20 +242,28 @@ if "%~1"=="" (
 )
 
 set "NAME=%~n1"
-set "EXE=%BUILDDIR%\%NAME%.exe"
+set "EXE=%NAME%.exe"
 
-if not exist "%EXE%" (
+if not exist "%BUILDDIR%\%EXE%" (
   endlocal
   set "FAIL_RC=1"
-  set "FAIL_MSG=run: "%EXE%" not found. Build it first."
+  set "FAIL_MSG=run: "%BUILDDIR%\%EXE%" not found. Build it first."
   exit /b 1
 )
 
 echo [INFO] running "%EXE%"
 echo.
 
+pushd "%BUILDDIR%" || (
+  endlocal
+  set "FAIL_RC=1"
+  set "FAIL_MSG=run: failed to change directory to "%BUILDDIR%"."
+  exit /b 1
+)
+
 "%EXE%"
 set "RC=%errorlevel%"
+popd
 
 if not "%RC%"=="0" (
   endlocal

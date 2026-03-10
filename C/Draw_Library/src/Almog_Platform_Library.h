@@ -135,24 +135,33 @@ struct Apl_Window_State {
 
     struct {
         bool space_bar_is_pressed;
-        bool w_is_pressed;
-        bool s_is_pressed;
-        bool a_is_pressed;
-        bool d_is_pressed;
-        bool e_is_pressed;
         bool q_is_pressed;
+        bool w_is_pressed;
+        bool e_is_pressed;
+        bool r_is_pressed;
+        bool a_is_pressed;
+        bool s_is_pressed;
+        bool d_is_pressed;
         bool up_is_pressed;
         bool down_is_pressed;
         bool left_is_pressed;
         bool right_is_pressed;
-        bool left_button_pressed;
     } buttons;
+
+    struct {
+        bool left_button_is_pressed;
+        bool right_button_is_pressed;
+        int mouse_x;
+        int mouse_y;
+    } mouse;
 
     size_t window_w;
     size_t window_h;
 
     Mat2D_uint32 window_pixels_mat;
     Mat2D inv_z_buffer_mat;
+
+    void * user_data;
 };
 
 #define APL_OK APL_SUCCESS
@@ -617,6 +626,11 @@ LRESULT CALLBACK apl_main_window_callback(HWND window, UINT message, WPARAM wpar
                     if (is_down)  ws->buttons.e_is_pressed = true;
                     if (was_down) ws->buttons.e_is_pressed = false;
                 } break;
+                case 'R':
+                {
+                    if (is_down)  ws->buttons.r_is_pressed = true;
+                    if (was_down) ws->buttons.r_is_pressed = false;
+                } break;
                 case 'A':
                 {
                     if (is_down)  ws->buttons.a_is_pressed = true;
@@ -667,6 +681,27 @@ LRESULT CALLBACK apl_main_window_callback(HWND window, UINT message, WPARAM wpar
                     result = DefWindowProcA(window, message, wparam, lparam);
                 } break;
             }
+        } break;
+        case WM_LBUTTONDOWN:
+        {
+            ws->mouse.left_button_is_pressed = true;
+        } break;
+        case WM_LBUTTONUP:
+        {
+            ws->mouse.left_button_is_pressed = false;
+        } break;
+        case WM_RBUTTONDOWN:
+        {
+            ws->mouse.right_button_is_pressed = true;
+        } break;
+        case WM_RBUTTONUP:
+        {
+            ws->mouse.right_button_is_pressed = false;
+        } break;
+        case WM_MOUSEMOVE:
+        {
+            ws->mouse.mouse_x = (int)(short)LOWORD(lparam);
+            ws->mouse.mouse_y = (int)(short)HIWORD(lparam);
         } break;
         default:
         {
@@ -828,7 +863,10 @@ int main(void)
     // window_state.buttons.d_is_pressed = 0;
     // window_state.buttons.e_is_pressed = 0;
     // window_state.buttons.q_is_pressed = 0;
-    // window_state.buttons.left_button_pressed = 0;
+    // window_state.mouse.left_button_is_pressed = 0;
+    // window_state.mouse.right_button_is_pressed = 0;
+    // window_state.mouse.mouse_x = 0;
+    // window_state.mouse.mouse_y = 0;
     window_state.window_w = APL_INIT_WINDOW_WIDTH;
     window_state.window_h = APL_INIT_WINDOW_HEIGHT;
     // Mat2D_uint32 window_pixels_mat;

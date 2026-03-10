@@ -29,7 +29,7 @@ enum Apl_Return_Types apl_setup(struct Apl_Window_State *ws)
     ada_init_array(Tri_mesh, scene->projected_tri_meshes);
 
     char file_path[ASM_MAX_LEN_LINE];
-    strncpy(file_path, "./src/assets/teapot.stl", ASM_MAX_LEN_LINE);
+    strncpy(file_path, "../src/assets/stl/teapot.stl", ASM_MAX_LEN_LINE);
 
     Tri_mesh tri_mesh = ae_tri_mesh_get_from_file(file_path);
 
