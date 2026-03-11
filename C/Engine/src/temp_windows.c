@@ -6,6 +6,9 @@
 #define APL_UPDATE
 #define APL_RENDER
 
+#define ADL_ASSERT APL_ASSERT
+#define AE_ASSERT APL_ASSERT
+
 #define ALMOG_STRING_MANIPULATION_IMPLEMENTATION
 #define MATRIX2D_IMPLEMENTATION
 #define ALMOG_PLATFORM_LIBRARY_IMPLEMENTATION
@@ -62,6 +65,41 @@ enum Apl_Return_Types apl_setup(struct Apl_Window_State *ws)
     return APL_SUCCESS;
 }
 
+enum Apl_Return_Types apl_update(struct Apl_Window_State *ws)
+{
+    Scene * scene = ws->user_data;
+    // MAT2D_PRINT(scene.camera.current_position);
+    // MAT2D_PRINT(scene.light_direction);
+
+    ae_projection_mat_set(scene->proj_mat, scene->camera.aspect_ratio, scene->camera.fov_deg, scene->camera.z_near, scene->camera.z_far);
+    ae_view_mat_set(scene->view_mat, scene->camera, scene->up_direction);
+
+    for (size_t i = 0; i < scene->in_world_tri_meshes.length; i++) {
+        ae_tri_mesh_project_world2screen(scene->proj_mat, scene->view_mat, &(scene->projected_tri_meshes.elements[i]), scene->in_world_tri_meshes.elements[i], ws->window_w, ws->window_h, scene, AE_LIGHTING_SMOOTH);
+    }
+
+    return APL_SUCCESS;
+}
+
+enum Apl_Return_Types apl_render(struct Apl_Window_State *ws)
+{
+    if (!ws->user_data) {
+        return APL_OK;
+    }
+    Scene * scene = ws->user_data;
+
+    // apl_dprintSIZE_T(scene->projected_tri_meshes.length);
+
+    for (size_t i = 0; i < scene->projected_tri_meshes.length; i++) {
+        adl_tri_mesh_fill_Pinedas_rasterizer_interpolate_normal(ws->window_pixels_mat, ws->inv_z_buffer_mat, scene->projected_tri_meshes.elements[i], 0xffffffff, ADL_DEFAULT_OFFSET_ZOOM);
+        // adl_tri_mesh_draw(ws->window_pixels_mat, scene->projected_tri_meshes.elements[i], 0xffffffff, ADL_DEFAULT_OFFSET_ZOOM);
+    }
+
+    // adl_circle_fill(ws->window_pixels_mat, 100, 100, 100, 0xffffffff, ADL_DEFAULT_OFFSET_ZOOM);
+
+    return APL_SUCCESS;
+}
+
 enum Apl_Return_Types apl_input(struct Apl_Window_State *ws)
 {
     Scene * scene = ws->user_data;
@@ -98,8 +136,8 @@ enum Apl_Return_Types apl_input(struct Apl_Window_State *ws)
     }
     if (ws->buttons.down_is_pressed) {
         scene->camera.roll_offset_deg -= 15 * ws->delta_time_sec;
-        if (scene->camera.roll_offset_deg > 89) {
-            scene->camera.roll_offset_deg = 89;
+        if (scene->camera.roll_offset_deg < -89) {
+            scene->camera.roll_offset_deg = -89;
         }
     }
     if (ws->buttons.r_is_pressed) {
@@ -107,41 +145,6 @@ enum Apl_Return_Types apl_input(struct Apl_Window_State *ws)
     }
 
     scene->camera.aspect_ratio = (float)(ws->window_h) / (float)(ws->window_w);
-
-    return APL_SUCCESS;
-}
-
-enum Apl_Return_Types apl_update(struct Apl_Window_State *ws)
-{
-    Scene * scene = ws->user_data;
-    // MAT2D_PRINT(scene.camera.current_position);
-    // MAT2D_PRINT(scene.light_direction);
-
-    ae_projection_mat_set(scene->proj_mat, scene->camera.aspect_ratio, scene->camera.fov_deg, scene->camera.z_near, scene->camera.z_far);
-    ae_view_mat_set(scene->view_mat, scene->camera, scene->up_direction);
-
-    for (size_t i = 0; i < scene->in_world_tri_meshes.length; i++) {
-        ae_tri_mesh_project_world2screen(scene->proj_mat, scene->view_mat, &(scene->projected_tri_meshes.elements[i]), scene->in_world_tri_meshes.elements[i], ws->window_w, ws->window_h, scene, AE_LIGHTING_SMOOTH);
-    }
-
-    return APL_SUCCESS;
-}
-
-enum Apl_Return_Types apl_render(struct Apl_Window_State *ws)
-{
-    if (!ws->user_data) {
-        return APL_OK;
-    }
-    Scene * scene = ws->user_data;
-
-    // apl_dprintSIZE_T(scene->projected_tri_meshes.length);
-
-    for (size_t i = 0; i < scene->projected_tri_meshes.length; i++) {
-        adl_tri_mesh_fill_Pinedas_rasterizer_interpolate_normal(ws->window_pixels_mat, ws->inv_z_buffer_mat, scene->projected_tri_meshes.elements[i], 0xffffffff, ADL_DEFAULT_OFFSET_ZOOM);
-        // adl_tri_mesh_draw(ws->window_pixels_mat, scene->projected_tri_meshes.elements[i], 0xffffffff, ADL_DEFAULT_OFFSET_ZOOM);
-    }
-
-    // adl_circle_fill(ws->window_pixels_mat, 100, 100, 100, 0xffffffff, ADL_DEFAULT_OFFSET_ZOOM);
 
     return APL_SUCCESS;
 }

@@ -143,14 +143,14 @@ enum Apl_Return_Types apl_input(struct Apl_Window_State *ws)
     }
     if (ws->buttons.up_is_pressed) {
         scene->camera.roll_offset_deg += 15 * ws->delta_time_sec;
-        if (scene->camera.roll_offset_deg > 89) {
-            scene->camera.roll_offset_deg = 89;
+        if (scene->camera.roll_offset_deg > 88) {
+            scene->camera.roll_offset_deg = 88;
         }
     }
     if (ws->buttons.down_is_pressed) {
         scene->camera.roll_offset_deg -= 15 * ws->delta_time_sec;
-        if (scene->camera.roll_offset_deg > 89) {
-            scene->camera.roll_offset_deg = 89;
+        if (scene->camera.roll_offset_deg < -88) {
+            scene->camera.roll_offset_deg = -88;
         }
     }
     if (ws->buttons.r_is_pressed) {

@@ -66,8 +66,6 @@
 #ifndef ALMOG_PLATFORM_LIBRARY_H_
 #define ALMOG_PLATFORM_LIBRARY_H_
 
-#include "Matrix2D.h"
-
 /* -------------------------------------------------------------------------------- */
 #if defined(_WIN32) || defined(_WIN64) /* PLATFORM_STATE_H_ */
 /* -------------------------------------------------------------------------------- */
@@ -81,7 +79,7 @@
 
 #include <windows.h>
 #include <dbghelp.h> /* for SIGSEGV help */
-#pragma comment(lib, "Dbghelp.lib")
+#pragma comment(lib, "dbghelp.lib")
 #pragma comment(lib, "user32.lib")
 #pragma comment(lib, "Gdi32.lib")
 
@@ -93,6 +91,13 @@ struct Platform_State {
     BITMAPINFO bit_map_info;
     size_t previous_frame_ticks;
 };
+
+#define APL_ASSERT(expr)                                        \
+    do {                                                        \
+        if (!(expr)) {                                          \
+            apl_my_assert(#expr, __FILE__, __LINE__, __func__); \
+        }                                                       \
+    } while (0)
 
 /* -------------------------------------------------------------------------------- */
 #elif defined(__linux__) /* PLATFORM_STATE_H_ */
@@ -107,6 +112,14 @@ struct Platform_State {
 /* -------------------------------------------------------------------------------- */
 #endif /* PLATFORM_STATE_H_*/
 /* -------------------------------------------------------------------------------- */
+
+/* this is here because I need the declaration to be above matrix2D and matrix2D to be above the structure */
+#ifndef APL_DEF
+    #define APL_DEF static inline
+#endif
+APL_DEF void                apl_my_assert(const char *expr, const char *file, int line, const char *func);
+#define MAT2D_ASSERT APL_ASSERT
+#include "Matrix2D.h"
 
 enum Apl_Return_Types {
     APL_SUCCESS,
@@ -166,9 +179,6 @@ struct Apl_Window_State {
 
 #define APL_OK APL_SUCCESS
 #define APL_UNUSED(x) (void)x
-#ifndef APL_DEF
-    #define APL_DEF static inline
-#endif
 
 #define apl_dprintSTRING(expr) printf("[Info] %s:%d:\n" #expr " = %s\n", __FILE__, __LINE__, expr)
 #define apl_dprintCHAR(expr) printf("[Info] %s:%d:\n" #expr " = %c\n", __FILE__, __LINE__, expr)
@@ -232,6 +242,7 @@ APL_DEF enum Apl_Return_Types   apl_window_update(struct Apl_Window_State *ws);
 APL_DEF const char *        apl_get_exception_name(DWORD code);
         LRESULT CALLBACK    apl_main_window_callback(HWND window, UINT message, WPARAM wparam, LPARAM lparam);
 APL_DEF void                apl_print_module_plus_offset(DWORD64 instruction_pointer);
+APL_DEF void                apl_print_stack_trace(void);
         LONG WINAPI         apl_unhandled_exception_filter(EXCEPTION_POINTERS *ep);
 
 
@@ -711,6 +722,14 @@ LRESULT CALLBACK apl_main_window_callback(HWND window, UINT message, WPARAM wpar
     return result;
 }
 
+APL_DEF void apl_my_assert(const char *expr, const char *file, int line, const char *func)
+{
+    apl_dprintERROR("Assertion failed: %s At %s:%d In function '%s'.\n"
+                    "        Call stack:", expr, file, line, func);
+    apl_print_stack_trace();
+    abort();
+}
+
 APL_DEF void apl_print_module_plus_offset(DWORD64 instruction_pointer)
 {
     HMODULE mod = NULL;
@@ -740,6 +759,66 @@ APL_DEF void apl_print_module_plus_offset(DWORD64 instruction_pointer)
             base_name,
             (unsigned long long)offset,
             (unsigned long long)base);
+} 
+
+APL_DEF void apl_print_stack_trace(void)
+{
+    void *stack[64];
+    USHORT frames = CaptureStackBackTrace(0, 64, stack, NULL);
+    HANDLE process = GetCurrentProcess();
+
+    static int sym_initialized = 0;
+    if (!sym_initialized) {
+        SymSetOptions(SYMOPT_LOAD_LINES | SYMOPT_UNDNAME);
+        if (!SymInitialize(process, NULL, TRUE)) {
+            fprintf(stderr, "SymInitialize failed\n");
+            return;
+        }
+        sym_initialized = 1;
+    }
+
+    SYMBOL_INFO *symbol =
+        (SYMBOL_INFO *)calloc(1, sizeof(SYMBOL_INFO) + 256);
+    if (!symbol) {
+        fprintf(stderr, "Out of memory\n");
+        return;
+    }
+
+    symbol->SizeOfStruct = sizeof(SYMBOL_INFO);
+    symbol->MaxNameLen = 255;
+
+    for (USHORT i = 0; i < frames; i++) {
+        DWORD64 address = (DWORD64)(stack[i]);
+        DWORD64 displacement = 0;
+        DWORD line_displacement = 0;
+
+        IMAGEHLP_LINE64 line;
+        line.SizeOfStruct = sizeof(IMAGEHLP_LINE64);
+
+        if (SymFromAddr(process, address, &displacement, symbol)) {
+            fprintf(stderr, "#%u %s + 0x%llx",
+                    i,
+                    symbol->Name,
+                    (unsigned long long)displacement);
+        } else {
+            fprintf(stderr, "#%u 0x%llx",
+                    i,
+                    (unsigned long long)address);
+        }
+
+        if (SymGetLineFromAddr64(process,
+                                 address,
+                                 &line_displacement,
+                                 &line)) {
+            fprintf(stderr, " (%s:%lu)",
+                    line.FileName,
+                    (unsigned long)line.LineNumber);
+        }
+
+        fprintf(stderr, "\n");
+    }
+
+    free(symbol);
 }
 
 LONG WINAPI apl_unhandled_exception_filter(EXCEPTION_POINTERS *ep)

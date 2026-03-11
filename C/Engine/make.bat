@@ -58,8 +58,8 @@ REM ============================================================
 REM Select build mode flags
 REM ============================================================
 if "%RELEASE%"=="1" (
-  set "CCHECK=/O2 /GL /Gy /MT /DNDEBUG"
-  set "CLINKS=/link /LTCG /OPT:REF /OPT:ICF"
+  set "CCHECK=/O2 /GL /Gy /MT /DNDEBUG /Zi"
+  set "CLINKS=/link /LTCG /OPT:REF /OPT:ICF /DEBUG"
 ) else (
   REM /RTC1 only works with /Od (debug-ish); using /MDd for debug CRT
   set "CCHECK=/FC /Zi /Od /MDd /DDEBUG /RTC1"
