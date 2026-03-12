@@ -58,8 +58,8 @@ REM ============================================================
 REM Select build mode flags
 REM ============================================================
 if "%RELEASE%"=="1" (
-  set "CCHECK=/O2 /GL /Gy /MT /DNDEBUG"
-  set "CLINKS=/link /LTCG /OPT:REF /OPT:ICF"
+  set "CCHECK=/O2 /GL /Gy /MT /DNDEBUG /Zi"
+  set "CLINKS=/link /LTCG /OPT:REF /OPT:ICF /DEBUG"
 ) else (
   REM /RTC1 only works with /Od (debug-ish); using /MDd for debug CRT
   set "CCHECK=/FC /Zi /Od /MDd /DDEBUG /RTC1"
@@ -242,20 +242,28 @@ if "%~1"=="" (
 )
 
 set "NAME=%~n1"
-set "EXE=%BUILDDIR%\%NAME%.exe"
+set "EXE=%NAME%.exe"
 
-if not exist "%EXE%" (
+if not exist "%BUILDDIR%\%EXE%" (
   endlocal
   set "FAIL_RC=1"
-  set "FAIL_MSG=run: "%EXE%" not found. Build it first."
+  set "FAIL_MSG=run: "%BUILDDIR%\%EXE%" not found. Build it first."
   exit /b 1
 )
 
 echo [INFO] running "%EXE%"
 echo.
 
+pushd "%BUILDDIR%" || (
+  endlocal
+  set "FAIL_RC=1"
+  set "FAIL_MSG=run: failed to change directory to "%BUILDDIR%"."
+  exit /b 1
+)
+
 "%EXE%"
 set "RC=%errorlevel%"
+popd
 
 if not "%RC%"=="0" (
   endlocal

@@ -7,15 +7,31 @@
 #define APL_RENDER
 #define MATRIX2D_IMPLEMENTATION
 #define ALMOG_PLATFORM_LIBRARY_IMPLEMENTATION
-#include "Almog_Platform_Library.h"
+#include "include/Almog_Platform_Library.h"
+
+#define ADL_ASSERT APL_ASSERT
 #define ALMOG_DRAW_LIBRARY_IMPLEMENTATION
-#include "Almog_Draw_Library.h"
+#include "include/Almog_Draw_Library.h"
+
+#define APNG_ASSERT APL_ASSERT
+#define ALMOG_PNG_IMPLEMENTATION
+#include "include/Almog_PNG.h"
 
 enum Apl_Return_Types apl_setup(struct Apl_Window_State *ws)
 {
     ws->wanted_fps = 40;
     ws->to_limit_fps = false;
     APL_UNUSED(ws);
+
+
+    char file_name[] = "../src/test-png.png";
+    printf("Loading PNG '%s'.\n", file_name);
+
+    struct Apng_Bin_String file = apng_bin_file_read(file_name);
+    apng_decode_png(file);
+
+
+    apng_bin_string_free(file);
 
     return APL_SUCCESS;
 }
