@@ -29,7 +29,26 @@
 #endif
 
 enum Apng_Chunk_Type {
-
+    APNG_UNKNOWN,
+    APNG_IHDR,
+    APNG_PLTE,
+    APNG_IDAT,
+    APNG_IEND,
+    APNG_cHRM,
+    APNG_gAMA,
+    APNG_iCCP,
+    APNG_sBIT,
+    APNG_sRGB,
+    APNG_bKGD,
+    APNG_hIST,
+    APNG_tRNS,
+    APNG_pHYs,
+    APNG_sPLT,
+    APNG_tIME,
+    APNG_iTXt,
+    APNG_tEXt,
+    APNG_zTXt,
+    APNG_TYPE_LENGTH
 };
 
 struct Apng_PNG_Header {
@@ -87,6 +106,7 @@ APNG_DEF struct Apng_Chunk_Header   apng_chunk_header_get(struct Apng_Bin_String
 APNG_DEF void *                     apng_consume(struct Apng_Bin_String *bs, size_t amount);
 APNG_DEF void                       apng_decode_png(struct Apng_Bin_String file);
 APNG_DEF uint32_t                   apng_endian_swap(uint32_t x);
+APNG_DEF uint32_t                   apng_four_char_to_uint32_t(const char *str);
 APNG_DEF bool                       apng_png_header_signature_correct(struct Apng_PNG_Header h);
 APNG_DEF struct Apng_PNG_Header     apng_png_header_get(struct Apng_Bin_String *bs);
 APNG_DEF enum Apng_Chunk_Type       apng_type_get_from_raw_type(uint32_t raw_type);
@@ -239,7 +259,7 @@ APNG_DEF void apng_decode_png(struct Apng_Bin_String file)
 
     for ( ; image.file.cursor < image.file.length ; ) {
         struct Apng_Chunk_Header chunk_header = apng_chunk_header_get(&image.file);
-        printf("%.*s\n", 4, chunk_header.type_str);
+        printf("%.*s -> %d bytes\n%d\n", 4, chunk_header.type_str, chunk_header.length, chunk_header.type);
         void *chunk_data = apng_consume(&image.file, chunk_header.length);
         struct Apng_Chunk_Footer chunk_footer = apng_chunk_footer_get(&image.file);
     }
@@ -251,6 +271,11 @@ APNG_DEF uint32_t apng_endian_swap(uint32_t x)
             ((x & 0xFF00) << 8) |
             ((x >> 8) & 0xFF00) |
             (x >> 24));
+}
+
+APNG_DEF uint32_t apng_four_char_to_uint32_t(const char * str)
+{
+    return ((uint32_t)(((uint32_t)((str)[0]) << 0) | ((uint32_t)((str)[1]) << 8) | ((uint32_t)((str)[2]) << 16) | ((uint32_t)((str)[3]) << 24)));
 }
 
 APNG_DEF bool apng_png_header_signature_correct(struct Apng_PNG_Header h)
@@ -284,7 +309,7 @@ APNG_DEF struct Apng_PNG_Header apng_png_header_get(struct Apng_Bin_String *bs)
     struct Apng_PNG_Header header = {
         .index = bs->cursor,
         .size = size,
-        .signature = (char *)apng_consume(bs, size),
+        .signature = (uint8_t *)apng_consume(bs, size),
     };
     
     return header;
@@ -292,12 +317,45 @@ APNG_DEF struct Apng_PNG_Header apng_png_header_get(struct Apng_Bin_String *bs)
 
 APNG_DEF enum Apng_Chunk_Type apng_type_get_from_raw_type(uint32_t raw_type)
 {
-    // switch () {
-    //     default:
-    //     {
-
-    //     } break;
-    // }
+    if (raw_type == apng_four_char_to_uint32_t("IHDR")) {
+        return APNG_IHDR;
+    } else if (raw_type == apng_four_char_to_uint32_t("PLTE")) {
+        return APNG_PLTE;
+    } else if (raw_type == apng_four_char_to_uint32_t("IDAT")) {
+        return APNG_IDAT;
+    } else if (raw_type == apng_four_char_to_uint32_t("IEND")) {
+        return APNG_IEND;
+    } else if (raw_type == apng_four_char_to_uint32_t("cHRM")) {
+        return APNG_cHRM;
+    } else if (raw_type == apng_four_char_to_uint32_t("gAMA")) {
+        return APNG_gAMA;
+    } else if (raw_type == apng_four_char_to_uint32_t("iCCP")) {
+        return APNG_iCCP;
+    } else if (raw_type == apng_four_char_to_uint32_t("sBIT")) {
+        return APNG_sBIT;
+    } else if (raw_type == apng_four_char_to_uint32_t("sRGB")) {
+        return APNG_sRGB;
+    } else if (raw_type == apng_four_char_to_uint32_t("bKGD")) {
+        return APNG_bKGD;
+    } else if (raw_type == apng_four_char_to_uint32_t("hIST")) {
+        return APNG_hIST;
+    } else if (raw_type == apng_four_char_to_uint32_t("tRNS")) {
+        return APNG_tRNS;
+    } else if (raw_type == apng_four_char_to_uint32_t("pHYs")) {
+        return APNG_pHYs;
+    } else if (raw_type == apng_four_char_to_uint32_t("sPLT")) {
+        return APNG_sPLT;
+    } else if (raw_type == apng_four_char_to_uint32_t("tIME")) {
+        return APNG_tIME;
+    } else if (raw_type == apng_four_char_to_uint32_t("iTXt")) {
+        return APNG_iTXt;
+    } else if (raw_type == apng_four_char_to_uint32_t("tEXt")) {
+        return APNG_tEXt;
+    } else if (raw_type == apng_four_char_to_uint32_t("zTXt")) {
+        return APNG_zTXt;
+    } else {
+        return APNG_UNKNOWN;
+    }
 }
 
 
