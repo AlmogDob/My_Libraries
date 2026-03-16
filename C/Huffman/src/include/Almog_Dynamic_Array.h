@@ -204,7 +204,7 @@
     ADA_ASSERT((int)(index) >= 0);                                                                              \
     ADA_ASSERT((float)(index) - (int)(index) == 0);                                                             \
     ada_appand(type, (header), (header).elements[(header).length-1]);                                                 \
-    for (int ada_for_loop_index = (header).length-2; ada_for_loop_index > (int)(index); ada_for_loop_index--) {   \
+    for (int ada_for_loop_index = (int)(header).length-2; ada_for_loop_index > (int)(index); ada_for_loop_index--) {   \
         (header).elements[ada_for_loop_index] = (header).elements [ada_for_loop_index-1];                           \
     }                                                                                                           \
     (header).elements[(index)] = value;                                                                           \
