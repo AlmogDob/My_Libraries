@@ -34,10 +34,15 @@ set "CLEANONLY=0"
 set "RELEASE=0"
 set "HELP=0"
 set "FILES="
-set "INPUT_ARG="
+set "PROGRAM_ARGS="
 
 :parse
 if "%~1"=="" goto doneparse
+
+if "%~1"=="--" (
+  shift
+  goto collect_program_args
+)
 
 if /i "%~1"=="--no-clean"   (set "NOCLEAN=1"   & shift & goto parse)
 if /i "%~1"=="-nc"          (set "NOCLEAN=1"   & shift & goto parse)
@@ -52,30 +57,32 @@ if /i "%~1"=="-h"           (set "HELP=1"      & shift & goto parse)
 if /i "%~1"=="--input" (
   if "%~2"=="" (
     set "FAIL_RC=1"
-    set "FAIL_MSG=--input requires an argument."
+    set "FAIL_MSG=--input requires at least one program argument."
     goto fail
   )
-  set "INPUT_ARG=%~2"
   shift
-  shift
-  goto parse
+  goto collect_program_args
 )
 if /i "%~1"=="-i" (
   if "%~2"=="" (
     set "FAIL_RC=1"
-    set "FAIL_MSG=-i requires an argument."
+    set "FAIL_MSG=-i requires at least one program argument."
     goto fail
   )
-  set "INPUT_ARG=%~2"
   shift
-  shift
-  goto parse
+  goto collect_program_args
 )
 
 REM Otherwise treat as file
 set "FILES=!FILES! "%~1""
 shift
 goto parse
+
+:collect_program_args
+if "%~1"=="" goto doneparse
+call :append_program_arg "%~1"
+shift
+goto collect_program_args
 
 :doneparse
 
@@ -304,13 +311,21 @@ echo.
 endlocal & exit /b 0
 
 :invoke_exe
-if not defined INPUT_ARG goto invoke_no_arg
-"%~1" "%INPUT_ARG%"
-exit /b %errorlevel%
+setlocal DisableDelayedExpansion
+if not defined PROGRAM_ARGS (
+  "%~1"
+) else (
+  "%~1" %PROGRAM_ARGS%
+)
+set "RC=%errorlevel%"
+endlocal & exit /b %RC%
 
-:invoke_no_arg
-"%~1"
-exit /b %errorlevel%
+:append_program_arg
+setlocal DisableDelayedExpansion
+set "ARG=%~1"
+set "ARG=%ARG:"=""%"
+endlocal & set "PROGRAM_ARGS=%PROGRAM_ARGS% "%ARG%""
+exit /b 0
 
 :clean
 setlocal EnableExtensions
@@ -348,7 +363,8 @@ echo Usage: %~nx0 ^<file1.c^> [file2.c ...] [options]
 echo.
 echo Options:
 echo   --help, -h           Show this help message
-echo   --input, -i "args"   Pass a single argument string to the program
+echo   -- [program args...] Pass remaining arguments to the program
+echo   --input, -i ...      Same as --; everything after this goes to the program
 echo   --no-clean, -nc      Do not remove build artifacts after running
 echo   --build-only, -b     Build only, do not run
 echo   --clean-only, -c     Remove build artifacts only
