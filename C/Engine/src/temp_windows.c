@@ -5,16 +5,16 @@
 #define APL_INPUT
 #define APL_UPDATE
 #define APL_RENDER
-
-#define ADL_ASSERT APL_ASSERT
-#define AE_ASSERT APL_ASSERT
-
-#define ALMOG_STRING_MANIPULATION_IMPLEMENTATION
 #define MATRIX2D_IMPLEMENTATION
 #define ALMOG_PLATFORM_LIBRARY_IMPLEMENTATION
 #include "./include/Almog_Platform_Library.h"
+
+#define ADL_ASSERT APL_ASSERT
 #define ALMOG_DRAW_LIBRARY_IMPLEMENTATION
 #include "./include/Almog_Draw_Library.h"
+
+#define AE_ASSERT APL_ASSERT
+#define ALMOG_STRING_MANIPULATION_IMPLEMENTATION
 #define ALMOG_ENGINE_IMPLEMENTATION
 #include "./include/Almog_Engine.h"
 
