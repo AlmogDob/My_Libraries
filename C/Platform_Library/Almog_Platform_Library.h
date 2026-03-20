@@ -94,12 +94,6 @@ struct Platform_State {
     size_t previous_frame_ticks;
 };
 
-#define APL_ASSERT(expr)                                        \
-    do {                                                        \
-        if (!(expr)) {                                          \
-            apl_my_assert(#expr, __FILE__, __LINE__, __func__); \
-        }                                                       \
-    } while (0)
 
 /* -------------------------------------------------------------------------------- */
 #elif defined(__linux__) /* PLATFORM_STATE_H_ */
@@ -115,17 +109,33 @@ struct Platform_State {
 #endif /* PLATFORM_STATE_H_*/
 /* -------------------------------------------------------------------------------- */
 
-/* this is here because I need the declaration to be above matrix2D and matrix2D to be above the structure */
-#ifndef APL_DEF
-    #define APL_DEF static inline
+#include <stdint.h>
+#include <stdio.h>
+
+#ifndef APL_REALLOC
+#include <stdlib.h>
+#define APL_REALLOC realloc
 #endif
-APL_DEF void apl_my_assert(const char *expr, const char *file, int line, const char *func);
-#define MAT2D_ASSERT APL_ASSERT
-#include "Matrix2D.h"
 
 enum Apl_Return_Types {
     APL_SUCCESS,
     APL_FAIL,
+};
+
+typedef float apl_real;
+
+struct Apl_Pixel_Buffer {
+    size_t rows;
+    size_t cols;
+    size_t stride_r;
+    uint32_t *elements;
+};
+
+struct Apl_Depth_Buffer {
+    size_t rows;
+    size_t cols;
+    size_t stride_r;
+    apl_real *elements;
 };
 
 #define APL_WINDOW_NAME_LEN 256
@@ -173,14 +183,25 @@ struct Apl_Window_State {
     size_t window_w;
     size_t window_h;
 
-    Mat2D_uint32 window_pixels_mat;
-    Mat2D inv_z_buffer_mat;
+    struct Apl_Pixel_Buffer window_pixels_mat;
+    struct Apl_Depth_Buffer inv_z_buffer_mat;
 
     void * user_data;
 };
 
 #define APL_OK APL_SUCCESS
 #define APL_UNUSED(x) (void)x
+#ifndef APL_DEF
+    #define APL_DEF static inline
+#endif
+#ifndef APL_ASSERT
+#define APL_ASSERT(expr)                                        \
+    do {                                                        \
+        if (!(expr)) {                                          \
+            apl_my_assert(#expr, __FILE__, __LINE__, __func__); \
+        }                                                       \
+    } while (0)
+#endif
 
 #define apl_dprintSTRING(expr) printf("[Info] %s:%d:\n" #expr " = %s\n", __FILE__, __LINE__, expr)
 #define apl_dprintCHAR(expr) printf("[Info] %s:%d:\n" #expr " = %c\n", __FILE__, __LINE__, expr)
@@ -216,6 +237,7 @@ struct Apl_Window_State {
 
 /* shared implementation */
 APL_DEF char *                  apl_platform_name(void);
+APL_DEF struct Apl_Pixel_Buffer apl_realloc_pixel_buffer(struct Apl_Pixel_Buffer m, size_t rows, size_t cols);
 APL_DEF enum Apl_Return_Types   apl_window_destroy(struct Apl_Window_State *ws);
 APL_DEF enum Apl_Return_Types   apl_window_process_input(struct Apl_Window_State *ws);
 APL_DEF enum Apl_Return_Types   apl_window_render(struct Apl_Window_State *ws);
@@ -223,6 +245,7 @@ APL_DEF enum Apl_Return_Types   apl_window_render(struct Apl_Window_State *ws);
 /* shared_platform_implementation */
 APL_DEF void                    apl_fix_framerate(struct Apl_Window_State *ws);
 APL_DEF enum Apl_Return_Types   apl_initialize_main_window(struct Apl_Window_State *ws);
+APL_DEF void                    apl_my_assert(const char *expr, const char *file, int line, const char *func);
 APL_DEF void                    apl_pixel_mat_copy_to_screen(struct Apl_Window_State *ws);
 APL_DEF enum Apl_Return_Types   apl_resize_window_pixel_mat(struct Apl_Window_State *ws, size_t new_w, size_t new_h);
 APL_DEF void                    apl_sleep(size_t wait_time_us);
@@ -279,6 +302,28 @@ APL_DEF char * apl_platform_name(void)
     return APL_PLATFORM_NAME;
 }
 
+APL_DEF struct Apl_Depth_Buffer apl_realloc_depth_buffer(struct Apl_Depth_Buffer m, size_t rows, size_t cols)
+{
+    m.rows = rows;
+    m.cols = cols;
+    m.stride_r = cols;
+    m.elements = (apl_real*)APL_REALLOC(m.elements, sizeof(apl_real)*rows*cols);
+    APL_ASSERT(m.elements != NULL);
+    
+    return m;
+}
+
+APL_DEF struct Apl_Pixel_Buffer apl_realloc_pixel_buffer(struct Apl_Pixel_Buffer m, size_t rows, size_t cols)
+{
+    m.rows = rows;
+    m.cols = cols;
+    m.stride_r = cols;
+    m.elements = (uint32_t*)APL_REALLOC(m.elements, sizeof(uint32_t)*rows*cols);
+    APL_ASSERT(m.elements != NULL);
+    
+    return m;
+}
+
 APL_DEF enum Apl_Return_Types apl_window_destroy(struct Apl_Window_State *ws)
 {
     /*------------------------------------------------------------*/
@@ -301,10 +346,8 @@ APL_DEF enum Apl_Return_Types apl_window_process_input(struct Apl_Window_State *
 APL_DEF enum Apl_Return_Types apl_window_render(struct Apl_Window_State *ws)
 {
     if (ws->to_clear_renderer) {
-        memset(ws->window_pixels_mat.elements, 0x18, sizeof(uint32_t) * ws->window_pixels_mat.rows * ws->window_pixels_mat.cols);
-        memset(ws->inv_z_buffer_mat.elements, 0x0, sizeof(mat2D_real) * ws->inv_z_buffer_mat.rows * ws->inv_z_buffer_mat.cols);
-        // mat2D_fill_uint32(ws->window_pixels_mat, APL_BACKGROUND_COLOR_hexARGB);
-        // mat2D_fill(ws->inv_z_buffer_mat, 0);
+        memset(ws->window_pixels_mat.elements, 0x18, sizeof(ws->window_pixels_mat.elements[0]) * ws->window_pixels_mat.rows * ws->window_pixels_mat.cols);
+        memset(ws->inv_z_buffer_mat.elements, 0x0, sizeof(ws->inv_z_buffer_mat.elements[0]) * ws->inv_z_buffer_mat.rows * ws->inv_z_buffer_mat.cols);
     }
     /*------------------------------------------------------------*/
 
@@ -476,12 +519,12 @@ APL_DEF enum Apl_Return_Types apl_resize_window_pixel_mat(struct Apl_Window_Stat
     ws->platform.bit_map_info.bmiHeader.biBitCount = 32;
     ws->platform.bit_map_info.bmiHeader.biCompression = BI_RGB;
 
-    ws->window_pixels_mat = mat2D_realloc_uint32(ws->window_pixels_mat, ws->window_h, ws->window_w);
+    ws->window_pixels_mat = apl_realloc_pixel_buffer(ws->window_pixels_mat, ws->window_h, ws->window_w);
     if (!ws->window_pixels_mat.elements) {
         apl_dprintERROR("%s", "realloc pixel mat failed");
         return APL_FAIL;
     }
-    ws->inv_z_buffer_mat = mat2D_realloc(ws->inv_z_buffer_mat, ws->window_h, ws->window_w);
+    ws->inv_z_buffer_mat = apl_realloc_depth_buffer(ws->inv_z_buffer_mat, ws->window_h, ws->window_w);
     if (!ws->inv_z_buffer_mat.elements) {
         apl_dprintERROR("%s", "realloc inverse z buffer mat failed");
         return APL_FAIL;
@@ -957,35 +1000,13 @@ int main(void)
     /**
      * initializing the window state
      */
-    // window_state.platform.window_class;
-    // window_state.platform.window_handle = NULL;
-    // window_state.platform.window_call_back = NULL;
-    // window_state.platform.bit_map_info;
-    // window_state.running = 0;
     window_state.to_render = true;
     window_state.to_update = true;
     window_state.to_limit_fps = true;
     window_state.to_clear_renderer = true;
-    // window_state.to_flip_y;
-    // window_state.delta_time = 0;
-    // window_state.elapsed_time_sec = 0;
-    // window_state.previous_frame_time = 0;
-    // window_state.fps = 0;
     window_state.wanted_fps = APL_WANTED_FPS;
-    // window_state.buttons.space_bar_is_pressed = 0;
-    // window_state.buttons.w_is_pressed = 0;
-    // window_state.buttons.s_is_pressed = 0;
-    // window_state.buttons.a_is_pressed = 0;
-    // window_state.buttons.d_is_pressed = 0;
-    // window_state.buttons.e_is_pressed = 0;
-    // window_state.buttons.q_is_pressed = 0;
-    // window_state.mouse.left_button_is_pressed = 0;
-    // window_state.mouse.right_button_is_pressed = 0;
-    // window_state.mouse.mouse_x = 0;
-    // window_state.mouse.mouse_y = 0;
     window_state.window_w = APL_INIT_WINDOW_WIDTH;
     window_state.window_h = APL_INIT_WINDOW_HEIGHT;
-    // Mat2D_uint32 window_pixels_mat;
 
     strncpy(window_state.window_name, "apl window", APL_WINDOW_NAME_LEN);
     rt = apl_initialize_main_window(&window_state);

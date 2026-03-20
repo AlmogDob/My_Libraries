@@ -11,6 +11,28 @@
 #define ALMOG_DRAW_LIBRARY_IMPLEMENTATION
 #include "Almog_Draw_Library.h"
 
+Mat2D apl_depth_buffer_as_mat2d(struct Apl_Depth_Buffer b)
+{
+    Mat2D m = {
+        .rows = b.rows,
+        .cols = b.cols,
+        .stride_r = b.stride_r,
+        .elements = (mat2D_real *)b.elements,
+    };
+    return m;
+}
+
+Mat2D_uint32 apl_pixel_buffer_mat2d_u32(struct Apl_Pixel_Buffer b)
+{
+    Mat2D_uint32 m = {
+        .rows = b.rows,
+        .cols = b.cols,
+        .stride_r = b.stride_r,
+        .elements = b.elements,
+    };
+    return m;
+}
+
 enum Apl_Return_Types apl_setup(struct Apl_Window_State *ws)
 {
     ws->to_limit_fps = false;
@@ -50,8 +72,9 @@ enum Apl_Return_Types apl_update(struct Apl_Window_State *ws)
 
 enum Apl_Return_Types apl_render(struct Apl_Window_State *ws)
 {
-    adl_circle_fill(ws->window_pixels_mat, 100, 100, 100, APL_COLOR_WHITE_hexARGB, ADL_DEFAULT_OFFSET_ZOOM);
-    adl_circle_fill(ws->window_pixels_mat, 300, 500, 100, APL_COLOR_WHITE_hexARGB, ADL_DEFAULT_OFFSET_ZOOM);
+    Mat2D_uint32 pixel_mat2D = apl_pixel_buffer_mat2d_u32(ws->window_pixels_mat);
+    adl_circle_fill(pixel_mat2D, 100, 100, 100, APL_COLOR_WHITE_hexARGB, ADL_DEFAULT_OFFSET_ZOOM);
+    adl_circle_fill(pixel_mat2D, 300, 500, 100, APL_COLOR_WHITE_hexARGB, ADL_DEFAULT_OFFSET_ZOOM);
 
     APL_UNUSED(ws);
 
