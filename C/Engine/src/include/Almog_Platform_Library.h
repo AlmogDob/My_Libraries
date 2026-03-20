@@ -78,7 +78,9 @@
 #define APL_PLATFORM_NAME "Windows"
 
 #include <windows.h>
+#include <mmsystem.h> /* for 1ms sleep */
 #include <dbghelp.h> /* for SIGSEGV help */
+#pragma comment(lib, "winmm.lib")
 #pragma comment(lib, "dbghelp.lib")
 #pragma comment(lib, "user32.lib")
 #pragma comment(lib, "Gdi32.lib")
@@ -117,7 +119,7 @@ struct Platform_State {
 #ifndef APL_DEF
     #define APL_DEF static inline
 #endif
-APL_DEF void                apl_my_assert(const char *expr, const char *file, int line, const char *func);
+APL_DEF void apl_my_assert(const char *expr, const char *file, int line, const char *func);
 #define MAT2D_ASSERT APL_ASSERT
 #include "Matrix2D.h"
 
@@ -352,27 +354,61 @@ enum Apl_Return_Types apl_render(struct Apl_Window_State *ws) { APL_UNUSED(ws); 
 
 APL_DEF void apl_fix_framerate(struct Apl_Window_State *ws)
 {
-    LARGE_INTEGER count_freq;
-    QueryPerformanceFrequency(&count_freq);
-    LARGE_INTEGER current_count;
-    QueryPerformanceCounter(&current_count);
-    size_t delta_ticks = current_count.QuadPart - ws->platform.previous_frame_ticks; /* count_freq is in seconds */
-    size_t delta_time_from_previous_frame_micro_sec = (1000 * 1000 * delta_ticks) / (count_freq.QuadPart);
-    size_t wanted_delta_time_from_previous_frame_micro_sec = (size_t)((1000 * 1000) / ws->wanted_fps);
-    
-    if (delta_time_from_previous_frame_micro_sec < wanted_delta_time_from_previous_frame_micro_sec && ws->to_limit_fps) {
-        size_t time_to_wait_micro_sec = wanted_delta_time_from_previous_frame_micro_sec - delta_time_from_previous_frame_micro_sec;
-        apl_sleep((time_to_wait_micro_sec));
+    static LARGE_INTEGER qpc_freq = {0};
+    if (qpc_freq.QuadPart == 0) {
+        QueryPerformanceFrequency(&qpc_freq);
     }
 
-    QueryPerformanceCounter(&current_count);
-    delta_ticks = current_count.QuadPart - (ws->previous_frame_time_micro_sec / 1000) * (count_freq.QuadPart / 1000); /* count_freq is in seconds */
-    ws->delta_time_micro_sec = (1000 * 1000 * delta_ticks) / (count_freq.QuadPart);
-    ws->delta_time_sec = ws->delta_time_micro_sec / 1e6f;
-    ws->platform.previous_frame_ticks = current_count.QuadPart;
-    ws->previous_frame_time_micro_sec = (1000 * current_count.QuadPart) / (count_freq.QuadPart / 1000);
-    ws->elapsed_time_micro_sec += ws->delta_time_micro_sec * (ws->delta_time_micro_sec > APL_DELTA_TIME_MAX_MICRO_SEC ? 0 : 1);
-    ws->fps = 1.0f / ws->delta_time_sec;
+    LARGE_INTEGER now;
+    QueryPerformanceCounter(&now);
+
+    ULONGLONG elapsed_ticks =
+        (ULONGLONG)(now.QuadPart - (LONGLONG)ws->platform.previous_frame_ticks);
+
+    ULONGLONG target_ticks = 0;
+    if (ws->wanted_fps > 0.0f) {
+        target_ticks =
+            (ULONGLONG)((double)qpc_freq.QuadPart / (double)ws->wanted_fps);
+    }
+
+    if (ws->to_limit_fps && target_ticks > 0 && elapsed_ticks < target_ticks) {
+        ULONGLONG remaining_ticks = target_ticks - elapsed_ticks;
+        size_t remaining_us =
+            (size_t)((remaining_ticks * 1000000ULL) /
+                     (ULONGLONG)qpc_freq.QuadPart);
+
+        apl_sleep(remaining_us);
+
+        do {
+            QueryPerformanceCounter(&now);
+            elapsed_ticks =
+                (ULONGLONG)(now.QuadPart -
+                            (LONGLONG)ws->platform.previous_frame_ticks);
+        } while (elapsed_ticks < target_ticks);
+    } else {
+        QueryPerformanceCounter(&now);
+        elapsed_ticks =
+            (ULONGLONG)(now.QuadPart -
+                        (LONGLONG)ws->platform.previous_frame_ticks);
+    }
+
+    ws->platform.previous_frame_ticks = (size_t)now.QuadPart;
+
+    ws->delta_time_micro_sec =
+        (size_t)((elapsed_ticks * 1000000ULL) /
+                 (ULONGLONG)qpc_freq.QuadPart);
+
+    ws->delta_time_sec = (float)ws->delta_time_micro_sec / 1000000.0f;
+
+    ws->previous_frame_time_micro_sec =
+        (size_t)(((ULONGLONG)now.QuadPart * 1000000ULL) /
+                 (ULONGLONG)qpc_freq.QuadPart);
+
+    if (ws->delta_time_micro_sec <= APL_DELTA_TIME_MAX_MICRO_SEC) {
+        ws->elapsed_time_micro_sec += ws->delta_time_micro_sec;
+    }
+
+    ws->fps = (ws->delta_time_sec > 0.0f) ? (1.0f / ws->delta_time_sec) : 0.0f;
 }
 
 APL_DEF enum Apl_Return_Types apl_initialize_main_window(struct Apl_Window_State *ws)
@@ -911,6 +947,7 @@ exit:
 int main(void) 
 {
     SetUnhandledExceptionFilter(apl_unhandled_exception_filter);
+    MMRESULT timer_res = timeBeginPeriod(1);
 
     printf("hello from %s\n", apl_platform_name());
 
@@ -968,7 +1005,7 @@ int main(void)
     }
 
     MSG message;
-    for (window_state.running = true; window_state.running ; ) {
+    for ( ; window_state.running ; ) {
         /* flash all the messages in the que */
         for ( ; PeekMessageA(&message, 0, 0, 0, PM_REMOVE) ; ) {
             if (message.message == WM_QUIT) {
@@ -1014,6 +1051,10 @@ int main(void)
     rt = apl_window_destroy(&window_state);
     if (rt == APL_FAIL) {
         apl_dprintERROR("%s", "failed to window destroy");
+    }
+
+    if (timer_res == TIMERR_NOERROR) {
+        timeEndPeriod(1);
     }
 
     return rt;
