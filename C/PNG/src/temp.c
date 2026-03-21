@@ -5,7 +5,6 @@
 int main(void)
 {
     char file_name[] = "../src/test-png.png";
-    printf("Loading PNG '%s'.\n", file_name);
 
     struct Apng_Bin_String file = apng_bin_file_read(file_name);
     apng_decode_png(file);

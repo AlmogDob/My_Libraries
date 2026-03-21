@@ -5,17 +5,39 @@
 #define APL_INPUT
 #define APL_UPDATE
 #define APL_RENDER
-#define MATRIX2D_IMPLEMENTATION
 #define ALMOG_PLATFORM_LIBRARY_IMPLEMENTATION
 #include "include/Almog_Platform_Library.h"
 
 #define ADL_ASSERT APL_ASSERT
+#define MATRIX2D_IMPLEMENTATION
 #define ALMOG_DRAW_LIBRARY_IMPLEMENTATION
 #include "include/Almog_Draw_Library.h"
 
 #define APNG_ASSERT APL_ASSERT
 #define ALMOG_PNG_IMPLEMENTATION
 #include "include/Almog_PNG.h"
+
+Mat2D apl_depth_buffer_as_mat2d(struct Apl_Depth_Buffer b)
+{
+    Mat2D m = {
+        .rows = b.rows,
+        .cols = b.cols,
+        .stride_r = b.stride_r,
+        .elements = (mat2D_real *)b.elements,
+    };
+    return m;
+}
+
+Mat2D_uint32 apl_pixel_buffer_mat2d_u32(struct Apl_Pixel_Buffer b)
+{
+    Mat2D_uint32 m = {
+        .rows = b.rows,
+        .cols = b.cols,
+        .stride_r = b.stride_r,
+        .elements = b.elements,
+    };
+    return m;
+}
 
 enum Apl_Return_Types apl_setup(struct Apl_Window_State *ws)
 {
@@ -25,7 +47,6 @@ enum Apl_Return_Types apl_setup(struct Apl_Window_State *ws)
 
 
     char file_name[] = "../src/test-png.png";
-    printf("Loading PNG '%s'.\n", file_name);
 
     struct Apng_Bin_String file = apng_bin_file_read(file_name);
     apng_decode_png(file);
@@ -45,7 +66,8 @@ enum Apl_Return_Types apl_update(struct Apl_Window_State *ws)
 
 enum Apl_Return_Types apl_render(struct Apl_Window_State *ws)
 {
-    adl_circle_fill(ws->window_pixels_mat, 100, 100, 100, APL_COLOR_WHITE_hexARGB, ADL_DEFAULT_OFFSET_ZOOM);
+    Mat2D_uint32 pixels = apl_pixel_buffer_mat2d_u32(ws->window_pixels_mat);
+    adl_circle_fill(pixels, 100, 100, 100, APL_COLOR_WHITE_hexARGB, ADL_DEFAULT_OFFSET_ZOOM);
     APL_UNUSED(ws);
 
     return APL_SUCCESS;
