@@ -296,7 +296,11 @@ enum mat2D_upper_triangulate_flag{
 };
 
 #ifndef MAT2D_DEF
-    #define MAT2D_DEF static inline
+    #ifdef MAT2D_DEF_STATIC
+        #define MAT2D_DEF static
+    #else
+        #define MAT2D_DEF extern
+    #endif
 #endif
 
 MAT2D_DEF void          mat2D_add(Mat2D dst, Mat2D a);

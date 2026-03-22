@@ -136,6 +136,8 @@ struct Apng_IDAT_Chunk {
     uint8_t FCHECK;
     uint8_t FDICT;
     uint8_t FLEVEL;
+
+    size_t LZ77_window_size;
 };
 
 #define APNG_IDAT_FOOTER_SIZE 4
@@ -237,28 +239,36 @@ struct Apng_zTXt_Chunk {
 
 struct Apng_PNG_Image {
     struct Apng_Bin_String file;
-    struct Apng_IHDR_Chunk IHDR_chunk;
-    struct Apng_PLTE_Chunk PLTE_chunk;
-    struct Apng_IDAT_Chunk IDAT_chunk;
     struct Apng_Pixel_Buffer pixels;
-    struct Apng_IEND_Chunk IEND_chunk;
-    struct Apng_cHRM_Chunk cHRM_chunk;
-    struct Apng_gAMA_Chunk gAMA_chunk;
-    struct Apng_iCCP_Chunk iCCP_chunk;
-    struct Apng_sBIT_Chunk sBIT_chunk;
-    struct Apng_sRGB_Chunk sRGB_chunk;
-    struct Apng_bKGD_Chunk bKGD_chunk;
-    struct Apng_hIST_Chunk hIST_chunk;
-    struct Apng_tRNS_Chunk tRNS_chunk;
-    struct Apng_pHYs_Chunk pHYs_chunk;
-    struct Apng_sPLT_Chunk sPLT_chunk;
-    struct Apng_tIME_Chunk tIME_chunk;
-    struct Apng_iTXt_Chunk iTXt_chunk;
-    struct Apng_tEXt_Chunk tEXt_chunk;
-    struct Apng_zTXt_Chunk zTXt_chunk;
+    struct {
+        struct Apng_IHDR_Chunk IHDR_chunk;
+        struct Apng_PLTE_Chunk PLTE_chunk;
+        struct Apng_IDAT_Chunk IDAT_chunk;
+        struct Apng_IEND_Chunk IEND_chunk;
+        struct Apng_cHRM_Chunk cHRM_chunk;
+        struct Apng_gAMA_Chunk gAMA_chunk;
+        struct Apng_iCCP_Chunk iCCP_chunk;
+        struct Apng_sBIT_Chunk sBIT_chunk;
+        struct Apng_sRGB_Chunk sRGB_chunk;
+        struct Apng_bKGD_Chunk bKGD_chunk;
+        struct Apng_hIST_Chunk hIST_chunk;
+        struct Apng_tRNS_Chunk tRNS_chunk;
+        struct Apng_pHYs_Chunk pHYs_chunk;
+        struct Apng_sPLT_Chunk sPLT_chunk;
+        struct Apng_tIME_Chunk tIME_chunk;
+        struct Apng_iTXt_Chunk iTXt_chunk;
+        struct Apng_tEXt_Chunk tEXt_chunk;
+        struct Apng_zTXt_Chunk zTXt_chunk;
+    } chunks;
 };
 
-#define APNG_DEF static inline
+#ifndef APNG_DEF
+    #ifdef APNG_DEF_STATIC
+        #define APNG_DEF static
+    #else
+        #define APNG_DEF extern
+    #endif
+#endif
 #define APNG_UNUSED(x) ((void)x)
 
 #define apng_dprintSTRING(expr) printf("[Info] %s:%d:\n" #expr " = %s\n", __FILE__, __LINE__, expr)
@@ -274,7 +284,7 @@ struct Apng_PNG_Image {
 #define apng_dprintERROR(fmt, ...) \
     fprintf(stderr, "[Error] %s:%d:\n%*sIn function '%s':\n%*s" fmt "\n", __FILE__, __LINE__, 8, "", __func__, 8, "", __VA_ARGS__)
 
-#define APNG_PIXEL_MAT_AT(m, i, j) (m).elements[(APNG_ASSERT(i < m.rows && j < m.cols), (i) * (m).stride_r + (j))]
+#define APNG_PIXEL_BUFFER_AT(m, i, j) (m).elements[(APNG_ASSERT(i < m.rows && j < m.cols), (i) * (m).stride_r + (j))]
 
 APNG_DEF struct Apng_Bin_String     apng_bin_file_read(char *file_name);
 APNG_DEF void                       apng_bin_string_free(struct Apng_Bin_String bs);
@@ -282,6 +292,7 @@ APNG_DEF struct Apng_Chunk_Footer   apng_chunk_footer_get(struct Apng_Bin_String
 APNG_DEF struct Apng_Chunk_Header   apng_chunk_header_get(struct Apng_Bin_String *bs);
 APNG_DEF void *                     apng_consume(struct Apng_Bin_String *bs, size_t amount);
 APNG_DEF struct Apng_PNG_Image      apng_decode_png(struct Apng_Bin_String file);
+APNG_DEF enum Apng_Return_Types     apng_decompress_IDAT(struct Apng_PNG_Image *image);
 APNG_DEF uint32_t                   apng_endian_swap(uint32_t x);
 APNG_DEF uint32_t                   apng_four_char_to_uint32_t(const char *str);
 APNG_DEF struct Apng_Pixel_Buffer   apng_pixel_buffer_malloc(size_t rows, size_t cols);
@@ -448,41 +459,45 @@ APNG_DEF struct Apng_PNG_Image apng_decode_png(struct Apng_Bin_String file)
         switch (chunk_header.type) {
             case APNG_TYPE_IHDR: 
             {
-                image.IHDR_chunk.index  = chunk_header.index + chunk_header.size;
-                image.IHDR_chunk.length = chunk_header.length;
-                image.IHDR_chunk.body   = chunk_data;
-                apng_IHDR_chunk_parse(&image.IHDR_chunk);
+                image.chunks.IHDR_chunk.index  = chunk_header.index + chunk_header.size;
+                image.chunks.IHDR_chunk.length = chunk_header.length;
+                image.chunks.IHDR_chunk.body   = chunk_data;
+                apng_IHDR_chunk_parse(&image.chunks.IHDR_chunk);
             } break;
             case APNG_TYPE_sRGB: 
             {
-                image.sRGB_chunk.index  = chunk_header.index + chunk_header.size;
-                image.sRGB_chunk.length = chunk_header.length;
-                image.sRGB_chunk.body   = chunk_data;
+                image.chunks.sRGB_chunk.index  = chunk_header.index + chunk_header.size;
+                image.chunks.sRGB_chunk.length = chunk_header.length;
+                image.chunks.sRGB_chunk.body   = chunk_data;
             } break;
             case APNG_TYPE_gAMA: 
             {
-                image.gAMA_chunk.index  = chunk_header.index + chunk_header.size;
-                image.gAMA_chunk.length = chunk_header.length;
-                image.gAMA_chunk.body   = chunk_data;
+                image.chunks.gAMA_chunk.index  = chunk_header.index + chunk_header.size;
+                image.chunks.gAMA_chunk.length = chunk_header.length;
+                image.chunks.gAMA_chunk.body   = chunk_data;
             } break;
             case APNG_TYPE_pHYs: 
             {
-                image.pHYs_chunk.index  = chunk_header.index + chunk_header.size;
-                image.pHYs_chunk.length = chunk_header.length;
-                image.pHYs_chunk.body   = chunk_data;
+                image.chunks.pHYs_chunk.index  = chunk_header.index + chunk_header.size;
+                image.chunks.pHYs_chunk.length = chunk_header.length;
+                image.chunks.pHYs_chunk.body   = chunk_data;
             } break;
             case APNG_TYPE_IDAT: 
             {
-                image.IDAT_chunk.index  = chunk_header.index + chunk_header.size;
-                image.IDAT_chunk.length = chunk_header.length;
-                image.IDAT_chunk.body   = chunk_data;
-                apng_IDAT_chunk_parse(&image.IDAT_chunk);
+                if (image.chunks.IDAT_chunk.body != NULL) {
+                    apng_dprintERROR("%s", "Encountered more than one IDAT chunk. Currently not supported.");
+                    return image;
+                }
+                image.chunks.IDAT_chunk.index  = chunk_header.index + chunk_header.size;
+                image.chunks.IDAT_chunk.length = chunk_header.length;
+                image.chunks.IDAT_chunk.body   = chunk_data;
+                apng_IDAT_chunk_parse(&image.chunks.IDAT_chunk);
             } break; 
             case APNG_TYPE_IEND: 
             {
-                image.IEND_chunk.index  = chunk_header.index + chunk_header.size;
-                image.IEND_chunk.length = chunk_header.length;
-                image.IEND_chunk.body   = chunk_data;
+                image.chunks.IEND_chunk.index  = chunk_header.index + chunk_header.size;
+                image.chunks.IEND_chunk.length = chunk_header.length;
+                image.chunks.IEND_chunk.body   = chunk_data;
             } break;
             case APNG_TYPE_UNKNOWN:
             {
@@ -496,11 +511,22 @@ APNG_DEF struct Apng_PNG_Image apng_decode_png(struct Apng_Bin_String file)
     }
 
     /* checking PNG file correctness */
-    if (image.IEND_chunk.index != image.file.length - APNG_CHUNK_FOOTER_SIZE) {
+    if (image.chunks.IEND_chunk.index != image.file.length - APNG_CHUNK_FOOTER_SIZE) {
         apng_dprintERROR("%s", "Error in IEND chunk.");
     }
 
+    
+
     return image;
+}
+
+APNG_DEF enum Apng_Return_Types apng_decompress_IDAT(struct Apng_PNG_Image *image)
+{
+    size_t width = image->chunks.IHDR_chunk.width;
+    size_t height = image->chunks.IHDR_chunk.height;
+    image->pixels = apng_pixel_buffer_malloc(height, width);
+    
+    return APNG_SUCCESS;
 }
 
 APNG_DEF uint32_t apng_endian_swap(uint32_t x)
@@ -716,13 +742,13 @@ APNG_DEF enum Apng_Return_Types apng_IHDR_chunk_parse(struct Apng_IHDR_Chunk *ch
     chunk->interlace_method = chunk->body[12];
 
     /* checks */
-    // apng_dprintINT(chunk->width);
-    // apng_dprintINT(chunk->height);
-    // apng_dprintINT(chunk->bit_depth);
-    // apng_dprintINT(chunk->color_type);
-    // apng_dprintINT(chunk->compression_method);
-    // apng_dprintINT(chunk->filter_method);
-    // apng_dprintINT(chunk->interlace_method);
+    apng_dprintINT(chunk->width);
+    apng_dprintINT(chunk->height);
+    apng_dprintINT(chunk->bit_depth);
+    apng_dprintINT(chunk->color_type);
+    apng_dprintINT(chunk->compression_method);
+    apng_dprintINT(chunk->filter_method);
+    apng_dprintINT(chunk->interlace_method);
     
     if (chunk->color_type != 6) {
         apng_dprintERROR("Unsupported color type. Supports color type 6 but got %d", chunk->color_type);
@@ -752,6 +778,8 @@ APNG_DEF enum Apng_Return_Types apng_IHDR_chunk_parse(struct Apng_IHDR_Chunk *ch
 
 APNG_DEF enum Apng_Return_Types apng_IDAT_chunk_parse(struct Apng_IDAT_Chunk *chunk)
 {
+    /*ZLIB specification: https://www.ietf.org/rfc/rfc1950.txt */
+
     APNG_ASSERT(chunk->body != NULL);
     APNG_ASSERT(chunk->index != 0);
     APNG_ASSERT(chunk->length != 0);
@@ -759,9 +787,11 @@ APNG_DEF enum Apng_Return_Types apng_IDAT_chunk_parse(struct Apng_IDAT_Chunk *ch
     chunk->header   = apng_IDAT_header_get_from_IDAT_chunk(*chunk);
     chunk->CM       = chunk->header.zlib_compression_method_flags & 0xF;
     chunk->CINFO    = chunk->header.zlib_compression_method_flags >> 4;
-    chunk->FCHECK   = chunk->header.additional_flags & 0x1F;
-    chunk->FDICT    = chunk->header.additional_flags >> 5;
+    chunk->FCHECK   = chunk->header.additional_flags & ~((~0)<<5);
+    chunk->FDICT    = (chunk->header.additional_flags >> 5) & 1;
     chunk->FLEVEL   = chunk->header.additional_flags >> 6;
+
+    chunk->LZ77_window_size = 1ull << (chunk->CINFO + 8);
 
     /* checks */
     apng_dprintINT(chunk->CM);
@@ -769,6 +799,7 @@ APNG_DEF enum Apng_Return_Types apng_IDAT_chunk_parse(struct Apng_IDAT_Chunk *ch
     apng_dprintINT(chunk->FCHECK);
     apng_dprintINT(chunk->FDICT);
     apng_dprintINT(chunk->FLEVEL);
+    apng_dprintSIZE_T(chunk->LZ77_window_size);
 
     if (chunk->CM != 8) {
         apng_dprintERROR("PNG supports only CM = 8, got %d", chunk->CM);
@@ -776,6 +807,14 @@ APNG_DEF enum Apng_Return_Types apng_IDAT_chunk_parse(struct Apng_IDAT_Chunk *ch
     }
     if (chunk->CINFO > 7) {
         apng_dprintERROR("CINFO values above 7 are not allowed, got %d", chunk->CINFO);
+        return APNG_FAIL;
+    }
+    if (chunk->FDICT != 0) {
+        apng_dprintERROR("Supports only FDICT = 0, got %d", chunk->FDICT);
+        return APNG_FAIL;
+    }
+    if ((chunk->header.zlib_compression_method_flags * 256 + chunk->header.additional_flags) % 31 != 0) {
+        apng_dprintERROR("%s", "FCHECK is not set properly");
         return APNG_FAIL;
     }
 
