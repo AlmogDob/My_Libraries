@@ -44,6 +44,19 @@ struct Apng_Pixel_Buffer {
     uint32_t *elements;
 };
 
+struct Apng_Bin_String {
+    char *name;
+    size_t length;
+    size_t cursor;
+    uint8_t *content;
+};
+
+struct Apng_Bit_Reader {
+    struct Apng_Bin_String file;
+    uint8_t current_byte;
+    uint8_t bits_left;
+};
+
 enum Apng_Chunk_Type {
     APNG_TYPE_UNKNOWN,
     APNG_TYPE_IHDR,
@@ -90,13 +103,6 @@ struct Apng_Chunk_Footer {
     size_t size;
     size_t index;
     uint32_t CRC;
-};
-
-struct Apng_Bin_String {
-    char *name;
-    size_t length;
-    size_t cursor;
-    uint8_t *content;
 };
 
 struct Apng_IHDR_Chunk {
@@ -239,6 +245,7 @@ struct Apng_zTXt_Chunk {
 
 struct Apng_PNG_Image {
     struct Apng_Bin_String file;
+    struct Apng_Bit_Reader br;
     struct Apng_Pixel_Buffer pixels;
     struct {
         struct Apng_IHDR_Chunk IHDR_chunk;
@@ -288,6 +295,10 @@ struct Apng_PNG_Image {
 
 APNG_DEF struct Apng_Bin_String     apng_bin_file_read(char *file_name);
 APNG_DEF void                       apng_bin_string_free(struct Apng_Bin_String bs);
+APNG_DEF void                       apng_bit_reader_flash(struct Apng_Bit_Reader *br);
+APNG_DEF void                       apng_bit_reader_init(struct Apng_Bit_Reader *br, struct Apng_Bin_String file);
+APNG_DEF uint8_t                    apng_bit_reader_read_bit(struct Apng_Bit_Reader *br);
+APNG_DEF uint32_t                   apng_bit_reader_read_bits(struct Apng_Bit_Reader *br, size_t count);
 APNG_DEF struct Apng_Chunk_Footer   apng_chunk_footer_get(struct Apng_Bin_String *bs);
 APNG_DEF struct Apng_Chunk_Header   apng_chunk_header_get(struct Apng_Bin_String *bs);
 APNG_DEF void *                     apng_consume(struct Apng_Bin_String *bs, size_t amount);
@@ -400,6 +411,50 @@ APNG_DEF void apng_bin_string_free(struct Apng_Bin_String bs)
     APNG_FREE(bs.name);
 }
 
+APNG_DEF void apng_bit_reader_flash(struct Apng_Bit_Reader *br)
+{
+    APNG_ASSERT(br->file.cursor < br->file.length);
+    uint8_t c = br->file.content[br->file.cursor++];
+    br->current_byte = c;
+    br->bits_left = 8;
+}
+
+APNG_DEF void apng_bit_reader_init(struct Apng_Bit_Reader *br, struct Apng_Bin_String file)
+{
+    br->file = file;
+    br->current_byte = 0;
+    br->bits_left = 0;
+}
+
+APNG_DEF uint8_t apng_bit_reader_read_bit(struct Apng_Bit_Reader *br)
+{
+    if (br->bits_left == 0) {
+        APNG_ASSERT(br->file.cursor < br->file.length);
+        uint8_t c = br->file.content[br->file.cursor++];
+        br->current_byte = c;
+        br->bits_left = 8;
+    }
+
+    uint8_t bit = (br->current_byte & 1) ? 1 : 0;
+    br->current_byte >>= 1;
+    br->bits_left--;
+    return bit;
+}
+
+APNG_DEF uint32_t apng_bit_reader_read_bits(struct Apng_Bit_Reader *br, size_t count)
+{
+    APNG_ASSERT(count <= 32);
+
+    uint32_t res = 0;
+
+    for (size_t i = 0; i < count; i++) {
+        res <<= 1;
+        res |= apng_bit_reader_read_bit(br);
+    }
+
+    return res;
+}
+
 APNG_DEF struct Apng_Chunk_Footer apng_chunk_footer_get(struct Apng_Bin_String *bs)
 {
     size_t size = APNG_CHUNK_FOOTER_SIZE;
@@ -443,6 +498,7 @@ APNG_DEF struct Apng_PNG_Image apng_decode_png(struct Apng_Bin_String file)
 {
     struct Apng_PNG_Image image = {.file = file};
     APNG_UNUSED(file);
+    apng_bit_reader_init(&image.br, image.file);
 
     apng_dprintINFO("Decoding file: '%s'. File size: %zu bytes", image.file.name, image.file.length);
 
@@ -515,16 +571,57 @@ APNG_DEF struct Apng_PNG_Image apng_decode_png(struct Apng_Bin_String file)
         apng_dprintERROR("%s", "Error in IEND chunk.");
     }
 
-    
+    /* decompressing the image */
+    {
+        enum Apng_Return_Types rt = apng_decompress_IDAT(&image);
+    }
 
     return image;
 }
 
 APNG_DEF enum Apng_Return_Types apng_decompress_IDAT(struct Apng_PNG_Image *image)
 {
+    /*ZLIB specification: https://www.ietf.org/rfc/rfc1950.txt */
+
     size_t width = image->chunks.IHDR_chunk.width;
     size_t height = image->chunks.IHDR_chunk.height;
     image->pixels = apng_pixel_buffer_malloc(height, width);
+
+    struct Apng_IDAT_Chunk idat = image->chunks.IDAT_chunk;
+    struct Apng_Bit_Reader *br  = &image->br;
+    br->file.cursor = idat.index + APNG_IDAT_HEADER_SIZE;
+
+    do {
+        // apng_dprintINT(apng_bit_reader_read_bits(br, 2));
+        uint32_t BFINAL = apng_bit_reader_read_bits(br, 1);
+        uint32_t BTYPE  = apng_bit_reader_read_bits(br, 2);
+
+        switch (BTYPE) {
+            case 0:
+            { 
+                apng_bit_reader_flash(br);
+                uint32_t LEN  = apng_bit_reader_read_bits(br, 16);
+                uint32_t NLEN = apng_bit_reader_read_bits(br, 16);
+            } break;
+            case 1:
+            {
+            } break;
+            case 2:
+            {
+            } break;
+            case 3:
+            {
+                apng_dprintERROR("%s", "BTYPE of 3 encountered. Spec does not supports this.");
+                return APNG_FAIL;
+            } break;
+            default:
+            {
+                apng_dprintERROR("%s", "UNREACHABLE");
+                exit(-1);
+            }
+        }
+
+    } while (0);
     
     return APNG_SUCCESS;
 }
@@ -742,13 +839,13 @@ APNG_DEF enum Apng_Return_Types apng_IHDR_chunk_parse(struct Apng_IHDR_Chunk *ch
     chunk->interlace_method = chunk->body[12];
 
     /* checks */
-    apng_dprintINT(chunk->width);
-    apng_dprintINT(chunk->height);
-    apng_dprintINT(chunk->bit_depth);
-    apng_dprintINT(chunk->color_type);
-    apng_dprintINT(chunk->compression_method);
-    apng_dprintINT(chunk->filter_method);
-    apng_dprintINT(chunk->interlace_method);
+    // apng_dprintINT(chunk->width);
+    // apng_dprintINT(chunk->height);
+    // apng_dprintINT(chunk->bit_depth);
+    // apng_dprintINT(chunk->color_type);
+    // apng_dprintINT(chunk->compression_method);
+    // apng_dprintINT(chunk->filter_method);
+    // apng_dprintINT(chunk->interlace_method);
     
     if (chunk->color_type != 6) {
         apng_dprintERROR("Unsupported color type. Supports color type 6 but got %d", chunk->color_type);
@@ -794,12 +891,12 @@ APNG_DEF enum Apng_Return_Types apng_IDAT_chunk_parse(struct Apng_IDAT_Chunk *ch
     chunk->LZ77_window_size = 1ull << (chunk->CINFO + 8);
 
     /* checks */
-    apng_dprintINT(chunk->CM);
-    apng_dprintINT(chunk->CINFO);
-    apng_dprintINT(chunk->FCHECK);
-    apng_dprintINT(chunk->FDICT);
-    apng_dprintINT(chunk->FLEVEL);
-    apng_dprintSIZE_T(chunk->LZ77_window_size);
+    // apng_dprintINT(chunk->CM);
+    // apng_dprintINT(chunk->CINFO);
+    // apng_dprintINT(chunk->FCHECK);
+    // apng_dprintINT(chunk->FDICT);
+    // apng_dprintINT(chunk->FLEVEL);
+    // apng_dprintSIZE_T(chunk->LZ77_window_size);
 
     if (chunk->CM != 8) {
         apng_dprintERROR("PNG supports only CM = 8, got %d", chunk->CM);
