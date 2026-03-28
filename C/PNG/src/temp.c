@@ -6,11 +6,11 @@ int main(void)
 {
     char file_name[] = "../src/test-png.png";
 
-    struct Apng_Bin_String file = apng_bin_file_read(file_name);
-    apng_decode_png(file);
+    struct Apng_Byte_String file = apng_bin_file_read(file_name);
+    apng_png_decode(file);
 
 
-    apng_bin_string_free(file);
+    apng_byte_string_free(file);
 
     return 0;
 }

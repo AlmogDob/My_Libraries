@@ -16,6 +16,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#include "include/Almog_Dynamic_Array.h"
+
 #ifndef APNG_MALLOC
 #include <stdlib.h>
 #define APNG_MALLOC malloc
@@ -44,15 +46,16 @@ struct Apng_Pixel_Buffer {
     uint32_t *elements;
 };
 
-struct Apng_Bin_String {
+struct Apng_Byte_String {
     char *name;
+    size_t capacity;
     size_t length;
     size_t cursor;
-    uint8_t *content;
+    uint8_t *elements;
 };
 
 struct Apng_Bit_Reader {
-    struct Apng_Bin_String file;
+    struct Apng_Byte_String file;
     uint8_t current_byte;
     uint8_t bits_left;
 };
@@ -244,7 +247,7 @@ struct Apng_zTXt_Chunk {
 };
 
 struct Apng_PNG_Image {
-    struct Apng_Bin_String file;
+    struct Apng_Byte_String file;
     struct Apng_Bit_Reader br;
     struct Apng_Pixel_Buffer pixels;
     struct {
@@ -292,29 +295,30 @@ struct Apng_PNG_Image {
     fprintf(stderr, "[Error] %s:%d:\n%*sIn function '%s':\n%*s" fmt "\n", __FILE__, __LINE__, 8, "", __func__, 8, "", __VA_ARGS__)
 
 #define APNG_PIXEL_BUFFER_AT(m, i, j) (m).elements[(APNG_ASSERT(i < m.rows && j < m.cols), (i) * (m).stride_r + (j))]
+#define APNG_STATIC_ARRAY_LEN(x) (sizeof(x)/sizeof(x[0]))
 
-APNG_DEF struct Apng_Bin_String     apng_bin_file_read(char *file_name);
-APNG_DEF void                       apng_bin_string_free(struct Apng_Bin_String bs);
+APNG_DEF struct Apng_Byte_String    apng_bin_file_read(char *file_name);
+APNG_DEF void                       apng_byte_string_free(struct Apng_Byte_String bs);
 APNG_DEF void                       apng_bit_reader_flash(struct Apng_Bit_Reader *br);
-APNG_DEF void                       apng_bit_reader_init(struct Apng_Bit_Reader *br, struct Apng_Bin_String file);
+APNG_DEF void                       apng_bit_reader_init(struct Apng_Bit_Reader *br, struct Apng_Byte_String file);
 APNG_DEF uint8_t                    apng_bit_reader_read_bit(struct Apng_Bit_Reader *br);
 APNG_DEF uint32_t                   apng_bit_reader_read_bits(struct Apng_Bit_Reader *br, size_t count);
-APNG_DEF struct Apng_Chunk_Footer   apng_chunk_footer_get(struct Apng_Bin_String *bs);
-APNG_DEF struct Apng_Chunk_Header   apng_chunk_header_get(struct Apng_Bin_String *bs);
-APNG_DEF void *                     apng_consume(struct Apng_Bin_String *bs, size_t amount);
-APNG_DEF struct Apng_PNG_Image      apng_decode_png(struct Apng_Bin_String file);
-APNG_DEF enum Apng_Return_Types     apng_decompress_IDAT(struct Apng_PNG_Image *image);
+APNG_DEF struct Apng_Chunk_Footer   apng_chunk_footer_get(struct Apng_Byte_String *bs);
+APNG_DEF struct Apng_Chunk_Header   apng_chunk_header_get(struct Apng_Byte_String *bs);
+APNG_DEF void *                     apng_consume(struct Apng_Byte_String *bs, size_t amount);
 APNG_DEF uint32_t                   apng_endian_swap(uint32_t x);
 APNG_DEF uint32_t                   apng_four_char_to_uint32_t(const char *str);
 APNG_DEF struct Apng_Pixel_Buffer   apng_pixel_buffer_malloc(size_t rows, size_t cols);
+APNG_DEF struct Apng_PNG_Image      apng_png_decode(struct Apng_Byte_String file);
 APNG_DEF bool                       apng_png_header_signature_correct(struct Apng_PNG_Header h);
-APNG_DEF struct Apng_PNG_Header     apng_png_header_get(struct Apng_Bin_String *bs);
+APNG_DEF struct Apng_PNG_Header     apng_png_header_get(struct Apng_Byte_String *bs);
 APNG_DEF enum Apng_Chunk_Type       apng_type_get_from_raw_type(uint32_t raw_type);
 APNG_DEF const char *               apng_type_name_get(enum Apng_Chunk_Type type);
 
 /* chunk parsers */
 APNG_DEF enum Apng_Return_Types     apng_IHDR_chunk_parse(struct Apng_IHDR_Chunk *chunk);
 APNG_DEF enum Apng_Return_Types     apng_IDAT_chunk_parse(struct Apng_IDAT_Chunk *chunk);
+APNG_DEF enum Apng_Return_Types     apng_IDAT_decompress(struct Apng_PNG_Image *image);
 APNG_DEF struct Apng_IDAT_Header    apng_IDAT_header_get_from_IDAT_chunk(struct Apng_IDAT_Chunk chunk);
 
 #endif /*ALMOG_PNG_H_*/
@@ -322,9 +326,9 @@ APNG_DEF struct Apng_IDAT_Header    apng_IDAT_header_get_from_IDAT_chunk(struct 
 #ifdef ALMOG_PNG_IMPLEMENTATION
 #undef ALMOG_PNG_IMPLEMENTATION
 
-APNG_DEF struct Apng_Bin_String apng_bin_file_read(char *file_name)
+APNG_DEF struct Apng_Byte_String apng_bin_file_read(char *file_name)
 {
-    struct Apng_Bin_String res = {0};
+    struct Apng_Byte_String res = {0};
     
     FILE *fp = fopen(file_name, "rb");
     if (fp == NULL) {
@@ -365,8 +369,9 @@ APNG_DEF struct Apng_Bin_String apng_bin_file_read(char *file_name)
     strncpy(res.name, file_name, strlen(file_name)+1);
 
     res.length = (size_t)size;
-    res.content = APNG_MALLOC(res.length);
-    if (res.content == NULL) {
+    res.capacity = (size_t)size;
+    res.elements = APNG_MALLOC(res.length);
+    if (res.elements == NULL) {
         apng_dprintERROR( "Memory allocation failed for file %s (%zu bytes).\n", file_name, res.length);
         fclose(fp);
         res.length = 0;
@@ -374,7 +379,7 @@ APNG_DEF struct Apng_Bin_String apng_bin_file_read(char *file_name)
         return res;
     }
 
-    size_t nread = fread(res.content, 1, res.length, fp);
+    size_t nread = fread(res.elements, 1, res.length, fp);
     if (nread != res.length) {
         if (ferror(fp)) {
             int err = errno;
@@ -384,9 +389,9 @@ APNG_DEF struct Apng_Bin_String apng_bin_file_read(char *file_name)
                 "Unexpected end of file while reading %s "
                 "(expected %zu bytes, got %zu).\n", file_name, res.length, nread);
         }
-        APNG_FREE(res.content);
+        APNG_FREE(res.elements);
         APNG_FREE(res.name);
-        res.content = NULL;
+        res.elements = NULL;
         res.length = 0;
         fclose(fp);
         return res;
@@ -395,9 +400,9 @@ APNG_DEF struct Apng_Bin_String apng_bin_file_read(char *file_name)
     if (fclose(fp) != 0) {
         int err = errno;
         apng_dprintERROR( "Failed to close file %s: %s\n", file_name, strerror(err));
-        APNG_FREE(res.content);
+        APNG_FREE(res.elements);
         APNG_FREE(res.name);
-        res.content = NULL;
+        res.elements = NULL;
         res.length = 0;
         return res;
     }
@@ -405,21 +410,21 @@ APNG_DEF struct Apng_Bin_String apng_bin_file_read(char *file_name)
     return res;
 }
 
-APNG_DEF void apng_bin_string_free(struct Apng_Bin_String bs)
+APNG_DEF void apng_byte_string_free(struct Apng_Byte_String bs)
 {
-    APNG_FREE(bs.content);
+    APNG_FREE(bs.elements);
     APNG_FREE(bs.name);
 }
 
 APNG_DEF void apng_bit_reader_flash(struct Apng_Bit_Reader *br)
 {
     APNG_ASSERT(br->file.cursor < br->file.length);
-    uint8_t c = br->file.content[br->file.cursor++];
+    uint8_t c = br->file.elements[br->file.cursor++];
     br->current_byte = c;
     br->bits_left = 8;
 }
 
-APNG_DEF void apng_bit_reader_init(struct Apng_Bit_Reader *br, struct Apng_Bin_String file)
+APNG_DEF void apng_bit_reader_init(struct Apng_Bit_Reader *br, struct Apng_Byte_String file)
 {
     br->file = file;
     br->current_byte = 0;
@@ -430,7 +435,7 @@ APNG_DEF uint8_t apng_bit_reader_read_bit(struct Apng_Bit_Reader *br)
 {
     if (br->bits_left == 0) {
         APNG_ASSERT(br->file.cursor < br->file.length);
-        uint8_t c = br->file.content[br->file.cursor++];
+        uint8_t c = br->file.elements[br->file.cursor++];
         br->current_byte = c;
         br->bits_left = 8;
     }
@@ -455,7 +460,7 @@ APNG_DEF uint32_t apng_bit_reader_read_bits(struct Apng_Bit_Reader *br, size_t c
     return res;
 }
 
-APNG_DEF struct Apng_Chunk_Footer apng_chunk_footer_get(struct Apng_Bin_String *bs)
+APNG_DEF struct Apng_Chunk_Footer apng_chunk_footer_get(struct Apng_Byte_String *bs)
 {
     size_t size = APNG_CHUNK_FOOTER_SIZE;
     struct Apng_Chunk_Footer footer = {
@@ -468,7 +473,7 @@ APNG_DEF struct Apng_Chunk_Footer apng_chunk_footer_get(struct Apng_Bin_String *
     return footer;
 }
 
-APNG_DEF struct Apng_Chunk_Header apng_chunk_header_get(struct Apng_Bin_String *bs)
+APNG_DEF struct Apng_Chunk_Header apng_chunk_header_get(struct Apng_Byte_String *bs)
 {
     size_t size = APNG_CHUNK_HEADER_SIZE;
     struct Apng_Chunk_Header header = {
@@ -484,17 +489,42 @@ APNG_DEF struct Apng_Chunk_Header apng_chunk_header_get(struct Apng_Bin_String *
     return header;
 }
 
-APNG_DEF void * apng_consume(struct Apng_Bin_String *bs, size_t amount_byte)
+APNG_DEF void * apng_consume(struct Apng_Byte_String *bs, size_t amount_byte)
 {
     APNG_ASSERT(amount_byte <= bs->length - bs->cursor);
 
-    void *res = &(bs->content[bs->cursor]);
+    void *res = &(bs->elements[bs->cursor]);
     bs->cursor += amount_byte;
 
     return res;
 }
 
-APNG_DEF struct Apng_PNG_Image apng_decode_png(struct Apng_Bin_String file)
+APNG_DEF uint32_t apng_endian_swap(uint32_t x)
+{
+    return ((x << 24) |
+            ((x & 0xFF00) << 8) |
+            ((x >> 8) & 0xFF00) |
+            (x >> 24));
+}
+
+APNG_DEF uint32_t apng_four_char_to_uint32_t(const char * str)
+{
+    return ((uint32_t)(((uint32_t)((str)[0]) << 0) | ((uint32_t)((str)[1]) << 8) | ((uint32_t)((str)[2]) << 16) | ((uint32_t)((str)[3]) << 24)));
+}
+
+APNG_DEF struct Apng_Pixel_Buffer apng_pixel_buffer_malloc(size_t rows, size_t cols)
+{
+    struct Apng_Pixel_Buffer m;
+    m.rows = rows;
+    m.cols = cols;
+    m.stride_r = cols;
+    m.elements = (uint32_t*)APNG_MALLOC(sizeof(uint32_t)*rows*cols);
+    APNG_ASSERT(m.elements != NULL);
+    
+    return m;
+}
+
+APNG_DEF struct Apng_PNG_Image apng_png_decode(struct Apng_Byte_String file)
 {
     struct Apng_PNG_Image image = {.file = file};
     APNG_UNUSED(file);
@@ -573,82 +603,10 @@ APNG_DEF struct Apng_PNG_Image apng_decode_png(struct Apng_Bin_String file)
 
     /* decompressing the image */
     {
-        enum Apng_Return_Types rt = apng_decompress_IDAT(&image);
+        enum Apng_Return_Types rt = apng_IDAT_decompress(&image);
     }
 
     return image;
-}
-
-APNG_DEF enum Apng_Return_Types apng_decompress_IDAT(struct Apng_PNG_Image *image)
-{
-    /*ZLIB specification: https://www.ietf.org/rfc/rfc1950.txt */
-
-    size_t width = image->chunks.IHDR_chunk.width;
-    size_t height = image->chunks.IHDR_chunk.height;
-    image->pixels = apng_pixel_buffer_malloc(height, width);
-
-    struct Apng_IDAT_Chunk idat = image->chunks.IDAT_chunk;
-    struct Apng_Bit_Reader *br  = &image->br;
-    br->file.cursor = idat.index + APNG_IDAT_HEADER_SIZE;
-
-    do {
-        // apng_dprintINT(apng_bit_reader_read_bits(br, 2));
-        uint32_t BFINAL = apng_bit_reader_read_bits(br, 1);
-        uint32_t BTYPE  = apng_bit_reader_read_bits(br, 2);
-
-        switch (BTYPE) {
-            case 0:
-            { 
-                apng_bit_reader_flash(br);
-                uint32_t LEN  = apng_bit_reader_read_bits(br, 16);
-                uint32_t NLEN = apng_bit_reader_read_bits(br, 16);
-            } break;
-            case 1:
-            {
-            } break;
-            case 2:
-            {
-            } break;
-            case 3:
-            {
-                apng_dprintERROR("%s", "BTYPE of 3 encountered. Spec does not supports this.");
-                return APNG_FAIL;
-            } break;
-            default:
-            {
-                apng_dprintERROR("%s", "UNREACHABLE");
-                exit(-1);
-            }
-        }
-
-    } while (0);
-    
-    return APNG_SUCCESS;
-}
-
-APNG_DEF uint32_t apng_endian_swap(uint32_t x)
-{
-    return ((x << 24) |
-            ((x & 0xFF00) << 8) |
-            ((x >> 8) & 0xFF00) |
-            (x >> 24));
-}
-
-APNG_DEF uint32_t apng_four_char_to_uint32_t(const char * str)
-{
-    return ((uint32_t)(((uint32_t)((str)[0]) << 0) | ((uint32_t)((str)[1]) << 8) | ((uint32_t)((str)[2]) << 16) | ((uint32_t)((str)[3]) << 24)));
-}
-
-APNG_DEF struct Apng_Pixel_Buffer apng_pixel_buffer_malloc(size_t rows, size_t cols)
-{
-    struct Apng_Pixel_Buffer m;
-    m.rows = rows;
-    m.cols = cols;
-    m.stride_r = cols;
-    m.elements = (uint32_t*)APNG_MALLOC(sizeof(uint32_t)*rows*cols);
-    APNG_ASSERT(m.elements != NULL);
-    
-    return m;
 }
 
 APNG_DEF bool apng_png_header_signature_correct(struct Apng_PNG_Header h)
@@ -676,7 +634,7 @@ APNG_DEF bool apng_png_header_signature_correct(struct Apng_PNG_Header h)
     return true;
 }
 
-APNG_DEF struct Apng_PNG_Header apng_png_header_get(struct Apng_Bin_String *bs)
+APNG_DEF struct Apng_PNG_Header apng_png_header_get(struct Apng_Byte_String *bs)
 {
     size_t size = 8;
     struct Apng_PNG_Header header = {
@@ -875,7 +833,7 @@ APNG_DEF enum Apng_Return_Types apng_IHDR_chunk_parse(struct Apng_IHDR_Chunk *ch
 
 APNG_DEF enum Apng_Return_Types apng_IDAT_chunk_parse(struct Apng_IDAT_Chunk *chunk)
 {
-    /*ZLIB specification: https://www.ietf.org/rfc/rfc1950.txt */
+    /*ZLIB specification: https://www.ietf.org/rfc/rfc1951.txt */
 
     APNG_ASSERT(chunk->body != NULL);
     APNG_ASSERT(chunk->index != 0);
@@ -916,6 +874,81 @@ APNG_DEF enum Apng_Return_Types apng_IDAT_chunk_parse(struct Apng_IDAT_Chunk *ch
     }
 
     return APNG_SUCCESS;
+}
+
+APNG_DEF enum Apng_Return_Types apng_IDAT_decompress(struct Apng_PNG_Image *image)
+{
+    /*ZLIB specification: https://www.ietf.org/rfc/rfc1951.txt */
+
+    size_t width = image->chunks.IHDR_chunk.width;
+    size_t height = image->chunks.IHDR_chunk.height;
+    image->pixels = apng_pixel_buffer_malloc(height, width);
+
+    struct Apng_Byte_String bs = {0};
+    ada_init_array(uint8_t, bs);
+
+    struct Apng_IDAT_Chunk idat = image->chunks.IDAT_chunk;
+    struct Apng_Bit_Reader *br  = &image->br;
+    br->file.cursor = idat.index + APNG_IDAT_HEADER_SIZE;
+
+    uint32_t BFINAL;
+    uint32_t BTYPE;
+    enum Apng_Return_Types rt = APNG_SUCCESS;
+    do {
+        /* read block header */
+        BFINAL = apng_bit_reader_read_bits(br, 1);
+        BTYPE  = apng_bit_reader_read_bits(br, 2);
+
+        switch (BTYPE) {
+            case 0:
+            { 
+                /* no compression */
+                apng_bit_reader_flash(br);
+                uint32_t LEN  = apng_bit_reader_read_bits(br, 16);
+                uint32_t NLEN = apng_bit_reader_read_bits(br, 16);
+                if (LEN != ~NLEN) {
+                    apng_dprintERROR("%s", "LEN/NLEN mismatch.");
+                    rt = APNG_FAIL;
+                    goto apng_IDAT_decompress_end;
+                }
+            } break;
+            case 1:
+            {
+                /* do nothing */
+            } break;
+            case 2:
+                /* dynamic Huffman codes */
+                uint32_t HLIT  = apng_bit_reader_read_bits(br, 5) + 257;
+                uint32_t HDIST = apng_bit_reader_read_bits(br, 5) + 1;
+                uint32_t HCLEN = apng_bit_reader_read_bits(br, 4) + 4;
+                uint32_t HCLEN_swizzle[] = {16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15};
+                uint32_t HCLEN_table[19] = {0};
+                uint32_t length_table[512] = {0};
+
+                for (int i = 0; i < HCLEN; i++) {
+                     HCLEN_table[HCLEN_swizzle[i]] = apng_bit_reader_read_bits(br, 3);
+                }
+            {
+            } break;
+            case 3:
+            {
+                apng_dprintERROR("%s", "BTYPE of 3 encountered. Spec does not supports this.");
+                rt = APNG_FAIL;
+                goto apng_IDAT_decompress_end;
+            } break;
+            default:
+            {
+                apng_dprintERROR("%s", "UNREACHABLE");
+                rt = APNG_FAIL;
+                goto apng_IDAT_decompress_end;
+            }
+        }
+
+    } while (!BFINAL);
+
+apng_IDAT_decompress_end:
+    APNG_FREE(bs.elements);
+    return rt;
 }
 
 APNG_DEF struct Apng_IDAT_Header apng_IDAT_header_get_from_IDAT_chunk(struct Apng_IDAT_Chunk chunk)
