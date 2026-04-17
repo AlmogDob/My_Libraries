@@ -71,6 +71,7 @@ struct Apng_Huffman_Entry {
 struct Apng_Huffman_Entrys_Table {
     size_t capacity;
     size_t length;
+    uint8_t min_code_length;
     struct Apng_Huffman_Entry *elements;
 };
 
@@ -323,37 +324,42 @@ struct Apng_PNG_Image {
 #define APNG_HLIT_SIZE 5
 #define APNG_HDIST_SIZE 5
 #define APNG_HCLEN_SIZE 4
+#define APNG_LIT_LEN_CODE_LENGTH_MAX_COUNT 286
+#define APNG_DIST_CODE_LENGTH_MAX_COUNT 32
 
-APNG_DEF struct Apng_Byte_String    apng_bin_file_read(char *file_name);
-APNG_DEF void                       apng_byte_string_free(struct Apng_Byte_String bs);
-APNG_DEF void                       apng_bit_reader_flash(struct Apng_Bit_Reader *br);
-APNG_DEF void                       apng_bit_reader_init(struct Apng_Bit_Reader *br, struct Apng_Byte_String file);
-APNG_DEF uint8_t                    apng_bit_reader_read_bit(struct Apng_Bit_Reader *br);
-APNG_DEF uint32_t                   apng_bit_reader_read_bits(struct Apng_Bit_Reader *br, size_t count);
-APNG_DEF uint16_t                   apng_uint16_bits_reverse(uint16_t value, uint8_t bit_count);
-APNG_DEF struct Apng_Chunk_Footer   apng_chunk_footer_get(struct Apng_Byte_String *bs);
-APNG_DEF struct Apng_Chunk_Header   apng_chunk_header_get(struct Apng_Byte_String *bs);
-APNG_DEF void *                     apng_consume_bytes(struct Apng_Byte_String *bs, size_t amount);
-APNG_DEF enum Apng_Return_Types     apng_crc32_check(struct Apng_Chunk_Header header, void *chunk_data, struct Apng_Chunk_Footer footer);
-APNG_DEF uint32_t                   apng_crc32_update(uint32_t crc, uint8_t *buf, size_t buf_len);
-APNG_DEF uint32_t                   apng_endian_swap(uint32_t x);
-APNG_DEF uint32_t                   apng_four_char_to_uint32_t(const char *str);
-APNG_DEF void                       apng_huffman_table_create(uint32_t *code_length_array, size_t code_length_array_len, struct Apng_Huffman_Entrys_Table *huffman_table);
-APNG_DEF void                       apng_huffman_entry_print(struct Apng_Huffman_Entry entry);
-APNG_DEF void                       apng_huffman_entry_table_print(struct Apng_Huffman_Entrys_Table table);
-APNG_DEF struct Apng_Pixel_Buffer   apng_pixel_buffer_malloc(size_t rows, size_t cols);
-APNG_DEF struct Apng_PNG_Image      apng_png_decode(struct Apng_Byte_String file);
-APNG_DEF bool                       apng_png_header_signature_correct(struct Apng_PNG_Header h);
-APNG_DEF struct Apng_PNG_Header     apng_png_header_get(struct Apng_Byte_String *bs);
-APNG_DEF void                       apng_uint16_print_binary(uint16_t value, uint8_t bit_count);
-APNG_DEF enum Apng_Chunk_Type       apng_type_get_from_type_raw(uint32_t raw_type);
-APNG_DEF const char *               apng_type_name_get(enum Apng_Chunk_Type type);
+APNG_DEF struct Apng_Byte_String            apng_bin_file_read(char *file_name);
+APNG_DEF void                               apng_byte_string_free(struct Apng_Byte_String bs);
+APNG_DEF void                               apng_bit_reader_flash(struct Apng_Bit_Reader *br);
+APNG_DEF void                               apng_bit_reader_init(struct Apng_Bit_Reader *br, struct Apng_Byte_String file);
+APNG_DEF uint8_t                            apng_bit_reader_read_bit(struct Apng_Bit_Reader *br);
+APNG_DEF uint32_t                           apng_bit_reader_read_bits(struct Apng_Bit_Reader *br, size_t count);
+APNG_DEF uint16_t                           apng_uint16_bits_reverse(uint16_t value, uint8_t bit_count);
+APNG_DEF struct Apng_Chunk_Footer           apng_chunk_footer_get(struct Apng_Byte_String *bs);
+APNG_DEF struct Apng_Chunk_Header           apng_chunk_header_get(struct Apng_Byte_String *bs);
+APNG_DEF void *                             apng_consume_bytes(struct Apng_Byte_String *bs, size_t amount);
+APNG_DEF enum Apng_Return_Types             apng_crc32_check(struct Apng_Chunk_Header header, void *chunk_data, struct Apng_Chunk_Footer footer);
+APNG_DEF uint32_t                           apng_crc32_update(uint32_t crc, uint8_t *buf, size_t buf_len);
+APNG_DEF uint32_t                           apng_endian_swap(uint32_t x);
+APNG_DEF uint32_t                           apng_four_char_to_uint32_t(const char *str);
+APNG_DEF enum Apng_Return_Types             apng_huffman_decode_symbol(struct Apng_Huffman_Entrys_Table table, struct Apng_Bit_Reader *br, uint16_t *symbol);
+APNG_DEF struct Apng_Huffman_Entrys_Table   apng_huffman_entry_table_create(uint32_t *code_length_array, size_t code_length_array_len);
+APNG_DEF void                               apng_huffman_entry_print(struct Apng_Huffman_Entry entry);
+APNG_DEF void                               apng_huffman_entry_table_print(struct Apng_Huffman_Entrys_Table table);
+APNG_DEF enum Apng_Return_Types             apng_huffman_entry_table_get_symbol(struct Apng_Huffman_Entrys_Table table, uint16_t code, uint8_t code_length, uint16_t *symbol);
+APNG_DEF enum Apng_Return_Types             apng_lit_len_dist_code_length_decode(struct Apng_Huffman_Entrys_Table dict_huffman, struct Apng_Bit_Reader *br, uint32_t HLIT, uint32_t HDIST, uint32_t *lit_len_dist_code_length);
+APNG_DEF struct Apng_Pixel_Buffer           apng_pixel_buffer_malloc(size_t rows, size_t cols);
+APNG_DEF struct Apng_PNG_Image              apng_png_decode(struct Apng_Byte_String file);
+APNG_DEF bool                               apng_png_header_signature_correct(struct Apng_PNG_Header h);
+APNG_DEF struct Apng_PNG_Header             apng_png_header_get(struct Apng_Byte_String *bs);
+APNG_DEF void                               apng_uint16_print_binary(uint16_t value, uint8_t bit_count);
+APNG_DEF enum Apng_Chunk_Type               apng_type_get_from_type_raw(uint32_t raw_type);
+APNG_DEF const char *                       apng_type_name_get(enum Apng_Chunk_Type type);
 
 /* chunk parsers */
-APNG_DEF enum Apng_Return_Types     apng_IHDR_chunk_parse(struct Apng_IHDR_Chunk *chunk);
-APNG_DEF enum Apng_Return_Types     apng_IDAT_chunk_parse(struct Apng_IDAT_Chunk *chunk);
-APNG_DEF enum Apng_Return_Types     apng_IDAT_decompress(struct Apng_PNG_Image *image);
-APNG_DEF struct Apng_IDAT_Header    apng_IDAT_header_get_from_IDAT_chunk(struct Apng_IDAT_Chunk chunk);
+APNG_DEF enum Apng_Return_Types             apng_IHDR_chunk_parse(struct Apng_IHDR_Chunk *chunk);
+APNG_DEF enum Apng_Return_Types             apng_IDAT_chunk_parse(struct Apng_IDAT_Chunk *chunk);
+APNG_DEF enum Apng_Return_Types             apng_IDAT_decompress(struct Apng_PNG_Image *image);
+APNG_DEF struct Apng_IDAT_Header            apng_IDAT_header_get_from_IDAT_chunk(struct Apng_IDAT_Chunk chunk);
 
 #endif /*ALMOG_PNG_H_*/
 
@@ -591,7 +597,27 @@ APNG_DEF uint32_t apng_four_char_to_uint32_t(const char * str)
     return ((uint32_t)(((uint32_t)((str)[0]) << 0) | ((uint32_t)((str)[1]) << 8) | ((uint32_t)((str)[2]) << 16) | ((uint32_t)((str)[3]) << 24)));
 }
 
-APNG_DEF void apng_huffman_table_create(uint32_t *code_length_array, size_t code_length_array_len, struct Apng_Huffman_Entrys_Table *huffman_table)
+APNG_DEF enum Apng_Return_Types apng_huffman_decode_symbol(struct Apng_Huffman_Entrys_Table table, struct Apng_Bit_Reader *br, uint16_t *symbol)
+{
+    uint16_t code = 0;
+
+    for (uint8_t len = 1; len <= APNG_HUFFMAN_CODE_MAX_LENGTH; len++) {
+        code |= (uint16_t)apng_bit_reader_read_bit(br) << (len - 1);
+
+        for (size_t i = 0; i < table.length; i++) {
+            struct Apng_Huffman_Entry entry = table.elements[i];
+            if (entry.code_length == len && entry.code == code) {
+                *symbol = entry.symbol;
+                return APNG_SUCCESS;
+            }
+        }
+    }
+
+    apng_dprintERROR("%s", "Failed to decode symbol");
+    return APNG_FAIL;
+}
+
+APNG_DEF struct Apng_Huffman_Entrys_Table apng_huffman_entry_table_create(uint32_t *code_length_array, size_t code_length_array_len)
 {
     /** TODO:
      * Instand of having an array of unordered code but ordered symbols.
@@ -599,18 +625,15 @@ APNG_DEF void apng_huffman_table_create(uint32_t *code_length_array, size_t code
      */
     APNG_ASSERT(APNG_HUFFMAN_CODE_MAX_LENGTH <= 16 && "I am assuming the maximum length of a Huffman code is 16."
         "If not, think on using a different algorithm.");
+    
+    struct Apng_Huffman_Entrys_Table huffman_table = {0};
+    ada_init_array(struct Apng_Huffman_Entry, huffman_table);
 
-    ada_init_array(struct Apng_Huffman_Entry, *huffman_table);
-
-    /* Translate the code length into the codes */
-    {
-
-    }
     uint32_t code_length_his[APNG_HUFFMAN_CODE_MAX_LENGTH + 1] = {0};/* If APNG_HUFFMAN_CODE_MAX_LENGTH is 16, then the histogram should be 0->16 */
     for (size_t i = 0; i < code_length_array_len; i++) {
         ++code_length_his[code_length_array[i]];
     }
-    #if 1
+    #if 0
     for (size_t i = 0; i < APNG_STATIC_ARRAY_LEN(code_length_his); i++) {
         printf("%d, ", code_length_his[i]);
     }
@@ -623,7 +646,7 @@ APNG_DEF void apng_huffman_table_create(uint32_t *code_length_array, size_t code
         code = (code + code_length_his[bits-1]) << 1;
         next_code[bits] = code;
     }
-    #if 1
+    #if 0
     for (size_t i = 0; i < APNG_STATIC_ARRAY_LEN(next_code); i++) {
         printf("%d, ", next_code[i]);
     }
@@ -636,21 +659,37 @@ APNG_DEF void apng_huffman_table_create(uint32_t *code_length_array, size_t code
             uint32_t code = next_code[code_length_array[i]]++;
             struct Apng_Huffman_Entry entry = {
                 .symbol = (uint16_t)i,
-                .code = apng_uint16_bits_reverse(code, (uint8_t)len),
+                .code = apng_uint16_bits_reverse((uint16_t)code, (uint8_t)len),
+                // .code = code,
                 .code_length = (uint8_t)len,
             };
-            ada_appand(struct Apng_Huffman_Entry, *huffman_table, entry);
+            ada_appand(struct Apng_Huffman_Entry, huffman_table, entry);
         }
     }
 
-    apng_huffman_entry_table_print(*huffman_table);
+    #if 0
+    apng_huffman_entry_table_print(huffman_table);
+    for (size_t i = 0; i < APNG_STATIC_ARRAY_LEN(next_code); i++) {
+        printf("%d, ", next_code[i]);
+    }
+    printf("\n");
+    #endif
 
+    uint8_t min_code_length = APNG_HUFFMAN_CODE_MAX_LENGTH;
+    for (size_t i = 0; i < huffman_table.length; i++) {
+        uint8_t len = huffman_table.elements[i].code_length;
+        if (len < min_code_length) {
+            min_code_length = len;
+        }
+    }
+    huffman_table.min_code_length = min_code_length;
 
+    return huffman_table;
 }
 
 APNG_DEF void apng_huffman_entry_print(struct Apng_Huffman_Entry entry)
 {
-    printf("{.symbol = %6d, .len = %2u, .code = ", entry.symbol, entry.code_length);
+    printf("{.symbol = %6d, .len = %2u, .code = %-6d = ", entry.symbol, entry.code_length, entry.code);
     apng_uint16_print_binary(entry.code, entry.code_length);
     printf("%*s}\n", 15-entry.code_length, " ");
 }
@@ -661,6 +700,75 @@ APNG_DEF void apng_huffman_entry_table_print(struct Apng_Huffman_Entrys_Table ta
         printf("%3zu: ", i);
         apng_huffman_entry_print(table.elements[i]);
     }
+}
+
+APNG_DEF enum Apng_Return_Types apng_huffman_entry_table_get_symbol(struct Apng_Huffman_Entrys_Table table, uint16_t code, uint8_t code_length, uint16_t *symbol)
+{
+    for (size_t i = 0; i < table.length; i++) {
+        struct Apng_Huffman_Entry entry = table.elements[i];
+        if (entry.code == code && entry.code_length == code_length) {
+            *symbol = entry.symbol;
+            return APNG_SUCCESS;
+        }
+    }
+
+    return APNG_FAIL;
+}
+
+APNG_DEF enum Apng_Return_Types apng_lit_len_dist_code_length_decode(struct Apng_Huffman_Entrys_Table dict_huffman, struct Apng_Bit_Reader *br, uint32_t HLIT, uint32_t HDIST, uint32_t *lit_len_dist_code_length)
+{
+    uint32_t total = HLIT + HDIST;
+    for (size_t length_index = 0; length_index < total;) {
+        uint16_t symbol;
+        if (APNG_FAIL == apng_huffman_decode_symbol(dict_huffman, br, &symbol)) {
+            apng_dprintERROR("%s", "Failed to decode lit len dist code lengths");
+        }
+
+        if (symbol <= 15) {
+            lit_len_dist_code_length[length_index++] = symbol;
+        } else if (symbol == 16) {
+            if (length_index == 0) {
+                apng_dprintERROR("%s",
+                    "Repeat code 16 appeared before any previous code length.");
+                return APNG_FAIL;
+            }
+            uint32_t rep_count = 3 + apng_bit_reader_read_bits(br, 2);
+            uint32_t rep_value = lit_len_dist_code_length[length_index - 1];
+            if (length_index + rep_count > total) {
+                apng_dprintERROR("%s", "Code-length repeat overruns output.");
+                return APNG_FAIL;
+            }
+
+            for (uint32_t i = 0; i < rep_count; i++) {
+                lit_len_dist_code_length[length_index++] = rep_value;
+            }
+        } else if (symbol == 17) {
+            uint32_t rep_count = 3 + apng_bit_reader_read_bits(br, 3);
+            if (length_index + rep_count > total) {
+                apng_dprintERROR("%s", "Code-length repeat overruns output.");
+                return APNG_FAIL;
+            }
+
+            for (uint32_t i = 0; i < rep_count; i++) {
+                lit_len_dist_code_length[length_index++] = 0;
+            }
+        } else if (symbol == 18) {
+            uint32_t rep_count = 11 + apng_bit_reader_read_bits(br, 7);
+            if (length_index + rep_count > total) {
+                apng_dprintERROR("%s", "Code-length repeat overruns output.");
+                return APNG_FAIL;
+            }
+
+            for (uint32_t i = 0; i < rep_count; i++) {
+                lit_len_dist_code_length[length_index++] = 0;
+            }
+        } else {
+            apng_dprintERROR("Invalid code-length symbol: %u", symbol);
+            return APNG_FAIL;
+        }
+    }
+
+    return APNG_SUCCESS;
 }
 
 APNG_DEF struct Apng_Pixel_Buffer apng_pixel_buffer_malloc(size_t rows, size_t cols)
@@ -682,7 +790,7 @@ APNG_DEF struct Apng_PNG_Image apng_png_decode(struct Apng_Byte_String file)
     apng_bit_reader_init(&image.br, image.file);
     enum Apng_Return_Types rt = APNG_OK;
 
-    apng_dprintINFO("Decoding file: '%s'. File size: %zu bytes", image.file.name, image.file.length);
+    // apng_dprintINFO("Decoding file: '%s'. File size: %zu bytes", image.file.name, image.file.length);
 
     struct Apng_PNG_Header png_header = apng_png_header_get(&image.file);
     APNG_ASSERT(apng_png_header_signature_correct(png_header));
@@ -1091,80 +1199,90 @@ APNG_DEF enum Apng_Return_Types apng_IDAT_decompress(struct Apng_PNG_Image *imag
         BFINAL = apng_bit_reader_read_bits(br, APNG_BFINAL_SIZE);
         BTYPE  = apng_bit_reader_read_bits(br, APNG_BTYPE_SIZE);
 
-        apng_dprintINT(BFINAL);
-        apng_dprintINT(BTYPE);
+        // apng_dprintINT(BFINAL);
+        // apng_dprintINT(BTYPE);
         switch (BTYPE) {
-            case 0:
-            { 
-                /* no compression */
-                apng_bit_reader_flash(br);
-                uint16_t LEN  = apng_bit_reader_read_bits(br, APNG_LEN_SIZE);
-                uint16_t NLEN = apng_bit_reader_read_bits(br, APNG_NLEN_SIZE);
-                if (LEN != ~NLEN) {
-                    apng_dprintERROR("%s", "LEN/NLEN mismatch.");
-                    rt = APNG_FAIL;
-                    goto apng_IDAT_decompress_end;
-                }
-
-                uint8_t *literal_data = apng_consume_bytes(&br->file, LEN);
-                for (size_t i = 0; i < LEN; i++) {
-                    ada_appand(uint8_t, temp_bs, literal_data[i]);
-                }
-
-            } break;
-            case 1:
-            {
-                /* static Huffman codes */
-            } break;
-            case 2:
-            {
-                /** dynamic Huffman codes
-                 * There are 5 sections:
-                 *  1. Code lengths for code lengths. (to generate the code length Huffman code)
-                 *  2. Code lengths for the literal/length alphabet (encoded using the code length Huffman code)
-                 *  3. Code lengths for the distance alphabet (encoded using the code length Huffman code)
-                 *  4. The actual compressed data of the block. (encoded using the literal/length and distance Huffman codes)
-                 *  5. The literal/length symbol 256 'end of data' (encoded using the literal/length Huffman code)
-                */
-                uint32_t HLIT  = apng_bit_reader_read_bits(br, APNG_HLIT_SIZE) + APNG_HLIT_OFFSET;
-                uint32_t HDIST = apng_bit_reader_read_bits(br, APNG_HDIST_SIZE) + APNG_HDIST_OFFSET;
-                uint32_t HCLEN = apng_bit_reader_read_bits(br, APNG_HCLEN_SIZE) + APNG_HCLEN_OFFSET;
-
-                apng_dprintINT(HLIT);
-                apng_dprintINT(HDIST);
-                apng_dprintINT(HCLEN);
-
-                uint32_t HCLEN_swizzle[] = {16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15};
-                uint32_t code_length_of_code_length[APNG_MAX_NUM_OF_CODE_LENGTH_CODE_LENGTH] = {0};
-                for (size_t i = 0; i < HCLEN; i++) {
-                    code_length_of_code_length[HCLEN_swizzle[i]] = apng_bit_reader_read_bits(br, APNG_CODE_LENGTH_CODE_LENGTH_LENGTH);
-                }
-                #if 0
-                for (size_t i = 0; i < APNG_MAX_NUM_OF_CODE_LENGTH_CODE_LENGTH; i++) {
-                    printf("index %2zu -> %u\n", i, code_length_of_code_length[i]);
-                }
-                #endif
-                struct Apng_Huffman_Entrys_Table dict_huffman = {0};
-                apng_huffman_table_create(code_length_of_code_length, APNG_STATIC_ARRAY_LEN(code_length_of_code_length), &dict_huffman);
-
-
-
-                exit(1);
-
-                // uint32_t lit_len_dist_table[512] = {0};
-            } break;
-            case 3:
-            {
-                apng_dprintERROR("%s", "BTYPE of 3 encountered. Spec does not supports this.");
-                rt = APNG_FAIL;
-                goto apng_IDAT_decompress_end;
-            } break;
-            default:
-            {
-                apng_dprintERROR("%s", "UNREACHABLE");
+        case 0:
+        { 
+            /* no compression */
+            apng_bit_reader_flash(br);
+            uint16_t LEN  = (uint16_t)apng_bit_reader_read_bits(br, APNG_LEN_SIZE);
+            uint16_t NLEN = (uint16_t)apng_bit_reader_read_bits(br, APNG_NLEN_SIZE);
+            if (LEN != ~NLEN) {
+                apng_dprintERROR("%s", "LEN/NLEN mismatch.");
                 rt = APNG_FAIL;
                 goto apng_IDAT_decompress_end;
             }
+
+            uint8_t *literal_data = apng_consume_bytes(&br->file, LEN);
+            for (size_t i = 0; i < LEN; i++) {
+                ada_appand(uint8_t, temp_bs, literal_data[i]);
+            }
+
+        } break;
+        case 1:
+        {
+            /* static Huffman codes */
+        } break;
+        case 2:
+        {
+            /** dynamic Huffman codes
+             * There are 5 sections:
+             *  1. Code lengths for code lengths. (to generate the code length Huffman code)
+             *  2. Code lengths for the literal/length alphabet (encoded using the code length Huffman code)
+             *  3. Code lengths for the distance alphabet (encoded using the code length Huffman code)
+             *  4. The actual compressed data of the block. (encoded using the literal/length and distance Huffman codes)
+             *  5. The literal/length symbol 256 'end of data' (encoded using the literal/length Huffman code)
+            */
+            uint32_t HLIT  = apng_bit_reader_read_bits(br, APNG_HLIT_SIZE) + APNG_HLIT_OFFSET;
+            uint32_t HDIST = apng_bit_reader_read_bits(br, APNG_HDIST_SIZE) + APNG_HDIST_OFFSET;
+            uint32_t HCLEN = apng_bit_reader_read_bits(br, APNG_HCLEN_SIZE) + APNG_HCLEN_OFFSET;
+
+            // apng_dprintINT(HLIT);
+            // apng_dprintINT(HDIST);
+            // apng_dprintINT(HCLEN);
+
+            uint32_t HCLEN_swizzle[] = {16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15};
+            uint32_t code_length_of_code_length[APNG_MAX_NUM_OF_CODE_LENGTH_CODE_LENGTH] = {0};
+            for (size_t i = 0; i < HCLEN; i++) {
+                code_length_of_code_length[HCLEN_swizzle[i]] = apng_bit_reader_read_bits(br, APNG_CODE_LENGTH_CODE_LENGTH_LENGTH);
+            }
+            #if 0
+            for (size_t i = 0; i < APNG_MAX_NUM_OF_CODE_LENGTH_CODE_LENGTH; i++) {
+                printf("index %2zu -> %u\n", i, code_length_of_code_length[i]);
+            }
+            #endif
+            struct Apng_Huffman_Entrys_Table dict_huffman = apng_huffman_entry_table_create(code_length_of_code_length, APNG_STATIC_ARRAY_LEN(code_length_of_code_length));
+            // apng_huffman_entry_table_print(dict_huffman);
+
+            uint32_t lit_len_dist_code_length[APNG_LIT_LEN_CODE_LENGTH_MAX_COUNT + APNG_DIST_CODE_LENGTH_MAX_COUNT] = {0};
+            apng_lit_len_dist_code_length_decode(dict_huffman, br, HLIT, HDIST, lit_len_dist_code_length);
+            #if 0
+            for (size_t i = 0; i < APNG_LIT_LEN_CODE_LENGTH_MAX_COUNT + APNG_DIST_CODE_LENGTH_MAX_COUNT; i++) {
+                printf("index %2zu -> %u\n", i, lit_len_dist_code_length[i]);
+            }
+            #endif
+
+            struct Apng_Huffman_Entrys_Table lit_len_huffman = apng_huffman_entry_table_create(lit_len_dist_code_length, HLIT);
+            struct Apng_Huffman_Entrys_Table dist_huffman = apng_huffman_entry_table_create(lit_len_dist_code_length + HLIT, HDIST);
+
+
+
+
+
+        } break;
+        case 3:
+        {
+            apng_dprintERROR("%s", "BTYPE of 3 encountered. Spec does not supports this.");
+            rt = APNG_FAIL;
+            goto apng_IDAT_decompress_end;
+        } break;
+        default:
+        {
+            apng_dprintERROR("%s", "UNREACHABLE");
+            rt = APNG_FAIL;
+            goto apng_IDAT_decompress_end;
+        }
         }
 
     } while (!BFINAL);
