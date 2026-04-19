@@ -310,7 +310,9 @@ struct Apng_PNG_Image {
 #define apng_dprintERROR(fmt, ...) \
     fprintf(stderr, "[Error] %s:%d:\n%*sIn function '%s':\n%*s" fmt "\n", __FILE__, __LINE__, 8, "", __func__, 8, "", __VA_ARGS__)
 
-#define APNG_PIXEL_BUFFER_AT(m, i, j) (m).elements[(APNG_ASSERT(i < m.rows && j < m.cols), (i) * (m).stride_r + (j))]
+#define APNG_PIXEL_BUFFER_AT(m, i, j) (m).elements[(APNG_ASSERT((i) < (m).rows && (j) < (m).cols), (i) * (m).stride_r + (j))]
+#define APNG_HexARGB_TO_RGBA_VAR(x, r, g, b, a) r = ((x)>>(8*2)&0xFF); g = ((x)>>(8*1)&0xFF); b = ((x)>>(8*0)&0xFF); a = ((x)>>(8*3)&0xFF)
+#define APNG_RGBA_TO_hexARGB(r, g, b, a) (int)(0x01000000l*(unsigned int)(adl_min(a, 255)) + 0x010000*(int)(r) + 0x000100*(int)(g) + 0x000001*(int)(b))
 #define APNG_STATIC_ARRAY_LEN(x) (sizeof(x)/sizeof(x[0]))
 #define APNG_HLIT_OFFSET 257
 #define APNG_HDIST_OFFSET 1
@@ -326,6 +328,8 @@ struct Apng_PNG_Image {
 #define APNG_HCLEN_SIZE 4
 #define APNG_LIT_LEN_CODE_LENGTH_MAX_COUNT 286
 #define APNG_DIST_CODE_LENGTH_MAX_COUNT 32
+#define APNG_FIX_HUFFMAN_HLIT 288
+#define APNG_FIX_HUFFMAN_HDIST 32
 
 APNG_DEF struct Apng_Byte_String            apng_bin_file_read(char *file_name);
 APNG_DEF void                               apng_byte_string_free(struct Apng_Byte_String bs);
@@ -341,6 +345,9 @@ APNG_DEF enum Apng_Return_Types             apng_crc32_check(struct Apng_Chunk_H
 APNG_DEF uint32_t                           apng_crc32_update(uint32_t crc, uint8_t *buf, size_t buf_len);
 APNG_DEF uint32_t                           apng_endian_swap_uint32(uint32_t x);
 APNG_DEF uint16_t                           apng_endian_swap_uint16(uint16_t x);
+APNG_DEF uint8_t                            apng_filter_1_and_2(uint8_t *x, uint8_t *a, uint8_t channel);
+APNG_DEF uint8_t                            apng_filter_3(uint8_t *x, uint8_t *a, uint8_t *b, uint8_t channel);
+APNG_DEF uint8_t                            apng_filter_4(uint8_t *x, uint8_t *a, uint8_t *b, uint8_t *c, uint8_t channel);
 APNG_DEF uint32_t                           apng_four_char_to_uint32_t(const char *str);
 APNG_DEF enum Apng_Return_Types             apng_huffman_decode_symbol(struct Apng_Huffman_Entrys_Table table, struct Apng_Bit_Reader *br, uint16_t *symbol);
 APNG_DEF struct Apng_Huffman_Entrys_Table   apng_huffman_entry_table_create(uint32_t *code_length_array, size_t code_length_array_len);
@@ -349,7 +356,7 @@ APNG_DEF void                               apng_huffman_entry_table_print(struc
 APNG_DEF enum Apng_Return_Types             apng_huffman_entry_table_get_symbol(struct Apng_Huffman_Entrys_Table table, uint16_t code, uint8_t code_length, uint16_t *symbol);
 APNG_DEF enum Apng_Return_Types             apng_lit_len_dist_code_length_decode(struct Apng_Huffman_Entrys_Table dict_huffman, struct Apng_Bit_Reader *br, uint32_t HLIT, uint32_t HDIST, uint32_t *lit_len_dist_code_length);
 APNG_DEF struct Apng_Pixel_Buffer           apng_pixel_buffer_malloc(size_t rows, size_t cols);
-APNG_DEF struct Apng_PNG_Image              apng_png_decode(struct Apng_Byte_String file);
+APNG_DEF enum Apng_Return_Types             apng_png_decode(struct Apng_Byte_String file, struct Apng_PNG_Image *image);
 APNG_DEF bool                               apng_png_header_signature_correct(struct Apng_PNG_Header h);
 APNG_DEF struct Apng_PNG_Header             apng_png_header_get(struct Apng_Byte_String *bs);
 APNG_DEF void                               apng_uint16_print_binary(uint16_t value, uint8_t bit_count);
@@ -360,7 +367,8 @@ APNG_DEF const char *                       apng_type_name_get(enum Apng_Chunk_T
 APNG_DEF enum Apng_Return_Types             apng_IHDR_chunk_parse(struct Apng_IHDR_Chunk *chunk);
 APNG_DEF enum Apng_Return_Types             apng_IDAT_chunk_parse(struct Apng_IDAT_Chunk *chunk);
 APNG_DEF enum Apng_Return_Types             apng_IDAT_decode(struct Apng_PNG_Image *image);
-APNG_DEF enum Apng_Return_Types             apng_IDAT_decompress(struct Apng_PNG_Image *image);
+APNG_DEF enum Apng_Return_Types             apng_IDAT_decompress(struct Apng_PNG_Image *image, struct Apng_Byte_String *temp_bs);
+APNG_DEF enum Apng_Return_Types             apng_IDAT_unfiltering(struct Apng_PNG_Image *image, struct Apng_Byte_String *temp_bs);
 APNG_DEF struct Apng_IDAT_Header            apng_IDAT_header_get_from_IDAT_chunk(struct Apng_IDAT_Chunk chunk);
 
 #endif /*ALMOG_PNG_H_*/
@@ -600,6 +608,45 @@ APNG_DEF uint16_t apng_endian_swap_uint16(uint16_t x)
     return ((x << 8) | (x >> 8));
 }
 
+APNG_DEF uint8_t apng_filter_1_and_2(uint8_t *x, uint8_t *a, uint8_t channel)
+{
+    uint8_t res = (uint8_t)x[channel] + (uint8_t)a[channel];
+    return res;
+}
+
+APNG_DEF uint8_t apng_filter_3(uint8_t *x, uint8_t *a, uint8_t *b, uint8_t channel)
+{
+    uint32_t ave = ((uint32_t)a[channel] + (uint32_t)b[channel]) / 2;
+    uint8_t res = (uint8_t)x[channel] + (uint8_t)ave;
+    return res;
+}
+
+APNG_DEF uint8_t apng_filter_4(uint8_t *x, uint8_t *a, uint8_t *b, uint8_t *c, uint8_t channel)
+{
+    int a_chan = (int)a[channel];
+    int b_chan = (int)b[channel];
+    int c_chan = (int)c[channel];
+
+    int p = (int)a[channel] + (int)b[channel] - (int)c[channel];
+    int pa = p - a_chan;
+    if (pa < 0) pa = -pa;
+    int pb = p - b_chan;
+    if (pb < 0) pb = -pb;
+    int pc = p - c_chan;
+    if (pc < 0) pc = -pc;
+
+    int paeth = (int)c_chan;
+    if ((pa <= pb) && (pa <= pc)) {
+        paeth = (int)a_chan;
+    } else if (pb <= pc) {
+        paeth = (int)b_chan;
+    }
+
+    uint8_t res = (uint8_t)x[channel] + (uint8_t)paeth;
+    return res;
+
+}
+
 APNG_DEF uint32_t apng_four_char_to_uint32_t(const char * str)
 {
     return ((uint32_t)(((uint32_t)((str)[0]) << 0) | ((uint32_t)((str)[1]) << 8) | ((uint32_t)((str)[2]) << 16) | ((uint32_t)((str)[3]) << 24)));
@@ -794,36 +841,37 @@ APNG_DEF struct Apng_Pixel_Buffer apng_pixel_buffer_malloc(size_t rows, size_t c
     return m;
 }
 
-APNG_DEF struct Apng_PNG_Image apng_png_decode(struct Apng_Byte_String file)
+APNG_DEF enum Apng_Return_Types apng_png_decode(struct Apng_Byte_String file, struct Apng_PNG_Image *image)
 {
-    struct Apng_PNG_Image image = {.file = file};
+    image->file = file;
     APNG_UNUSED(file);
-    apng_bit_reader_init(&image.br, image.file);
+    apng_bit_reader_init(&image->br, image->file);
     enum Apng_Return_Types rt = APNG_OK;
 
-    // apng_dprintINFO("Decoding file: '%s'. File size: %zu bytes", image.file.name, image.file.length);
+    apng_dprintINFO("Decoding file: '%s'. File size: %zu bytes", image->file.name, image->file.length);
 
-    struct Apng_PNG_Header png_header = apng_png_header_get(&image.file);
+    struct Apng_PNG_Header png_header = apng_png_header_get(&image->file);
     APNG_ASSERT(apng_png_header_signature_correct(png_header));
 
-    for ( ; image.file.cursor < image.file.length ; ) {
-        struct Apng_Chunk_Header chunk_header = apng_chunk_header_get(&image.file);
+    for ( ; image->file.cursor < image->file.length ; ) {
+        struct Apng_Chunk_Header chunk_header = apng_chunk_header_get(&image->file);
         // printf("%.*s -> %d bytes\n%d\n", 4, chunk_header.type_str, chunk_header.length, chunk_header.type);
-        void *chunk_data = apng_consume_bytes(&image.file, chunk_header.length);
-        struct Apng_Chunk_Footer chunk_footer = apng_chunk_footer_get(&image.file);
+        void *chunk_data = apng_consume_bytes(&image->file, chunk_header.length);
+        struct Apng_Chunk_Footer chunk_footer = apng_chunk_footer_get(&image->file);
 
         if (APNG_FAIL == apng_crc32_check(chunk_header, chunk_data, chunk_footer)) {
             apng_dprintERROR("Failed to decode PNG in file '%s'.", file.name);
-            return image;
+            rt = APNG_FAIL;
+            goto apng_decode_exit;
         }
 
         switch (chunk_header.type) {
             case APNG_TYPE_IHDR: 
             {
-                image.chunks.IHDR_chunk.index  = chunk_header.index + chunk_header.size;
-                image.chunks.IHDR_chunk.length = chunk_header.length;
-                image.chunks.IHDR_chunk.body   = chunk_data;
-                rt = apng_IHDR_chunk_parse(&image.chunks.IHDR_chunk);
+                image->chunks.IHDR_chunk.index  = chunk_header.index + chunk_header.size;
+                image->chunks.IHDR_chunk.length = chunk_header.length;
+                image->chunks.IHDR_chunk.body   = chunk_data;
+                rt = apng_IHDR_chunk_parse(&image->chunks.IHDR_chunk);
                 if (rt == APNG_FAIL) {
                     apng_dprintERROR("%s", "Failed to parse IHDR chunk.");
                     goto apng_decode_exit;
@@ -831,52 +879,52 @@ APNG_DEF struct Apng_PNG_Image apng_png_decode(struct Apng_Byte_String file)
             } break;
             case APNG_TYPE_sRGB: 
             {
-                image.chunks.sRGB_chunk.index  = chunk_header.index + chunk_header.size;
-                image.chunks.sRGB_chunk.length = chunk_header.length;
-                image.chunks.sRGB_chunk.body   = chunk_data;
+                image->chunks.sRGB_chunk.index  = chunk_header.index + chunk_header.size;
+                image->chunks.sRGB_chunk.length = chunk_header.length;
+                image->chunks.sRGB_chunk.body   = chunk_data;
             } break;
             case APNG_TYPE_gAMA: 
             {
-                image.chunks.gAMA_chunk.index  = chunk_header.index + chunk_header.size;
-                image.chunks.gAMA_chunk.length = chunk_header.length;
-                image.chunks.gAMA_chunk.body   = chunk_data;
+                image->chunks.gAMA_chunk.index  = chunk_header.index + chunk_header.size;
+                image->chunks.gAMA_chunk.length = chunk_header.length;
+                image->chunks.gAMA_chunk.body   = chunk_data;
             } break;
             case APNG_TYPE_pHYs: 
             {
-                image.chunks.pHYs_chunk.index  = chunk_header.index + chunk_header.size;
-                image.chunks.pHYs_chunk.length = chunk_header.length;
-                image.chunks.pHYs_chunk.body   = chunk_data;
+                image->chunks.pHYs_chunk.index  = chunk_header.index + chunk_header.size;
+                image->chunks.pHYs_chunk.length = chunk_header.length;
+                image->chunks.pHYs_chunk.body   = chunk_data;
             } break;
             case APNG_TYPE_IDAT: 
             {
-                if (image.chunks.IDAT_chunk.body != NULL) {
+                if (image->chunks.IDAT_chunk.body != NULL) {
                     apng_dprintERROR("%s", "Encountered more than one IDAT chunk. Currently not supported.");
                     goto apng_decode_exit;
                 }
-                image.chunks.IDAT_chunk.index  = chunk_header.index + chunk_header.size;
-                image.chunks.IDAT_chunk.length = chunk_header.length;
-                image.chunks.IDAT_chunk.body   = chunk_data;
-                rt = apng_IDAT_chunk_parse(&image.chunks.IDAT_chunk);
+                image->chunks.IDAT_chunk.index  = chunk_header.index + chunk_header.size;
+                image->chunks.IDAT_chunk.length = chunk_header.length;
+                image->chunks.IDAT_chunk.body   = chunk_data;
+                rt = apng_IDAT_chunk_parse(&image->chunks.IDAT_chunk);
                 if (rt == APNG_FAIL) {
                     apng_dprintERROR("%s", "Failed to parse IDAT chunk.");
                     goto apng_decode_exit;
                 }
 
                 #if 0
-                printf("IDAT length: %u\n", image.chunks.IDAT_chunk.length);
+                printf("IDAT length: %u\n", image->chunks.IDAT_chunk.length);
                 for (size_t i = 0;
-                    i < 64 && i < image.chunks.IDAT_chunk.length;
+                    i < 64 && i < image->chunks.IDAT_chunk.length;
                     i++) {
-                    printf("%02X ", image.chunks.IDAT_chunk.body[i]);
+                    printf("%02X ", image->chunks.IDAT_chunk.body[i]);
                 }
                 printf("\n");
                 #endif
             } break; 
             case APNG_TYPE_IEND: 
             {
-                image.chunks.IEND_chunk.index  = chunk_header.index + chunk_header.size;
-                image.chunks.IEND_chunk.length = chunk_header.length;
-                image.chunks.IEND_chunk.body   = chunk_data;
+                image->chunks.IEND_chunk.index  = chunk_header.index + chunk_header.size;
+                image->chunks.IEND_chunk.length = chunk_header.length;
+                image->chunks.IEND_chunk.body   = chunk_data;
             } break;
             case APNG_TYPE_UNKNOWN:
             {
@@ -892,14 +940,15 @@ APNG_DEF struct Apng_PNG_Image apng_png_decode(struct Apng_Byte_String file)
     }
 
     /* checking PNG file correctness */
-    if (image.chunks.IEND_chunk.index != image.file.length - APNG_CHUNK_FOOTER_SIZE) {
+    if (image->chunks.IEND_chunk.index != image->file.length - APNG_CHUNK_FOOTER_SIZE) {
         apng_dprintERROR("%s", "Error in IEND chunk.");
+        rt = APNG_FAIL;
         goto apng_decode_exit;
     }
 
     /* decompressing the image */
     {
-        rt = apng_IDAT_decode(&image);
+        rt = apng_IDAT_decode(image);
         if (rt == APNG_FAIL) {
             apng_dprintERROR("%s", "Failed to decode the IDAT chunks.");
             goto apng_decode_exit;
@@ -907,7 +956,7 @@ APNG_DEF struct Apng_PNG_Image apng_png_decode(struct Apng_Byte_String file)
     }
 
 apng_decode_exit:
-    return image;
+    return rt;
 }
 
 APNG_DEF bool apng_png_header_signature_correct(struct Apng_PNG_Header h)
@@ -1193,13 +1242,49 @@ APNG_DEF enum Apng_Return_Types apng_IDAT_decode(struct Apng_PNG_Image *image)
 
     enum Apng_Return_Types rt = APNG_SUCCESS;
 
-    rt = apng_IDAT_decompress(image);
+    struct Apng_Byte_String temp_bs = {0};
+    ada_init_array(uint8_t, temp_bs);
+
+    rt = apng_IDAT_decompress(image, &temp_bs);
     if (rt == APNG_FAIL) {
         apng_dprintERROR("%s", "Failed to decompress the IDAT chunks.");
-        return APNG_FAIL;
+        goto apng_IDAT_decode_end;
+    }
+    #if 0
+    uint8_t *filtered = temp_bs.elements;
+    uint8_t *pixels = (uint8_t *)image->pixels.elements;
+    for (size_t r = 0; r < height; r++) {
+        apng_dprintINT(*filtered++);
+        // filtered++;
+        for (size_t x = 0; x < width; x++) {
+            *(uint32_t *)pixels = *(uint32_t *)filtered;
+            pixels += 4;
+            filtered += 4;
+        }
+    }
+    #else
+    rt = apng_IDAT_unfiltering(image, &temp_bs);
+    if (rt == APNG_FAIL) {
+        apng_dprintERROR("%s", "Failed to decompress the IDAT chunks.");
+        goto apng_IDAT_decode_end;
+    }
+    #endif
+
+    for (size_t i = 0; i < image->pixels.rows; i++) {
+        for (size_t j = 0; j < image->pixels.cols; j++) {
+            uint32_t pixel = APNG_PIXEL_BUFFER_AT(image->pixels, i, j);
+            uint8_t a;
+            uint8_t r;
+            uint8_t g;
+            uint8_t b;
+            APNG_HexARGB_TO_RGBA_VAR(pixel, r, g, b, a);
+            APNG_PIXEL_BUFFER_AT(image->pixels, i, j) = APNG_RGBA_TO_hexARGB(b, g, r, a);
+        }
     }
 
-    return APNG_SUCCESS;
+apng_IDAT_decode_end:
+    apng_byte_string_free(temp_bs);
+    return rt;
 }
 
 struct Apng_Huffman_Entry len_extra[] = {
@@ -1267,12 +1352,10 @@ struct Apng_Huffman_Entry dist_extra[] = {
     {.symbol = 24577, .code_length = 13}, /* 29 */
 };
 
-APNG_DEF enum Apng_Return_Types apng_IDAT_decompress(struct Apng_PNG_Image *image)
+APNG_DEF enum Apng_Return_Types apng_IDAT_decompress(struct Apng_PNG_Image *image, struct Apng_Byte_String *temp_bs)
 {
     /*ZLIB specification: https://www.ietf.org/rfc/rfc1951.txt */
 
-    struct Apng_Byte_String temp_bs = {0};
-    ada_init_array(uint8_t, temp_bs);
     struct Apng_Huffman_Entrys_Table huffman_table = {0};
     ada_init_array(struct Apng_Huffman_Entry, huffman_table);
 
@@ -1307,13 +1390,73 @@ APNG_DEF enum Apng_Return_Types apng_IDAT_decompress(struct Apng_PNG_Image *imag
 
             uint8_t *literal_data = apng_consume_bytes(&br->file, LEN);
             for (size_t i = 0; i < LEN; i++) {
-                ada_appand(uint8_t, temp_bs, literal_data[i]);
+                ada_appand(uint8_t, *temp_bs, literal_data[i]);
             }
 
         } break;
         case 1:
         {
-            /* static Huffman codes */
+            uint32_t HLIT  = APNG_FIX_HUFFMAN_HLIT;
+            uint32_t HDIST = APNG_FIX_HUFFMAN_HDIST;
+            uint32_t lit_len_dist_code_length[APNG_FIX_HUFFMAN_HLIT + APNG_FIX_HUFFMAN_HDIST] = {0};
+            for (size_t i = 0; i < HLIT + HDIST; i++) {
+                if (i >= 0 && i <= 143) {
+                    lit_len_dist_code_length[i] = 8;
+                } else if (i >= 144 && i <= 255) {
+                    lit_len_dist_code_length[i] = 9;
+                } else if (i >= 256 && i <= 279) {
+                    lit_len_dist_code_length[i] = 7;
+                } else if (i >= 280 && i <= 287) {
+                    lit_len_dist_code_length[i] = 8;
+                } else if (i >= 288 && i <= 319) {
+                    lit_len_dist_code_length[i] = 5;
+                }
+            }
+
+            struct Apng_Huffman_Entrys_Table lit_len_huffman = apng_huffman_entry_table_create(lit_len_dist_code_length, HLIT);
+            struct Apng_Huffman_Entrys_Table dist_huffman = apng_huffman_entry_table_create(lit_len_dist_code_length + HLIT, HDIST);
+
+            /* decoding the actual data */
+            for (;;) {
+                uint16_t lit_len;
+                if (APNG_FAIL == apng_huffman_decode_symbol(lit_len_huffman, br, &lit_len)) {
+                    apng_dprintERROR("%s", "Failed to decode a lit/len symbol from the actual data.");
+                    rt = APNG_FAIL;
+                    goto apng_IDAT_decompress_end;
+                }
+
+                if (lit_len <= 255) {
+                    ada_appand(uint8_t, *temp_bs, (uint8_t)(lit_len & 0xFF));
+                } else if (lit_len > 256) {
+                    uint32_t len_extra_index = lit_len - 257;
+                    struct Apng_Huffman_Entry len_extra_entry = len_extra[len_extra_index];
+                    // uint32_t len = (uint32_t)len_extra_entry.symbol + (uint32_t)apng_uint16_bits_reverse((uint16_t)apng_bit_reader_read_bits(br, len_extra_entry.code_length), len_extra_entry.code_length);
+                    uint32_t len = (uint32_t)len_extra_entry.symbol + apng_bit_reader_read_bits(br, len_extra_entry.code_length);
+
+                    uint16_t dist_extra_index;
+                    if (APNG_FAIL == apng_huffman_decode_symbol(dist_huffman, br, &dist_extra_index)) {
+                        apng_dprintERROR("%s", "Failed to decode a dist symbol from the actual data.");
+                        rt = APNG_FAIL;
+                        goto apng_IDAT_decompress_end;
+                    }
+                    struct Apng_Huffman_Entry dist_extra_entry = dist_extra[dist_extra_index];
+                    // uint32_t dist = (uint32_t)dist_extra_entry.symbol + (uint32_t)apng_uint16_bits_reverse((uint16_t)apng_bit_reader_read_bits(br, dist_extra_entry.code_length), dist_extra_entry.code_length);
+                    uint32_t dist = (uint32_t)dist_extra_entry.symbol + apng_bit_reader_read_bits(br, dist_extra_entry.code_length);
+                    if (dist == 0 || dist > temp_bs->length) {
+                        apng_dprintERROR("%s", "Invalid distance.");
+                        rt = APNG_FAIL;
+                        goto apng_IDAT_decompress_end;
+                    }
+                    
+                    for (size_t i = 0, src = temp_bs->length - dist; i < len; i++) {
+                        uint8_t b = temp_bs->elements[src + i];
+                        ada_appand(uint8_t, *temp_bs, b);
+                    }
+                } else { /* lit_len == 256 */
+                    break;
+                }
+            }
+
         } break;
         case 2:
         {
@@ -1354,7 +1497,7 @@ APNG_DEF enum Apng_Return_Types apng_IDAT_decompress(struct Apng_PNG_Image *imag
                 }
 
                 if (lit_len <= 255) {
-                    ada_appand(uint8_t, temp_bs, (uint8_t)(lit_len & 0xFF));
+                    ada_appand(uint8_t, *temp_bs, (uint8_t)(lit_len & 0xFF));
                 } else if (lit_len > 256) {
                     uint32_t len_extra_index = lit_len - 257;
                     struct Apng_Huffman_Entry len_extra_entry = len_extra[len_extra_index];
@@ -1370,24 +1513,20 @@ APNG_DEF enum Apng_Return_Types apng_IDAT_decompress(struct Apng_PNG_Image *imag
                     struct Apng_Huffman_Entry dist_extra_entry = dist_extra[dist_extra_index];
                     // uint32_t dist = (uint32_t)dist_extra_entry.symbol + (uint32_t)apng_uint16_bits_reverse((uint16_t)apng_bit_reader_read_bits(br, dist_extra_entry.code_length), dist_extra_entry.code_length);
                     uint32_t dist = (uint32_t)dist_extra_entry.symbol + apng_bit_reader_read_bits(br, dist_extra_entry.code_length);
-                    if (dist == 0 || dist > temp_bs.length) {
+                    if (dist == 0 || dist > temp_bs->length) {
                         apng_dprintERROR("%s", "Invalid distance.");
                         rt = APNG_FAIL;
                         goto apng_IDAT_decompress_end;
                     }
                     
-                    for (size_t i = 0, src = temp_bs.length - dist; i < len; i++) {
-                        uint8_t b = temp_bs.elements[src + i];
-                        ada_appand(uint8_t, temp_bs, b);
+                    for (size_t i = 0, src = temp_bs->length - dist; i < len; i++) {
+                        uint8_t b = temp_bs->elements[src + i];
+                        ada_appand(uint8_t, *temp_bs, b);
                     }
                 } else { /* lit_len == 256 */
                     break;
                 }
             }
-            // for (size_t i = 0; i < 10; i++) {
-            //     apng_uint16_print_binary((uint16_t)temp_bs.elements[i], 8);
-            //     printf("\n");
-            // }
 
         } break;
         case 3:
@@ -1406,10 +1545,112 @@ APNG_DEF enum Apng_Return_Types apng_IDAT_decompress(struct Apng_PNG_Image *imag
 
     } while (!BFINAL);
 
+    // for (size_t i = 0; i < temp_bs->length; i++) {
+    //     apng_uint16_print_binary((uint16_t)temp_bs->elements[i], 8);
+    //     printf("\n");
+    // }
+
 apng_IDAT_decompress_end:
-    APNG_FREE(temp_bs.elements);
     APNG_FREE(huffman_table.elements);
     return rt;
+}
+
+APNG_DEF enum Apng_Return_Types apng_IDAT_unfiltering(struct Apng_PNG_Image *image, struct Apng_Byte_String *temp_bs)
+{
+    size_t width = image->pixels.cols;
+    size_t height = image->pixels.rows;
+    uint8_t *filtered = temp_bs->elements;
+    uint8_t *pixels = (uint8_t *)image->pixels.elements;
+
+    uint8_t temp = 0;
+    uint8_t *row_above = &temp;
+    uint8_t row_above_advance = 0;
+    for (size_t r = 0; r < height; r++) {
+        uint8_t filter = *filtered++;
+        uint8_t *current_row = pixels;
+        switch (filter) {
+        case 0:
+        {
+            for (size_t x = 0; x < width; x++) {
+                *(uint32_t *)pixels = *(uint32_t *)filtered;
+                pixels += 4;
+                filtered += 4;
+            }
+        } break;
+        case 1:
+        {
+            uint32_t Apixel = 0;
+            for (size_t x = 0; x < width; x++) {
+                pixels[0] = apng_filter_1_and_2(filtered, (uint8_t *)&Apixel, 0);
+                pixels[1] = apng_filter_1_and_2(filtered, (uint8_t *)&Apixel, 1);
+                pixels[2] = apng_filter_1_and_2(filtered, (uint8_t *)&Apixel, 2);
+                pixels[3] = apng_filter_1_and_2(filtered, (uint8_t *)&Apixel, 3);
+
+                Apixel = *(uint32_t *)pixels;
+                pixels += 4;
+                filtered += 4;
+            }
+        } break;
+        case 2:
+        {
+            uint8_t *Bpixel = row_above;
+            for (size_t x = 0; x < width; x++) {
+                pixels[0] = apng_filter_1_and_2(filtered, Bpixel, 0);
+                pixels[1] = apng_filter_1_and_2(filtered, Bpixel, 1);
+                pixels[2] = apng_filter_1_and_2(filtered, Bpixel, 2);
+                pixels[3] = apng_filter_1_and_2(filtered, Bpixel, 3);
+
+                Bpixel += row_above_advance;
+                pixels += 4;
+                filtered += 4;
+            }
+        } break;
+        case 3:
+        {
+            uint32_t Apixel = 0;
+            uint8_t *Bpixel = row_above;
+            for (size_t x = 0; x < width; x++) {
+                pixels[0] = apng_filter_3(filtered, (uint8_t *)&Apixel, Bpixel, 0);
+                pixels[1] = apng_filter_3(filtered, (uint8_t *)&Apixel, Bpixel, 1);
+                pixels[2] = apng_filter_3(filtered, (uint8_t *)&Apixel, Bpixel, 2);
+                pixels[3] = apng_filter_3(filtered, (uint8_t *)&Apixel, Bpixel, 3);
+
+                Apixel = *(uint32_t *)pixels;
+                Bpixel += row_above_advance;
+                pixels += 4;
+                filtered += 4;
+            }
+        } break;
+        case 4:
+        {
+            uint32_t Apixel = 0;
+            uint8_t *Bpixel = row_above;
+            uint32_t Cpixel = 0;
+            for (size_t x = 0; x < width; x++) {
+                pixels[0] = apng_filter_4(filtered, (uint8_t *)&Apixel, Bpixel, (uint8_t *)&Cpixel, 0);
+                pixels[1] = apng_filter_4(filtered, (uint8_t *)&Apixel, Bpixel, (uint8_t *)&Cpixel, 1);
+                pixels[2] = apng_filter_4(filtered, (uint8_t *)&Apixel, Bpixel, (uint8_t *)&Cpixel, 2);
+                pixels[3] = apng_filter_4(filtered, (uint8_t *)&Apixel, Bpixel, (uint8_t *)&Cpixel, 3);
+
+                Cpixel = *(uint32_t *)Bpixel;
+                Apixel = *(uint32_t *)pixels;
+                Bpixel += row_above_advance;
+                pixels += 4;
+                filtered += 4;
+            }
+        } break;
+        default: 
+        {
+            apng_dprintERROR("Unknown row filter :%d", filter);
+            return APNG_FAIL;
+        }
+        }
+
+        row_above = current_row;
+        row_above_advance = 4;
+    }
+
+    return APNG_SUCCESS;
 }
 
 APNG_DEF struct Apng_IDAT_Header apng_IDAT_header_get_from_IDAT_chunk(struct Apng_IDAT_Chunk chunk)

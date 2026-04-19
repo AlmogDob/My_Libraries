@@ -4,7 +4,7 @@
 
 int main(void)
 {
-    char file_name[] = "../src/test-png.png";
+    char file_name[] = "../src/test-png1.png";
 
     struct Apng_Byte_String file = apng_bin_file_read(file_name);
     apng_png_decode(file);

@@ -195,12 +195,7 @@ struct Apl_Window_State {
     #define APL_DEF static inline
 #endif
 #ifndef APL_ASSERT
-#define APL_ASSERT(expr)                                        \
-    do {                                                        \
-        if (!(expr)) {                                          \
-            apl_my_assert(#expr, __FILE__, __LINE__, __func__); \
-        }                                                       \
-    } while (0)
+#define APL_ASSERT(expr) apl_my_assert(expr, #expr, __FILE__, __LINE__, __func__)
 #endif
 
 #define apl_dprintSTRING(expr) printf("[Info] %s:%d:\n" #expr " = %s\n", __FILE__, __LINE__, expr)
@@ -245,7 +240,7 @@ APL_DEF enum Apl_Return_Types   apl_window_render(struct Apl_Window_State *ws);
 /* shared_platform_implementation */
 APL_DEF void                    apl_fix_framerate(struct Apl_Window_State *ws);
 APL_DEF enum Apl_Return_Types   apl_initialize_main_window(struct Apl_Window_State *ws);
-APL_DEF void                    apl_my_assert(const char *expr, const char *file, int line, const char *func);
+APL_DEF void                    apl_my_assert(bool expr_bool, const char *expr, const char *file, int line, const char *func);
 APL_DEF void                    apl_pixel_mat_copy_to_screen(struct Apl_Window_State *ws);
 APL_DEF enum Apl_Return_Types   apl_resize_window_pixel_mat(struct Apl_Window_State *ws, size_t new_w, size_t new_h);
 APL_DEF void                    apl_sleep(size_t wait_time_us);
@@ -801,12 +796,14 @@ LRESULT CALLBACK apl_main_window_callback(HWND window, UINT message, WPARAM wpar
     return result;
 }
 
-APL_DEF void apl_my_assert(const char *expr, const char *file, int line, const char *func)
+APL_DEF void apl_my_assert(bool expr_bool, const char *expr, const char *file, int line, const char *func)
 {
-    apl_dprintERROR("Assertion failed: %s At %s:%d In function '%s'.\n"
-                    "        Call stack:", expr, file, line, func);
-    apl_print_stack_trace();
-    abort();
+    if (!expr_bool) {
+        apl_dprintERROR("Assertion failed: %s At %s:%d In function '%s'.\n"
+                        "        Call stack:", expr, file, line, func);
+        apl_print_stack_trace();
+        abort();
+    }
 }
 
 APL_DEF void apl_print_module_plus_offset(DWORD64 instruction_pointer)
