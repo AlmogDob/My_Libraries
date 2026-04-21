@@ -53,7 +53,7 @@ Mat2D_uint32 apl_pixel_buffer_mat2d_u32(struct Apl_Pixel_Buffer b)
 struct Apng_PNG_Image image;
 enum Apl_Return_Types apl_setup(struct Apl_Window_State *ws)
 {
-    ws->wanted_fps = 1000;
+    ws->wanted_fps = 60;
     // ws->to_limit_fps = false;
     APL_UNUSED(ws);
 
@@ -115,6 +115,7 @@ enum Apl_Return_Types apl_input(struct Apl_Window_State *ws)
         ws->to_render = true;
     } else if (ws->buttons.r_is_pressed) {
         factor = 1;
+        apl_dprintFLOAT(factor);
         ws->to_render = true;
     }
     APL_UNUSED(ws);
