@@ -566,6 +566,8 @@ struct Apng_PNG_Image {
 #define APNG_FIX_HUFFMAN_HLIT 288
 #define APNG_FIX_HUFFMAN_HDIST 32
 
+APNG_DEF enum Apng_Return_Types             apng_adler32_check(uint32_t original_adler32, uint8_t *buffer, size_t buffer_length);
+APNG_DEF uint32_t                           apng_adler32_update(uint32_t adler, uint8_t *buffer, size_t buffer_length);
 APNG_DEF struct Apng_Byte_String            apng_bin_file_read(char *file_name);
 APNG_DEF void                               apng_byte_string_free(struct Apng_Byte_String bs);
 APNG_DEF void                               apng_bit_reader_flash(struct Apng_Bit_Reader *br);
@@ -610,6 +612,33 @@ APNG_DEF struct Apng_IDAT_Header            apng_IDAT_header_get_from_IDAT_chunk
 
 #ifdef ALMOG_PNG_IMPLEMENTATION
 #undef ALMOG_PNG_IMPLEMENTATION
+
+APNG_DEF enum Apng_Return_Types apng_adler32_check(uint32_t original_adler32, uint8_t *buffer, size_t buffer_length)
+{
+    uint32_t adler = apng_adler32_update((uint32_t)1, buffer, buffer_length);
+
+    if (adler != original_adler32) {
+        apng_dprintERROR("Failed adler32 check of the zlib. Expected: %u but got: %u", original_adler32, adler);
+        return APNG_FAIL;
+    } else {
+        return APNG_SUCCESS;
+    }
+}
+
+APNG_DEF uint32_t apng_adler32_update(uint32_t adler, uint8_t *buffer, size_t buffer_length)
+{
+    /* according to the ZLIB specification: https://www.ietf.org/rfc/rfc1950.txt */
+    uint32_t BASE = 65521; /* largest prime smaller than 65536 */
+    uint32_t s1 = adler & 0xffff;
+    uint32_t s2 = (adler >> 16) & 0xffff;
+
+    for (size_t n = 0; n < buffer_length; n++) {
+        s1 = (s1 + buffer[n]) % BASE;
+        s2 = (s2 + s1) % BASE;
+    }
+
+    return (s2 << 16) + s1;
+}
 
 APNG_DEF struct Apng_Byte_String apng_bin_file_read(char *file_name)
 {
@@ -1762,7 +1791,6 @@ APNG_DEF enum Apng_Return_Types apng_IDAT_decompress(struct Apng_PNG_Image *imag
                     break;
                 }
             }
-
         } break;
         case 3:
         {
@@ -1777,11 +1805,19 @@ APNG_DEF enum Apng_Return_Types apng_IDAT_decompress(struct Apng_PNG_Image *imag
             goto apng_IDAT_decompress_end;
         }
         }
-
     } while (!BFINAL);
 
     /* Adler-32 check */
-
+    if (br->bits_left != 0) {
+        apng_bit_reader_flash(br);
+    }
+    uint32_t *original_adler32_ptr = (uint32_t *)apng_consume_bytes(&br->file, 4);
+    uint32_t original_adler32 = apng_endian_swap_uint32(*original_adler32_ptr);
+    rt = apng_adler32_check(original_adler32, temp_bs->elements, temp_bs->length);
+    if (rt == APNG_FAIL) {
+        apng_dprintERROR("%s", "Failed to decompress the data correctly, adler32 error.");
+        goto apng_IDAT_decompress_end;
+    }
 
 apng_IDAT_decompress_end:
     APNG_FREE(huffman_table.elements);
