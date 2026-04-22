@@ -16,6 +16,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #include <stdint.h>
 #include <stdbool.h>
 
@@ -605,7 +606,7 @@ APNG_DEF enum Apng_Return_Types             apng_IHDR_chunk_parse(struct Apng_IH
 APNG_DEF enum Apng_Return_Types             apng_IDAT_chunk_parse(struct Apng_IDAT_Chunk *chunk);
 APNG_DEF enum Apng_Return_Types             apng_IDAT_decode(struct Apng_PNG_Image *image);
 APNG_DEF enum Apng_Return_Types             apng_IDAT_decompress(struct Apng_PNG_Image *image, struct Apng_Byte_String *temp_bs);
-APNG_DEF enum Apng_Return_Types             apng_IDAT_unfiltering(struct Apng_PNG_Image *image, struct Apng_Byte_String *temp_bs);
+APNG_DEF enum Apng_Return_Types             apng_IDAT_unfiltering(uint8_t *unfiltered_data, uint8_t *decompressed_data, size_t width, size_t height, size_t bytes_in_pixel);
 APNG_DEF struct Apng_IDAT_Header            apng_IDAT_header_get_from_IDAT_chunk(struct Apng_IDAT_Chunk chunk);
 
 #endif /*ALMOG_PNG_H_*/
@@ -1140,36 +1141,31 @@ APNG_DEF enum Apng_Return_Types apng_png_decode(struct Apng_Byte_String file, st
                     goto apng_decode_exit;
                 }
             } break;
-            case APNG_TYPE_sRGB: 
-            {
-                image->chunks.sRGB_chunk.index  = chunk_header.index + chunk_header.size;
-                image->chunks.sRGB_chunk.length = chunk_header.length;
-                image->chunks.sRGB_chunk.body   = chunk_data;
-            } break;
-            case APNG_TYPE_gAMA: 
-            {
-                image->chunks.gAMA_chunk.index  = chunk_header.index + chunk_header.size;
-                image->chunks.gAMA_chunk.length = chunk_header.length;
-                image->chunks.gAMA_chunk.body   = chunk_data;
-            } break;
-            case APNG_TYPE_pHYs: 
-            {
-                image->chunks.pHYs_chunk.index  = chunk_header.index + chunk_header.size;
-                image->chunks.pHYs_chunk.length = chunk_header.length;
-                image->chunks.pHYs_chunk.body   = chunk_data;
-            } break;
+            // case APNG_TYPE_sRGB: 
+            // {
+            //     image->chunks.sRGB_chunk.index  = chunk_header.index + chunk_header.size;
+            //     image->chunks.sRGB_chunk.length = chunk_header.length;
+            //     image->chunks.sRGB_chunk.body   = chunk_data;
+            // } break;
+            // case APNG_TYPE_gAMA: 
+            // {
+            //     image->chunks.gAMA_chunk.index  = chunk_header.index + chunk_header.size;
+            //     image->chunks.gAMA_chunk.length = chunk_header.length;
+            //     image->chunks.gAMA_chunk.body   = chunk_data;
+            // } break;
+            // case APNG_TYPE_pHYs: 
+            // {
+            //     image->chunks.pHYs_chunk.index  = chunk_header.index + chunk_header.size;
+            //     image->chunks.pHYs_chunk.length = chunk_header.length;
+            //     image->chunks.pHYs_chunk.body   = chunk_data;
+            // } break;
             case APNG_TYPE_IDAT: 
             {
-                if (image->chunks.IDAT_chunk.IDAT_data.elements == NULL) {
-                    ada_init_array(uint8_t, image->chunks.IDAT_chunk.IDAT_data);
-                    // image->chunks.IDAT_chunk.IDAT_data.cursor = 0;
-                }
-                // if (image->chunks.IDAT_chunk.body != NULL) {
-                //     apng_dprintERROR("%s", "Encountered more than one IDAT chunk. Currently not supported.");
-                //     goto apng_decode_exit;
-                // }
                 image->chunks.IDAT_chunk.index  = chunk_header.index + chunk_header.size;
                 image->chunks.IDAT_chunk.length = chunk_header.length;
+                if (image->chunks.IDAT_chunk.IDAT_data.elements == NULL) {
+                    ada_init_array(uint8_t, image->chunks.IDAT_chunk.IDAT_data);
+                }
                 for (size_t i = 0; i < image->chunks.IDAT_chunk.length; i++) {
                     ada_appand(uint8_t, image->chunks.IDAT_chunk.IDAT_data, ((uint8_t *)chunk_data)[i]);
                 }
@@ -1192,8 +1188,17 @@ APNG_DEF enum Apng_Return_Types apng_png_decode(struct Apng_Byte_String file, st
             } break;
             default:
             {
-                apng_dprintERROR("Unsupported chunk type '%s'.", apng_type_name_get(chunk_header.type));
-                goto apng_decode_exit;
+                if (!islower(apng_type_name_get(chunk_header.type)[10])) {
+                    /**
+                     * checks if the first letter of the type is small or large.
+                     * APNG_TYPE_****
+                     * 0123456789^
+                     */
+                    apng_dprintSTRING(apng_type_name_get(chunk_header.type));
+                    apng_dprintERROR("Unsupported critical chunk type '%s'.", apng_type_name_get(chunk_header.type));
+                    rt = APNG_FAIL;
+                    goto apng_decode_exit;
+                }
             } break;
         }
     }
@@ -1501,37 +1506,33 @@ APNG_DEF enum Apng_Return_Types apng_IDAT_decode(struct Apng_PNG_Image *image)
 
     enum Apng_Return_Types rt = APNG_SUCCESS;
 
-    struct Apng_Byte_String temp_bs = {0};
-    ada_init_array(uint8_t, temp_bs);
+    struct Apng_Byte_String decompress_bs = {0};
+    ada_init_array(uint8_t, decompress_bs);
+    struct Apng_Byte_String unfiltered_bs = {0};
+    ada_init_array(uint8_t, unfiltered_bs);
 
-    rt = apng_IDAT_decompress(image, &temp_bs);
+    rt = apng_IDAT_decompress(image, &decompress_bs);
     if (rt == APNG_FAIL) {
         apng_dprintERROR("%s", "Failed to decompress the IDAT chunks.");
         goto apng_IDAT_decode_end;
     }
-    #if 0
-    uint8_t *filtered = temp_bs.elements;
-    uint8_t *pixels = (uint8_t *)image->pixels.elements;
-    for (size_t r = 0; r < height; r++) {
-        apng_dprintINT(*filtered++);
-        // filtered++;
-        for (size_t x = 0; x < width; x++) {
-            *(uint32_t *)pixels = *(uint32_t *)filtered;
-            pixels += 4;
-            filtered += 4;
-        }
+    /* allocate enough bytes in unfiltered_bs */
+    for (size_t i = 0; i < decompress_bs.length; i++) {
+        ada_appand(uint8_t, unfiltered_bs, decompress_bs.elements[i]);
     }
-    #else
-    rt = apng_IDAT_unfiltering(image, &temp_bs);
+    size_t bytes_per_pixel = 4;
+    #if 1
+    rt = apng_IDAT_unfiltering(unfiltered_bs.elements, decompress_bs.elements, width, height, bytes_per_pixel); /* 4 depends on color type */
     if (rt == APNG_FAIL) {
         apng_dprintERROR("%s", "Failed to decompress the IDAT chunks.");
         goto apng_IDAT_decode_end;
     }
     #endif
 
+    /* swizzle and copy the color channels */
     for (size_t i = 0; i < image->pixels.rows; i++) {
         for (size_t j = 0; j < image->pixels.cols; j++) {
-            uint32_t pixel = APNG_PIXEL_BUFFER_AT(image->pixels, i, j);
+            uint32_t pixel = *(uint32_t *)&unfiltered_bs.elements[i * width * bytes_per_pixel + j * bytes_per_pixel];
             uint8_t a;
             uint8_t r;
             uint8_t g;
@@ -1542,7 +1543,8 @@ APNG_DEF enum Apng_Return_Types apng_IDAT_decode(struct Apng_PNG_Image *image)
     }
 
 apng_IDAT_decode_end:
-    apng_byte_string_free(temp_bs);
+    apng_byte_string_free(decompress_bs);
+    apng_byte_string_free(unfiltered_bs);
     return rt;
 }
 
@@ -1824,88 +1826,71 @@ apng_IDAT_decompress_end:
     return rt;
 }
 
-APNG_DEF enum Apng_Return_Types apng_IDAT_unfiltering(struct Apng_PNG_Image *image, struct Apng_Byte_String *temp_bs)
+APNG_DEF enum Apng_Return_Types apng_IDAT_unfiltering(uint8_t *unfiltered_data, uint8_t *decompressed_data, size_t width, size_t height, size_t bytes_in_pixel)
 {
-    size_t width = image->pixels.cols;
-    size_t height = image->pixels.rows;
-    uint8_t *filtered = temp_bs->elements;
-    uint8_t *pixels = (uint8_t *)image->pixels.elements;
+    uint8_t *src = decompressed_data;
+    uint8_t *des = unfiltered_data;
+    uint8_t *row_above = NULL;
+    size_t width_in_bytes = width * bytes_in_pixel;
 
-    uint8_t temp = 0;
-    uint8_t *row_above = &temp;
-    uint8_t row_above_advance = 0;
     for (size_t r = 0; r < height; r++) {
-        uint8_t filter = *filtered++;
-        uint8_t *current_row = pixels;
+        uint8_t filter = *src++;
+        uint8_t *current_row = des;
         switch (filter) {
         case 0:
         {
-            for (size_t x = 0; x < width; x++) {
-                *(uint32_t *)pixels = *(uint32_t *)filtered;
-                pixels += 4;
-                filtered += 4;
+            for (size_t x = 0; x < width_in_bytes; x++) {
+                current_row[x] = src[x];
             }
         } break;
         case 1:
         {
-            uint32_t Apixel = 0;
-            for (size_t x = 0; x < width; x++) {
-                pixels[0] = apng_filter_1_and_2(filtered, (uint8_t *)&Apixel, 0);
-                pixels[1] = apng_filter_1_and_2(filtered, (uint8_t *)&Apixel, 1);
-                pixels[2] = apng_filter_1_and_2(filtered, (uint8_t *)&Apixel, 2);
-                pixels[3] = apng_filter_1_and_2(filtered, (uint8_t *)&Apixel, 3);
+            for (size_t x = 0; x < width_in_bytes; x++) {
+                uint8_t a_byte = (x >= bytes_in_pixel) ? current_row[x - bytes_in_pixel] : 0 ;
 
-                Apixel = *(uint32_t *)pixels;
-                pixels += 4;
-                filtered += 4;
+                current_row[x] = (uint8_t)src[x] + (uint8_t)a_byte;
             }
         } break;
         case 2:
         {
-            uint8_t *Bpixel = row_above;
-            for (size_t x = 0; x < width; x++) {
-                pixels[0] = apng_filter_1_and_2(filtered, Bpixel, 0);
-                pixels[1] = apng_filter_1_and_2(filtered, Bpixel, 1);
-                pixels[2] = apng_filter_1_and_2(filtered, Bpixel, 2);
-                pixels[3] = apng_filter_1_and_2(filtered, Bpixel, 3);
+            for (size_t x = 0; x < width_in_bytes; x++) {
+                uint8_t b_byte = row_above ? row_above[x] : 0;
 
-                Bpixel += row_above_advance;
-                pixels += 4;
-                filtered += 4;
+                current_row[x] = (uint8_t)src[x] + (uint8_t)b_byte;
             }
         } break;
         case 3:
         {
-            uint32_t Apixel = 0;
-            uint8_t *Bpixel = row_above;
-            for (size_t x = 0; x < width; x++) {
-                pixels[0] = apng_filter_3(filtered, (uint8_t *)&Apixel, Bpixel, 0);
-                pixels[1] = apng_filter_3(filtered, (uint8_t *)&Apixel, Bpixel, 1);
-                pixels[2] = apng_filter_3(filtered, (uint8_t *)&Apixel, Bpixel, 2);
-                pixels[3] = apng_filter_3(filtered, (uint8_t *)&Apixel, Bpixel, 3);
+            for (size_t x = 0; x < width_in_bytes; x++) {
+                uint8_t a_byte = (x >= bytes_in_pixel) ? current_row[x - bytes_in_pixel] : 0 ;
+                uint8_t b_byte = row_above ? row_above[x] : 0;
 
-                Apixel = *(uint32_t *)pixels;
-                Bpixel += row_above_advance;
-                pixels += 4;
-                filtered += 4;
+                current_row[x] = (uint8_t)src[x] + (uint8_t)(((uint32_t)a_byte + (uint32_t)b_byte) / 2);
             }
         } break;
         case 4:
         {
-            uint32_t Apixel = 0;
-            uint8_t *Bpixel = row_above;
-            uint32_t Cpixel = 0;
-            for (size_t x = 0; x < width; x++) {
-                pixels[0] = apng_filter_4(filtered, (uint8_t *)&Apixel, Bpixel, (uint8_t *)&Cpixel, 0);
-                pixels[1] = apng_filter_4(filtered, (uint8_t *)&Apixel, Bpixel, (uint8_t *)&Cpixel, 1);
-                pixels[2] = apng_filter_4(filtered, (uint8_t *)&Apixel, Bpixel, (uint8_t *)&Cpixel, 2);
-                pixels[3] = apng_filter_4(filtered, (uint8_t *)&Apixel, Bpixel, (uint8_t *)&Cpixel, 3);
+            for (size_t x = 0; x < width_in_bytes; x++) {
+                uint8_t a_byte = (x >= bytes_in_pixel) ? current_row[x - bytes_in_pixel] : 0 ;
+                uint8_t b_byte = row_above ? row_above[x] : 0;
+                uint8_t c_byte = (x >= bytes_in_pixel && row_above) ? row_above[x - bytes_in_pixel] : 0 ;
 
-                Cpixel = *(uint32_t *)Bpixel;
-                Apixel = *(uint32_t *)pixels;
-                Bpixel += row_above_advance;
-                pixels += 4;
-                filtered += 4;
+                int p = (int)a_byte + (int)b_byte - (int)c_byte;
+                int pa = p - a_byte;
+                if (pa < 0) pa = -pa;
+                int pb = p - b_byte;
+                if (pb < 0) pb = -pb;
+                int pc = p - c_byte;
+                if (pc < 0) pc = -pc;
+
+                int paeth = (int)c_byte;
+                if ((pa <= pb) && (pa <= pc)) {
+                    paeth = (int)a_byte;
+                } else if (pb <= pc) {
+                    paeth = (int)b_byte;
+                }
+
+                current_row[x] = (uint8_t)src[x] + (uint8_t)paeth;
             }
         } break;
         default: 
@@ -1915,8 +1900,9 @@ APNG_DEF enum Apng_Return_Types apng_IDAT_unfiltering(struct Apng_PNG_Image *ima
         }
         }
 
+        src += width_in_bytes;
         row_above = current_row;
-        row_above_advance = 4;
+        des += width_in_bytes;
     }
 
     return APNG_SUCCESS;

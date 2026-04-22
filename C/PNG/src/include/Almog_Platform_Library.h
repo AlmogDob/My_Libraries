@@ -110,6 +110,7 @@ struct Platform_State {
 /* -------------------------------------------------------------------------------- */
 
 #include <stdint.h>
+#include <stdbool.h>
 #include <stdio.h>
 
 #ifndef APL_REALLOC

@@ -58,7 +58,7 @@ enum Apl_Return_Types apl_setup(struct Apl_Window_State *ws)
     APL_UNUSED(ws);
 
 
-    char file_name[] = "../src/test-png_wiki.png";
+    char file_name[] = "../src/test-png1.png";
 
     struct Apng_Byte_String file = apng_bin_file_read(file_name);
     if (APNG_FAIL == apng_png_decode(file, &image)) {
