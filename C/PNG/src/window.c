@@ -58,7 +58,8 @@ enum Apl_Return_Types apl_setup(struct Apl_Window_State *ws)
     APL_UNUSED(ws);
 
 
-    char file_name[] = "../src/test-png1.png";
+    char file_name[] = "../src/test-png3.png";
+    // char file_name[] = "../src/file_example_PNG_3MB.png";
 
     struct Apng_Byte_String file = apng_bin_file_read(file_name);
     if (APNG_FAIL == apng_png_decode(file, &image)) {
@@ -99,7 +100,6 @@ enum Apl_Return_Types apl_render(struct Apl_Window_State *ws)
         ws->to_render = false;
     }
 
-
     return APL_SUCCESS;
 }
 
@@ -107,15 +107,15 @@ enum Apl_Return_Types apl_input(struct Apl_Window_State *ws)
 {
     if (ws->mouse.left_button_is_pressed) {
         factor *= 1.1;
-        apl_dprintFLOAT(factor);
+        // apl_dprintFLOAT(factor);
         ws->to_render = true;
     } else if (ws->mouse.right_button_is_pressed) {
         factor /= 1.1;
-        apl_dprintFLOAT(factor);
+        // apl_dprintFLOAT(factor);
         ws->to_render = true;
     } else if (ws->buttons.r_is_pressed) {
         factor = 1;
-        apl_dprintFLOAT(factor);
+        // apl_dprintFLOAT(factor);
         ws->to_render = true;
     }
     APL_UNUSED(ws);

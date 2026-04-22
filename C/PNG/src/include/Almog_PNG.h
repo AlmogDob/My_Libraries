@@ -548,6 +548,7 @@ struct Apng_PNG_Image {
 #define apng_max(a, b) ((a) > (b) ? (a) : (b))
 #define APNG_PIXEL_BUFFER_AT(m, i, j) (m).elements[(APNG_ASSERT((i) < (m).rows && (j) < (m).cols), (i) * (m).stride_r + (j))]
 #define APNG_HexARGB_TO_RGBA_VAR(x, r, g, b, a) r = ((x)>>(8*2)&0xFF); g = ((x)>>(8*1)&0xFF); b = ((x)>>(8*0)&0xFF); a = ((x)>>(8*3)&0xFF)
+#define APNG_HexARGB_TO_RGB_VAR(x, r, g, b) r = ((x)>>(8*2)&0xFF); g = ((x)>>(8*1)&0xFF); b = ((x)>>(8*0)&0xFF)
 #define APNG_RGBA_TO_hexARGB(r, g, b, a) (int)(0x01000000l*(unsigned int)(apng_min(a, 255)) + 0x010000*(int)(r) + 0x000100*(int)(g) + 0x000001*(int)(b))
 #define APNG_STATIC_ARRAY_LEN(x) (sizeof(x)/sizeof(x[0]))
 #define APNG_HLIT_OFFSET 257
@@ -583,9 +584,6 @@ APNG_DEF enum Apng_Return_Types             apng_crc32_check(struct Apng_Chunk_H
 APNG_DEF uint32_t                           apng_crc32_update(uint32_t crc, uint8_t *buf, size_t buf_len);
 APNG_DEF uint32_t                           apng_endian_swap_uint32(uint32_t x);
 APNG_DEF uint16_t                           apng_endian_swap_uint16(uint16_t x);
-APNG_DEF uint8_t                            apng_filter_1_and_2(uint8_t *x, uint8_t *a, uint8_t channel);
-APNG_DEF uint8_t                            apng_filter_3(uint8_t *x, uint8_t *a, uint8_t *b, uint8_t channel);
-APNG_DEF uint8_t                            apng_filter_4(uint8_t *x, uint8_t *a, uint8_t *b, uint8_t *c, uint8_t channel);
 APNG_DEF uint32_t                           apng_four_char_to_uint32_t(const char *str);
 APNG_DEF enum Apng_Return_Types             apng_huffman_decode_symbol(struct Apng_Huffman_Entrys_Table table, struct Apng_Bit_Reader *br, uint16_t *symbol);
 APNG_DEF struct Apng_Huffman_Entrys_Table   apng_huffman_entry_table_create(uint32_t *code_length_array, size_t code_length_array_len);
@@ -873,45 +871,6 @@ APNG_DEF uint16_t apng_endian_swap_uint16(uint16_t x)
     return ((x << 8) | (x >> 8));
 }
 
-APNG_DEF uint8_t apng_filter_1_and_2(uint8_t *x, uint8_t *a, uint8_t channel)
-{
-    uint8_t res = (uint8_t)x[channel] + (uint8_t)a[channel];
-    return res;
-}
-
-APNG_DEF uint8_t apng_filter_3(uint8_t *x, uint8_t *a, uint8_t *b, uint8_t channel)
-{
-    uint32_t ave = ((uint32_t)a[channel] + (uint32_t)b[channel]) / 2;
-    uint8_t res = (uint8_t)x[channel] + (uint8_t)ave;
-    return res;
-}
-
-APNG_DEF uint8_t apng_filter_4(uint8_t *x, uint8_t *a, uint8_t *b, uint8_t *c, uint8_t channel)
-{
-    int a_chan = (int)a[channel];
-    int b_chan = (int)b[channel];
-    int c_chan = (int)c[channel];
-
-    int p = (int)a[channel] + (int)b[channel] - (int)c[channel];
-    int pa = p - a_chan;
-    if (pa < 0) pa = -pa;
-    int pb = p - b_chan;
-    if (pb < 0) pb = -pb;
-    int pc = p - c_chan;
-    if (pc < 0) pc = -pc;
-
-    int paeth = (int)c_chan;
-    if ((pa <= pb) && (pa <= pc)) {
-        paeth = (int)a_chan;
-    } else if (pb <= pc) {
-        paeth = (int)b_chan;
-    }
-
-    uint8_t res = (uint8_t)x[channel] + (uint8_t)paeth;
-    return res;
-
-}
-
 APNG_DEF uint32_t apng_four_char_to_uint32_t(const char * str)
 {
     return ((uint32_t)(((uint32_t)((str)[0]) << 0) | ((uint32_t)((str)[1]) << 8) | ((uint32_t)((str)[2]) << 16) | ((uint32_t)((str)[3]) << 24)));
@@ -1129,6 +1088,7 @@ APNG_DEF enum Apng_Return_Types apng_png_decode(struct Apng_Byte_String file, st
             goto apng_decode_exit;
         }
 
+        // apng_dprintSTRING(apng_type_name_get(chunk_header.type));
         switch (chunk_header.type) {
             case APNG_TYPE_IHDR: 
             {
@@ -1188,6 +1148,7 @@ APNG_DEF enum Apng_Return_Types apng_png_decode(struct Apng_Byte_String file, st
             } break;
             default:
             {
+                printf("Chunk %s unused.\n", apng_type_name_get(chunk_header.type));
                 if (!islower(apng_type_name_get(chunk_header.type)[10])) {
                     /**
                      * checks if the first letter of the type is small or large.
@@ -1202,6 +1163,15 @@ APNG_DEF enum Apng_Return_Types apng_png_decode(struct Apng_Byte_String file, st
             } break;
         }
     }
+    /* printing INFO */
+    float compression_ratio;
+    if (image->chunks.IHDR_chunk.color_type == 6) {
+        compression_ratio = image->chunks.IHDR_chunk.width * image->chunks.IHDR_chunk.height * 4.0f / image->file.length;
+    } else if (image->chunks.IHDR_chunk.color_type == 2) {
+        compression_ratio = image->chunks.IHDR_chunk.width * image->chunks.IHDR_chunk.height * 3.0f / image->file.length;
+    }
+    apng_dprintINFO("The image size is %u x %u || The color type is %u || The compression ratio is %f",
+        image->chunks.IHDR_chunk.width, image->chunks.IHDR_chunk.height, image->chunks.IHDR_chunk.color_type, compression_ratio);
 
     /* checking PNG file correctness */
     if (image->chunks.IEND_chunk.index != image->file.length - APNG_CHUNK_FOOTER_SIZE) {
@@ -1427,8 +1397,8 @@ APNG_DEF enum Apng_Return_Types apng_IHDR_chunk_parse(struct Apng_IHDR_Chunk *ch
     // apng_dprintINT(chunk->filter_method);
     // apng_dprintINT(chunk->interlace_method);
     
-    if (chunk->color_type != 6) {
-        apng_dprintERROR("Unsupported color type. Supports color type 6 but got %d", chunk->color_type);
+    if (chunk->color_type != 6 && chunk->color_type != 2) {
+        apng_dprintERROR("Unsupported color type. Supports color type 6 and 2 but got %d", chunk->color_type);
         return APNG_FAIL;
     } else {
         if (chunk->bit_depth != 8) {
@@ -1520,7 +1490,13 @@ APNG_DEF enum Apng_Return_Types apng_IDAT_decode(struct Apng_PNG_Image *image)
     for (size_t i = 0; i < decompress_bs.length; i++) {
         ada_appand(uint8_t, unfiltered_bs, decompress_bs.elements[i]);
     }
-    size_t bytes_per_pixel = 4;
+    /* set bytes per pixel according to the color type in IHDR */
+    size_t bytes_per_pixel;
+    if (image->chunks.IHDR_chunk.color_type == 6) {
+        bytes_per_pixel = 4;
+    } else if (image->chunks.IHDR_chunk.color_type == 2) {
+        bytes_per_pixel = 3;
+    } 
     #if 1
     rt = apng_IDAT_unfiltering(unfiltered_bs.elements, decompress_bs.elements, width, height, bytes_per_pixel); /* 4 depends on color type */
     if (rt == APNG_FAIL) {
@@ -1532,13 +1508,22 @@ APNG_DEF enum Apng_Return_Types apng_IDAT_decode(struct Apng_PNG_Image *image)
     /* swizzle and copy the color channels */
     for (size_t i = 0; i < image->pixels.rows; i++) {
         for (size_t j = 0; j < image->pixels.cols; j++) {
-            uint32_t pixel = *(uint32_t *)&unfiltered_bs.elements[i * width * bytes_per_pixel + j * bytes_per_pixel];
-            uint8_t a;
-            uint8_t r;
-            uint8_t g;
-            uint8_t b;
-            APNG_HexARGB_TO_RGBA_VAR(pixel, r, g, b, a);
-            APNG_PIXEL_BUFFER_AT(image->pixels, i, j) = APNG_RGBA_TO_hexARGB(b, g, r, a);
+            if (image->chunks.IHDR_chunk.color_type == 6) {
+                uint32_t pixel = *(uint32_t *)&unfiltered_bs.elements[i * width * bytes_per_pixel + j * bytes_per_pixel];
+                uint8_t a;
+                uint8_t r;
+                uint8_t g;
+                uint8_t b;
+                APNG_HexARGB_TO_RGBA_VAR(pixel, r, g, b, a);
+                APNG_PIXEL_BUFFER_AT(image->pixels, i, j) = APNG_RGBA_TO_hexARGB(b, g, r, a);
+            } else if (image->chunks.IHDR_chunk.color_type == 2) {
+                uint32_t pixel = *(uint32_t *)&unfiltered_bs.elements[i * width * bytes_per_pixel + j * bytes_per_pixel];
+                uint8_t r;
+                uint8_t g;
+                uint8_t b;
+                APNG_HexARGB_TO_RGB_VAR(pixel, r, g, b);
+                APNG_PIXEL_BUFFER_AT(image->pixels, i, j) = APNG_RGBA_TO_hexARGB(b, g, r, 255);
+            }
         }
     }
 
