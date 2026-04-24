@@ -1,5 +1,12 @@
 /**
- * This PNG decoder/incoder is based on the PNG parser created in Handmade Hero, Casey Muratori's famous video series. 
+ * @file
+ * @brief Single-header PNG decoder
+ *
+ * This library reads a PNG file into memory, validates the PNG signature and
+ * chunk CRCs, concatenates and parses the IDAT zlib stream, inflates DEFLATE
+ * blocks, reverses PNG scanline filters, and writes the decoded image into a
+ * 32-bit pixel buffer.
+ * This PNG decoder is based on the PNG parser created in Handmade Hero, Casey Muratori's famous video series. 
  * A link to the video on YouTube: https://youtu.be/lkEWbIUEuN0
  * A link to the website: https://mollyrocket.com/#handmade
  * 
@@ -45,11 +52,6 @@
 #include <stdlib.h>
 #define ADA_MALLOC malloc
 #endif /*ADA_MALLOC*/
-
-#ifndef ADA_EXIT
-#include <stdlib.h>
-#define ADA_EXIT exit
-#endif /*ADA_EXIT*/
 
 /**
  * @def ADA_REALLOC
@@ -116,14 +118,12 @@
  * @post header.capacity == new_capacity and header.elements points to a block
  *       large enough for new_capacity elements.
  *
- * @warning On allocation failure, this macro calls ADA_EXIT(1).
+ * @warning On allocation failure, this macro asserts
  * @note Reallocation uses ADA_REALLOC and is also checked via ADA_ASSERT.
  */
 #define ada_resize(type, header, new_capacity) do {                                                         \
         type *ada_temp_pointer = (type *)ADA_REALLOC((void *)((header).elements), new_capacity*sizeof(type)); \
-        if (ada_temp_pointer == NULL) {                                                                     \
-            ADA_EXIT(1);                                                                                        \
-        }                                                                                                   \
+        ADA_ASSERT(ada_temp_pointer != NULL);                                                                 \
         (header).elements = ada_temp_pointer;                                                                 \
         ADA_ASSERT((header).elements != NULL);                                                                \
         (header).capacity = new_capacity;                                                                     \
@@ -252,16 +252,37 @@
 
 #endif /*ALMOG_DYNAMIC_ARRAY_H_*/
 
+/**
+ * @def APNG_MALLOC
+ * @brief Allocation function used by the PNG library.
+ *
+ * Define APNG_MALLOC before including this file to override the default
+ * allocator.
+ */
 #ifndef APNG_MALLOC
 #include <stdlib.h>
 #define APNG_MALLOC malloc
 #endif
 
+/**
+ * @def APNG_FREE
+ * @brief Deallocation function used by the PNG library.
+ *
+ * Define APNG_FREE before including this file to override the default
+ * deallocator.
+ */
 #ifndef APNG_FREE
 #include <stdlib.h>
 #define APNG_FREE free
 #endif
 
+/**
+ * @def APNG_ASSERT
+ * @brief Assertion macro used by the PNG library.
+ *
+ * Define APNG_ASSERT before including this file to override the default
+ * assertion facility.
+ */
 #ifndef APNG_ASSERT
 #include <assert.h>
 #define APNG_ASSERT assert
@@ -271,6 +292,10 @@ enum Apng_Return_Types {
     APNG_SUCCESS,
     APNG_FAIL,
 };
+/**
+ * @def APNG_OK
+ * @brief Alias for APNG_SUCCESS.
+ */
 #define APNG_OK APNG_SUCCESS
 
 struct Apng_Pixel_Buffer {
@@ -299,7 +324,10 @@ struct Apng_Huffman_Entry {
     uint16_t code;
     uint8_t code_length;
 };
-// #define APNG_HUFFMAN_CODE_MAX_LENGTH (8 * sizeof((*(struct Apng_Huffman_Entry *)0).code))
+/**
+ * @def APNG_HUFFMAN_CODE_MAX_LENGTH
+ * @brief Maximum Huffman code length supported by this implementation.
+ */
 #define APNG_HUFFMAN_CODE_MAX_LENGTH 15
 
 struct Apng_Huffman_Entrys_Table {
@@ -338,6 +366,11 @@ struct Apng_PNG_Header {
     uint8_t *signature;
 };
 
+/**
+ * @def APNG_CHUNK_HEADER_SIZE
+ * @brief Size, in bytes, of a PNG chunk header
+ *        (length + type = 4 + 4).
+ */
 #define APNG_CHUNK_HEADER_SIZE 8
 struct Apng_Chunk_Header {
     size_t size;
@@ -351,6 +384,11 @@ struct Apng_Chunk_Header {
     enum Apng_Chunk_Type type;
 };
 
+/**
+ * @def APNG_CHUNK_FOOTER_SIZE
+ * @brief Size, in bytes, of a PNG chunk footer
+ *        (CRC = 4 bytes).
+ */
 #define APNG_CHUNK_FOOTER_SIZE 4
 struct Apng_Chunk_Footer {
     size_t size;
@@ -377,6 +415,10 @@ struct Apng_PLTE_Chunk {
     uint8_t *body;   
 };
 
+/**
+ * @def APNG_IDAT_ZLIB_HEADER_SIZE
+ * @brief Size, in bytes, of the zlib header at the beginning of IDAT data.
+ */
 #define APNG_IDAT_ZLIB_HEADER_SIZE 2
 struct Apng_IDAT_Header {
     size_t size;
@@ -399,6 +441,10 @@ struct Apng_IDAT_Chunk {
     size_t LZ77_window_size;
 };
 
+/**
+ * @def APNG_IDAT_FOOTER_SIZE
+ * @brief Size, in bytes, of the Adler-32 checksum at the end of zlib data.
+ */
 #define APNG_IDAT_FOOTER_SIZE 4
 struct Apng_IDAT_Footer {
     size_t size;
@@ -524,48 +570,236 @@ struct Apng_PNG_Image {
 
 #ifndef APNG_DEF
     #ifdef APNG_DEF_STATIC
+        /**
+         * @def APNG_DEF
+         * @brief Storage-class specifier used by the single-header API.
+         *
+         * When APNG_DEF_STATIC is defined, all declarations become static.
+         * Otherwise they default to extern.
+         */
         #define APNG_DEF static
     #else
+        /**
+         * @def APNG_DEF
+         * @brief Storage-class specifier used by the single-header API.
+         *
+         * When APNG_DEF_STATIC is not defined, all declarations default to
+         * extern.
+         */
         #define APNG_DEF extern
     #endif
 #endif
+/**
+ * @def APNG_UNUSED
+ * @brief Mark a parameter or local value as intentionally unused.
+ */
 #define APNG_UNUSED(x) ((void)x)
 
+/**
+ * @name Debug-print helpers
+ * @brief Convenience macros for diagnostic output.
+ *
+ * The typed variants print to stdout. The INFO/WARNING/ERROR variants print to
+ * stderr and include file, line, and function information.
+ */
 #define apng_dprintSTRING(expr) printf("[Info] %s:%d:\n" #expr " = %s\n", __FILE__, __LINE__, expr)
+/**
+ * @name Debug-print helpers
+ * @brief Convenience macros for diagnostic output.
+ *
+ * The typed variants print to stdout. The INFO/WARNING/ERROR variants print to
+ * stderr and include file, line, and function information.
+ */
 #define apng_dprintCHAR(expr) printf("[Info] %s:%d:\n" #expr " = %c\n", __FILE__, __LINE__, expr)
+/**
+ * @name Debug-print helpers
+ * @brief Convenience macros for diagnostic output.
+ *
+ * The typed variants print to stdout. The INFO/WARNING/ERROR variants print to
+ * stderr and include file, line, and function information.
+ */
 #define apng_dprintINT(expr) printf("[Info] %s:%d:\n" #expr " = %d\n", __FILE__, __LINE__, expr)
+/**
+ * @name Debug-print helpers
+ * @brief Convenience macros for diagnostic output.
+ *
+ * The typed variants print to stdout. The INFO/WARNING/ERROR variants print to
+ * stderr and include file, line, and function information.
+ */
 #define apng_dprintFLOAT(expr) printf("[Info] %s:%d:\n" #expr " = %#g\n", __FILE__, __LINE__, expr)
+/**
+ * @name Debug-print helpers
+ * @brief Convenience macros for diagnostic output.
+ *
+ * The typed variants print to stdout. The INFO/WARNING/ERROR variants print to
+ * stderr and include file, line, and function information.
+ */
 #define apng_dprintDOUBLE(expr) printf("[Info] %s:%d:\n" #expr " = %#g\n", __FILE__, __LINE__, expr)
+/**
+ * @name Debug-print helpers
+ * @brief Convenience macros for diagnostic output.
+ *
+ * The typed variants print to stdout. The INFO/WARNING/ERROR variants print to
+ * stderr and include file, line, and function information.
+ */
 #define apng_dprintSIZE_T(expr) printf("[Info] %s:%d:\n" #expr " = %zu\n", __FILE__, __LINE__, expr)
+/**
+ * @name Debug-print helpers
+ * @brief Convenience macros for diagnostic output.
+ *
+ * The typed variants print to stdout. The INFO/WARNING/ERROR variants print to
+ * stderr and include file, line, and function information.
+ */
 #define apng_dprintINFO(fmt, ...) \
     fprintf(stderr, "[Info] %s:%d:\n%*sIn function '%s':\n%*s" fmt "\n", __FILE__, __LINE__, 7, "", __func__, 7, "", __VA_ARGS__)
+/**
+ * @name Debug-print helpers
+ * @brief Convenience macros for diagnostic output.
+ *
+ * The typed variants print to stdout. The INFO/WARNING/ERROR variants print to
+ * stderr and include file, line, and function information.
+ */
 #define apng_dprintWARNING(fmt, ...) \
     fprintf(stderr, "[Warning] %s:%d:\n%*sIn function '%s':\n%*s" fmt "\n", __FILE__, __LINE__, 10, "", __func__, 10, "", __VA_ARGS__)
+/**
+ * @name Debug-print helpers
+ * @brief Convenience macros for diagnostic output.
+ *
+ * The typed variants print to stdout. The INFO/WARNING/ERROR variants print to
+ * stderr and include file, line, and function information.
+ */
 #define apng_dprintERROR(fmt, ...) \
     fprintf(stderr, "[Error] %s:%d:\n%*sIn function '%s':\n%*s" fmt "\n", __FILE__, __LINE__, 8, "", __func__, 8, "", __VA_ARGS__)
 
+/**
+ * @def apng_min
+ * @brief Return the smaller of two values.
+ *
+ * @warning This macro evaluates its arguments more than once.
+ */
 #define apng_min(a, b) ((a) < (b) ? (a) : (b))
+/**
+ * @def apng_max
+ * @brief Return the larger of two values.
+ *
+ * @warning This macro evaluates its arguments more than once.
+ */
 #define apng_max(a, b) ((a) > (b) ? (a) : (b))
+/**
+ * @def APNG_PIXEL_BUFFER_AT
+ * @brief Access a pixel in a pixel buffer by row and column.
+ *
+ * Expands to an lvalue expression. In debug builds it asserts that the
+ * requested indices are within bounds.
+ */
 #define APNG_PIXEL_BUFFER_AT(m, i, j) (m).elements[(APNG_ASSERT((i) < (m).rows && (j) < (m).cols), (i) * (m).stride_r + (j))]
+/**
+ * @def APNG_HexARGB_TO_RGBA_VAR
+ * @brief Unpack a 32-bit 0xAARRGGBB value into separate RGBA variables.
+ *
+ * The arguments r, g, b, and a must be modifiable lvalues.
+ */
 #define APNG_HexARGB_TO_RGBA_VAR(x, r, g, b, a) r = ((x)>>(8*2)&0xFF); g = ((x)>>(8*1)&0xFF); b = ((x)>>(8*0)&0xFF); a = ((x)>>(8*3)&0xFF)
+/**
+ * @def APNG_HexARGB_TO_RGB_VAR
+ * @brief Unpack a 32-bit 0xAARRGGBB value into separate RGB variables.
+ *
+ * The arguments r, g, and b must be modifiable lvalues.
+ */
 #define APNG_HexARGB_TO_RGB_VAR(x, r, g, b) r = ((x)>>(8*2)&0xFF); g = ((x)>>(8*1)&0xFF); b = ((x)>>(8*0)&0xFF)
+/**
+ * @def APNG_RGBA_TO_hexARGB
+ * @brief Pack RGBA channels into a 32-bit 0xAARRGGBB integer.
+ *
+ * Alpha is clamped to 255. RGB inputs are used as provided.
+ */
 #define APNG_RGBA_TO_hexARGB(r, g, b, a) (int)(0x01000000l*(unsigned int)(apng_min(a, 255)) + 0x010000*(int)(r) + 0x000100*(int)(g) + 0x000001*(int)(b))
+/**
+ * @def APNG_STATIC_ARRAY_LEN
+ * @brief Return the number of elements in a compile-time array.
+ *
+ * @warning This macro must be used with an actual array, not a pointer.
+ */
 #define APNG_STATIC_ARRAY_LEN(x) (sizeof(x)/sizeof(x[0]))
+/**
+ * @name DEFLATE field sizes, offsets, and fixed-table limits
+ * @brief Constants used while parsing and decoding DEFLATE blocks.
+ */
 #define APNG_HLIT_OFFSET 257
+/**
+ * @name DEFLATE field sizes, offsets, and fixed-table limits
+ * @brief Constants used while parsing and decoding DEFLATE blocks.
+ */
 #define APNG_HDIST_OFFSET 1
+/**
+ * @name DEFLATE field sizes, offsets, and fixed-table limits
+ * @brief Constants used while parsing and decoding DEFLATE blocks.
+ */
 #define APNG_HCLEN_OFFSET 4
+/**
+ * @name DEFLATE field sizes, offsets, and fixed-table limits
+ * @brief Constants used while parsing and decoding DEFLATE blocks.
+ */
 #define APNG_MAX_NUM_OF_CODE_LENGTH_CODE_LENGTH 19
+/**
+ * @name DEFLATE field sizes, offsets, and fixed-table limits
+ * @brief Constants used while parsing and decoding DEFLATE blocks.
+ */
 #define APNG_CODE_LENGTH_CODE_LENGTH_LENGTH 3
+/**
+ * @name DEFLATE field sizes, offsets, and fixed-table limits
+ * @brief Constants used while parsing and decoding DEFLATE blocks.
+ */
 #define APNG_BFINAL_SIZE 1
+/**
+ * @name DEFLATE field sizes, offsets, and fixed-table limits
+ * @brief Constants used while parsing and decoding DEFLATE blocks.
+ */
 #define APNG_BTYPE_SIZE 2
+/**
+ * @name DEFLATE field sizes, offsets, and fixed-table limits
+ * @brief Constants used while parsing and decoding DEFLATE blocks.
+ */
 #define APNG_LEN_SIZE 16
+/**
+ * @name DEFLATE field sizes, offsets, and fixed-table limits
+ * @brief Constants used while parsing and decoding DEFLATE blocks.
+ */
 #define APNG_NLEN_SIZE 16
+/**
+ * @name DEFLATE field sizes, offsets, and fixed-table limits
+ * @brief Constants used while parsing and decoding DEFLATE blocks.
+ */
 #define APNG_HLIT_SIZE 5
+/**
+ * @name DEFLATE field sizes, offsets, and fixed-table limits
+ * @brief Constants used while parsing and decoding DEFLATE blocks.
+ */
 #define APNG_HDIST_SIZE 5
+/**
+ * @name DEFLATE field sizes, offsets, and fixed-table limits
+ * @brief Constants used while parsing and decoding DEFLATE blocks.
+ */
 #define APNG_HCLEN_SIZE 4
+/**
+ * @name DEFLATE field sizes, offsets, and fixed-table limits
+ * @brief Constants used while parsing and decoding DEFLATE blocks.
+ */
 #define APNG_LIT_LEN_CODE_LENGTH_MAX_COUNT 286
+/**
+ * @name DEFLATE field sizes, offsets, and fixed-table limits
+ * @brief Constants used while parsing and decoding DEFLATE blocks.
+ */
 #define APNG_DIST_CODE_LENGTH_MAX_COUNT 32
+/**
+ * @name DEFLATE field sizes, offsets, and fixed-table limits
+ * @brief Constants used while parsing and decoding DEFLATE blocks.
+ */
 #define APNG_FIX_HUFFMAN_HLIT 288
+/**
+ * @name DEFLATE field sizes, offsets, and fixed-table limits
+ * @brief Constants used while parsing and decoding DEFLATE blocks.
+ */
 #define APNG_FIX_HUFFMAN_HDIST 32
 
 APNG_DEF enum Apng_Return_Types             apng_adler32_check(uint32_t original_adler32, uint8_t *buffer, size_t buffer_length);
@@ -614,6 +848,13 @@ APNG_DEF struct Apng_IDAT_Header            apng_IDAT_header_get_from_IDAT_chunk
 #ifdef ALMOG_PNG_IMPLEMENTATION
 #undef ALMOG_PNG_IMPLEMENTATION
 
+/**
+ * @brief Verify that a buffer matches an expected Adler-32 checksum.
+ * @param original_adler32 Expected Adler-32 value from the zlib stream.
+ * @param buffer Buffer to validate.
+ * @param buffer_length Length of buffer in bytes.
+ * @return APNG_SUCCESS if the checksum matches, otherwise APNG_FAIL.
+ */
 APNG_DEF enum Apng_Return_Types apng_adler32_check(uint32_t original_adler32, uint8_t *buffer, size_t buffer_length)
 {
     uint32_t adler = apng_adler32_update((uint32_t)1, buffer, buffer_length);
@@ -626,6 +867,13 @@ APNG_DEF enum Apng_Return_Types apng_adler32_check(uint32_t original_adler32, ui
     }
 }
 
+/**
+ * @brief Update or compute an Adler-32 checksum over a buffer.
+ * @param adler Initial Adler-32 state. Use 1 for a fresh checksum.
+ * @param buffer Input buffer.
+ * @param buffer_length Length of buffer in bytes.
+ * @return Updated Adler-32 checksum.
+ */
 APNG_DEF uint32_t apng_adler32_update(uint32_t adler, uint8_t *buffer, size_t buffer_length)
 {
     /* according to the ZLIB specification: https://www.ietf.org/rfc/rfc1950.txt */
@@ -641,6 +889,15 @@ APNG_DEF uint32_t apng_adler32_update(uint32_t adler, uint8_t *buffer, size_t bu
     return (s2 << 16) + s1;
 }
 
+/**
+ * @brief Read an entire binary file into a byte-string structure.
+ * @param file_name Path to the file to read.
+ * @return A byte string containing the file contents. On failure, the returned
+ *         structure is zero-initialized as much as possible.
+ *
+ * @note The returned object owns heap memory and must be released with
+ *       apng_byte_string_free().
+ */
 APNG_DEF struct Apng_Byte_String apng_bin_file_read(char *file_name)
 {
     struct Apng_Byte_String res = {0};
@@ -725,6 +982,10 @@ APNG_DEF struct Apng_Byte_String apng_bin_file_read(char *file_name)
     return res;
 }
 
+/**
+ * @brief Free the storage owned by a byte string and reset its fields.
+ * @param bs Byte string to release.
+ */
 APNG_DEF void apng_byte_string_free(struct Apng_Byte_String *bs)
 {
     APNG_FREE(bs->elements);
@@ -734,12 +995,21 @@ APNG_DEF void apng_byte_string_free(struct Apng_Byte_String *bs)
     bs->cursor = 0;
 }
 
+/**
+ * @brief Discard any unread bits cached in the bit reader.
+ * @param br Bit reader to reset to the next byte boundary.
+ */
 APNG_DEF void apng_bit_reader_flash(struct Apng_Bit_Reader *br)
 {
     br->current_byte = 0;
     br->bits_left = 0;
 }
 
+/**
+ * @brief Initialize a bit reader over a byte string.
+ * @param br Bit reader to initialize.
+ * @param file Source byte string.
+ */
 APNG_DEF void apng_bit_reader_init(struct Apng_Bit_Reader *br, struct Apng_Byte_String file)
 {
     br->file = file;
@@ -747,6 +1017,11 @@ APNG_DEF void apng_bit_reader_init(struct Apng_Bit_Reader *br, struct Apng_Byte_
     br->bits_left = 0;
 }
 
+/**
+ * @brief Read one bit from the stream.
+ * @param br Bit reader.
+ * @return The next bit, read least-significant-bit first within each byte.
+ */
 APNG_DEF uint8_t apng_bit_reader_read_bit(struct Apng_Bit_Reader *br)
 {
     if (br->bits_left == 0) {
@@ -762,6 +1037,12 @@ APNG_DEF uint8_t apng_bit_reader_read_bit(struct Apng_Bit_Reader *br)
     return bit;
 }
 
+/**
+ * @brief Read multiple bits from the stream.
+ * @param br Bit reader.
+ * @param count Number of bits to read; must be at most 32.
+ * @return The bits packed into the low bits of the result in read order.
+ */
 APNG_DEF uint32_t apng_bit_reader_read_bits(struct Apng_Bit_Reader *br, size_t count)
 {
     APNG_ASSERT(count <= 32);
@@ -769,18 +1050,18 @@ APNG_DEF uint32_t apng_bit_reader_read_bits(struct Apng_Bit_Reader *br, size_t c
     uint32_t res = 0;
 
     for (size_t i = 0; i < count; i++) {
-        #if 0
-        res <<= 1;
-        res |= apng_bit_reader_read_bit(br);
-        #else
         res |= ((uint32_t)apng_bit_reader_read_bit(br)) << i;
-        #endif
-
     }
 
     return res;
 }
 
+/**
+ * @brief Reverse the lowest bit_count bits of a 16-bit value.
+ * @param value Input value.
+ * @param bit_count Number of low bits to reverse.
+ * @return Bit-reversed value.
+ */
 APNG_DEF uint16_t apng_uint16_bits_reverse(uint16_t value, uint8_t bit_count)
 {
     if (value == 0) return 0;
@@ -793,6 +1074,11 @@ APNG_DEF uint16_t apng_uint16_bits_reverse(uint16_t value, uint8_t bit_count)
     return result;
 }
 
+/**
+ * @brief Parse a PNG chunk footer from the current cursor position.
+ * @param bs Byte string whose cursor points at a chunk CRC.
+ * @return Parsed chunk footer.
+ */
 APNG_DEF struct Apng_Chunk_Footer apng_chunk_footer_get(struct Apng_Byte_String *bs)
 {
     size_t size = APNG_CHUNK_FOOTER_SIZE;
@@ -806,6 +1092,11 @@ APNG_DEF struct Apng_Chunk_Footer apng_chunk_footer_get(struct Apng_Byte_String 
     return footer;
 }
 
+/**
+ * @brief Parse a PNG chunk header from the current cursor position.
+ * @param bs Byte string whose cursor points at a chunk header.
+ * @return Parsed chunk header.
+ */
 APNG_DEF struct Apng_Chunk_Header apng_chunk_header_get(struct Apng_Byte_String *bs)
 {
     size_t size = APNG_CHUNK_HEADER_SIZE;
@@ -822,6 +1113,14 @@ APNG_DEF struct Apng_Chunk_Header apng_chunk_header_get(struct Apng_Byte_String 
     return header;
 }
 
+/**
+ * @brief Return a pointer to the next amount bytes and advance the cursor.
+ * @param bs Source byte string.
+ * @param amount Number of bytes to consume.
+ * @return Pointer to the first consumed byte.
+ *
+ * @pre amount must not exceed the number of remaining bytes.
+ */
 APNG_DEF void * apng_consume_bytes(struct Apng_Byte_String *bs, size_t amount_byte)
 {
     APNG_ASSERT(amount_byte <= bs->length - bs->cursor);
@@ -832,6 +1131,13 @@ APNG_DEF void * apng_consume_bytes(struct Apng_Byte_String *bs, size_t amount_by
     return res;
 }
 
+/**
+ * @brief Verify the CRC of a PNG chunk.
+ * @param header Chunk header.
+ * @param chunk_data Pointer to the chunk body.
+ * @param footer Chunk footer containing the file CRC.
+ * @return APNG_SUCCESS if the CRC matches, otherwise APNG_FAIL.
+ */
 APNG_DEF enum Apng_Return_Types apng_crc32_check(struct Apng_Chunk_Header header, void *chunk_data, struct Apng_Chunk_Footer footer)
 {
     uint32_t calculated_crc = 0xFFFFFFFFu;
@@ -847,6 +1153,13 @@ APNG_DEF enum Apng_Return_Types apng_crc32_check(struct Apng_Chunk_Header header
     }
 }
 
+/**
+ * @brief Update a CRC-32 value over a byte buffer.
+ * @param crc Initial CRC state.
+ * @param buf Input bytes.
+ * @param buf_len Number of bytes in buf.
+ * @return Updated CRC-32 value.
+ */
 APNG_DEF uint32_t apng_crc32_update(uint32_t crc, uint8_t *buf, size_t buf_len)
 {
     for (size_t i = 0; i < buf_len; i++) {
@@ -863,6 +1176,11 @@ APNG_DEF uint32_t apng_crc32_update(uint32_t crc, uint8_t *buf, size_t buf_len)
     return crc;
 }
 
+/**
+ * @brief Swap the byte order of a 32-bit unsigned integer.
+ * @param x Input value.
+ * @return Byte-swapped value.
+ */
 APNG_DEF uint32_t apng_endian_swap_uint32(uint32_t x)
 {
     return ((x << 24) |
@@ -871,16 +1189,33 @@ APNG_DEF uint32_t apng_endian_swap_uint32(uint32_t x)
             (x >> 24));
 }
 
+/**
+ * @brief Swap the byte order of a 16-bit unsigned integer.
+ * @param x Input value.
+ * @return Byte-swapped value.
+ */
 APNG_DEF uint16_t apng_endian_swap_uint16(uint16_t x)
 {
     return ((x << 8) | (x >> 8));
 }
 
+/**
+ * @brief Pack four characters into a uint32_t in library-defined order.
+ * @param str Pointer to at least four characters.
+ * @return Packed 32-bit value suitable for chunk-type comparisons.
+ */
 APNG_DEF uint32_t apng_four_char_to_uint32_t(const char * str)
 {
     return ((uint32_t)(((uint32_t)((str)[0]) << 0) | ((uint32_t)((str)[1]) << 8) | ((uint32_t)((str)[2]) << 16) | ((uint32_t)((str)[3]) << 24)));
 }
 
+/**
+ * @brief Decode one symbol using a Huffman table and bit reader.
+ * @param table Huffman decode table.
+ * @param br Bit reader positioned at the encoded symbol.
+ * @param symbol Output symbol.
+ * @return APNG_SUCCESS on success, otherwise APNG_FAIL.
+ */
 APNG_DEF enum Apng_Return_Types apng_huffman_decode_symbol(struct Apng_Huffman_Entrys_Table table, struct Apng_Bit_Reader *br, uint16_t *symbol)
 {
     uint16_t code = 0;
@@ -901,6 +1236,15 @@ APNG_DEF enum Apng_Return_Types apng_huffman_decode_symbol(struct Apng_Huffman_E
     return APNG_FAIL;
 }
 
+/**
+ * @brief Build a canonical Huffman decode table from code lengths.
+ * @param code_length_array Array of code lengths indexed by symbol.
+ * @param code_length_array_len Number of entries in code_length_array.
+ * @return Constructed Huffman table.
+ *
+ * @note The returned table owns a dynamically allocated elements buffer. The
+ *       caller is responsible for freeing table.elements when no longer needed.
+ */
 APNG_DEF struct Apng_Huffman_Entrys_Table apng_huffman_entry_table_create(uint32_t *code_length_array, size_t code_length_array_len)
 {
     /** TODO:
@@ -971,6 +1315,10 @@ APNG_DEF struct Apng_Huffman_Entrys_Table apng_huffman_entry_table_create(uint32
     return huffman_table;
 }
 
+/**
+ * @brief Print one Huffman entry for debugging.
+ * @param entry Entry to print.
+ */
 APNG_DEF void apng_huffman_entry_print(struct Apng_Huffman_Entry entry)
 {
     printf("{.symbol = %6d, .len = %2u, .code = %-6d = ", entry.symbol, entry.code_length, entry.code);
@@ -978,6 +1326,10 @@ APNG_DEF void apng_huffman_entry_print(struct Apng_Huffman_Entry entry)
     printf("%*s}\n", 15-entry.code_length, " ");
 }
 
+/**
+ * @brief Print an entire Huffman table for debugging.
+ * @param table Table to print.
+ */
 APNG_DEF void apng_huffman_entry_table_print(struct Apng_Huffman_Entrys_Table table)
 {
     for (size_t i = 0; i < table.length; i++) {
@@ -986,6 +1338,14 @@ APNG_DEF void apng_huffman_entry_table_print(struct Apng_Huffman_Entrys_Table ta
     }
 }
 
+/**
+ * @brief Look up a symbol by exact code and code length.
+ * @param table Huffman table.
+ * @param code Huffman code bits.
+ * @param code_length Number of valid bits in code.
+ * @param symbol Output symbol.
+ * @return APNG_SUCCESS if a matching symbol exists, otherwise APNG_FAIL.
+ */
 APNG_DEF enum Apng_Return_Types apng_huffman_entry_table_get_symbol(struct Apng_Huffman_Entrys_Table table, uint16_t code, uint8_t code_length, uint16_t *symbol)
 {
     for (size_t i = 0; i < table.length; i++) {
@@ -999,6 +1359,15 @@ APNG_DEF enum Apng_Return_Types apng_huffman_entry_table_get_symbol(struct Apng_
     return APNG_FAIL;
 }
 
+/**
+ * @brief Decode the dynamic DEFLATE literal/length and distance code lengths.
+ * @param dict_huffman Huffman table used for code-length symbols.
+ * @param br Bit reader.
+ * @param HLIT Number of literal/length code lengths to decode.
+ * @param HDIST Number of distance code lengths to decode.
+ * @param lit_len_dist_code_length Output array of HLIT + HDIST code lengths.
+ * @return APNG_SUCCESS on success, otherwise APNG_FAIL.
+ */
 APNG_DEF enum Apng_Return_Types apng_lit_len_dist_code_length_decode(struct Apng_Huffman_Entrys_Table dict_huffman, struct Apng_Bit_Reader *br, uint32_t HLIT, uint32_t HDIST, uint32_t *lit_len_dist_code_length)
 {
     uint32_t total = HLIT + HDIST;
@@ -1058,6 +1427,15 @@ APNG_DEF enum Apng_Return_Types apng_lit_len_dist_code_length_decode(struct Apng
     return APNG_SUCCESS;
 }
 
+/**
+ * @brief Allocate a pixel buffer of rows by cols pixels.
+ * @param rows Number of rows.
+ * @param cols Number of columns.
+ * @return Allocated pixel buffer.
+ *
+ * @note The caller owns the returned buffer and must free elements when no
+ *       longer needed.
+ */
 APNG_DEF struct Apng_Pixel_Buffer apng_pixel_buffer_malloc(size_t rows, size_t cols)
 {
     struct Apng_Pixel_Buffer m;
@@ -1070,6 +1448,13 @@ APNG_DEF struct Apng_Pixel_Buffer apng_pixel_buffer_malloc(size_t rows, size_t c
     return m;
 }
 
+/**
+ * @brief Decode a PNG image from an in-memory byte string.
+ * @param file PNG file contents.
+ * @param image Output image structure.
+ * @param print_info When true, emit informational diagnostics.
+ * @return APNG_SUCCESS on success, otherwise APNG_FAIL.
+ */
 APNG_DEF enum Apng_Return_Types apng_png_decode(struct Apng_Byte_String file, struct Apng_PNG_Image *image, bool print_info)
 {
     image->file = file;
@@ -1197,6 +1582,10 @@ apng_decode_exit:
     return rt;
 }
 
+/**
+ * @brief Free all memory owned by a decoded PNG image and zero the structure.
+ * @param image Image to release.
+ */
 APNG_DEF void apng_png_free(struct Apng_PNG_Image *image)
 {
     if (image == NULL) {
@@ -1209,6 +1598,12 @@ APNG_DEF void apng_png_free(struct Apng_PNG_Image *image)
     memset(image, 0, sizeof(*image));
 }
 
+/**
+ * @brief Check whether a parsed PNG header contains the correct 8-byte
+ *        signature.
+ * @param h Parsed PNG header.
+ * @return true if the signature is valid, otherwise false.
+ */
 APNG_DEF bool apng_png_header_signature_correct(struct Apng_PNG_Header h)
 {
     char correct_signature[] = {137, 80, 78, 71, 13, 10, 26, 10};
@@ -1234,6 +1629,13 @@ APNG_DEF bool apng_png_header_signature_correct(struct Apng_PNG_Header h)
     return true;
 }
 
+/**
+ * @brief Load a PNG file from disk and decode it.
+ * @param file_name Path to the PNG file.
+ * @param image Output image structure.
+ * @param print_info When true, emit informational diagnostics.
+ * @return APNG_SUCCESS on success, otherwise APNG_FAIL.
+ */
 APNG_DEF enum Apng_Return_Types apng_png_load(char *file_name, struct Apng_PNG_Image *image, bool print_info)
 {
     struct Apng_Byte_String file = apng_bin_file_read(file_name);
@@ -1242,13 +1644,18 @@ APNG_DEF enum Apng_Return_Types apng_png_load(char *file_name, struct Apng_PNG_I
         return APNG_FAIL;
     }
     if (APNG_FAIL == apng_png_decode(file, image, print_info)) {
-        apl_dprintERROR("Failed to load png image '%s'.", file_name);
+        apng_dprintERROR("Failed to load png image '%s'.", file_name);
         return APNG_FAIL;
     }
 
     return APNG_SUCCESS;
 }
 
+/**
+ * @brief Parse the PNG file signature header from the current cursor.
+ * @param bs Byte string whose cursor points at the PNG signature.
+ * @return Parsed PNG header.
+ */
 APNG_DEF struct Apng_PNG_Header apng_png_header_get(struct Apng_Byte_String *bs)
 {
     size_t size = 8;
@@ -1261,6 +1668,11 @@ APNG_DEF struct Apng_PNG_Header apng_png_header_get(struct Apng_Byte_String *bs)
     return header;
 }
 
+/**
+ * @brief Print the lowest bit_count bits of a uint16_t in binary.
+ * @param value Value to print.
+ * @param bit_count Number of bits to print.
+ */
 APNG_DEF void apng_uint16_print_binary(uint16_t value, uint8_t bit_count)
 {
     for (int i = (int)bit_count - 1; i >= 0; i--) {
@@ -1268,6 +1680,11 @@ APNG_DEF void apng_uint16_print_binary(uint16_t value, uint8_t bit_count)
     }
 }
 
+/**
+ * @brief Convert a raw 4-byte chunk type to the corresponding enum value.
+ * @param raw_type Packed raw chunk type.
+ * @return Matching chunk-type enum, or APNG_TYPE_UNKNOWN if unsupported.
+ */
 APNG_DEF enum Apng_Chunk_Type apng_type_get_from_type_raw(uint32_t raw_type)
 {
     if (raw_type == apng_four_char_to_uint32_t("IHDR")) {
@@ -1311,6 +1728,11 @@ APNG_DEF enum Apng_Chunk_Type apng_type_get_from_type_raw(uint32_t raw_type)
     }
 }
 
+/**
+ * @brief Return a human-readable name for an Apng_Chunk_Type enum value.
+ * @param type Chunk-type enum.
+ * @return String representation of the enum value.
+ */
 APNG_DEF const char * apng_type_name_get(enum Apng_Chunk_Type type)
 {
     switch (type) {
@@ -1402,6 +1824,11 @@ APNG_DEF const char * apng_type_name_get(enum Apng_Chunk_Type type)
     }
 }
 
+/**
+ * @brief Parse and validate the contents of an IHDR chunk.
+ * @param chunk IHDR chunk to parse.
+ * @return APNG_SUCCESS on success, otherwise APNG_FAIL.
+ */
 APNG_DEF enum Apng_Return_Types apng_IHDR_chunk_parse(struct Apng_IHDR_Chunk *chunk)
 {
     APNG_ASSERT(chunk->body != NULL);
@@ -1454,6 +1881,11 @@ APNG_DEF enum Apng_Return_Types apng_IHDR_chunk_parse(struct Apng_IHDR_Chunk *ch
     return APNG_SUCCESS;
 }
 
+/**
+ * @brief Parse and validate the zlib header stored in concatenated IDAT data.
+ * @param chunk IDAT chunk state.
+ * @return APNG_SUCCESS on success, otherwise APNG_FAIL.
+ */
 APNG_DEF enum Apng_Return_Types apng_IDAT_chunk_parse(struct Apng_IDAT_Chunk *chunk)
 {
     /*ZLIB specification: https://www.ietf.org/rfc/rfc1951.txt */
@@ -1499,6 +1931,11 @@ APNG_DEF enum Apng_Return_Types apng_IDAT_chunk_parse(struct Apng_IDAT_Chunk *ch
     return APNG_SUCCESS;
 }
 
+/**
+ * @brief Decode the image payload from the already-collected IDAT stream.
+ * @param image PNG image whose IHDR and IDAT state were previously parsed.
+ * @return APNG_SUCCESS on success, otherwise APNG_FAIL.
+ */
 APNG_DEF enum Apng_Return_Types apng_IDAT_decode(struct Apng_PNG_Image *image)
 {
     size_t width = image->chunks.IHDR_chunk.width;
@@ -1677,6 +2114,15 @@ struct Apng_Huffman_Entry dist_extra[] = {
     {.symbol = 24577, .code_length = 13}, /* 29 */
 };
 
+/**
+ * @brief Inflate the concatenated IDAT zlib stream into raw filtered scanline
+ *        bytes.
+ * @param image PNG image containing parsed IDAT data.
+ * @param temp_bs Output byte string for decompressed data.
+ * @return APNG_SUCCESS on success, otherwise APNG_FAIL.
+ *
+ * @pre temp_bs must already be initialized and writable.
+ */
 APNG_DEF enum Apng_Return_Types apng_IDAT_decompress(struct Apng_PNG_Image *image, struct Apng_Byte_String *temp_bs)
 {
     /*ZLIB specification: https://www.ietf.org/rfc/rfc1950.txt */
@@ -1895,6 +2341,16 @@ apng_IDAT_decompress_end:
     return rt;
 }
 
+/**
+ * @brief Reverse PNG scanline filtering.
+ * @param unfiltered_data Output buffer for reconstructed scanline bytes.
+ * @param decompressed_data Input buffer containing filter bytes and filtered rows.
+ * @param width Image width in pixels.
+ * @param height Image height in pixels.
+ * @param num_of_channels Number of channels per pixel.
+ * @param bit_per_channel Bit depth of each channel.
+ * @return APNG_SUCCESS on success, otherwise APNG_FAIL.
+ */
 APNG_DEF enum Apng_Return_Types apng_IDAT_unfiltering(uint8_t *unfiltered_data, uint8_t *decompressed_data, size_t width, size_t height, size_t num_of_channels, size_t bit_per_channel)
 {
     uint8_t *src = decompressed_data;
@@ -1970,7 +2426,6 @@ APNG_DEF enum Apng_Return_Types apng_IDAT_unfiltering(uint8_t *unfiltered_data, 
             return APNG_FAIL;
         }
         }
-
         src += width_in_bytes;
         row_above = current_row;
         des += width_in_bytes;
@@ -1979,6 +2434,11 @@ APNG_DEF enum Apng_Return_Types apng_IDAT_unfiltering(uint8_t *unfiltered_data, 
     return APNG_SUCCESS;
 }
 
+/**
+ * @brief Read the zlib header fields from the start of concatenated IDAT data.
+ * @param chunk IDAT chunk state.
+ * @return Parsed IDAT/zlib header.
+ */
 APNG_DEF struct Apng_IDAT_Header apng_IDAT_header_get_from_IDAT_chunk(struct Apng_IDAT_Chunk chunk)
 {
     APNG_ASSERT(chunk.IDAT_data.elements != NULL);
@@ -1991,7 +2451,6 @@ APNG_DEF struct Apng_IDAT_Header apng_IDAT_header_get_from_IDAT_chunk(struct Apn
         .index = chunk.index,
         .size = size,
     };
-
     header.zlib_compression_method_flags = chunk.IDAT_data.elements[0];
     header.additional_flags = chunk.IDAT_data.elements[1];
 
