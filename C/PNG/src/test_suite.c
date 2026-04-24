@@ -62,7 +62,32 @@ enum Apl_Return_Types apl_setup(struct Apl_Window_State *ws)
 struct Apng_PNG_Image image = {0};
 size_t image_index = 0;
 const char *file_name[] = {
-    "../src/test_images/PngSuite/Corrupted-files/xd9n2c08.png",
+    "../src/test_images/PngSuite/Basic-formats/basn0g01.png",
+    "../src/test_images/PngSuite/Basic-formats/basn0g02.png",
+    "../src/test_images/PngSuite/Basic-formats/basn0g04.png",
+    "../src/test_images/PngSuite/Basic-formats/basn0g08.png",
+    // "../src/test_images/PngSuite/Basic-formats/basn0g16.png", /* unsupported */
+    "../src/test_images/PngSuite/Basic-formats/basn2c08.png",
+    // "../src/test_images/PngSuite/Basic-formats/basn2c16.png", /* unsupported */
+    // "../src/test_images/PngSuite/Basic-formats/basn3p01.png", /* unsupported */
+    // "../src/test_images/PngSuite/Basic-formats/basn3p02.png", /* unsupported */
+    // "../src/test_images/PngSuite/Basic-formats/basn3p04.png", /* unsupported */
+    // "../src/test_images/PngSuite/Basic-formats/basn3p08.png", /* unsupported */
+    "../src/test_images/PngSuite/Basic-formats/basn4a08.png",
+    // "../src/test_images/PngSuite/Basic-formats/basn4a16.png", /* unsupported */
+    "../src/test_images/PngSuite/Basic-formats/basn6a08.png",
+    // "../src/test_images/PngSuite/Basic-formats/basn6a16.png", /* unsupported */
+    "../src/test_images/PngSuite/Image-filtering/f00n0g08.png",
+    "../src/test_images/PngSuite/Image-filtering/f00n2c08.png",
+    "../src/test_images/PngSuite/Image-filtering/f01n0g08.png",
+    "../src/test_images/PngSuite/Image-filtering/f01n2c08.png",
+    "../src/test_images/PngSuite/Image-filtering/f02n0g08.png",
+    "../src/test_images/PngSuite/Image-filtering/f02n2c08.png",
+    "../src/test_images/PngSuite/Image-filtering/f03n0g08.png",
+    "../src/test_images/PngSuite/Image-filtering/f03n2c08.png",
+    "../src/test_images/PngSuite/Image-filtering/f04n0g08.png",
+    "../src/test_images/PngSuite/Image-filtering/f04n2c08.png",
+    "../src/test_images/PngSuite/Image-filtering/f99n0g04.png",
 };
 size_t num_of_images = sizeof(file_name) / sizeof(file_name[0]);
 bool print_info = true;
@@ -117,9 +142,17 @@ enum Apl_Return_Types apl_input(struct Apl_Window_State *ws)
         factor = 1;
         // apl_dprintFLOAT(factor);
         ws->to_render = true;
-    } else if (ws->buttons.space_bar_is_pressed) {
+    } else if (ws->buttons.up_is_pressed) {
+        apl_sleep(100e3);
         if (image_index < num_of_images - 1) {
             image_index++;
+            print_info = true;
+            ws->to_render = true;
+        }
+    } else if (ws->buttons.down_is_pressed) {
+        apl_sleep(100e3);
+        if (image_index > 0) {
+            image_index--;
             print_info = true;
             ws->to_render = true;
         }
