@@ -62,7 +62,7 @@ enum Apl_Return_Types apl_setup(struct Apl_Window_State *ws)
 struct Apng_PNG_Image image = {0};
 size_t image_index = 0;
 const char *file_name[] = {
-    "../src/test_images/PngSuite/Corrupted-files/xd9n2c08.png",
+    "../src/test_images/test-png_wiki.png",
 };
 size_t num_of_images = sizeof(file_name) / sizeof(file_name[0]);
 bool print_info = true;

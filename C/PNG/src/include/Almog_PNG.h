@@ -1640,7 +1640,7 @@ APNG_DEF enum Apng_Return_Types apng_png_load(char *file_name, struct Apng_PNG_I
 {
     struct Apng_Byte_String file = apng_bin_file_read(file_name);
     if (file.name == NULL) {
-        apng_dprintERROR("Failed to open file at ''.", file_name);
+        apng_dprintERROR("Failed to open file at '%s'.", file_name);
         return APNG_FAIL;
     }
     if (APNG_FAIL == apng_png_decode(file, image, print_info)) {
