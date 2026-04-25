@@ -1,24 +1,43 @@
 /**
  * @file
- * @brief Lightweight 2D matrix helpers (double / uint32_t).
+ * @brief Lightweight 2D matrix helpers (mat2D_real / uint32_t).
  *
  * @details
  * This single-header module provides small utilities for dense row-major
- * matrices:
- *  - Allocation/free for Mat2D (double) and Mat2D_uint32
- *  - Basic arithmetic and row/column operations
- *  - Matrix multiplication, transpose, dot and cross products
- *  - Determinant and inversion (Gaussian / Gauss-Jordan style)
- *  - A simple LUP decomposition helper and a linear system solver
- *  - Rotation matrix helpers (X/Y/Z) and a Z-Y-X DCM builder (as implemented)
+ * matrices and a few non-owning matrix views.
+ *
+ * Main features
+ *  - Allocation, free, and reallocation for Mat2D and Mat2D_uint32
+ *  - Fill, copy, print, random initialization, and simple window-copy helpers
+ *  - Basic arithmetic, scaling, shifting, and row/column operations
+ *  - Matrix multiplication, transpose, dot product, outer product, and 3D cross
+ *    product
+ *  - Determinant, inversion, upper-triangular reduction, and RREF-style
+ *    reduction
+ *  - LUP decomposition and a linear-system solver
+ *  - Orthogonalization helpers, power-iteration-based eigenvalue/eigenvector
+ *    routines, and educational SVD helpers
+ *  - Rotation matrix helpers (X/Y/Z) and a Z-Y-X DCM builder, as implemented
  *  - “Minor” views (index lists into a reference matrix) for educational
  *    determinant-by-minors computation
  *
+ * Scalar type
+ *  - Mat2D stores elements of type mat2D_real.
+ *  - By default, mat2D_real is double.
+ *  - If MAT2D_SINGLE_PRECISION is defined before including this header,
+ *    mat2D_real becomes float and the math helper macros map to the float
+ *    variants.
+ *
  * Storage model
  *  - Matrices are dense and row-major (C-style).
- *  - Element at row i and column j (0-based) is:
+ *  - Element at row i and column j (0-based) is logically accessed as:
  *      elements[i * stride_r + j]
- *  - For matrices created by mat2D_alloc(), stride_r == cols.
+ *  - For matrices created by mat2D_alloc() or mat2D_realloc(),
+ *      stride_r == cols
+ *  - Some helpers return shallow/non-owning views into existing matrices
+ *    (for example, column references).
+ *  - Mat2D_Minor does not store minor elements directly; it stores row/column
+ *    index lists into a reference matrix.
  *
  * Usage
  *  - In exactly one translation unit, define MATRIX2D_IMPLEMENTATION before
@@ -30,28 +49,34 @@
  *   #define MATRIX2D_IMPLEMENTATION
  *   #include "matrix2d.h"
  *
- *
  * Notes and limitations
- *  - This one-file library is heavily inspired by Tsoding's nn.h
- *    implementation of matrix creation and operations:
- *    https://github.com/tsoding/nn.h and the video:
+ *  - This one-file library is inspired by Tsoding's nn.h approach to
+ *    lightweight matrix creation and operations:
+ *    https://github.com/tsoding/nn.h
+ *    and the video:
  *    https://youtu.be/L1TbWe8bVOc?list=PLpM-Dvs8t0VZPZKggcql-MmjaBdZKeDMw
- *  - All APIs assume the caller provides correctly-sized destination matrices.
- *    Shape mismatches are checked with MAT2D_ASSERT in many routines.
- *  - This library does not try to be numerically robust:
- *      - Pivoting is limited (only performed when a pivot is “near zero” per
- *        MAT2D_EPS in several routines).
- *      - Ill-conditioned matrices may produce inaccurate determinants/inverses.
+ *  - Most APIs assume the caller provides correctly-sized destination matrices.
+ *    Many, but not all, shape mismatches are checked with MAT2D_ASSERT.
+ *  - This library is primarily educational/utility-oriented and does not try
+ *    to be numerically robust:
+ *      - Some routines use partial pivoting, while others use only limited
+ *        pivoting or simple heuristics.
+ *      - Ill-conditioned matrices may produce inaccurate determinants,
+ *        inverses, decompositions, or eigen/singular values.
+ *      - Several algorithms are implemented for clarity rather than for
+ *        production-grade stability or performance.
  *  - RNG uses C rand(); it is not cryptographically secure.
  *
  * @warning Numerical stability and correctness
  *  - mat2D_minor_det() is factorial-time and is intended only for very small
  *    matrices (educational use).
- *  - mat2D_invert() uses Gauss-Jordan elimination and may be unstable for
- *    ill-conditioned matrices. Consider a more robust decomposition for
- *    production use (full pivoting / QR / SVD).
- *  - Several routines do not guard against aliasing (e.g. dst == a). Unless
- *    documented otherwise, assume inputs and outputs must not overlap.
+ *  - mat2D_invert() uses Gauss-Jordan-style elimination and may be unstable for
+ *    ill-conditioned matrices.
+ *  - The eigenvalue and SVD helpers are power-iteration-based educational
+ *    routines and may fail to converge or lose accuracy on difficult inputs.
+ *  - Several routines do not guard against aliasing (for example, dst == src or
+ *    overlapping views). Unless documented otherwise, assume inputs and
+ *    outputs must not overlap.
  */
 
 #ifndef MATRIX2D_H_
@@ -126,14 +151,17 @@
 #endif
 
 /**
- * @brief Dense row-major matrix of double.
+ * @brief Dense row-major matrix of mat2D_real.
  *
  * @details
  *  - rows     Number of rows (height).
  *  - cols     Number of columns (width).
  *  - stride_r Number of elements between successive rows in memory.
  *            For contiguous storage, stride_r == cols.
- *  - elements Pointer to a contiguous buffer of rows * cols doubles.
+ *  - elements Pointer to the first accessible element.
+ *             For matrices created by mat2D_alloc()/mat2D_realloc(), this
+ *             points to a contiguous buffer of rows * cols mat2D_real values.
+ *             For non-owning views, it may point into another matrix.
  *
  * @note This type is a shallow handle; copying Mat2D copies the pointer, not
  *       the underlying data.
@@ -268,7 +296,11 @@ enum mat2D_upper_triangulate_flag{
 };
 
 #ifndef MAT2D_DEF
-    #define MAT2D_DEF static inline
+    #ifdef MAT2D_DEF_STATIC
+        #define MAT2D_DEF static
+    #else
+        #define MAT2D_DEF extern
+    #endif
 #endif
 
 MAT2D_DEF void          mat2D_add(Mat2D dst, Mat2D a);
@@ -458,6 +490,8 @@ MAT2D_DEF void mat2D_add_row_time_factor_to_row(Mat2D m, size_t des_r, size_t sr
  * @post The returned matrix must be released with mat2D_free().
  *
  * @warning This function asserts allocation success via MAT2D_ASSERT.
+ * @note Zero-sized allocations are not explicitly rejected; behavior depends
+ *       on the allocator and MAT2D_ASSERT configuration.
  */
 MAT2D_DEF Mat2D mat2D_alloc(size_t rows, size_t cols)
 {
@@ -482,6 +516,8 @@ MAT2D_DEF Mat2D mat2D_alloc(size_t rows, size_t cols)
  * @post The returned matrix must be released with mat2D_free_uint32().
  *
  * @warning This function asserts allocation success via MAT2D_ASSERT.
+ * @note Zero-sized allocations are not explicitly rejected; behavior depends
+ *       on the allocator and MAT2D_ASSERT configuration.
  */
 MAT2D_DEF Mat2D_uint32 mat2D_alloc_uint32(size_t rows, size_t cols)
 {
@@ -564,6 +600,7 @@ MAT2D_DEF mat2D_real mat2D_calc_norma_inf(Mat2D m)
  * @return true if every element equals digit, false otherwise.
  *
  * @warning Uses exact floating-point equality.
+ * @warning The column index is not bounds-checked in this routine.
  */
 MAT2D_DEF bool mat2D_col_is_all_digit(Mat2D m, mat2D_real digit, size_t c)
 {
@@ -651,6 +688,9 @@ MAT2D_DEF void mat2D_copy_row_from_src_to_des(Mat2D des, size_t des_row, Mat2D s
  * @param je End column index in destination (inclusive).
  *
  * @pre (je - js + 1) == src.cols and (ie - is + 1) == src.rows.
+ * @warning The implementation checks the window size, but does not explicitly
+ *          assert that ie < des.rows and je < des.cols. The caller must ensure
+ *          that the destination window lies fully inside @p des.
  */
 MAT2D_DEF void mat2D_copy_src_to_des_window(Mat2D des, Mat2D src, size_t is, size_t js, size_t ie, size_t je)
 {
@@ -675,7 +715,10 @@ MAT2D_DEF void mat2D_copy_src_to_des_window(Mat2D des, Mat2D src, size_t is, siz
  * @param js Start column index in src (inclusive).
  * @param ie End row index in src (inclusive).
  * @param je End column index in src (inclusive).
- * @pre 0 <= is <= ie < src.rows, 0 <= js <= je < src.cols.
+ * @pre des has size (ie - is + 1) x (je - js + 1).
+ * @warning The implementation checks the copied window size, but does not
+ *          explicitly assert that ie < src.rows and je < src.cols. The caller
+ *          must ensure that the source window lies fully inside @p src.
  */
 MAT2D_DEF void mat2D_copy_src_window_to_des(Mat2D des, Mat2D src, size_t is, size_t js, size_t ie, size_t je)
 {
@@ -726,6 +769,7 @@ MAT2D_DEF Mat2D mat2D_create_col_ref(Mat2D src, size_t c)
  * @param a 3x1 input vector.
  * @param b 3x1 input vector.
  * @pre All matrices have shape 3x1.
+ * @warning @p dst must not alias @p a or @p b
  */
 void mat2D_cross(Mat2D dst, Mat2D v1, Mat2D v2)
 {
@@ -1142,7 +1186,10 @@ MAT2D_DEF void mat2D_fill(Mat2D m, mat2D_real x)
  * @param m Matrix to fill.
  * @param start First value in the sequence.
  * @param step Increment between consecutive elements.
- * @details Element at linear index k gets value start + step * k.
+ * @details Element at (i, j) gets:
+ *          start + step * mat2D_offset2d(m, i, j)
+ * @note For contiguous matrices this matches a dense row-major sequence.
+ *       For strided views, the underlying stride is reflected in the values.
  */
 MAT2D_DEF void mat2D_fill_sequence(Mat2D m, mat2D_real start, mat2D_real step) {
     for (size_t i = 0; i < m.rows; i++) {
@@ -1177,6 +1224,7 @@ MAT2D_DEF void mat2D_fill_uint32(Mat2D_uint32 m, uint32_t x)
  *         (within MAT2D_EPS).
  *
  * @note Scans columns from 0 to m.cols-1 (left to right).
+ * @warning This routine does not assert that r < m.rows or that @p non_zero_col is non-NULL.
  */
 MAT2D_DEF bool mat2D_find_first_non_zero_value(Mat2D m, size_t r, size_t *non_zero_col)
 {
@@ -1346,6 +1394,8 @@ MAT2D_DEF void mat2D_LUP_decomposition_with_swap(Mat2D src, Mat2D l, Mat2D p, Ma
  * @param A Input matrix.
  *
  * @pre des.rows == A.rows and des.cols == A.cols
+ * @pre As implemented, practical use also requires A.rows <= A.cols; otherwise
+ *      the internal augmented temporary matrix is not wide enough for the copied right-hand block.
  * @warning This is an educational routine; it is not a standard QR/GS
  *          implementation and may be numerically unstable.
  * @warning Prints debug output via MAT2D_PRINT(temp).
@@ -1393,9 +1443,10 @@ MAT2D_DEF void mat2D_make_orthogonal_Gaussian_elimination(Mat2D des, Mat2D A)
  *
  * @details
  * Uses a modified Gram-Schmidt process on the columns of @p des.
- * The implementation copies the leading non-zero columns of @p A into @p des,
- * and initializes the remaining columns of @p des with random values before
- * orthogonalization/normalization, attempting to complete a full basis.
+ * The implementation first fills @p des with random values, then copies every
+ * non-zero column of @p A into the leftmost columns of @p des, preserving
+ * their order from @p A. The remaining columns stay random and are then
+ * orthogonalized/normalized to attempt completion of a full basis.
  *
  * Mathematical conditions:
  *  - Gram-Schmidt requires non-zero vectors. This code stops copying columns
@@ -1485,6 +1536,7 @@ MAT2D_DEF bool mat2D_mat_is_all_digit(Mat2D m, mat2D_real digit)
  * @param j Excluded column index in ref_mat.
  * @return A Mat2D_Minor that references ref_mat.
  *
+ * @pre i < ref_mat.rows and j < ref_mat.cols
  * @note The returned minor owns rows_list and cols_list and must be released
  *       with mat2D_minor_free().
  * @note The returned minor does not own ref_mat.elements.
@@ -1527,6 +1579,7 @@ MAT2D_DEF Mat2D_Minor mat2D_minor_alloc_fill_from_mat(Mat2D ref_mat, size_t i, s
  * @param j Excluded column index in the minor.
  * @return A new Mat2D_Minor that references the same underlying matrix.
  *
+ * @pre i < ref_mat.rows and j < ref_mat.cols
  * @note The returned minor owns rows_list and cols_list and must be released
  *       with mat2D_minor_free().
  * @note The returned minor does not own the underlying reference matrix data.
@@ -1567,6 +1620,7 @@ MAT2D_DEF Mat2D_Minor mat2D_minor_alloc_fill_from_mat_minor(Mat2D_Minor ref_mm, 
  * @return det(mm).
  * @warning Exponential complexity (factorial). Intended for educational or
  *          very small matrices only.
+ * @pre The current implementation expects mm.rows == mm.cols and order >= 2.
  */
 MAT2D_DEF mat2D_real mat2D_minor_det(Mat2D_Minor mm)
 {
@@ -1648,6 +1702,15 @@ MAT2D_DEF void mat2D_mult_row(Mat2D m, size_t r, mat2D_real factor)
     }
 }
 
+/**
+ * @brief Normalize a matrix or vector by its Frobenius norm.
+ *
+ * @details Computes n = mat2D_calc_norma(m) and scales every element by 1 / n.
+ *          If n is near zero according to MAT2D_IS_ZERO(), the matrix is left
+ *          unchanged.
+ *
+ * @param m Matrix modified in-place.
+ */
 MAT2D_DEF void mat2D_normalize(Mat2D m)
 {
     mat2D_real norma = mat2D_calc_norma(m);
@@ -1658,6 +1721,16 @@ MAT2D_DEF void mat2D_normalize(Mat2D m)
     mat2D_mult(m, (mat2D_real)1 / norma);
 }
 
+/**
+ * @brief Normalize a matrix or vector by its maximum absolute element.
+ *
+ * @details Computes n = mat2D_calc_norma_inf(m) and scales every element by
+ *          1 / n. Here mat2D_calc_norma_inf() is the maximum absolute entry,
+ *          not the induced matrix infinity norm. If n is near zero according
+ *          to MAT2D_IS_ZERO(), the matrix is left unchanged.
+ *
+ * @param m Matrix modified in-place.
+ */
 MAT2D_DEF void mat2D_normalize_inf(Mat2D m)
 {
     mat2D_real norma = mat2D_calc_norma_inf(m);
@@ -1860,6 +1933,10 @@ MAT2D_DEF void mat2D_print_uint32(Mat2D_uint32 m, const char *name, size_t paddi
  * @param m Matrix to print (flattened in row-major).
  * @param name Label to print.
  * @param padding Left padding in spaces.
+ * @details Prints the first rows * cols entries from m.elements, one per line.
+ *          For contiguous matrices this corresponds to row-major flattening.
+ *          For strided or non-owning views, this reflects raw underlying
+ *          storage rather than logical access via MAT2D_AT().
  */
 MAT2D_DEF void mat2D_print_as_col(Mat2D m, const char *name, size_t padding)
 {
@@ -1871,6 +1948,28 @@ MAT2D_DEF void mat2D_print_as_col(Mat2D m, const char *name, size_t padding)
     printf("%*s]\n", (int) padding, "");
 }
 
+/**
+ * @brief Subtract projections of @p v onto the first @p used_cols columns of
+ *        @p basis.
+ *
+ * @details For each column c in [0, used_cols), this routine computes:
+ *            alpha = dot(v, basis[:, c])
+ *          and then updates:
+ *            v -= alpha * basis[:, c]
+ *
+ *          This is the simplified projection step used internally by the
+ *          library. It does not divide by dot(basis[:, c], basis[:, c]), so it
+ *          assumes the referenced basis columns are already unit-norm
+ *          (ideally orthonormal).
+ *
+ * @param v Column vector modified in-place.
+ * @param basis Matrix whose leading columns act as the basis vectors.
+ * @param used_cols Number of leading basis columns to project out.
+ *
+ * @pre v.cols == 1
+ * @pre basis.rows == v.rows
+ * @warning The implementation does not assert that used_cols <= basis.cols.
+ */
 MAT2D_DEF void mat2D_project_out_columns(Mat2D v, Mat2D basis, size_t used_cols)
 {
     /* Gram-Schmidt */
@@ -1898,7 +1997,7 @@ MAT2D_DEF void mat2D_project_out_columns(Mat2D v, Mat2D basis, size_t used_cols)
  * @param high Upper bound (inclusive).
  *
  * @pre high > low (not checked here; caller responsibility).
- * @note Uses mat2D_rand_double() (rand()).
+ * @note Uses mat2D_rand_mat2D_real() (build on C rand()).
  */
 MAT2D_DEF void mat2D_rand(Mat2D m, mat2D_real low, mat2D_real high)
 {
@@ -1923,6 +2022,25 @@ MAT2D_DEF mat2D_real mat2D_rand_mat2D_real(void)
     return (mat2D_real) rand() / (mat2D_real) RAND_MAX;
 }
 
+/**
+ * @brief Resize/reallocate a Mat2D buffer and return the updated handle.
+ *
+ * @details Updates the shape to (@p rows, @p cols), forces
+ *          stride_r = cols, and reallocates the backing storage to
+ *          rows * cols elements of mat2D_real.
+ *
+ * @param m Existing matrix handle.
+ * @param rows New row count.
+ * @param cols New column count.
+ * @return Updated matrix handle.
+ *
+ * @note Existing contents are preserved according to realloc() semantics.
+ * @note The caller should assign the result back, e.g.
+ *       m = mat2D_realloc(m, rows, cols);
+ * @warning Any existing views or saved element pointers may become invalid if
+ *          the allocation moves.
+ * @warning Any previous non-contiguous/strided layout information is lost.
+ */
 MAT2D_DEF Mat2D mat2D_realloc(Mat2D m, size_t rows, size_t cols)
 {
     m.rows = rows;
@@ -1934,6 +2052,25 @@ MAT2D_DEF Mat2D mat2D_realloc(Mat2D m, size_t rows, size_t cols)
     return m;
 }
 
+/**
+ * @brief Resize/reallocate a Mat2D_uint32 buffer and return the updated handle.
+ *
+ * @details Updates the shape to (@p rows, @p cols), forces
+ *          stride_r = cols, and reallocates the backing storage to
+ *          rows * cols elements of uint32_t.
+ *
+ * @param m Existing matrix handle.
+ * @param rows New row count.
+ * @param cols New column count.
+ * @return Updated matrix handle.
+ *
+ * @note Existing contents are preserved according to realloc() semantics.
+ * @note The caller should assign the result back, e.g.
+ *       m = mat2D_realloc_uint32(m, rows, cols);
+ * @warning Any existing views or saved element pointers may become invalid if
+ *          the allocation moves.
+ * @warning Any previous non-contiguous/strided layout information is lost.
+ */
 MAT2D_DEF Mat2D_uint32 mat2D_realloc_uint32(Mat2D_uint32 m, size_t rows, size_t cols)
 {
     m.rows = rows;
@@ -1990,6 +2127,7 @@ MAT2D_DEF size_t mat2D_reduce(Mat2D m)
  * @return true if every element equals digit, false otherwise.
  *
  * @warning Uses exact floating-point equality.
+ * @warning The row index is not bounds-checked in this routine.
  */
 MAT2D_DEF bool mat2D_row_is_all_digit(Mat2D m, mat2D_real digit, size_t r)
 {
@@ -2512,17 +2650,24 @@ MAT2D_DEF void mat2D_transpose(Mat2D des, Mat2D src)
  * @brief Transform a matrix to (row-echelon) upper triangular form by forward elimination.
  *
  * @param m Matrix transformed in-place.
- * @return A determinant sign factor caused by row swaps: +1.0 or -1.0.
+ * @return A determinant correction factor tracking determinant-changing row
+ *         operations performed by this routine.
  *
  * @details
  * This routine performs Gaussian elimination using row operations of the form:
  *   row_j = row_j - (m[j,i] / m[i,i]) * row_i
  * which do not change the determinant. Row swaps flip the determinant sign and
- * are tracked by the returned factor.
+ * are tracked by the returned factor. If MAT2D_ONES_ONE_DIAG is set, each pivot
+ * row is additionally scaled so the pivot becomes 1, and the corresponding
+ * pivot value is multiplied into the returned factor.
+ * 
+ * In other words, if elimination succeeds, the returned values F satisfies:
+ *  det(original) = F * det(transformed)
+ * for square matrices.
+ * 
  * Performs partial pivoting by selecting the row with the largest absolute
  * pivot candidate in each column. Uses elimination operations that (in exact
- * arithmetic) do not change the determinant. Each row swap flips the
- * determinant sign; the cumulative sign is returned.
+ * arithmetic) do not change the determinant.
  *
  * @warning Not robust for linearly dependent rows or very small pivots.
  */

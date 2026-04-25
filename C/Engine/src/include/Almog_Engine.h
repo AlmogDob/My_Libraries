@@ -33,10 +33,6 @@
 #include "./Almog_Dynamic_Array.h"
 #include "./Matrix2D.h"
 #include "./Almog_Draw_Library.h"
-
-#ifndef ALMOG_STRING_MANIPULATION_IMPLEMENTATION
-#define ALMOG_STRING_MANIPULATION_IMPLEMENTATION
-#endif
 #include "./Almog_String_Manipulation.h"
 
 #ifndef AE_ASSERT
@@ -549,6 +545,7 @@ Tri_mesh ae_tri_mesh_get_from_obj_file(char *file_path)
     /* check if file is an obj file*/
     asm_get_word_and_cut(file_name, file_extention, '.');
     asm_get_word_and_cut(file_name, file_extention, '.');
+    asm_get_word_and_cut(file_name, file_extention, '.');
     if (strncmp(file_extention, ".obj", ASM_MAX_LEN_LINE)) {
         fprintf(stderr, "%s:%d:\n%s:\n[Error] unsupported file format: '%s'\n\n", __FILE__, __LINE__, __func__, file_name);
         exit(1);
@@ -562,6 +559,7 @@ Tri_mesh ae_tri_mesh_get_from_obj_file(char *file_path)
     strncpy(mesh_name, current_word, ASM_MAX_LEN_LINE);
 
     strncpy(current_word, ".", ASM_MAX_LEN_LINE);
+    strncat(current_word, ".", ASM_MAX_LEN_LINE);
     strncat(file_name, ".obj", ASM_MAX_LEN_LINE/2);
     strncat(current_word, file_name, ASM_MAX_LEN_LINE/2);
 

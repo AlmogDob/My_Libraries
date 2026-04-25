@@ -66,8 +66,6 @@
 #ifndef ALMOG_PLATFORM_LIBRARY_H_
 #define ALMOG_PLATFORM_LIBRARY_H_
 
-#include "Matrix2D.h"
-
 /* -------------------------------------------------------------------------------- */
 #if defined(_WIN32) || defined(_WIN64) /* PLATFORM_STATE_H_ */
 /* -------------------------------------------------------------------------------- */
@@ -80,8 +78,10 @@
 #define APL_PLATFORM_NAME "Windows"
 
 #include <windows.h>
+#include <mmsystem.h> /* for 1ms sleep */
 #include <dbghelp.h> /* for SIGSEGV help */
-#pragma comment(lib, "Dbghelp.lib")
+#pragma comment(lib, "winmm.lib")
+#pragma comment(lib, "dbghelp.lib")
 #pragma comment(lib, "user32.lib")
 #pragma comment(lib, "Gdi32.lib")
 
@@ -93,6 +93,7 @@ struct Platform_State {
     BITMAPINFO bit_map_info;
     size_t previous_frame_ticks;
 };
+
 
 /* -------------------------------------------------------------------------------- */
 #elif defined(__linux__) /* PLATFORM_STATE_H_ */
@@ -108,9 +109,33 @@ struct Platform_State {
 #endif /* PLATFORM_STATE_H_*/
 /* -------------------------------------------------------------------------------- */
 
+#include <stdint.h>
+#include <stdio.h>
+
+#ifndef APL_REALLOC
+#include <stdlib.h>
+#define APL_REALLOC realloc
+#endif
+
 enum Apl_Return_Types {
     APL_SUCCESS,
     APL_FAIL,
+};
+
+typedef float apl_real;
+
+struct Apl_Pixel_Buffer {
+    size_t rows;
+    size_t cols;
+    size_t stride_r;
+    uint32_t *elements;
+};
+
+struct Apl_Depth_Buffer {
+    size_t rows;
+    size_t cols;
+    size_t stride_r;
+    apl_real *elements;
 };
 
 #define APL_WINDOW_NAME_LEN 256
@@ -135,30 +160,51 @@ struct Apl_Window_State {
 
     struct {
         bool space_bar_is_pressed;
-        bool w_is_pressed;
-        bool s_is_pressed;
-        bool a_is_pressed;
-        bool d_is_pressed;
-        bool e_is_pressed;
         bool q_is_pressed;
+        bool w_is_pressed;
+        bool e_is_pressed;
+        bool r_is_pressed;
+        bool a_is_pressed;
+        bool s_is_pressed;
+        bool d_is_pressed;
         bool up_is_pressed;
         bool down_is_pressed;
         bool left_is_pressed;
         bool right_is_pressed;
-        bool left_button_pressed;
     } buttons;
+
+    struct {
+        bool left_button_is_pressed;
+        bool right_button_is_pressed;
+        int mouse_x;
+        int mouse_y;
+    } mouse;
 
     size_t window_w;
     size_t window_h;
 
-    Mat2D_uint32 window_pixels_mat;
-    Mat2D inv_z_buffer_mat;
+    struct Apl_Pixel_Buffer window_pixels_mat;
+    struct Apl_Depth_Buffer inv_z_buffer_mat;
+
+    void * user_data;
 };
 
 #define APL_OK APL_SUCCESS
 #define APL_UNUSED(x) (void)x
 #ifndef APL_DEF
-    #define APL_DEF static inline
+    #ifdef APNG_STATIC
+        #define APNG_DEF static
+    #else
+        #define APNG_DEF extern
+    #endif
+#endif
+#ifndef APL_ASSERT
+#define APL_ASSERT(expr)                                        \
+    do {                                                        \
+        if (!(expr)) {                                          \
+            apl_my_assert(#expr, __FILE__, __LINE__, __func__); \
+        }                                                       \
+    } while (0)
 #endif
 
 #define apl_dprintSTRING(expr) printf("[Info] %s:%d:\n" #expr " = %s\n", __FILE__, __LINE__, expr)
@@ -195,6 +241,7 @@ struct Apl_Window_State {
 
 /* shared implementation */
 APL_DEF char *                  apl_platform_name(void);
+APL_DEF struct Apl_Pixel_Buffer apl_realloc_pixel_buffer(struct Apl_Pixel_Buffer m, size_t rows, size_t cols);
 APL_DEF enum Apl_Return_Types   apl_window_destroy(struct Apl_Window_State *ws);
 APL_DEF enum Apl_Return_Types   apl_window_process_input(struct Apl_Window_State *ws);
 APL_DEF enum Apl_Return_Types   apl_window_render(struct Apl_Window_State *ws);
@@ -202,6 +249,7 @@ APL_DEF enum Apl_Return_Types   apl_window_render(struct Apl_Window_State *ws);
 /* shared_platform_implementation */
 APL_DEF void                    apl_fix_framerate(struct Apl_Window_State *ws);
 APL_DEF enum Apl_Return_Types   apl_initialize_main_window(struct Apl_Window_State *ws);
+APL_DEF void                    apl_my_assert(const char *expr, const char *file, int line, const char *func);
 APL_DEF void                    apl_pixel_mat_copy_to_screen(struct Apl_Window_State *ws);
 APL_DEF enum Apl_Return_Types   apl_resize_window_pixel_mat(struct Apl_Window_State *ws, size_t new_w, size_t new_h);
 APL_DEF void                    apl_sleep(size_t wait_time_us);
@@ -223,6 +271,7 @@ APL_DEF enum Apl_Return_Types   apl_window_update(struct Apl_Window_State *ws);
 APL_DEF const char *        apl_get_exception_name(DWORD code);
         LRESULT CALLBACK    apl_main_window_callback(HWND window, UINT message, WPARAM wparam, LPARAM lparam);
 APL_DEF void                apl_print_module_plus_offset(DWORD64 instruction_pointer);
+APL_DEF void                apl_print_stack_trace(void);
         LONG WINAPI         apl_unhandled_exception_filter(EXCEPTION_POINTERS *ep);
 
 
@@ -257,6 +306,28 @@ APL_DEF char * apl_platform_name(void)
     return APL_PLATFORM_NAME;
 }
 
+APL_DEF struct Apl_Depth_Buffer apl_realloc_depth_buffer(struct Apl_Depth_Buffer m, size_t rows, size_t cols)
+{
+    m.rows = rows;
+    m.cols = cols;
+    m.stride_r = cols;
+    m.elements = (apl_real*)APL_REALLOC(m.elements, sizeof(apl_real)*rows*cols);
+    APL_ASSERT(m.elements != NULL);
+    
+    return m;
+}
+
+APL_DEF struct Apl_Pixel_Buffer apl_realloc_pixel_buffer(struct Apl_Pixel_Buffer m, size_t rows, size_t cols)
+{
+    m.rows = rows;
+    m.cols = cols;
+    m.stride_r = cols;
+    m.elements = (uint32_t*)APL_REALLOC(m.elements, sizeof(uint32_t)*rows*cols);
+    APL_ASSERT(m.elements != NULL);
+    
+    return m;
+}
+
 APL_DEF enum Apl_Return_Types apl_window_destroy(struct Apl_Window_State *ws)
 {
     /*------------------------------------------------------------*/
@@ -279,10 +350,8 @@ APL_DEF enum Apl_Return_Types apl_window_process_input(struct Apl_Window_State *
 APL_DEF enum Apl_Return_Types apl_window_render(struct Apl_Window_State *ws)
 {
     if (ws->to_clear_renderer) {
-        memset(ws->window_pixels_mat.elements, 0x18, sizeof(uint32_t) * ws->window_pixels_mat.rows * ws->window_pixels_mat.cols);
-        memset(ws->inv_z_buffer_mat.elements, 0x0, sizeof(mat2D_real) * ws->inv_z_buffer_mat.rows * ws->inv_z_buffer_mat.cols);
-        // mat2D_fill_uint32(ws->window_pixels_mat, APL_BACKGROUND_COLOR_hexARGB);
-        // mat2D_fill(ws->inv_z_buffer_mat, 0);
+        memset(ws->window_pixels_mat.elements, 0x18, sizeof(ws->window_pixels_mat.elements[0]) * ws->window_pixels_mat.rows * ws->window_pixels_mat.cols);
+        memset(ws->inv_z_buffer_mat.elements, 0x0, sizeof(ws->inv_z_buffer_mat.elements[0]) * ws->inv_z_buffer_mat.rows * ws->inv_z_buffer_mat.cols);
     }
     /*------------------------------------------------------------*/
 
@@ -332,27 +401,61 @@ enum Apl_Return_Types apl_render(struct Apl_Window_State *ws) { APL_UNUSED(ws); 
 
 APL_DEF void apl_fix_framerate(struct Apl_Window_State *ws)
 {
-    LARGE_INTEGER count_freq;
-    QueryPerformanceFrequency(&count_freq);
-    LARGE_INTEGER current_count;
-    QueryPerformanceCounter(&current_count);
-    size_t delta_ticks = current_count.QuadPart - ws->platform.previous_frame_ticks; /* count_freq is in seconds */
-    size_t delta_time_from_previous_frame_micro_sec = (1000 * 1000 * delta_ticks) / (count_freq.QuadPart);
-    size_t wanted_delta_time_from_previous_frame_micro_sec = (size_t)((1000 * 1000) / ws->wanted_fps);
-    
-    if (delta_time_from_previous_frame_micro_sec < wanted_delta_time_from_previous_frame_micro_sec && ws->to_limit_fps) {
-        size_t time_to_wait_micro_sec = wanted_delta_time_from_previous_frame_micro_sec - delta_time_from_previous_frame_micro_sec;
-        apl_sleep((time_to_wait_micro_sec));
+    static LARGE_INTEGER qpc_freq = {0};
+    if (qpc_freq.QuadPart == 0) {
+        QueryPerformanceFrequency(&qpc_freq);
     }
 
-    QueryPerformanceCounter(&current_count);
-    delta_ticks = current_count.QuadPart - (ws->previous_frame_time_micro_sec / 1000) * (count_freq.QuadPart / 1000); /* count_freq is in seconds */
-    ws->delta_time_micro_sec = (1000 * 1000 * delta_ticks) / (count_freq.QuadPart);
-    ws->delta_time_sec = ws->delta_time_micro_sec / 1e6f;
-    ws->platform.previous_frame_ticks = current_count.QuadPart;
-    ws->previous_frame_time_micro_sec = (1000 * current_count.QuadPart) / (count_freq.QuadPart / 1000);
-    ws->elapsed_time_micro_sec += ws->delta_time_micro_sec * (ws->delta_time_micro_sec > APL_DELTA_TIME_MAX_MICRO_SEC ? 0 : 1);
-    ws->fps = 1.0f / ws->delta_time_sec;
+    LARGE_INTEGER now;
+    QueryPerformanceCounter(&now);
+
+    ULONGLONG elapsed_ticks =
+        (ULONGLONG)(now.QuadPart - (LONGLONG)ws->platform.previous_frame_ticks);
+
+    ULONGLONG target_ticks = 0;
+    if (ws->wanted_fps > 0.0f) {
+        target_ticks =
+            (ULONGLONG)((double)qpc_freq.QuadPart / (double)ws->wanted_fps);
+    }
+
+    if (ws->to_limit_fps && target_ticks > 0 && elapsed_ticks < target_ticks) {
+        ULONGLONG remaining_ticks = target_ticks - elapsed_ticks;
+        size_t remaining_us =
+            (size_t)((remaining_ticks * 1000000ULL) /
+                     (ULONGLONG)qpc_freq.QuadPart);
+
+        apl_sleep(remaining_us);
+
+        do {
+            QueryPerformanceCounter(&now);
+            elapsed_ticks =
+                (ULONGLONG)(now.QuadPart -
+                            (LONGLONG)ws->platform.previous_frame_ticks);
+        } while (elapsed_ticks < target_ticks);
+    } else {
+        QueryPerformanceCounter(&now);
+        elapsed_ticks =
+            (ULONGLONG)(now.QuadPart -
+                        (LONGLONG)ws->platform.previous_frame_ticks);
+    }
+
+    ws->platform.previous_frame_ticks = (size_t)now.QuadPart;
+
+    ws->delta_time_micro_sec =
+        (size_t)((elapsed_ticks * 1000000ULL) /
+                 (ULONGLONG)qpc_freq.QuadPart);
+
+    ws->delta_time_sec = (float)ws->delta_time_micro_sec / 1000000.0f;
+
+    ws->previous_frame_time_micro_sec =
+        (size_t)(((ULONGLONG)now.QuadPart * 1000000ULL) /
+                 (ULONGLONG)qpc_freq.QuadPart);
+
+    if (ws->delta_time_micro_sec <= APL_DELTA_TIME_MAX_MICRO_SEC) {
+        ws->elapsed_time_micro_sec += ws->delta_time_micro_sec;
+    }
+
+    ws->fps = (ws->delta_time_sec > 0.0f) ? (1.0f / ws->delta_time_sec) : 0.0f;
 }
 
 APL_DEF enum Apl_Return_Types apl_initialize_main_window(struct Apl_Window_State *ws)
@@ -420,12 +523,12 @@ APL_DEF enum Apl_Return_Types apl_resize_window_pixel_mat(struct Apl_Window_Stat
     ws->platform.bit_map_info.bmiHeader.biBitCount = 32;
     ws->platform.bit_map_info.bmiHeader.biCompression = BI_RGB;
 
-    ws->window_pixels_mat = mat2D_realloc_uint32(ws->window_pixels_mat, ws->window_h, ws->window_w);
+    ws->window_pixels_mat = apl_realloc_pixel_buffer(ws->window_pixels_mat, ws->window_h, ws->window_w);
     if (!ws->window_pixels_mat.elements) {
         apl_dprintERROR("%s", "realloc pixel mat failed");
         return APL_FAIL;
     }
-    ws->inv_z_buffer_mat = mat2D_realloc(ws->inv_z_buffer_mat, ws->window_h, ws->window_w);
+    ws->inv_z_buffer_mat = apl_realloc_depth_buffer(ws->inv_z_buffer_mat, ws->window_h, ws->window_w);
     if (!ws->inv_z_buffer_mat.elements) {
         apl_dprintERROR("%s", "realloc inverse z buffer mat failed");
         return APL_FAIL;
@@ -617,6 +720,11 @@ LRESULT CALLBACK apl_main_window_callback(HWND window, UINT message, WPARAM wpar
                     if (is_down)  ws->buttons.e_is_pressed = true;
                     if (was_down) ws->buttons.e_is_pressed = false;
                 } break;
+                case 'R':
+                {
+                    if (is_down)  ws->buttons.r_is_pressed = true;
+                    if (was_down) ws->buttons.r_is_pressed = false;
+                } break;
                 case 'A':
                 {
                     if (is_down)  ws->buttons.a_is_pressed = true;
@@ -668,12 +776,41 @@ LRESULT CALLBACK apl_main_window_callback(HWND window, UINT message, WPARAM wpar
                 } break;
             }
         } break;
+        case WM_LBUTTONDOWN:
+        {
+            ws->mouse.left_button_is_pressed = true;
+        } break;
+        case WM_LBUTTONUP:
+        {
+            ws->mouse.left_button_is_pressed = false;
+        } break;
+        case WM_RBUTTONDOWN:
+        {
+            ws->mouse.right_button_is_pressed = true;
+        } break;
+        case WM_RBUTTONUP:
+        {
+            ws->mouse.right_button_is_pressed = false;
+        } break;
+        case WM_MOUSEMOVE:
+        {
+            ws->mouse.mouse_x = (int)(short)LOWORD(lparam);
+            ws->mouse.mouse_y = (int)(short)HIWORD(lparam);
+        } break;
         default:
         {
             result = DefWindowProcA(window, message, wparam, lparam);
         } break;
     }
     return result;
+}
+
+APL_DEF void apl_my_assert(const char *expr, const char *file, int line, const char *func)
+{
+    apl_dprintERROR("Assertion failed: %s At %s:%d In function '%s'.\n"
+                    "        Call stack:", expr, file, line, func);
+    apl_print_stack_trace();
+    abort();
 }
 
 APL_DEF void apl_print_module_plus_offset(DWORD64 instruction_pointer)
@@ -705,6 +842,66 @@ APL_DEF void apl_print_module_plus_offset(DWORD64 instruction_pointer)
             base_name,
             (unsigned long long)offset,
             (unsigned long long)base);
+} 
+
+APL_DEF void apl_print_stack_trace(void)
+{
+    void *stack[64];
+    USHORT frames = CaptureStackBackTrace(0, 64, stack, NULL);
+    HANDLE process = GetCurrentProcess();
+
+    static int sym_initialized = 0;
+    if (!sym_initialized) {
+        SymSetOptions(SYMOPT_LOAD_LINES | SYMOPT_UNDNAME);
+        if (!SymInitialize(process, NULL, TRUE)) {
+            fprintf(stderr, "SymInitialize failed\n");
+            return;
+        }
+        sym_initialized = 1;
+    }
+
+    SYMBOL_INFO *symbol =
+        (SYMBOL_INFO *)calloc(1, sizeof(SYMBOL_INFO) + 256);
+    if (!symbol) {
+        fprintf(stderr, "Out of memory\n");
+        return;
+    }
+
+    symbol->SizeOfStruct = sizeof(SYMBOL_INFO);
+    symbol->MaxNameLen = 255;
+
+    for (USHORT i = 0; i < frames; i++) {
+        DWORD64 address = (DWORD64)(stack[i]);
+        DWORD64 displacement = 0;
+        DWORD line_displacement = 0;
+
+        IMAGEHLP_LINE64 line;
+        line.SizeOfStruct = sizeof(IMAGEHLP_LINE64);
+
+        if (SymFromAddr(process, address, &displacement, symbol)) {
+            fprintf(stderr, "#%u %s + 0x%llx",
+                    i,
+                    symbol->Name,
+                    (unsigned long long)displacement);
+        } else {
+            fprintf(stderr, "#%u 0x%llx",
+                    i,
+                    (unsigned long long)address);
+        }
+
+        if (SymGetLineFromAddr64(process,
+                                 address,
+                                 &line_displacement,
+                                 &line)) {
+            fprintf(stderr, " (%s:%lu)",
+                    line.FileName,
+                    (unsigned long)line.LineNumber);
+        }
+
+        fprintf(stderr, "\n");
+    }
+
+    free(symbol);
 }
 
 LONG WINAPI apl_unhandled_exception_filter(EXCEPTION_POINTERS *ep)
@@ -797,6 +994,7 @@ exit:
 int main(void) 
 {
     SetUnhandledExceptionFilter(apl_unhandled_exception_filter);
+    MMRESULT timer_res = timeBeginPeriod(1);
 
     printf("hello from %s\n", apl_platform_name());
 
@@ -806,32 +1004,13 @@ int main(void)
     /**
      * initializing the window state
      */
-    // window_state.platform.window_class;
-    // window_state.platform.window_handle = NULL;
-    // window_state.platform.window_call_back = NULL;
-    // window_state.platform.bit_map_info;
-    // window_state.running = 0;
     window_state.to_render = true;
     window_state.to_update = true;
     window_state.to_limit_fps = true;
     window_state.to_clear_renderer = true;
-    // window_state.to_flip_y;
-    // window_state.delta_time = 0;
-    // window_state.elapsed_time_sec = 0;
-    // window_state.previous_frame_time = 0;
-    // window_state.fps = 0;
     window_state.wanted_fps = APL_WANTED_FPS;
-    // window_state.buttons.space_bar_is_pressed = 0;
-    // window_state.buttons.w_is_pressed = 0;
-    // window_state.buttons.s_is_pressed = 0;
-    // window_state.buttons.a_is_pressed = 0;
-    // window_state.buttons.d_is_pressed = 0;
-    // window_state.buttons.e_is_pressed = 0;
-    // window_state.buttons.q_is_pressed = 0;
-    // window_state.buttons.left_button_pressed = 0;
     window_state.window_w = APL_INIT_WINDOW_WIDTH;
     window_state.window_h = APL_INIT_WINDOW_HEIGHT;
-    // Mat2D_uint32 window_pixels_mat;
 
     strncpy(window_state.window_name, "apl window", APL_WINDOW_NAME_LEN);
     rt = apl_initialize_main_window(&window_state);
@@ -851,7 +1030,7 @@ int main(void)
     }
 
     MSG message;
-    for (window_state.running = true; window_state.running ; ) {
+    for ( ; window_state.running ; ) {
         /* flash all the messages in the que */
         for ( ; PeekMessageA(&message, 0, 0, 0, PM_REMOVE) ; ) {
             if (message.message == WM_QUIT) {
@@ -897,6 +1076,10 @@ int main(void)
     rt = apl_window_destroy(&window_state);
     if (rt == APL_FAIL) {
         apl_dprintERROR("%s", "failed to window destroy");
+    }
+
+    if (timer_res == TIMERR_NOERROR) {
+        timeEndPeriod(1);
     }
 
     return rt;
