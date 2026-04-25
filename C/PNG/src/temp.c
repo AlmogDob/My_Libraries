@@ -9,6 +9,5 @@ int main(void)
     struct Apng_PNG_Image image = {0};
     apng_png_load(file_name, &image, true);
 
-
     return 0;
 }
