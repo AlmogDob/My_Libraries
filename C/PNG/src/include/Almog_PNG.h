@@ -713,7 +713,7 @@ struct Apng_PNG_Image {
  *
  * Alpha is clamped to 255. RGB inputs are used as provided.
  */
-#define APNG_RGBA_TO_hexARGB(r, g, b, a) (int)(0x01000000l*(unsigned int)(apng_min(a, 255)) + 0x010000*(int)(r) + 0x000100*(int)(g) + 0x000001*(int)(b))
+#define APNG_RGBA_TO_hexARGB(r, g, b, a) (int)(0x01000000l*(unsigned int)(apng_max(0, apng_min(a, 255))) + 0x010000*(int)(apng_max(0, apng_min(r, 255))) + 0x000100*(int)(apng_max(0, apng_min(g, 255))) + 0x000001*(int)(apng_max(0, apng_min(b, 255))))
 /**
  * @def APNG_STATIC_ARRAY_LEN
  * @brief Return the number of elements in a compile-time array.
@@ -1640,7 +1640,7 @@ APNG_DEF enum Apng_Return_Types apng_png_load(char *file_name, struct Apng_PNG_I
 {
     struct Apng_Byte_String file = apng_bin_file_read(file_name);
     if (file.name == NULL) {
-        apng_dprintERROR("Failed to open file at ''.", file_name);
+        apng_dprintERROR("Failed to open file at '%s'.", file_name);
         return APNG_FAIL;
     }
     if (APNG_FAIL == apng_png_decode(file, image, print_info)) {
