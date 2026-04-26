@@ -143,6 +143,8 @@
     #define mat2D_sqrt  sqrtf
     #define mat2D_sin   sinf
     #define mat2D_cos   cosf
+    #define mat2D_exp   expf
+    #define mat2D_ceil  ceilf
 #else 
     typedef double mat2D_real;
     #define MAT2D_EPS 1e-15
@@ -152,6 +154,8 @@
     #define mat2D_sqrt  sqrt
     #define mat2D_sin   sin
     #define mat2D_cos   cos
+    #define mat2D_exp   exp
+    #define mat2D_ceil  ceil
 #endif
 
 /**
@@ -306,6 +310,7 @@ MAT2D_DEF void          mat2D_add(Mat2D dst, Mat2D a);
 MAT2D_DEF void          mat2D_add_col_to_col(Mat2D des, size_t des_col, Mat2D src, size_t src_col);
 MAT2D_DEF void          mat2D_add_row_to_row(Mat2D des, size_t des_row, Mat2D src, size_t src_row);
 MAT2D_DEF void          mat2D_add_row_time_factor_to_row(Mat2D m, size_t des_r, size_t src_r, mat2D_real factor);
+MAT2D_DEF void          mat2D_add_scalar(Mat2D m, mat2D_real x);
 MAT2D_DEF Mat2D         mat2D_alloc(size_t rows, size_t cols);
 MAT2D_DEF Mat2D_uint32  mat2D_alloc_uint32(size_t rows, size_t cols);
 MAT2D_DEF void          mat2D_anti_diag_transpose_inplace(Mat2D m);
@@ -331,6 +336,7 @@ MAT2D_DEF mat2D_real    mat2D_det_2x2_mat_minor(Mat2D_Minor mm);
 
 MAT2D_DEF void          mat2D_eig_check(Mat2D A, Mat2D eigenvalues, Mat2D eigenvectors, Mat2D res);
 MAT2D_DEF void          mat2D_eig_power_iteration(Mat2D A, Mat2D eigenvalues, Mat2D eigenvectors, Mat2D init_vector, bool norm_inf_vectors);
+MAT2D_DEF mat2D_real    mat2D_elements_sum(Mat2D m);
 
 MAT2D_DEF void          mat2D_fill(Mat2D m, mat2D_real x);
 MAT2D_DEF void          mat2D_fill_sequence(Mat2D m, mat2D_real start, mat2D_real step);
@@ -479,6 +485,15 @@ MAT2D_DEF void mat2D_add_row_time_factor_to_row(Mat2D m, size_t des_r, size_t sr
 {
     for (size_t j = 0; j < m.cols; ++j) {
         MAT2D_AT(m, des_r, j) += factor * MAT2D_AT(m, src_r, j);
+    }
+}
+
+MAT2D_DEF void mat2D_add_scalar(Mat2D m, mat2D_real x)
+{
+    for (size_t i = 0; i < m.rows; i++) {
+        for (size_t j = 0; j < m.cols; j++) {
+            MAT2D_AT(m, i, j) += x;
+        }
     }
 }
 
@@ -1201,6 +1216,18 @@ void mat2D_eig_power_iteration(Mat2D A, Mat2D eigenvalues, Mat2D eigenvectors, M
     mat2D_free(temp_mat);
 }
 #endif
+
+MAT2D_DEF mat2D_real mat2D_elements_sum(Mat2D m)
+{
+    mat2D_real sum = 0;
+
+    for (size_t i = 0; i < m.rows; ++i) {
+        for (size_t j = 0; j < m.cols; ++j) {
+            sum += MAT2D_AT(m, i, j);
+        }
+    }
+    return sum;
+}
 
 /**
  * @brief Fill all elements of a matrix of doubles with a scalar value.
