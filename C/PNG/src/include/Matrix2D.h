@@ -89,6 +89,10 @@
 #include <stdbool.h>
 #include <math.h>
 
+#if defined(_WIN32) || defined(_WIN64) 
+    #pragma warning(disable : 4709)
+#endif
+
 /**
  * @def MAT2D_MALLOC
  * @brief Allocation function used by this library.
@@ -139,6 +143,8 @@
     #define mat2D_sqrt  sqrtf
     #define mat2D_sin   sinf
     #define mat2D_cos   cosf
+    #define mat2D_exp   expf
+    #define mat2D_ceil  ceilf
 #else 
     typedef double mat2D_real;
     #define MAT2D_EPS 1e-15
@@ -148,6 +154,8 @@
     #define mat2D_sqrt  sqrt
     #define mat2D_sin   sin
     #define mat2D_cos   cos
+    #define mat2D_exp   exp
+    #define mat2D_ceil  ceil
 #endif
 
 /**
@@ -227,13 +235,8 @@ typedef struct {
  *
  * @warning In the “fast” configuration this macro performs no bounds checking.
  */
-#if 1
-#define MAT2D_AT(m, i, j) (m).elements[mat2D_offset2d((m), (i), (j))]
-#define MAT2D_AT_UINT32(m, i, j) (m).elements[mat2D_offset2d_uint32((m), (i), (j))]
-#else /* use this macro for batter performance but no assertion */
-#define MAT2D_AT(m, i, j) (m).elements[(i) * (m).stride_r + (j)]
-#define MAT2D_AT_UINT32(m, i, j) (m).elements[(i) * (m).stride_r + (j)]
-#endif
+#define MAT2D_AT(m, i, j) (m).elements[(MAT2D_ASSERT((i) < (m).rows && (j) < (m).cols), (i) * (m).stride_r + (j))]
+#define MAT2D_AT_UINT32(m, i, j) (m).elements[(MAT2D_ASSERT((i) < (m).rows && (j) < (m).cols), (i) * (m).stride_r + (j))]
 
 #define MAT2D_PI 3.14159265358979323846
 #define MAT2D_MAX_POWER_ITERATION 100
@@ -296,20 +299,27 @@ enum mat2D_upper_triangulate_flag{
 };
 
 #ifndef MAT2D_DEF
-    #define MAT2D_DEF static inline
+    #ifdef MAT2D_DEF_STATIC
+        #define MAT2D_DEF static
+    #else
+        #define MAT2D_DEF extern
+    #endif
 #endif
 
 MAT2D_DEF void          mat2D_add(Mat2D dst, Mat2D a);
 MAT2D_DEF void          mat2D_add_col_to_col(Mat2D des, size_t des_col, Mat2D src, size_t src_col);
 MAT2D_DEF void          mat2D_add_row_to_row(Mat2D des, size_t des_row, Mat2D src, size_t src_row);
 MAT2D_DEF void          mat2D_add_row_time_factor_to_row(Mat2D m, size_t des_r, size_t src_r, mat2D_real factor);
+MAT2D_DEF void          mat2D_add_scalar(Mat2D m, mat2D_real x);
 MAT2D_DEF Mat2D         mat2D_alloc(size_t rows, size_t cols);
 MAT2D_DEF Mat2D_uint32  mat2D_alloc_uint32(size_t rows, size_t cols);
+MAT2D_DEF void          mat2D_anti_diag_transpose_inplace(Mat2D m);
 
 MAT2D_DEF mat2D_real    mat2D_calc_col_norma(Mat2D m, size_t c);
 MAT2D_DEF mat2D_real    mat2D_calc_norma(Mat2D m);
 MAT2D_DEF mat2D_real    mat2D_calc_norma_inf(Mat2D m);
 MAT2D_DEF bool          mat2D_col_is_all_digit(Mat2D m, mat2D_real digit, size_t c);
+MAT2D_DEF void          mat2D_convolve(Mat2D m, Mat2D a, Mat2D b);
 MAT2D_DEF void          mat2D_copy(Mat2D des, Mat2D src);
 MAT2D_DEF void          mat2D_copy_col_from_src_to_des(Mat2D des, size_t des_col, Mat2D src, size_t src_col);
 MAT2D_DEF void          mat2D_copy_row_from_src_to_des(Mat2D des, size_t des_row, Mat2D src, size_t src_row);
@@ -326,6 +336,7 @@ MAT2D_DEF mat2D_real    mat2D_det_2x2_mat_minor(Mat2D_Minor mm);
 
 MAT2D_DEF void          mat2D_eig_check(Mat2D A, Mat2D eigenvalues, Mat2D eigenvectors, Mat2D res);
 MAT2D_DEF void          mat2D_eig_power_iteration(Mat2D A, Mat2D eigenvalues, Mat2D eigenvectors, Mat2D init_vector, bool norm_inf_vectors);
+MAT2D_DEF mat2D_real    mat2D_elements_sum(Mat2D m);
 
 MAT2D_DEF void          mat2D_fill(Mat2D m, mat2D_real x);
 MAT2D_DEF void          mat2D_fill_sequence(Mat2D m, mat2D_real start, mat2D_real step);
@@ -368,6 +379,7 @@ MAT2D_DEF mat2D_real    mat2D_rand_mat2D_real(void);
 MAT2D_DEF Mat2D         mat2D_realloc(Mat2D m, size_t rows, size_t cols);
 MAT2D_DEF Mat2D_uint32  mat2D_realloc_uint32(Mat2D_uint32 m, size_t rows, size_t cols);
 MAT2D_DEF size_t        mat2D_reduce(Mat2D m);
+MAT2D_DEF void          mat2D_rotate_mat_180_deg_inplace(Mat2D m);
 MAT2D_DEF bool          mat2D_row_is_all_digit(Mat2D m, mat2D_real digit, size_t r);
 
 MAT2D_DEF void          mat2D_set_DCM_zyx(Mat2D DCM, float yaw_deg, float pitch_deg, float roll_deg);
@@ -386,6 +398,7 @@ MAT2D_DEF void          mat2D_SVD_thin(Mat2D A, Mat2D U, Mat2D S, Mat2D V, Mat2D
 MAT2D_DEF void          mat2D_swap_rows(Mat2D m, size_t r1, size_t r2);
 
 MAT2D_DEF void          mat2D_transpose(Mat2D des, Mat2D src);
+MAT2D_DEF void          mat2D_transpose_inplace(Mat2D m);
 
 MAT2D_DEF mat2D_real    mat2D_upper_triangulate(Mat2D m, uint8_t flags);
 
@@ -475,6 +488,15 @@ MAT2D_DEF void mat2D_add_row_time_factor_to_row(Mat2D m, size_t des_r, size_t sr
     }
 }
 
+MAT2D_DEF void mat2D_add_scalar(Mat2D m, mat2D_real x)
+{
+    for (size_t i = 0; i < m.rows; i++) {
+        for (size_t j = 0; j < m.cols; j++) {
+            MAT2D_AT(m, i, j) += x;
+        }
+    }
+}
+
 /**
  * @brief Allocate a rows-by-cols matrix of double.
  *
@@ -525,6 +547,19 @@ MAT2D_DEF Mat2D_uint32 mat2D_alloc_uint32(size_t rows, size_t cols)
     MAT2D_ASSERT(m.elements != NULL);
     
     return m;
+}
+
+MAT2D_DEF void mat2D_anti_diag_transpose_inplace(Mat2D m)
+{
+    MAT2D_ASSERT(m.cols == m.rows);
+
+    for (size_t i = 0; i < m.rows; i++) {
+        for (size_t j = 0; j < m.cols - i; j++) {
+            mat2D_real temp = MAT2D_AT(m, i, j);
+            MAT2D_AT(m, i, j) = MAT2D_AT(m, m.rows - j - 1, m.cols - i - 1);
+            MAT2D_AT(m, m.rows - j - 1, m.cols - i - 1) = temp;
+        }
+    }
 }
 
 /**
@@ -606,6 +641,31 @@ MAT2D_DEF bool mat2D_col_is_all_digit(Mat2D m, mat2D_real digit, size_t c)
         }
     }
     return true;
+}
+
+void mat2D_convolve(Mat2D m, Mat2D a, Mat2D b) 
+{
+    MAT2D_ASSERT(a.cols >= b.cols);
+    MAT2D_ASSERT(a.rows >= b.rows);
+    MAT2D_ASSERT(m.rows == (a.rows - b.rows + 1));
+    MAT2D_ASSERT(m.cols == (a.cols - b.cols + 1));
+    MAT2D_ASSERT(b.cols == b.rows);
+
+    mat2D_rotate_mat_180_deg_inplace(b);
+
+    for (size_t i = 0; i < m.rows; i++) {
+        for (size_t j = 0; j < m.cols; j++) {
+            Mat2D window = {
+                .cols = b.cols,
+                .rows = b.rows,
+                .stride_r = a.stride_r,
+                .elements = &(MAT2D_AT(a, i, j))
+            };
+
+            MAT2D_AT(m, i, j) = mat2D_dot_product(window, b);
+        }
+    }
+
 }
 
 /**
@@ -815,28 +875,22 @@ MAT2D_DEF void mat2D_dot(Mat2D dst, Mat2D a, Mat2D b)
 /**
  * @brief Dot product between two vectors.
  *
- * @param a Vector (shape n x 1 or 1 x n).
- * @param b Vector (same shape as a).
+ * @param a matrix. 
+ * @param b matrix (same shape as a).
  * @return The scalar dot product sum.
  *
  * @pre a.rows == b.rows and a.cols == b.cols
- * @pre (a.cols == 1 && b.cols == 1) || (a.rows == 1 && b.rows == 1)
  */
-MAT2D_DEF mat2D_real mat2D_dot_product(Mat2D v1, Mat2D v2)
+MAT2D_DEF mat2D_real mat2D_dot_product(Mat2D m1, Mat2D m2)
 {
-    MAT2D_ASSERT(v1.rows == v2.rows);
-    MAT2D_ASSERT(v1.cols == v2.cols);
-    MAT2D_ASSERT((1 == v1.cols && 1 == v2.cols) || (1 == v1.rows && 1 == v2.rows));
+    MAT2D_ASSERT(m1.rows == m2.rows);
+    MAT2D_ASSERT(m1.cols == m2.cols);
 
     mat2D_real dot_product = 0;
 
-    if (1 == v1.cols) {
-        for (size_t i = 0; i < v1.rows; i++) {
-            dot_product += MAT2D_AT(v1, i, 0) * MAT2D_AT(v2, i, 0);
-        }
-    } else {
-        for (size_t j = 0; j < v1.cols; j++) {
-            dot_product += MAT2D_AT(v1, 0, j) * MAT2D_AT(v2, 0, j);
+    for (size_t i = 0; i < m1.rows; i++) {
+        for (size_t j = 0; j < m1.cols; j++) {
+            dot_product += MAT2D_AT(m1, i, j) * MAT2D_AT(m2, i, j);
         }
     }
     
@@ -1162,6 +1216,18 @@ void mat2D_eig_power_iteration(Mat2D A, Mat2D eigenvalues, Mat2D eigenvectors, M
     mat2D_free(temp_mat);
 }
 #endif
+
+MAT2D_DEF mat2D_real mat2D_elements_sum(Mat2D m)
+{
+    mat2D_real sum = 0;
+
+    for (size_t i = 0; i < m.rows; ++i) {
+        for (size_t j = 0; j < m.cols; ++j) {
+            sum += MAT2D_AT(m, i, j);
+        }
+    }
+    return sum;
+}
 
 /**
  * @brief Fill all elements of a matrix of doubles with a scalar value.
@@ -2115,6 +2181,12 @@ MAT2D_DEF size_t mat2D_reduce(Mat2D m)
     return rank;
 }
 
+MAT2D_DEF void mat2D_rotate_mat_180_deg_inplace(Mat2D m)
+{
+    mat2D_transpose_inplace(m);
+    mat2D_anti_diag_transpose_inplace(m);
+}
+
 /**
  * @brief Check if all elements of a row equal a given digit.
  * @param m Matrix.
@@ -2638,6 +2710,19 @@ MAT2D_DEF void mat2D_transpose(Mat2D des, Mat2D src)
     for (size_t index = 0; index < des.rows; ++index) {
         for (size_t jndex = 0; jndex < des.cols; ++jndex) {
             MAT2D_AT(des, index, jndex) = MAT2D_AT(src, jndex, index);
+        }
+    }
+}
+
+MAT2D_DEF void mat2D_transpose_inplace(Mat2D m)
+{
+    MAT2D_ASSERT(m.cols == m.rows);
+
+    for (size_t i = 0; i < m.rows; i++) {
+        for (size_t j = 0; j <= i; j++) {
+            mat2D_real temp = MAT2D_AT(m, i, j);
+            MAT2D_AT(m, i, j) = MAT2D_AT(m, j, i);
+            MAT2D_AT(m, j, i) = temp;
         }
     }
 }
