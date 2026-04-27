@@ -92,7 +92,7 @@ void blur_gaussian_bw_fast(Mat2D_uint32 des_u32, struct Apng_Pixel_Buffer src_u3
             uint8_t g;
             uint8_t b;
             APNG_HexARGB_TO_RGB_VAR(pixel, r, g, b);
-            MAT2D_AT(src, i, j) = 0.299 * r + 0.587 * g + 0.114 * b;
+            MAT2D_AT(src, i, j) = 0.2126 * r + 0.7152 * g + 0.0722 * b;
         }
     }
 
@@ -478,9 +478,9 @@ enum Apl_Return_Types apl_setup(struct Apl_Window_State *ws)
     // ws->to_limit_fps = false;
 
     // char file_name[] = "../src/test_images/test-png7.png";
-    // char file_name[] = "../src/test_images/test-png3.png";
+    char file_name[] = "../src/test_images/test-png5.png";
     // char file_name[] = "../src/test_images/file_example_PNG_3MB.png";
-    char file_name[] = "../src/test_images/Valve_original.png";
+    // char file_name[] = "../src/test_images/Valve_original.png";
 
     apng_png_free(&image);
     if (APNG_FAIL == apng_png_load(file_name, &image, true)) {
@@ -491,16 +491,16 @@ enum Apl_Return_Types apl_setup(struct Apl_Window_State *ws)
     results = mat2D_alloc_uint32(image.pixels.rows, image.pixels.cols);
 
     // edge_detection_sobel_3x3(results, image.pixels);
-    // edge_detection_sobel_3x3_cutoff(results, image.pixels, 100);
+    // edge_detection_sobel_3x3_cutoff(results, image.pixels, 200);
     // edge_detection_sobel_5x5(results, image.pixels);
-    edge_detection_sobel_5x5_cutoff(results, image.pixels, 150);
+    // edge_detection_sobel_5x5_cutoff(results, image.pixels, 200);
 
-    // blur_gaussian_bw_fast(temp, image.pixels, 1.5);
-    // struct Apng_Pixel_Buffer temp_b = mat2d_u32_as_apng_pixel_buffer(temp);
-    // // edge_detection_sobel_3x3(results, temp_b);
-    // // edge_detection_sobel_3x3_cutoff(results, temp_b, 100);
-    // // edge_detection_sobel_5x5(results, temp_b);
-    // edge_detection_sobel_5x5_cutoff(results, temp_b, 100);
+    blur_gaussian_bw_fast(temp, image.pixels, 1.0);
+    struct Apng_Pixel_Buffer temp_b = mat2d_u32_as_apng_pixel_buffer(temp);
+    // edge_detection_sobel_3x3(results, temp_b);
+    edge_detection_sobel_3x3_cutoff(results, temp_b, 220);
+    // edge_detection_sobel_5x5(results, temp_b);
+    // edge_detection_sobel_5x5_cutoff(results, temp_b, 200);
 
     return APL_SUCCESS;
 }

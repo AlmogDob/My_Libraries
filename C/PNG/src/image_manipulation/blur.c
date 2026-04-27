@@ -75,7 +75,7 @@ void blur_box_blur_bw(Mat2D_uint32 des_u32, struct Apng_Pixel_Buffer src_u32, si
                 uint8_t g;
                 uint8_t b;
                 APNG_HexARGB_TO_RGB_VAR(pixel, r, g, b);
-                MAT2D_AT(src, i, j) = 0.299 * r + 0.587 * g + 0.114 * b;
+                MAT2D_AT(src, i, j) = 0.2126 * r + 0.7152 * g + 0.0722 * b;
             }
         }
     }
@@ -199,7 +199,7 @@ void blur_gaussian_bw(Mat2D_uint32 des_u32, struct Apng_Pixel_Buffer src_u32, ma
                 uint8_t g;
                 uint8_t b;
                 APNG_HexARGB_TO_RGB_VAR(pixel, r, g, b);
-                MAT2D_AT(src, i, j) = 0.299 * r + 0.587 * g + 0.114 * b;
+                MAT2D_AT(src, i, j) = 0.2126 * r + 0.7152 * g + 0.0722 * b;
             }
         }
     }
@@ -260,7 +260,7 @@ void blur_gaussian_bw_fast(Mat2D_uint32 des_u32, struct Apng_Pixel_Buffer src_u3
             uint8_t g;
             uint8_t b;
             APNG_HexARGB_TO_RGB_VAR(pixel, r, g, b);
-            MAT2D_AT(src, i, j) = 0.299 * r + 0.587 * g + 0.114 * b;
+            MAT2D_AT(src, i, j) = 0.2126 * r + 0.7152 * g + 0.0722 * b;
         }
     }
 
@@ -510,9 +510,9 @@ enum Apl_Return_Types apl_setup(struct Apl_Window_State *ws)
     }
 
     results = mat2D_alloc_uint32(image.pixels.rows, image.pixels.cols);
-    // blur_box_blur_bw(results, image.pixels, 5);
+    blur_box_blur_bw(results, image.pixels, 3);
     // blur_box_blur_rgba(results, image.pixels, 5);
-    blur_gaussian_bw(results, image.pixels, 3);
+    // blur_gaussian_bw(results, image.pixels, 3);
     // blur_gaussian_bw_fast(results, image.pixels, 6);
     // blur_gaussian_rgba_fast(results, image.pixels, 5);
 
