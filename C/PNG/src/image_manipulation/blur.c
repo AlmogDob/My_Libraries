@@ -499,8 +499,8 @@ enum Apl_Return_Types apl_setup(struct Apl_Window_State *ws)
     ws->wanted_fps = 60;
     // ws->to_limit_fps = false;
 
-    // char file_name[] = "../src/test_images/test-png7.png";
-    char file_name[] = "../src/test_images/test-png3.png";
+    char file_name[] = "../src/test_images/test-png7.png";
+    // char file_name[] = "../src/test_images/test-png3.png";
     // char file_name[] = "../src/test_images/file_example_PNG_3MB.png";
     // char file_name[] = "../src/test_images/gaussian_blue_test.png";
 
@@ -512,9 +512,9 @@ enum Apl_Return_Types apl_setup(struct Apl_Window_State *ws)
     results = mat2D_alloc_uint32(image.pixels.rows, image.pixels.cols);
     // blur_box_blur_bw(results, image.pixels, 5);
     // blur_box_blur_rgba(results, image.pixels, 5);
-    // blur_gaussian_bw(results, image.pixels, 3);
-    // blur_gaussian_bw_fast(results, image.pixels, 3);
-    blur_gaussian_rgba_fast(results, image.pixels, 5);
+    blur_gaussian_bw(results, image.pixels, 3);
+    // blur_gaussian_bw_fast(results, image.pixels, 6);
+    // blur_gaussian_rgba_fast(results, image.pixels, 5);
 
     // results = apng_pixel_buffer_mat2d_u32(image.pixels);
 

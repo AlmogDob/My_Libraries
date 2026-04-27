@@ -287,9 +287,18 @@ void edge_detection_sobel_5x5_cutoff(Mat2D_uint32 des_u32, struct Apng_Pixel_Buf
     for (size_t i = 0; i < des.rows; i++) {
         for (size_t j = 0; j < des.cols; j++) {
             mat2D_real value = MAT2D_AT(des, i, j);
-            
-            if (value > cutoff) value = 255;
+            if (value > cutoff) value = cutoff;
+            MAT2D_AT(des, i, j) = value;
+        }
+    }
 
+    mat2D_normalize_inf(des);
+    mat2D_mult(des, 255);
+
+    for (size_t i = 0; i < des.rows; i++) {
+        for (size_t j = 0; j < des.cols; j++) {
+            mat2D_real value = MAT2D_AT(des, i, j);
+            
             uint8_t temp, alpha;
             APNG_HexARGB_TO_RGBA_VAR(APNG_PIXEL_BUFFER_AT(src_u32, i, j), temp, temp, temp, alpha);
 
@@ -433,8 +442,17 @@ void edge_detection_sobel_3x3_cutoff(Mat2D_uint32 des_u32, struct Apng_Pixel_Buf
     for (size_t i = 0; i < des.rows; i++) {
         for (size_t j = 0; j < des.cols; j++) {
             mat2D_real value = MAT2D_AT(des, i, j);
+            if (value > cutoff) value = cutoff;
+            MAT2D_AT(des, i, j) = value;
+        }
+    }
 
-            if (value > cutoff) value = 255;
+    mat2D_normalize_inf(des);
+    mat2D_mult(des, 255);
+
+    for (size_t i = 0; i < des.rows; i++) {
+        for (size_t j = 0; j < des.cols; j++) {
+            mat2D_real value = MAT2D_AT(des, i, j);
 
             uint8_t temp, alpha;
             APNG_HexARGB_TO_RGBA_VAR(APNG_PIXEL_BUFFER_AT(src_u32, i, j), temp, temp, temp, alpha);
@@ -461,7 +479,9 @@ enum Apl_Return_Types apl_setup(struct Apl_Window_State *ws)
 
     // char file_name[] = "../src/test_images/test-png7.png";
     // char file_name[] = "../src/test_images/test-png3.png";
-    char file_name[] = "../src/test_images/file_example_PNG_3MB.png";
+    // char file_name[] = "../src/test_images/file_example_PNG_3MB.png";
+    char file_name[] = "../src/test_images/Valve_original.png";
+
     apng_png_free(&image);
     if (APNG_FAIL == apng_png_load(file_name, &image, true)) {
         return APL_FAIL;
@@ -471,14 +491,16 @@ enum Apl_Return_Types apl_setup(struct Apl_Window_State *ws)
     results = mat2D_alloc_uint32(image.pixels.rows, image.pixels.cols);
 
     // edge_detection_sobel_3x3(results, image.pixels);
-    // edge_detection_sobel_3x3_cutoff(results, image.pixels, 10);
+    // edge_detection_sobel_3x3_cutoff(results, image.pixels, 100);
     // edge_detection_sobel_5x5(results, image.pixels);
-    edge_detection_sobel_5x5_cutoff(results, image.pixels, 10);
+    edge_detection_sobel_5x5_cutoff(results, image.pixels, 150);
 
-    // blur_gaussian_bw_fast(temp, image.pixels, 4);
+    // blur_gaussian_bw_fast(temp, image.pixels, 1.5);
     // struct Apng_Pixel_Buffer temp_b = mat2d_u32_as_apng_pixel_buffer(temp);
     // // edge_detection_sobel_3x3(results, temp_b);
-    // edge_detection_sobel_5x5(results, temp_b);
+    // // edge_detection_sobel_3x3_cutoff(results, temp_b, 100);
+    // // edge_detection_sobel_5x5(results, temp_b);
+    // edge_detection_sobel_5x5_cutoff(results, temp_b, 100);
 
     return APL_SUCCESS;
 }
