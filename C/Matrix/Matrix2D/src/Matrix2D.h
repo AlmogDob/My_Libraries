@@ -228,15 +228,7 @@ typedef struct {
  *
  * @warning In the “fast” configuration this macro performs no bounds checking.
  */
-
-/**
- * @def MAT2D_AT_UINT32(m, i, j)
- * @brief Access element (i, j) of a Mat2D_uint32 (0-based).
- *
- * @warning In the “fast” configuration this macro performs no bounds checking.
- */
 #define MAT2D_AT(m, i, j) (m).elements[(MAT2D_ASSERT((i) < (m).rows && (j) < (m).cols), (i) * (m).stride_r + (j))]
-#define MAT2D_AT_UINT32(m, i, j) (m).elements[(MAT2D_ASSERT((i) < (m).rows && (j) < (m).cols), (i) * (m).stride_r + (j))]
 
 #define MAT2D_PI 3.14159265358979323846
 #define MAT2D_MAX_POWER_ITERATION 100
@@ -321,6 +313,7 @@ MAT2D_DEF mat2D_real    mat2D_calc_norma_inf(Mat2D m);
 MAT2D_DEF bool          mat2D_col_is_all_digit(Mat2D m, mat2D_real digit, size_t c);
 MAT2D_DEF void          mat2D_convolve(Mat2D m, Mat2D a, Mat2D b);
 MAT2D_DEF void          mat2D_copy(Mat2D des, Mat2D src);
+MAT2D_DEF void          mat2D_copy_uint32(Mat2D_uint32 des, Mat2D_uint32 src);
 MAT2D_DEF void          mat2D_copy_col_from_src_to_des(Mat2D des, size_t des_col, Mat2D src, size_t src_col);
 MAT2D_DEF void          mat2D_copy_row_from_src_to_des(Mat2D des, size_t des_row, Mat2D src, size_t src_row);
 MAT2D_DEF void          mat2D_copy_src_to_des_window(Mat2D des, Mat2D src, size_t is, size_t js, size_t ie, size_t je);
@@ -677,6 +670,18 @@ void mat2D_convolve(Mat2D m, Mat2D a, Mat2D b)
  * @pre des and src have identical shape.
  */
 MAT2D_DEF void mat2D_copy(Mat2D des, Mat2D src)
+{
+    MAT2D_ASSERT(des.cols == src.cols);
+    MAT2D_ASSERT(des.rows == src.rows);
+
+    for (size_t i = 0; i < des.rows; ++i) {
+        for (size_t j = 0; j < des.cols; ++j) {
+            MAT2D_AT(des, i, j) = MAT2D_AT(src, i, j);
+        }
+    }
+}
+
+MAT2D_DEF void mat2D_copy_uint32(Mat2D_uint32 des, Mat2D_uint32 src)
 {
     MAT2D_ASSERT(des.cols == src.cols);
     MAT2D_ASSERT(des.rows == src.rows);
@@ -1270,7 +1275,7 @@ MAT2D_DEF void mat2D_fill_uint32(Mat2D_uint32 m, uint32_t x)
 {
     for (size_t i = 0; i < m.rows; ++i) {
         for (size_t j = 0; j < m.cols; ++j) {
-            MAT2D_AT_UINT32(m, i, j) = x;
+            MAT2D_AT(m, i, j) = x;
         }
     }
 }
@@ -1983,7 +1988,7 @@ MAT2D_DEF void mat2D_print_uint32(Mat2D_uint32 m, const char *name, size_t paddi
     for (size_t i = 0; i < m.rows; ++i) {
         printf("%*s    ", (int) padding, "");
         for (size_t j = 0; j < m.cols; ++j) {
-            printf("%#10X ", MAT2D_AT_UINT32(m, i, j));
+            printf("%#10X ", MAT2D_AT(m, i, j));
         }
         printf("\n");
     }
