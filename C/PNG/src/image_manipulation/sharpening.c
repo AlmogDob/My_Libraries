@@ -20,6 +20,9 @@
 #define ALMOG_PNG_IMPLEMENTATION
 #include "../include/Almog_PNG.h"
 
+#define ALMOG_IMAGE_MANIPULATION_IMPLEMENTATION
+#include "../include/Almog_Image_Manipulation.h"
+
 Mat2D apl_depth_buffer_as_mat2d(struct Apl_Depth_Buffer b)
 {
     Mat2D m = {
