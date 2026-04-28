@@ -63,7 +63,7 @@ Mat2D_uint32 apl_pixel_buffer_mat2d_u32(struct Apl_Pixel_Buffer b)
     return m;
 }
 
-void blur_gaussian_bw_fast(Mat2D_uint32 des_u32, struct Apng_Pixel_Buffer src_u32, mat2D_real std)
+void blur_gaussian_bw_fast(Mat2D_uint32 des_u32, Mat2D_uint32 src_u32, mat2D_real std)
 {
     /* https://en.wikipedia.org/wiki/Gaussian_blur */
 
@@ -87,12 +87,12 @@ void blur_gaussian_bw_fast(Mat2D_uint32 des_u32, struct Apng_Pixel_Buffer src_u3
 
     for (size_t i = 0; i < src.rows; i++) {
         for (size_t j = 0; j < src.cols; j++) {
-            uint32_t pixel = APNG_PIXEL_BUFFER_AT(src_u32, i, j);
+            uint32_t pixel = MAT2D_AT(src_u32, i, j);
             uint8_t r;
             uint8_t g;
             uint8_t b;
             APNG_HexARGB_TO_RGB_VAR(pixel, r, g, b);
-            MAT2D_AT(src, i, j) = 0.299 * r + 0.587 * g + 0.114 * b;
+            MAT2D_AT(src, i, j) = 0.2126 * r + 0.7152 * g + 0.0722 * b;
         }
     }
 
@@ -134,8 +134,8 @@ void blur_gaussian_bw_fast(Mat2D_uint32 des_u32, struct Apng_Pixel_Buffer src_u3
         for (size_t j = 0; j < conv.cols; j++) {
             mat2D_real value = MAT2D_AT(conv, i, j);
             uint8_t temp, alpha;
-            APNG_HexARGB_TO_RGBA_VAR(APNG_PIXEL_BUFFER_AT(src_u32, i, j), temp, temp, temp, alpha);
-            MAT2D_AT_UINT32(des_u32, i, j) = APNG_RGBA_TO_hexARGB(value, value, value, alpha);
+            APNG_HexARGB_TO_RGBA_VAR(MAT2D_AT(src_u32, i, j), temp, temp, temp, alpha);
+            MAT2D_AT(des_u32, i, j) = APNG_RGBA_TO_hexARGB(value, value, value, alpha);
         }
     }
 
@@ -145,7 +145,7 @@ void blur_gaussian_bw_fast(Mat2D_uint32 des_u32, struct Apng_Pixel_Buffer src_u3
     mat2D_free(kernel_1D);
 }
 
-void edge_detection_sobel_5x5(Mat2D_uint32 des_u32, struct Apng_Pixel_Buffer src_u32)
+void edge_detection_sobel_5x5(Mat2D_uint32 des_u32, Mat2D_uint32 src_u32)
 {
     /* https://en.wikipedia.org/wiki/Sobel_operator */
 
@@ -165,7 +165,7 @@ void edge_detection_sobel_5x5(Mat2D_uint32 des_u32, struct Apng_Pixel_Buffer src
             } else if (i == 1 || i == src.rows - 2 || j == 1 || j == src.cols - 2) {
                 MAT2D_AT(src, i, j) = 0;
             } else {
-                uint32_t pixel = APNG_PIXEL_BUFFER_AT(src_u32, i - 2, j - 2);
+                uint32_t pixel = MAT2D_AT(src_u32, i - 2, j - 2);
                 uint8_t r;
                 uint8_t g;
                 uint8_t b;
@@ -210,9 +210,9 @@ void edge_detection_sobel_5x5(Mat2D_uint32 des_u32, struct Apng_Pixel_Buffer src
             mat2D_real value = MAT2D_AT(des, i, j);
             
             uint8_t temp, alpha;
-            APNG_HexARGB_TO_RGBA_VAR(APNG_PIXEL_BUFFER_AT(src_u32, i, j), temp, temp, temp, alpha);
+            APNG_HexARGB_TO_RGBA_VAR(MAT2D_AT(src_u32, i, j), temp, temp, temp, alpha);
 
-            MAT2D_AT_UINT32(des_u32, i, j) = APNG_RGBA_TO_hexARGB(value, value, value, alpha);
+            MAT2D_AT(des_u32, i, j) = APNG_RGBA_TO_hexARGB(value, value, value, alpha);
         }
     }
 
@@ -224,7 +224,7 @@ void edge_detection_sobel_5x5(Mat2D_uint32 des_u32, struct Apng_Pixel_Buffer src
     mat2D_free(conv_vert);
 }
 
-void edge_detection_sobel_5x5_cutoff(Mat2D_uint32 des_u32, struct Apng_Pixel_Buffer src_u32, mat2D_real cutoff)
+void edge_detection_sobel_5x5_cutoff(Mat2D_uint32 des_u32, Mat2D_uint32 src_u32, mat2D_real cutoff)
 {
     /* https://en.wikipedia.org/wiki/Sobel_operator */
 
@@ -244,7 +244,7 @@ void edge_detection_sobel_5x5_cutoff(Mat2D_uint32 des_u32, struct Apng_Pixel_Buf
             } else if (i == 1 || i == src.rows - 2 || j == 1 || j == src.cols - 2) {
                 MAT2D_AT(src, i, j) = 0;
             } else {
-                uint32_t pixel = APNG_PIXEL_BUFFER_AT(src_u32, i - 2, j - 2);
+                uint32_t pixel = MAT2D_AT(src_u32, i - 2, j - 2);
                 uint8_t r;
                 uint8_t g;
                 uint8_t b;
@@ -287,13 +287,22 @@ void edge_detection_sobel_5x5_cutoff(Mat2D_uint32 des_u32, struct Apng_Pixel_Buf
     for (size_t i = 0; i < des.rows; i++) {
         for (size_t j = 0; j < des.cols; j++) {
             mat2D_real value = MAT2D_AT(des, i, j);
+            if (value > cutoff) value = cutoff;
+            MAT2D_AT(des, i, j) = value;
+        }
+    }
+
+    mat2D_normalize_inf(des);
+    mat2D_mult(des, 255);
+
+    for (size_t i = 0; i < des.rows; i++) {
+        for (size_t j = 0; j < des.cols; j++) {
+            mat2D_real value = MAT2D_AT(des, i, j);
             
-            if (value > cutoff) value = 255;
-
             uint8_t temp, alpha;
-            APNG_HexARGB_TO_RGBA_VAR(APNG_PIXEL_BUFFER_AT(src_u32, i, j), temp, temp, temp, alpha);
+            APNG_HexARGB_TO_RGBA_VAR(MAT2D_AT(src_u32, i, j), temp, temp, temp, alpha);
 
-            MAT2D_AT_UINT32(des_u32, i, j) = APNG_RGBA_TO_hexARGB(value, value, value, alpha);
+            MAT2D_AT(des_u32, i, j) = APNG_RGBA_TO_hexARGB(value, value, value, alpha);
         }
     }
 
@@ -305,7 +314,7 @@ void edge_detection_sobel_5x5_cutoff(Mat2D_uint32 des_u32, struct Apng_Pixel_Buf
     mat2D_free(conv_vert);
 }
 
-void edge_detection_sobel_3x3(Mat2D_uint32 des_u32, struct Apng_Pixel_Buffer src_u32)
+void edge_detection_sobel_3x3(Mat2D_uint32 des_u32, Mat2D_uint32 src_u32)
 {
     /* https://en.wikipedia.org/wiki/Sobel_operator */
 
@@ -324,7 +333,7 @@ void edge_detection_sobel_3x3(Mat2D_uint32 des_u32, struct Apng_Pixel_Buffer src
             if (i == 0 || i == src.rows - 1 || j == 0 || j == src.cols - 1) {
                 MAT2D_AT(src, i, j) = 0;
             } else {
-                uint32_t pixel = APNG_PIXEL_BUFFER_AT(src_u32, i - 1, j - 1);
+                uint32_t pixel = MAT2D_AT(src_u32, i - 1, j - 1);
                 uint8_t r;
                 uint8_t g;
                 uint8_t b;
@@ -363,9 +372,9 @@ void edge_detection_sobel_3x3(Mat2D_uint32 des_u32, struct Apng_Pixel_Buffer src
             mat2D_real value = MAT2D_AT(des, i, j);
 
             uint8_t temp, alpha;
-            APNG_HexARGB_TO_RGBA_VAR(APNG_PIXEL_BUFFER_AT(src_u32, i, j), temp, temp, temp, alpha);
+            APNG_HexARGB_TO_RGBA_VAR(MAT2D_AT(src_u32, i, j), temp, temp, temp, alpha);
 
-            MAT2D_AT_UINT32(des_u32, i, j) = APNG_RGBA_TO_hexARGB(value, value, value, alpha);
+            MAT2D_AT(des_u32, i, j) = APNG_RGBA_TO_hexARGB(value, value, value, alpha);
         }
     }
 
@@ -377,7 +386,7 @@ void edge_detection_sobel_3x3(Mat2D_uint32 des_u32, struct Apng_Pixel_Buffer src
     mat2D_free(conv_vert);
 }
 
-void edge_detection_sobel_3x3_cutoff(Mat2D_uint32 des_u32, struct Apng_Pixel_Buffer src_u32, mat2D_real cutoff)
+void edge_detection_sobel_3x3_cutoff(Mat2D_uint32 des_u32, Mat2D_uint32 src_u32, mat2D_real cutoff)
 {
     /* https://en.wikipedia.org/wiki/Sobel_operator */
 
@@ -396,7 +405,7 @@ void edge_detection_sobel_3x3_cutoff(Mat2D_uint32 des_u32, struct Apng_Pixel_Buf
             if (i == 0 || i == src.rows - 1 || j == 0 || j == src.cols - 1) {
                 MAT2D_AT(src, i, j) = 0;
             } else {
-                uint32_t pixel = APNG_PIXEL_BUFFER_AT(src_u32, i - 1, j - 1);
+                uint32_t pixel = MAT2D_AT(src_u32, i - 1, j - 1);
                 uint8_t r;
                 uint8_t g;
                 uint8_t b;
@@ -433,13 +442,22 @@ void edge_detection_sobel_3x3_cutoff(Mat2D_uint32 des_u32, struct Apng_Pixel_Buf
     for (size_t i = 0; i < des.rows; i++) {
         for (size_t j = 0; j < des.cols; j++) {
             mat2D_real value = MAT2D_AT(des, i, j);
+            if (value > cutoff) value = cutoff;
+            MAT2D_AT(des, i, j) = value;
+        }
+    }
 
-            if (value > cutoff) value = 255;
+    mat2D_normalize_inf(des);
+    mat2D_mult(des, 255);
+
+    for (size_t i = 0; i < des.rows; i++) {
+        for (size_t j = 0; j < des.cols; j++) {
+            mat2D_real value = MAT2D_AT(des, i, j);
 
             uint8_t temp, alpha;
-            APNG_HexARGB_TO_RGBA_VAR(APNG_PIXEL_BUFFER_AT(src_u32, i, j), temp, temp, temp, alpha);
+            APNG_HexARGB_TO_RGBA_VAR(MAT2D_AT(src_u32, i, j), temp, temp, temp, alpha);
 
-            MAT2D_AT_UINT32(des_u32, i, j) = APNG_RGBA_TO_hexARGB(value, value, value, alpha);
+            MAT2D_AT(des_u32, i, j) = APNG_RGBA_TO_hexARGB(value, value, value, alpha);
         }
     }
 
@@ -460,25 +478,30 @@ enum Apl_Return_Types apl_setup(struct Apl_Window_State *ws)
     // ws->to_limit_fps = false;
 
     // char file_name[] = "../src/test_images/test-png7.png";
-    // char file_name[] = "../src/test_images/test-png3.png";
-    char file_name[] = "../src/test_images/file_example_PNG_3MB.png";
+    char file_name[] = "../src/test_images/test-png5.png";
+    // char file_name[] = "../src/test_images/file_example_PNG_3MB.png";
+    // char file_name[] = "../src/test_images/Valve_original.png";
+
     apng_png_free(&image);
     if (APNG_FAIL == apng_png_load(file_name, &image, true)) {
         return APL_FAIL;
     }
 
-    Mat2D_uint32 temp = mat2D_alloc_uint32(image.pixels.rows, image.pixels.cols);
-    results = mat2D_alloc_uint32(image.pixels.rows, image.pixels.cols);
+    Mat2D_uint32 image_pixels = apng_pixel_buffer_as_mat2d_u32(image.pixels);
+
+    Mat2D_uint32 temp = mat2D_alloc_uint32(image_pixels.rows, image_pixels.cols);
+    results = mat2D_alloc_uint32(image_pixels.rows, image_pixels.cols);
 
     // edge_detection_sobel_3x3(results, image.pixels);
-    // edge_detection_sobel_3x3_cutoff(results, image.pixels, 10);
+    // edge_detection_sobel_3x3_cutoff(results, image.pixels, 200);
     // edge_detection_sobel_5x5(results, image.pixels);
-    edge_detection_sobel_5x5_cutoff(results, image.pixels, 10);
+    // edge_detection_sobel_5x5_cutoff(results, image.pixels, 200);
 
-    // blur_gaussian_bw_fast(temp, image.pixels, 4);
-    // struct Apng_Pixel_Buffer temp_b = mat2d_u32_as_apng_pixel_buffer(temp);
-    // // edge_detection_sobel_3x3(results, temp_b);
+    blur_gaussian_bw_fast(temp, image_pixels, 1.0);
+    // edge_detection_sobel_3x3(results, temp_b);
+    edge_detection_sobel_3x3_cutoff(results, temp, 220);
     // edge_detection_sobel_5x5(results, temp_b);
+    // edge_detection_sobel_5x5_cutoff(results, temp_b, 200);
 
     return APL_SUCCESS;
 }
@@ -501,7 +524,7 @@ enum Apl_Return_Types apl_render(struct Apl_Window_State *ws)
         for (size_t j = 0; j < results.cols; j++) {
             for (size_t u = 0; u < factor; u++) {
                 for (size_t v = 0; v < factor; v++) {
-                    adl_point_draw(window_pixels, (float)(j * factor + v), (float)(i * factor + u), MAT2D_AT_UINT32(results, i, j), ADL_DEFAULT_OFFSET_ZOOM);
+                    adl_point_draw(window_pixels, (float)(j * factor + v), (float)(i * factor + u), MAT2D_AT(results, i, j), ADL_DEFAULT_OFFSET_ZOOM);
                 }
             }
         }
