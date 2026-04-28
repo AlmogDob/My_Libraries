@@ -88,7 +88,7 @@ enum Apl_Return_Types apl_render(struct Apl_Window_State *ws)
             z_fraq = fmax(z_fraq, min_inv_z);
             z_fraq = adl_linear_map(z_fraq, min_inv_z, max_inv_z, 0.1, 1);
             uint32_t color = ADL_RGB_hexRGB(0xFF*z_fraq, 0xFF*z_fraq, 0xFF*z_fraq); 
-            MAT2D_AT_UINT32(ws->window_pixels_mat, i, j) = color;
+            MAT2D_AT(ws->window_pixels_mat, i, j) = color;
         }
     }
     #endif

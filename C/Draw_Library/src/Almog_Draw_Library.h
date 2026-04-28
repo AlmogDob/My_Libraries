@@ -355,9 +355,9 @@ void adl_point_draw(Mat2D_uint32 screen_mat, float x, float y, uint32_t color, O
         int ix = (int)x, iy = (int)y;
         uint8_t r_new, g_new, b_new, a_new;
         uint8_t r_current, g_current, b_current, a_current;
-        ADL_HexARGB_RGBA_VAR(MAT2D_AT_UINT32(screen_mat, iy, ix), r_current, g_current, b_current, a_current);
+        ADL_HexARGB_RGBA_VAR(MAT2D_AT(screen_mat, iy, ix), r_current, g_current, b_current, a_current);
         ADL_HexARGB_RGBA_VAR(color, r_new, g_new, b_new, a_new);
-        MAT2D_AT_UINT32(screen_mat, iy, ix) = ADL_RGBA_hexARGB(r_current*(1-a_new/255.0f) + r_new*a_new/255.0f, g_current*(1-a_new/255.0f) + g_new*a_new/255.0f, b_current*(1-a_new/255.0f) + b_new*a_new/255.0f, 255);
+        MAT2D_AT(screen_mat, iy, ix) = ADL_RGBA_hexARGB(r_current*(1-a_new/255.0f) + r_new*a_new/255.0f, g_current*(1-a_new/255.0f) + g_new*a_new/255.0f, b_current*(1-a_new/255.0f) + b_new*a_new/255.0f, 255);
         (void)a_current;
     }
 }
@@ -1722,7 +1722,7 @@ void adl_tri_fill_Pinedas_rasterizer_interpolate_normal(Mat2D_uint32 screen_mat,
                 double inv_z = inv_w / z_over_w;
 
                 if (inv_z >= MAT2D_AT(inv_z_buffer, y, x)) {
-                    adl_point_draw(screen_mat, (float)x, (float)y, (uint32_t)ADL_RGBA_hexARGB(r8, g8, b8, a), offset_zoom_param);
+                    adl_point_draw(screen_mat, (float)x, (float)y, (uint32_t)(r8, g8, b8, a), offset_zoom_param);
                     MAT2D_AT(inv_z_buffer, y, x) = inv_z;
                 }
             }
@@ -2125,7 +2125,7 @@ void adl_figure_copy_to_screen(Mat2D_uint32 screen_mat, Figure figure)
             int offset_i = (int)figure.top_left_position.y;
             int offset_j = (int)figure.top_left_position.x;
             
-            adl_point_draw(screen_mat, (float)(offset_j+j), (float)(offset_i+i), MAT2D_AT_UINT32(figure.pixels_mat, i, j), (Offset_zoom_param){1,0,0,0,0});
+            adl_point_draw(screen_mat, (float)(offset_j+j), (float)(offset_i+i), MAT2D_AT(figure.pixels_mat, i, j), (Offset_zoom_param){1,0,0,0,0});
         }
     }
 }
