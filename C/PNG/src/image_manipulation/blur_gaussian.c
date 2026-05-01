@@ -58,13 +58,16 @@ Mat2D_uint32 apl_pixel_buffer_mat2d_u32(struct Apl_Pixel_Buffer b)
 
 Mat2D_uint32 results = {0};
 struct Apng_PNG_Image image = {0};
+Offset_zoom_param offzoom = {0};
 
 enum Apl_Return_Types apl_setup(struct Apl_Window_State *ws)
 {
     ws->wanted_fps = 60;
     // ws->to_limit_fps = false;
+    offzoom = ADL_DEFAULT_OFFSET_ZOOM;
 
-    char file_name[] = "../src/test_images/test-png7.png";
+    // char file_name[] = "../src/test_images/test-png7.png";
+    char file_name[] = "../src/test_images/test-png_wiki.png";
     // char file_name[] = "../src/test_images/file_example_PNG_3MB.png";
     // char file_name[] = "../src/test_images/gaussian_blur_test.png";
 
@@ -76,9 +79,9 @@ enum Apl_Return_Types apl_setup(struct Apl_Window_State *ws)
     Mat2D_uint32 image_pixels = apng_pixel_buffer_mat2d_u32(image.pixels);
 
     results = mat2D_alloc_uint32(image_pixels.rows, image_pixels.cols);
-    // aim_blur_gaussian_bw(results, image.pixels, 3);
-    // aim_blur_gaussian_bw_fast(results, image.pixels, 6);
-    aim_blur_gaussian_rgba_fast(results, image_pixels, 1.5);
+    // aim_blur_gaussian_bw(results, image_pixels, 6);
+    // aim_blur_gaussian_bw_fast(results, image_pixels, 6);
+    aim_blur_gaussian_rgba_fast(results, image_pixels, 6);
 
     // mat2D_copy_uint32(results, image_pixels);
 

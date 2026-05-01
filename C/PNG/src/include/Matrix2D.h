@@ -659,6 +659,7 @@ void mat2D_convolve(Mat2D m, Mat2D a, Mat2D b)
         }
     }
 
+    mat2D_rotate_mat_180_deg_inplace(b);
 }
 
 /**

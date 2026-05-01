@@ -16,10 +16,18 @@ AIM_DEF void aim_blur_box_blur_rgba(Mat2D_uint32 des_u32, Mat2D_uint32 src_u32, 
 AIM_DEF void aim_blur_gaussian_bw(Mat2D_uint32 des_u32, Mat2D_uint32 src_u32, mat2D_real std);
 AIM_DEF void aim_blur_gaussian_bw_fast(Mat2D_uint32 des_u32, Mat2D_uint32 src_u32, mat2D_real std);
 AIM_DEF void aim_blur_gaussian_rgba_fast(Mat2D_uint32 des_u32, Mat2D_uint32 src_u32, mat2D_real std);
+AIM_DEF void aim_build_sobel_1d(Mat2D smooth, Mat2D deriv);
+AIM_DEF void aim_build_sobel_kernels(Mat2D gx, Mat2D gy, size_t kernel_size);
+AIM_DEF void aim_edge_detection_shcarr_3x3(Mat2D_uint32 des_u32, Mat2D_uint32 src_u32);
 AIM_DEF void aim_edge_detection_sobel_3x3(Mat2D_uint32 des_u32, Mat2D_uint32 src_u32);
 AIM_DEF void aim_edge_detection_sobel_3x3_cutoff(Mat2D_uint32 des_u32, Mat2D_uint32 src_u32, mat2D_real cutoff);
 AIM_DEF void aim_edge_detection_sobel_5x5(Mat2D_uint32 des_u32, Mat2D_uint32 src_u32);
 AIM_DEF void aim_edge_detection_sobel_5x5_cutoff(Mat2D_uint32 des_u32, Mat2D_uint32 src_u32, mat2D_real cutoff);
+AIM_DEF void aim_edge_detection_sobel_general(Mat2D_uint32 des_u32, Mat2D_uint32 src_u32, size_t kernel_size);
+AIM_DEF void aim_edge_detection_sobel_general_cutoff(Mat2D_uint32 des_u32, Mat2D_uint32 src_u32, size_t kernel_size, mat2D_real cutoff);
+AIM_DEF void aim_fill_binomial_row(Mat2D v);
+
+
 
 #endif /*ALMOG_IMAGE_MANIPULATION_H_*/
 
@@ -64,7 +72,6 @@ AIM_DEF void aim_blur_box_blur_bw(Mat2D_uint32 des_u32, Mat2D_uint32 src_u32, si
 
             uint8_t temp, alpha;
             APNG_HexARGB_TO_RGBA_VAR(APNG_PIXEL_BUFFER_AT(src_u32, i, j), temp, temp, temp, alpha);
-
             MAT2D_AT(des_u32, i, j) = APNG_RGBA_TO_hexARGB(value, value, value, alpha);
         }
     }
@@ -464,7 +471,70 @@ AIM_DEF void aim_blur_gaussian_rgba_fast(Mat2D_uint32 des_u32, Mat2D_uint32 src_
     mat2D_free(kernel_1D);
 }
 
-AIM_DEF void aim_edge_detection_sobel_3x3(Mat2D_uint32 des_u32, Mat2D_uint32 src_u32)
+AIM_DEF void aim_build_sobel_1d(Mat2D smooth, Mat2D deriv)
+{
+    MAT2D_ASSERT(smooth.rows == 1 || smooth.cols == 1);
+    MAT2D_ASSERT(deriv.rows == 1 || deriv.cols == 1);
+
+    size_t n_s = (smooth.rows == 1) ? smooth.cols : smooth.rows;
+    size_t n_d = (deriv.rows == 1) ? deriv.cols : deriv.rows;
+
+    MAT2D_ASSERT(n_s == n_d);
+    MAT2D_ASSERT(n_s >= 3);
+    MAT2D_ASSERT(n_s % 2 == 1);
+
+    size_t n = n_s;
+
+    aim_fill_binomial_row(smooth);
+
+    Mat2D temp = mat2D_alloc(n - 2, 1);
+    aim_fill_binomial_row(temp);
+
+    mat2D_fill(deriv, 0);
+
+    if (deriv.rows == 1) {
+        for (size_t i = 0; i < n - 2; i++) {
+            mat2D_real t = MAT2D_AT(temp, i, 0);
+            MAT2D_AT(deriv, 0, i)     -= t;
+            MAT2D_AT(deriv, 0, i + 2) += t;
+        }
+    } else {
+        for (size_t i = 0; i < n - 2; i++) {
+            mat2D_real t = MAT2D_AT(temp, i, 0);
+            MAT2D_AT(deriv, i, 0)     -= t;
+            MAT2D_AT(deriv, i + 2, 0) += t;
+        }
+    }
+
+    mat2D_free(temp);
+}
+
+AIM_DEF void aim_build_sobel_kernels(Mat2D gx, Mat2D gy, size_t kernel_size)
+{
+    MAT2D_ASSERT(gx.rows == kernel_size && gx.cols == kernel_size);
+    MAT2D_ASSERT(gy.rows == kernel_size && gy.cols == kernel_size);
+    MAT2D_ASSERT(kernel_size >= 3);
+    MAT2D_ASSERT(kernel_size % 2 == 1);
+
+    Mat2D smooth_col = mat2D_alloc(kernel_size, 1);
+    Mat2D deriv_col = mat2D_alloc(kernel_size, 1);
+    Mat2D smooth_row = mat2D_alloc(1, kernel_size);
+    Mat2D deriv_row = mat2D_alloc(1, kernel_size);
+
+    aim_build_sobel_1d(smooth_col, deriv_col);
+    mat2D_transpose(smooth_row, smooth_col);
+    mat2D_transpose(deriv_row, deriv_col);
+
+    mat2D_dot(gx, smooth_col, deriv_row);
+    mat2D_dot(gy, deriv_col, smooth_row);
+
+    mat2D_free(smooth_col);
+    mat2D_free(deriv_col);
+    mat2D_free(smooth_row);
+    mat2D_free(deriv_row);
+}
+
+AIM_DEF void aim_edge_detection_shcarr_3x3(Mat2D_uint32 des_u32, Mat2D_uint32 src_u32)
 {
     /* https://en.wikipedia.org/wiki/Sobel_operator */
 
@@ -476,7 +546,74 @@ AIM_DEF void aim_edge_detection_sobel_3x3(Mat2D_uint32 des_u32, Mat2D_uint32 src
     Mat2D conv_hori = mat2D_alloc(src_u32.rows, src_u32.cols);
     Mat2D conv_vert = mat2D_alloc(src_u32.rows, src_u32.cols);
 
-    
+    for (size_t i = 0; i < src.rows; i++) {
+        for (size_t j = 0; j < src.cols; j++) {
+            if (i == 0 || i == src.rows - 1 || j == 0 || j == src.cols - 1) {
+                MAT2D_AT(src, i, j) = 0;
+            } else {
+                uint32_t pixel = MAT2D_AT(src_u32, i - 1, j - 1);
+                uint8_t r;
+                uint8_t g;
+                uint8_t b;
+                APNG_HexARGB_TO_RGB_VAR(pixel, r, g, b);
+                MAT2D_AT(src, i, j) = 0.299 * r + 0.587 * g + 0.114 * b;
+            }
+        }
+    }
+
+    Mat2D kernel_hori = mat2D_alloc(3, 3);
+    MAT2D_AT(kernel_hori, 0, 0) =  3 ; MAT2D_AT(kernel_hori, 0, 1) =  0 ; MAT2D_AT(kernel_hori, 0, 2) = -3 ;
+    MAT2D_AT(kernel_hori, 1, 0) =  10; MAT2D_AT(kernel_hori, 1, 1) =  0 ; MAT2D_AT(kernel_hori, 1, 2) = -10;
+    MAT2D_AT(kernel_hori, 2, 0) =  3 ; MAT2D_AT(kernel_hori, 2, 1) =  0 ; MAT2D_AT(kernel_hori, 2, 2) = -3 ;
+    Mat2D kernel_vert = mat2D_alloc(3, 3);
+    MAT2D_AT(kernel_vert, 0, 0) =  3 ; MAT2D_AT(kernel_vert, 0, 1) =  10; MAT2D_AT(kernel_vert, 0, 2) =  3 ;
+    MAT2D_AT(kernel_vert, 1, 0) =  0 ; MAT2D_AT(kernel_vert, 1, 1) =  0 ; MAT2D_AT(kernel_vert, 1, 2) =  0 ;
+    MAT2D_AT(kernel_vert, 2, 0) = -3 ; MAT2D_AT(kernel_vert, 2, 1) = -10; MAT2D_AT(kernel_vert, 2, 2) = -3 ;
+
+    mat2D_rotate_mat_180_deg_inplace(kernel_hori);
+    mat2D_rotate_mat_180_deg_inplace(kernel_vert);
+
+    mat2D_convolve(conv_hori, src, kernel_hori);
+    mat2D_convolve(conv_vert, src, kernel_vert);
+
+    for (size_t i = 0; i < des.rows; i++) {
+        for (size_t j = 0; j < des.cols; j++) {
+            MAT2D_AT(des, i, j) = hypot(MAT2D_AT(conv_hori, i, j), MAT2D_AT(conv_vert, i, j));
+        }
+    }
+
+    mat2D_normalize_inf(des);
+    mat2D_mult(des, 255);
+
+    for (size_t i = 0; i < des.rows; i++) {
+        for (size_t j = 0; j < des.cols; j++) {
+            mat2D_real value = MAT2D_AT(des, i, j);
+
+            uint8_t temp, alpha;
+            APNG_HexARGB_TO_RGBA_VAR(MAT2D_AT(src_u32, i, j), temp, temp, temp, alpha);
+            MAT2D_AT(des_u32, i, j) = APNG_RGBA_TO_hexARGB(value, value, value, alpha);
+        }
+    }
+
+    mat2D_free(src);
+    mat2D_free(des);
+    mat2D_free(kernel_hori);
+    mat2D_free(kernel_vert);
+    mat2D_free(conv_hori);
+    mat2D_free(conv_vert);
+}
+
+AIM_DEF void aim_edge_detection_sobel_3x3(Mat2D_uint32 des_u32, Mat2D_uint32 src_u32)
+{
+    /* https://en.wikipedia.org/wiki/Sobel_operator */
+
+    MAT2D_ASSERT(des_u32.cols == src_u32.cols);
+    MAT2D_ASSERT(des_u32.rows == src_u32.rows);
+
+    Mat2D src = mat2D_alloc(src_u32.rows + 2, src_u32.cols + 2);
+    Mat2D des = mat2D_alloc(src_u32.rows, src_u32.cols);
+    Mat2D conv_hori = mat2D_alloc(src_u32.rows, src_u32.cols);
+    Mat2D conv_vert = mat2D_alloc(src_u32.rows, src_u32.cols);
 
     for (size_t i = 0; i < src.rows; i++) {
         for (size_t j = 0; j < src.cols; j++) {
@@ -523,7 +660,6 @@ AIM_DEF void aim_edge_detection_sobel_3x3(Mat2D_uint32 des_u32, Mat2D_uint32 src
 
             uint8_t temp, alpha;
             APNG_HexARGB_TO_RGBA_VAR(MAT2D_AT(src_u32, i, j), temp, temp, temp, alpha);
-
             MAT2D_AT(des_u32, i, j) = APNG_RGBA_TO_hexARGB(value, value, value, alpha);
         }
     }
@@ -548,8 +684,6 @@ AIM_DEF void aim_edge_detection_sobel_3x3_cutoff(Mat2D_uint32 des_u32, Mat2D_uin
     Mat2D conv_hori = mat2D_alloc(src_u32.rows, src_u32.cols);
     Mat2D conv_vert = mat2D_alloc(src_u32.rows, src_u32.cols);
 
-    
-
     for (size_t i = 0; i < src.rows; i++) {
         for (size_t j = 0; j < src.cols; j++) {
             if (i == 0 || i == src.rows - 1 || j == 0 || j == src.cols - 1) {
@@ -606,7 +740,6 @@ AIM_DEF void aim_edge_detection_sobel_3x3_cutoff(Mat2D_uint32 des_u32, Mat2D_uin
 
             uint8_t temp, alpha;
             APNG_HexARGB_TO_RGBA_VAR(MAT2D_AT(src_u32, i, j), temp, temp, temp, alpha);
-
             MAT2D_AT(des_u32, i, j) = APNG_RGBA_TO_hexARGB(value, value, value, alpha);
         }
     }
@@ -631,7 +764,6 @@ AIM_DEF void aim_edge_detection_sobel_5x5(Mat2D_uint32 des_u32, Mat2D_uint32 src
     Mat2D conv_hori = mat2D_alloc(src_u32.rows, src_u32.cols);
     Mat2D conv_vert = mat2D_alloc(src_u32.rows, src_u32.cols);
 
-
     for (size_t i = 0; i < src.rows; i++) {
         for (size_t j = 0; j < src.cols; j++) {
             if (i == 0 || i == src.rows - 1 || j == 0 || j == src.cols - 1) {
@@ -646,7 +778,6 @@ AIM_DEF void aim_edge_detection_sobel_5x5(Mat2D_uint32 des_u32, Mat2D_uint32 src
                 uint8_t a;
                 APNG_HexARGB_TO_RGBA_VAR(pixel, r, g, b, a);
                 MAT2D_AT(src, i, j) = 0.299 * r + 0.587 * g + 0.114 * b;
-                // MAT2D_AT(src, i, j) = (MAT2D_AT(src, i, j) + a) / 2;
             }
         }
     }
@@ -685,7 +816,6 @@ AIM_DEF void aim_edge_detection_sobel_5x5(Mat2D_uint32 des_u32, Mat2D_uint32 src
             
             uint8_t temp, alpha;
             APNG_HexARGB_TO_RGBA_VAR(MAT2D_AT(src_u32, i, j), temp, temp, temp, alpha);
-
             MAT2D_AT(des_u32, i, j) = APNG_RGBA_TO_hexARGB(value, value, value, alpha);
         }
     }
@@ -710,7 +840,6 @@ AIM_DEF void aim_edge_detection_sobel_5x5_cutoff(Mat2D_uint32 des_u32, Mat2D_uin
     Mat2D conv_hori = mat2D_alloc(src_u32.rows, src_u32.cols);
     Mat2D conv_vert = mat2D_alloc(src_u32.rows, src_u32.cols);
 
-
     for (size_t i = 0; i < src.rows; i++) {
         for (size_t j = 0; j < src.cols; j++) {
             if (i == 0 || i == src.rows - 1 || j == 0 || j == src.cols - 1) {
@@ -725,7 +854,6 @@ AIM_DEF void aim_edge_detection_sobel_5x5_cutoff(Mat2D_uint32 des_u32, Mat2D_uin
                 uint8_t a;
                 APNG_HexARGB_TO_RGBA_VAR(pixel, r, g, b, a);
                 MAT2D_AT(src, i, j) = 0.299 * r + 0.587 * g + 0.114 * b;
-                // MAT2D_AT(src, i, j) = (MAT2D_AT(src, i, j) + a) / 2;
             }
         }
     }
@@ -775,7 +903,6 @@ AIM_DEF void aim_edge_detection_sobel_5x5_cutoff(Mat2D_uint32 des_u32, Mat2D_uin
             
             uint8_t temp, alpha;
             APNG_HexARGB_TO_RGBA_VAR(MAT2D_AT(src_u32, i, j), temp, temp, temp, alpha);
-
             MAT2D_AT(des_u32, i, j) = APNG_RGBA_TO_hexARGB(value, value, value, alpha);
         }
     }
@@ -786,6 +913,192 @@ AIM_DEF void aim_edge_detection_sobel_5x5_cutoff(Mat2D_uint32 des_u32, Mat2D_uin
     mat2D_free(kernel_vert);
     mat2D_free(conv_hori);
     mat2D_free(conv_vert);
+}
+
+AIM_DEF void aim_edge_detection_sobel_general(Mat2D_uint32 des_u32, Mat2D_uint32 src_u32, size_t kernel_size)
+{
+    /* https://en.wikipedia.org/wiki/Sobel_operator */
+
+    MAT2D_ASSERT(des_u32.cols == src_u32.cols);
+    MAT2D_ASSERT(des_u32.rows == src_u32.rows);
+    MAT2D_ASSERT(kernel_size >= 3);
+    MAT2D_ASSERT(kernel_size % 2 == 1);
+
+    size_t radius = kernel_size / 2;
+
+    Mat2D src = mat2D_alloc(src_u32.rows + 2 * radius, src_u32.cols + 2 * radius);
+    Mat2D des = mat2D_alloc(src_u32.rows, src_u32.cols);
+    Mat2D conv_hori = mat2D_alloc(src_u32.rows, src_u32.cols);
+    Mat2D conv_vert = mat2D_alloc(src_u32.rows, src_u32.cols);
+
+    Mat2D kernel_hori = mat2D_alloc(kernel_size, kernel_size);
+    Mat2D kernel_vert = mat2D_alloc(kernel_size, kernel_size);
+
+    for (size_t i = 0; i < src.rows; i++) {
+        for (size_t j = 0; j < src.cols; j++) {
+            if (i < radius || i >= src.rows - radius ||
+                j < radius || j >= src.cols - radius) {
+                MAT2D_AT(src, i, j) = 0;
+            } else {
+                uint32_t pixel = MAT2D_AT(src_u32, i - radius, j - radius);
+                uint8_t r;
+                uint8_t g;
+                uint8_t b;
+                APNG_HexARGB_TO_RGB_VAR(pixel, r, g, b);
+                MAT2D_AT(src, i, j) = 0.299 * r + 0.587 * g + 0.114 * b;
+            }
+        }
+    }
+
+    aim_build_sobel_kernels(kernel_hori, kernel_vert, kernel_size);
+
+    mat2D_rotate_mat_180_deg_inplace(kernel_hori);
+    mat2D_rotate_mat_180_deg_inplace(kernel_vert);
+
+    /* mat2D_convolve rotates kernels in-place, so use copies */
+    mat2D_convolve(conv_hori, src, kernel_hori);
+    mat2D_convolve(conv_vert, src, kernel_vert);
+
+    for (size_t i = 0; i < des.rows; i++) {
+        for (size_t j = 0; j < des.cols; j++) {
+            MAT2D_AT(des, i, j) = hypot(MAT2D_AT(conv_hori, i, j), MAT2D_AT(conv_vert, i, j));
+        }
+    }
+
+    mat2D_normalize_inf(des);
+    mat2D_mult(des, 255);
+
+    for (size_t i = 0; i < des.rows; i++) {
+        for (size_t j = 0; j < des.cols; j++) {
+            mat2D_real value = MAT2D_AT(des, i, j);
+
+            uint8_t temp, alpha;
+            APNG_HexARGB_TO_RGBA_VAR(MAT2D_AT(src_u32, i, j), temp, temp, temp, alpha);
+
+            MAT2D_AT(des_u32, i, j) = APNG_RGBA_TO_hexARGB(value, value, value, alpha);
+        }
+    }
+
+    mat2D_free(src);
+    mat2D_free(des);
+    mat2D_free(conv_hori);
+    mat2D_free(conv_vert);
+    mat2D_free(kernel_hori);
+    mat2D_free(kernel_vert);
+}
+
+AIM_DEF void aim_edge_detection_sobel_general_cutoff(Mat2D_uint32 des_u32, Mat2D_uint32 src_u32, size_t kernel_size, mat2D_real cutoff)
+{
+    /* https://en.wikipedia.org/wiki/Sobel_operator */
+
+    MAT2D_ASSERT(des_u32.cols == src_u32.cols);
+    MAT2D_ASSERT(des_u32.rows == src_u32.rows);
+    MAT2D_ASSERT(kernel_size >= 3);
+    MAT2D_ASSERT(kernel_size % 2 == 1);
+
+    size_t radius = kernel_size / 2;
+
+    Mat2D src = mat2D_alloc(src_u32.rows + 2 * radius, src_u32.cols + 2 * radius);
+    Mat2D des = mat2D_alloc(src_u32.rows, src_u32.cols);
+    Mat2D conv_hori = mat2D_alloc(src_u32.rows, src_u32.cols);
+    Mat2D conv_vert = mat2D_alloc(src_u32.rows, src_u32.cols);
+
+    Mat2D kernel_hori = mat2D_alloc(kernel_size, kernel_size);
+    Mat2D kernel_vert = mat2D_alloc(kernel_size, kernel_size);
+
+    for (size_t i = 0; i < src.rows; i++) {
+        for (size_t j = 0; j < src.cols; j++) {
+            if (i < radius || i >= src.rows - radius ||
+                j < radius || j >= src.cols - radius) {
+                MAT2D_AT(src, i, j) = 0;
+            } else {
+                uint32_t pixel = MAT2D_AT(src_u32, i - radius, j - radius);
+                uint8_t r;
+                uint8_t g;
+                uint8_t b;
+                APNG_HexARGB_TO_RGB_VAR(pixel, r, g, b);
+                MAT2D_AT(src, i, j) = 0.299 * r + 0.587 * g + 0.114 * b;
+            }
+        }
+    }
+
+    aim_build_sobel_kernels(kernel_hori, kernel_vert, kernel_size);
+
+    mat2D_rotate_mat_180_deg_inplace(kernel_hori);
+    mat2D_rotate_mat_180_deg_inplace(kernel_vert);
+
+    /* mat2D_convolve rotates kernels in-place, so use copies */
+    mat2D_convolve(conv_hori, src, kernel_hori);
+    mat2D_convolve(conv_vert, src, kernel_vert);
+
+    for (size_t i = 0; i < des.rows; i++) {
+        for (size_t j = 0; j < des.cols; j++) {
+            MAT2D_AT(des, i, j) = hypot(MAT2D_AT(conv_hori, i, j), MAT2D_AT(conv_vert, i, j));
+        }
+    }
+
+    mat2D_normalize_inf(des);
+    mat2D_mult(des, 255);
+
+    for (size_t i = 0; i < des.rows; i++) {
+        for (size_t j = 0; j < des.cols; j++) {
+            mat2D_real value = MAT2D_AT(des, i, j);
+            if (value > cutoff) value = cutoff;
+            MAT2D_AT(des, i, j) = value;
+        }
+    }
+
+    mat2D_normalize_inf(des);
+    mat2D_mult(des, 255);
+
+    for (size_t i = 0; i < des.rows; i++) {
+        for (size_t j = 0; j < des.cols; j++) {
+            mat2D_real value = MAT2D_AT(des, i, j);
+
+            uint8_t temp, alpha;
+            APNG_HexARGB_TO_RGBA_VAR(MAT2D_AT(src_u32, i, j), temp, temp, temp, alpha);
+
+            MAT2D_AT(des_u32, i, j) = APNG_RGBA_TO_hexARGB(value, value, value, alpha);
+        }
+    }
+
+    mat2D_free(src);
+    mat2D_free(des);
+    mat2D_free(conv_hori);
+    mat2D_free(conv_vert);
+    mat2D_free(kernel_hori);
+    mat2D_free(kernel_vert);
+}
+
+AIM_DEF void aim_fill_binomial_row(Mat2D v)
+{
+    MAT2D_ASSERT(v.rows == 1 || v.cols == 1);
+
+    size_t n = (v.rows == 1) ? v.cols : v.rows;
+
+    for (size_t i = 0; i < n; i++) {
+        if (v.rows == 1) {
+            MAT2D_AT(v, 0, i) = 0;
+        } else {
+            MAT2D_AT(v, i, 0) = 0;
+        }
+    }
+
+    if (v.rows == 1) {
+        MAT2D_AT(v, 0, 0) = 1;
+    } else {
+        MAT2D_AT(v, 0, 0) = 1;
+    }
+
+    for (size_t i = 0; i < n - 1; i++) {
+        for (size_t j = i + 1; j > 0; j--) {
+            if (v.rows == 1) {
+                MAT2D_AT(v, 0, j) += MAT2D_AT(v, 0, j - 1);
+            } else {
+                MAT2D_AT(v, j, 0) += MAT2D_AT(v, j - 1, 0);
+            }
+        }
+    }
 }
 
 

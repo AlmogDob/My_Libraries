@@ -58,14 +58,16 @@ Mat2D_uint32 apl_pixel_buffer_mat2d_u32(struct Apl_Pixel_Buffer b)
 
 Mat2D_uint32 results = {0};
 struct Apng_PNG_Image image = {0};
+Offset_zoom_param offzoom = {0};
 
 enum Apl_Return_Types apl_setup(struct Apl_Window_State *ws)
 {
     ws->wanted_fps = 60;
     // ws->to_limit_fps = false;
+    offzoom = ADL_DEFAULT_OFFSET_ZOOM;
 
-    char file_name[] = "../src/test_images/test-png7.png";
-    // char file_name[] = "../src/test_images/test-png3.png";
+    // char file_name[] = "../src/test_images/test-png7.png";
+    char file_name[] = "../src/test_images/test-png_wiki.png";
     // char file_name[] = "../src/test_images/file_example_PNG_3MB.png";
 
     apng_png_free(&image);
@@ -77,7 +79,7 @@ enum Apl_Return_Types apl_setup(struct Apl_Window_State *ws)
 
     results = mat2D_alloc_uint32(image_pixels.rows, image_pixels.cols);
     aim_blur_box_blur_bw(results, image_pixels, 3);
-    // aim_blur_box_blur_rgba(results, image.pixels, 5);
+    aim_blur_box_blur_rgba(results, image_pixels, 7);
 
     // mat2D_copy_uint32(results, image_pixels);
 
@@ -96,13 +98,13 @@ double factor = 1;
 enum Apl_Return_Types apl_render(struct Apl_Window_State *ws)
 {
     Mat2D_uint32 window_pixels = apl_pixel_buffer_mat2d_u32(ws->window_pixels_mat);
-    // Mat2D_uint32 pixels = apng_pixel_buffer_mat2d_u32(image.pixels);
+    // Mat2D_uint32 pixels = apng_pixel_buffer_as_mat2d_u32(image.pixels);
 
     for (size_t i = 0; i < results.rows; i++) {
         for (size_t j = 0; j < results.cols; j++) {
             for (size_t u = 0; u < factor; u++) {
                 for (size_t v = 0; v < factor; v++) {
-                    adl_point_draw(window_pixels, (float)(j * factor + v), (float)(i * factor + u), MAT2D_AT(results, i, j), ADL_DEFAULT_OFFSET_ZOOM);
+                    adl_point_draw(window_pixels, (float)(j * factor + v), (float)(i * factor + u), MAT2D_AT(results, i, j), offzoom);
                 }
             }
         }
@@ -127,7 +129,20 @@ enum Apl_Return_Types apl_input(struct Apl_Window_State *ws)
         ws->to_render = true;
     } else if (ws->buttons.r_is_pressed) {
         factor = 1;
+        offzoom = ADL_DEFAULT_OFFSET_ZOOM;
         // apl_dprintFLOAT(factor);
+        ws->to_render = true;
+    } else if (ws->buttons.d_is_pressed) {
+        offzoom.offset_x -= results.cols / 100;
+        ws->to_render = true;
+    } else if (ws->buttons.a_is_pressed) {
+        offzoom.offset_x += results.cols / 100;
+        ws->to_render = true;
+    } else if (ws->buttons.s_is_pressed) {
+        offzoom.offset_y -= results.rows / 100;
+        ws->to_render = true;
+    } else if (ws->buttons.w_is_pressed) {
+        offzoom.offset_y += results.rows / 100;
         ws->to_render = true;
     }
     APL_UNUSED(ws);
