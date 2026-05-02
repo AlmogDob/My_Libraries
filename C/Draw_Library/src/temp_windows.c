@@ -14,9 +14,11 @@
 Quad quad1;
 Tri tri;
 
+Offset_zoom_param offzoom = {0};
 enum Apl_Return_Types apl_setup(struct Apl_Window_State *ws)
 {
     ws->to_limit_fps = 0;
+    offzoom = ADL_DEFAULT_OFFSET_ZOOM;
 
     quad1.points[3] = (Point){200, 100, 1, 1};
     quad1.points[2] = (Point){600, 50 , 1, 1};
@@ -48,7 +50,31 @@ enum Apl_Return_Types apl_setup(struct Apl_Window_State *ws)
 
 enum Apl_Return_Types apl_input(struct Apl_Window_State *ws)
 {
+    if (ws->buttons.e_is_pressed) {
+        offzoom.zoom_multiplier *= 1.1;
+        ws->to_render = true;
+    } else if (ws->buttons.q_is_pressed) {
+        offzoom.zoom_multiplier /= 1.1;
+        ws->to_render = true;
+    } else if (ws->buttons.r_is_pressed) {
+        offzoom = ADL_DEFAULT_OFFSET_ZOOM;
+        ws->to_render = true;
+    } else if (ws->buttons.d_is_pressed) {
+        offzoom.offset_x -= ws->window_pixels_mat.cols / 100;
+        ws->to_render = true;
+    } else if (ws->buttons.a_is_pressed) {
+        offzoom.offset_x += ws->window_pixels_mat.cols / 100;
+        ws->to_render = true;
+    } else if (ws->buttons.s_is_pressed) {
+        offzoom.offset_y -= ws->window_pixels_mat.rows / 100;
+        ws->to_render = true;
+    } else if (ws->buttons.w_is_pressed) {
+        offzoom.offset_y += ws->window_pixels_mat.rows / 100;
+        ws->to_render = true;
+    }
     APL_UNUSED(ws);
+
+    return APL_SUCCESS;
 
     return APL_SUCCESS;
 }
@@ -62,11 +88,11 @@ enum Apl_Return_Types apl_update(struct Apl_Window_State *ws)
 
 enum Apl_Return_Types apl_render(struct Apl_Window_State *ws)
 {
-    adl_quad_fill_interpolate_color_mean_value(ws->window_pixels_mat, ws->inv_z_buffer_mat, quad1, ADL_DEFAULT_OFFSET_ZOOM);
-    adl_quad_draw(ws->window_pixels_mat, ws->inv_z_buffer_mat, quad1, 0xFF000000, ADL_DEFAULT_OFFSET_ZOOM);
+    adl_quad_fill_interpolate_color_mean_value(ws->window_pixels_mat, ws->inv_z_buffer_mat, quad1, offzoom);
+    adl_quad_draw(ws->window_pixels_mat, ws->inv_z_buffer_mat, quad1, 0xFF000000, offzoom);
 
-    adl_tri_fill_Pinedas_rasterizer_interpolate_color(ws->window_pixels_mat, ws->inv_z_buffer_mat, tri, ADL_DEFAULT_OFFSET_ZOOM);
-    adl_tri_draw(ws->window_pixels_mat, tri, 0xff000000, ADL_DEFAULT_OFFSET_ZOOM);
+    adl_tri_fill_Pinedas_rasterizer_interpolate_color(ws->window_pixels_mat, ws->inv_z_buffer_mat, tri, offzoom);
+    adl_tri_draw(ws->window_pixels_mat, tri, 0xff000000, offzoom);
 
     return APL_SUCCESS;
 }
