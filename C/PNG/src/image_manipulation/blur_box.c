@@ -121,15 +121,12 @@ enum Apl_Return_Types apl_input(struct Apl_Window_State *ws)
 {
     if (ws->buttons.e_is_pressed) {
         offzoom.zoom_multiplier *= 1.1;
-        // apl_dprintFLOAT(factor);
         ws->to_render = true;
     } else if (ws->buttons.q_is_pressed) {
         offzoom.zoom_multiplier /= 1.1;
-        // apl_dprintFLOAT(factor);
         ws->to_render = true;
     } else if (ws->buttons.r_is_pressed) {
         offzoom = ADL_DEFAULT_OFFSET_ZOOM;
-        // apl_dprintFLOAT(factor);
         ws->to_render = true;
     } else if (ws->buttons.d_is_pressed) {
         offzoom.offset_x -= results.cols / 100;
