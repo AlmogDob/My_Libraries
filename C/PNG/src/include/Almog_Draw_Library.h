@@ -263,7 +263,7 @@ typedef struct {
 #define ADL_MAX_SENTENCE_LEN 256
 #define ADL_MAX_ZOOM 1e3
 
-#define ADL_DEFAULT_OFFSET_ZOOM (Offset_zoom_param){1,0,0,0,0}
+#define ADL_DEFAULT_OFFSET_ZOOM (Offset_zoom_param){.zoom_multiplier = 1}
 #define adl_offset_zoom_point(p, window_w, window_h, offset_zoom_param)                                             \
     (p).x = ((p).x - (window_w)/2 + offset_zoom_param.offset_x) * offset_zoom_param.zoom_multiplier + (window_w)/2; \
     (p).y = ((p).y - (window_h)/2 + offset_zoom_param.offset_y) * offset_zoom_param.zoom_multiplier + (window_h)/2
@@ -348,18 +348,29 @@ void adl_point_draw(Mat2D_uint32 screen_mat, float x, float y, uint32_t color, O
     float window_w = (float)screen_mat.cols;
     float window_h = (float)screen_mat.rows;
 
-    x = (((float)x - window_w/2 + offset_zoom_param.offset_x) * offset_zoom_param.zoom_multiplier + window_w/2);
-    y = (((float)y - window_h/2 + offset_zoom_param.offset_y) * offset_zoom_param.zoom_multiplier + window_h/2);
+    float zoom = offset_zoom_param.zoom_multiplier;
+    float start_x = (x - window_w/2.0f + offset_zoom_param.offset_x) * zoom + window_w/2.0f;
+    float start_y = (y - window_h/2.0f + offset_zoom_param.offset_y) * zoom + window_h/2.0f;
+    int ix0 = (int)start_x;
+    int iy0 = (int)start_y;
+    int block = (int)(zoom + 0.5f);
 
-    if ((x < (float)screen_mat.cols && y < (float)screen_mat.rows) && (x >= 0 && y >= 0)) { /* point is in screen */
-        int ix = (int)x, iy = (int)y;
-        uint8_t r_new, g_new, b_new, a_new;
-        uint8_t r_current, g_current, b_current, a_current;
-        ADL_HexARGB_RGBA_VAR(MAT2D_AT(screen_mat, iy, ix), r_current, g_current, b_current, a_current);
-        ADL_HexARGB_RGBA_VAR(color, r_new, g_new, b_new, a_new);
-        MAT2D_AT(screen_mat, iy, ix) = ADL_RGBA_hexARGB(r_current*(1-a_new/255.0f) + r_new*a_new/255.0f, g_current*(1-a_new/255.0f) + g_new*a_new/255.0f, b_current*(1-a_new/255.0f) + b_new*a_new/255.0f, 255);
-        (void)a_current;
+    for (size_t dx = 0; dx < block; dx++) {
+        for (size_t dy = 0; dy < block; dy++) {
+            int ix = ix0 + dx;
+            int iy = iy0 + dy;
+
+            if ((ix < (float)screen_mat.cols && iy < (float)screen_mat.rows) && (ix >= 0 && iy >= 0)) { /* point is in screen */
+                uint8_t r_new, g_new, b_new, a_new;
+                uint8_t r_current, g_current, b_current, a_current;
+                ADL_HexARGB_RGBA_VAR(MAT2D_AT(screen_mat, iy, ix), r_current, g_current, b_current, a_current);
+                ADL_HexARGB_RGBA_VAR(color, r_new, g_new, b_new, a_new);
+                MAT2D_AT(screen_mat, iy, ix) = ADL_RGBA_hexARGB(r_current*(1-a_new/255.0f) + r_new*a_new/255.0f, g_current*(1-a_new/255.0f) + g_new*a_new/255.0f, b_current*(1-a_new/255.0f) + b_new*a_new/255.0f, 255);
+                (void)a_current;
+            }
+        }
     }
+
 }
 
 /**
