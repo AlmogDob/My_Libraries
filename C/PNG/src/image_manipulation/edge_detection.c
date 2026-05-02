@@ -77,8 +77,8 @@ enum Apl_Return_Types apl_setup(struct Apl_Window_State *ws)
     offzoom = ADL_DEFAULT_OFFSET_ZOOM;
 
     // char file_name[] = "../src/test_images/test-png3.png";
-    // char file_name[] = "../src/test_images/Bikesgray.png";
-    char file_name[] = "../src/test_images/file_example_PNG_3MB.png";
+    char file_name[] = "../src/test_images/Bikesgray.png";
+    // char file_name[] = "../src/test_images/file_example_PNG_3MB.png";
     // char file_name[] = "../src/test_images/Valve_original.png";
 
     apng_png_free(&image);
@@ -91,17 +91,17 @@ enum Apl_Return_Types apl_setup(struct Apl_Window_State *ws)
     results = mat2D_alloc_uint32(image_pixels.rows, image_pixels.cols);
     Mat2D_uint32 temp = mat2D_alloc_uint32(image_pixels.rows, image_pixels.cols);
 
-    // aim_edge_detection_sobel_3x3(results, image_pixels);
     // aim_edge_detection_shcarr_3x3(results, image_pixels);
-    // aim_edge_detection_sobel_general(results, image_pixels, 9);
-    // aim_edge_detection_sobel_general_cutoff(results, image_pixels, 3, 100);
+    // aim_edge_detection_sobel_general(results, image_pixels, 3);
+    // aim_edge_detection_sobel_general_cutoff(results, image_pixels, 3, 220);
+    // aim_edge_detection_sobel_3x3(results, image_pixels);
     // aim_edge_detection_sobel_3x3_cutoff(results, image_pixels, 200);
     // aim_edge_detection_sobel_5x5(results, image_pixels);
     // aim_edge_detection_sobel_5x5_cutoff(results, image_pixels, 100);
 
 
-    aim_blur_gaussian_bw_fast(temp, image_pixels, 1.5);
-    aim_edge_detection_sobel_general_cutoff(results, temp, 9, 150);
+    aim_blur_gaussian_bw_fast(temp, image_pixels, 1.0);
+    aim_edge_detection_sobel_general_cutoff(results, temp, 5, 150);
     // // aim_edge_detection_sobel_3x3(results, temp_b);
     // // aim_edge_detection_sobel_3x3_cutoff(results, temp, 200);
     // // aim_edge_detection_sobel_5x5(results, temp);
@@ -127,11 +127,7 @@ enum Apl_Return_Types apl_render(struct Apl_Window_State *ws)
 
     for (size_t i = 0; i < results.rows; i++) {
         for (size_t j = 0; j < results.cols; j++) {
-            for (size_t u = 0; u < factor; u++) {
-                for (size_t v = 0; v < factor; v++) {
-                    adl_point_draw(window_pixels, (float)(j * factor + v), (float)(i * factor + u), MAT2D_AT(results, i, j), offzoom);
-                }
-            }
+            adl_point_draw(window_pixels, (float)(j), (float)(i), MAT2D_AT(results, i, j), offzoom);
         }
     }
 
@@ -144,16 +140,15 @@ enum Apl_Return_Types apl_render(struct Apl_Window_State *ws)
 
 enum Apl_Return_Types apl_input(struct Apl_Window_State *ws)
 {
-    if (ws->mouse.left_button_is_pressed) {
-        factor *= 1.1;
+    if (ws->buttons.e_is_pressed) {
+        offzoom.zoom_multiplier *= 1.1;
         // apl_dprintFLOAT(factor);
         ws->to_render = true;
-    } else if (ws->mouse.right_button_is_pressed) {
-        factor /= 1.1;
+    } else if (ws->buttons.q_is_pressed) {
+        offzoom.zoom_multiplier /= 1.1;
         // apl_dprintFLOAT(factor);
         ws->to_render = true;
     } else if (ws->buttons.r_is_pressed) {
-        factor = 1;
         offzoom = ADL_DEFAULT_OFFSET_ZOOM;
         // apl_dprintFLOAT(factor);
         ws->to_render = true;

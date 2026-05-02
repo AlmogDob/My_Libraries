@@ -119,16 +119,15 @@ enum Apl_Return_Types apl_render(struct Apl_Window_State *ws)
 
 enum Apl_Return_Types apl_input(struct Apl_Window_State *ws)
 {
-    if (ws->mouse.left_button_is_pressed) {
-        factor *= 1.1;
+    if (ws->buttons.e_is_pressed) {
+        offzoom.zoom_multiplier *= 1.1;
         // apl_dprintFLOAT(factor);
         ws->to_render = true;
-    } else if (ws->mouse.right_button_is_pressed) {
-        factor /= 1.1;
+    } else if (ws->buttons.q_is_pressed) {
+        offzoom.zoom_multiplier /= 1.1;
         // apl_dprintFLOAT(factor);
         ws->to_render = true;
     } else if (ws->buttons.r_is_pressed) {
-        factor = 1;
         offzoom = ADL_DEFAULT_OFFSET_ZOOM;
         // apl_dprintFLOAT(factor);
         ws->to_render = true;
