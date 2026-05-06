@@ -26,6 +26,8 @@ AIM_DEF void aim_edge_detection_sobel_5x5_cutoff(Mat2D_uint32 des_u32, Mat2D_uin
 AIM_DEF void aim_edge_detection_sobel_general(Mat2D_uint32 des_u32, Mat2D_uint32 src_u32, size_t kernel_size);
 AIM_DEF void aim_edge_detection_sobel_general_cutoff(Mat2D_uint32 des_u32, Mat2D_uint32 src_u32, size_t kernel_size, mat2D_real cutoff);
 AIM_DEF void aim_fill_binomial_row(Mat2D v);
+AIM_DEF void aim_sharpen_bw(Mat2D_uint32 des_u32, Mat2D_uint32 src_u32, mat2D_real std, mat2D_real amount);
+AIM_DEF void aim_sharpen_rgba(Mat2D_uint32 des_u32, Mat2D_uint32 src_u32, mat2D_real std, mat2D_real amount);
 
 
 
@@ -1100,6 +1102,176 @@ AIM_DEF void aim_fill_binomial_row(Mat2D v)
         }
     }
 }
+
+AIM_DEF void aim_sharpen_bw(Mat2D_uint32 des_u32, Mat2D_uint32 src_u32, mat2D_real std, mat2D_real amount)
+{
+    /**
+     * https://blog.demofox.org/2022/02/26/image-sharpening-convolution-kernels/
+     * https://en.wikipedia.org/wiki/Unsharp_masking
+     */
+
+    MAT2D_ASSERT(des_u32.cols == src_u32.cols);
+    MAT2D_ASSERT(des_u32.rows == src_u32.rows);
+
+    size_t kernel_size = (size_t)(2 * mat2D_ceil(3 * std) + 1);
+    /**
+     * For a 1D Gaussian, about:
+     * - 68.27% of the mass lies within 1 * std
+     * - 95.45% within 2 * std
+     * - 99.73% within 3 * std
+     * So if you cut the kernel at radius 3 * std, you keep almost all of the Gaussian.
+     */
+
+    Mat2D src = mat2D_alloc(src_u32.rows + (kernel_size / 2) * 2, src_u32.cols + (kernel_size / 2) * 2);
+    Mat2D conv = mat2D_alloc(src_u32.rows, src_u32.cols);
+    Mat2D kernel = mat2D_alloc(kernel_size, kernel_size);
+    Mat2D blur_kernel = mat2D_alloc(kernel_size, kernel_size);
+    Mat2D original_kernel = mat2D_alloc(kernel_size, kernel_size);
+
+    for (size_t i = 0; i < src.rows; i++) {
+        for (size_t j = 0; j < src.cols; j++) {
+            if (i < kernel_size / 2 || i >= src.rows - kernel_size / 2 || j < kernel_size / 2|| j >= src.cols - kernel_size / 2) {
+                MAT2D_AT(src, i, j) = 0;
+            } else {
+                uint32_t pixel = MAT2D_AT(src_u32, i - kernel_size / 2, j - kernel_size / 2);
+                uint8_t r;
+                uint8_t g;
+                uint8_t b;
+                APNG_HexARGB_TO_RGB_VAR(pixel, r, g, b);
+                MAT2D_AT(src, i, j) = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+            }
+        }
+    }
+
+    for (size_t r = 0; r < blur_kernel.rows; r++) {
+        for (size_t c = 0; c < blur_kernel.cols; c++) {
+            int x = (int)c - (int)kernel_size / 2;
+            int y = (int)r - (int)kernel_size / 2;
+            MAT2D_AT(blur_kernel, r, c) = (1 / (2 * MAT2D_PI * std * std)) * mat2D_exp(-1 * (x * x + y * y) / (2 * std * std));
+        }
+    }
+    mat2D_mult(blur_kernel, 1 / mat2D_elements_sum(blur_kernel));
+
+    mat2D_fill(original_kernel, 0);
+    MAT2D_AT(original_kernel, original_kernel.rows/2, original_kernel.cols/2) = 1;
+
+    mat2D_mult(original_kernel, 1 + amount);
+    mat2D_copy(kernel, original_kernel);
+    mat2D_mult(blur_kernel, -amount);
+    mat2D_add(kernel, blur_kernel);
+
+    mat2D_convolve(conv, src, kernel);
+
+    for (size_t i = 0; i < conv.rows; i++) {
+        for (size_t j = 0; j < conv.cols; j++) {
+            mat2D_real value = MAT2D_AT(conv, i, j);
+
+            uint8_t temp, alpha;
+            APNG_HexARGB_TO_RGBA_VAR(APNG_PIXEL_BUFFER_AT(src_u32, i, j), temp, temp, temp, alpha);
+            MAT2D_AT(des_u32, i, j) = APNG_RGBA_TO_hexARGB(value, value, value, alpha);
+        }
+    }
+
+    mat2D_free(src);
+    mat2D_free(conv);
+    mat2D_free(kernel);
+    mat2D_free(blur_kernel);
+    mat2D_free(original_kernel);
+}
+
+AIM_DEF void aim_sharpen_rgba(Mat2D_uint32 des_u32, Mat2D_uint32 src_u32, mat2D_real std, mat2D_real amount)
+{
+    /**
+     * https://blog.demofox.org/2022/02/26/image-sharpening-convolution-kernels/
+     * https://en.wikipedia.org/wiki/Unsharp_masking
+     */
+
+    MAT2D_ASSERT(des_u32.cols == src_u32.cols);
+    MAT2D_ASSERT(des_u32.rows == src_u32.rows);
+
+    size_t kernel_size = (size_t)(2 * mat2D_ceil(3 * std) + 1);
+    /**
+     * For a 1D Gaussian, about:
+     * - 68.27% of the mass lies within 1 * std
+     * - 95.45% within 2 * std
+     * - 99.73% within 3 * std
+     * So if you cut the kernel at radius 3 * std, you keep almost all of the Gaussian.
+     */
+
+    Mat2D src_r = mat2D_alloc(src_u32.rows + (kernel_size / 2) * 2, src_u32.cols + (kernel_size / 2) * 2);
+    Mat2D src_g = mat2D_alloc(src_u32.rows + (kernel_size / 2) * 2, src_u32.cols + (kernel_size / 2) * 2);
+    Mat2D src_b = mat2D_alloc(src_u32.rows + (kernel_size / 2) * 2, src_u32.cols + (kernel_size / 2) * 2);
+    Mat2D src_a = mat2D_alloc(src_u32.rows + (kernel_size / 2) * 2, src_u32.cols + (kernel_size / 2) * 2);
+    Mat2D conv_r = mat2D_alloc(src_u32.rows, src_u32.cols);
+    Mat2D conv_g = mat2D_alloc(src_u32.rows, src_u32.cols);
+    Mat2D conv_b = mat2D_alloc(src_u32.rows, src_u32.cols);
+    Mat2D conv_a = mat2D_alloc(src_u32.rows, src_u32.cols);
+    Mat2D kernel = mat2D_alloc(kernel_size, kernel_size);
+    Mat2D blur_kernel = mat2D_alloc(kernel_size, kernel_size);
+    Mat2D original_kernel = mat2D_alloc(kernel_size, kernel_size);
+
+    for (size_t i = 0; i < src_r.rows; i++) {
+        for (size_t j = 0; j < src_r.cols; j++) {
+            if (i < kernel_size / 2 || i >= src_r.rows - kernel_size / 2 || j < kernel_size / 2|| j >= src_r.cols - kernel_size / 2) {
+                MAT2D_AT(src_r, i, j) = 0;
+            } else {
+                uint32_t pixel = MAT2D_AT(src_u32, i - kernel_size / 2, j - kernel_size / 2);
+                uint8_t r;
+                uint8_t g;
+                uint8_t b;
+                uint8_t a;
+                APNG_HexARGB_TO_RGBA_VAR(pixel, r, g, b, a);
+                MAT2D_AT(src_r, i, j) = r * a / 255;
+                MAT2D_AT(src_g, i, j) = g * a / 255;
+                MAT2D_AT(src_b, i, j) = b * a / 255;
+                MAT2D_AT(src_a, i, j) = a;
+            }
+        }
+    }
+
+    for (size_t r = 0; r < blur_kernel.rows; r++) {
+        for (size_t c = 0; c < blur_kernel.cols; c++) {
+            int x = (int)c - (int)kernel_size / 2;
+            int y = (int)r - (int)kernel_size / 2;
+            MAT2D_AT(blur_kernel, r, c) = (1 / (2 * MAT2D_PI * std * std)) * mat2D_exp(-1 * (x * x + y * y) / (2 * std * std));
+        }
+    }
+    mat2D_mult(blur_kernel, 1 / mat2D_elements_sum(blur_kernel));
+
+    mat2D_fill(original_kernel, 0);
+    MAT2D_AT(original_kernel, original_kernel.rows/2, original_kernel.cols/2) = 1;
+
+    mat2D_mult(original_kernel, 1 + amount);
+    mat2D_copy(kernel, original_kernel);
+    mat2D_mult(blur_kernel, -amount);
+    mat2D_add(kernel, blur_kernel);
+
+    mat2D_convolve(conv_r, src_r, kernel);
+    mat2D_convolve(conv_g, src_g, kernel);
+    mat2D_convolve(conv_b, src_b, kernel);
+    mat2D_convolve(conv_a, src_a, kernel);
+
+    for (size_t i = 0; i < des_u32.rows; i++) {
+        for (size_t j = 0; j < des_u32.cols; j++) {
+            mat2D_real a = MAT2D_AT(conv_a, i, j);
+            MAT2D_AT(des_u32, i, j) = APNG_RGBA_TO_hexARGB(MAT2D_AT(conv_r, i, j) / a * 255, MAT2D_AT(conv_g, i, j) / a * 255, MAT2D_AT(conv_b, i, j) / a * 255, a);
+        }
+    }
+
+    mat2D_free(src_r);
+    mat2D_free(src_g);
+    mat2D_free(src_b);
+    mat2D_free(src_a);
+    mat2D_free(conv_r);
+    mat2D_free(conv_g);
+    mat2D_free(conv_b);
+    mat2D_free(conv_a);
+    mat2D_free(kernel);
+    mat2D_free(blur_kernel);
+    mat2D_free(original_kernel);
+}
+
+
 
 
 #endif /*ALMOG_IMAGE_MANIPULATION_IMPLEMENTATION*/
