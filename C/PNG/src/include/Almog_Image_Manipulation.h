@@ -26,6 +26,8 @@ AIM_DEF void aim_edge_detection_sobel_5x5_cutoff(Mat2D_uint32 des_u32, Mat2D_uin
 AIM_DEF void aim_edge_detection_sobel_general(Mat2D_uint32 des_u32, Mat2D_uint32 src_u32, size_t kernel_size);
 AIM_DEF void aim_edge_detection_sobel_general_cutoff(Mat2D_uint32 des_u32, Mat2D_uint32 src_u32, size_t kernel_size, mat2D_real cutoff);
 AIM_DEF void aim_fill_binomial_row(Mat2D v);
+AIM_DEF void aim_median_filter_bw(Mat2D_uint32 des_u32, Mat2D_uint32 src_u32, size_t kernel_size);
+AIM_DEF void aim_median_filter_rgba(Mat2D_uint32 des_u32, Mat2D_uint32 src_u32, size_t kernel_size);
 AIM_DEF void aim_sharpen_bw(Mat2D_uint32 des_u32, Mat2D_uint32 src_u32, mat2D_real std, mat2D_real amount);
 AIM_DEF void aim_sharpen_rgba(Mat2D_uint32 des_u32, Mat2D_uint32 src_u32, mat2D_real std, mat2D_real amount);
 
@@ -1103,6 +1105,191 @@ AIM_DEF void aim_fill_binomial_row(Mat2D v)
     }
 }
 
+AIM_DEF void aim_median_filter_bw(Mat2D_uint32 des_u32, Mat2D_uint32 src_u32, size_t kernel_size)
+{
+    /* https://en.wikipedia.org/wiki/Median_filter */
+
+    MAT2D_ASSERT(des_u32.cols == src_u32.cols);
+    MAT2D_ASSERT(des_u32.rows == src_u32.rows);
+    MAT2D_ASSERT(kernel_size > 2);
+    MAT2D_ASSERT(kernel_size % 2);
+
+    Mat2D src = mat2D_alloc(src_u32.rows + (kernel_size / 2) * 2, src_u32.cols + (kernel_size / 2) * 2);
+    Mat2D conv = mat2D_alloc(src_u32.rows, src_u32.cols);
+    Mat2D kernel = mat2D_alloc(kernel_size, kernel_size);
+
+    for (size_t i = 0; i < src.rows; i++) {
+        for (size_t j = 0; j < src.cols; j++) {
+            if (i < kernel_size / 2 || i >= src.rows - kernel_size / 2 || j < kernel_size / 2|| j >= src.cols - kernel_size / 2) {
+                MAT2D_AT(src, i, j) = 0;
+            } else {
+                uint32_t pixel = MAT2D_AT(src_u32, i - kernel_size / 2, j - kernel_size / 2);
+                uint8_t r;
+                uint8_t g;
+                uint8_t b;
+                APNG_HexARGB_TO_RGB_VAR(pixel, r, g, b);
+                MAT2D_AT(src, i, j) = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+            }
+        }
+    }
+
+    Mat2D window = {0};
+    for (size_t i = 0; i < conv.rows; i++) {
+        for (size_t j = 0; j < conv.cols; j++) {
+            if (i < kernel_size / 2 || i >= conv.rows - kernel_size / 2 || j < kernel_size / 2|| j >= conv.cols - kernel_size / 2) {
+                window.elements = &MAT2D_AT(src, i, j);
+                window.cols = kernel_size;
+                window.rows = kernel_size;
+                window.stride_r = src.stride_r;
+                mat2D_real sum = mat2D_elements_sum(window);
+                MAT2D_AT(conv, i, j) = sum / mat2D_non_zero_entrys_count(window);
+            } else {
+                window.elements = &MAT2D_AT(src, i, j);
+                window.cols = kernel_size;
+                window.rows = kernel_size;
+                window.stride_r = src.stride_r;
+
+                MAT2D_AT(conv, i, j) = mat2D_median_element(window);
+            }
+        }
+    }
+
+    for (size_t i = 0; i < conv.rows; i++) {
+        for (size_t j = 0; j < conv.cols; j++) {
+            mat2D_real value = MAT2D_AT(conv, i, j);
+
+            uint8_t temp, alpha;
+            APNG_HexARGB_TO_RGBA_VAR(APNG_PIXEL_BUFFER_AT(src_u32, i, j), temp, temp, temp, alpha);
+            MAT2D_AT(des_u32, i, j) = APNG_RGBA_TO_hexARGB(value, value, value, alpha);
+        }
+    }
+
+    mat2D_free(src);
+    mat2D_free(conv);
+    mat2D_free(kernel);
+}
+
+AIM_DEF void aim_median_filter_rgba(Mat2D_uint32 des_u32, Mat2D_uint32 src_u32, size_t kernel_size)
+{
+    /* https://en.wikipedia.org/wiki/Median_filter */
+
+    MAT2D_ASSERT(des_u32.cols == src_u32.cols);
+    MAT2D_ASSERT(des_u32.rows == src_u32.rows);
+    MAT2D_ASSERT(kernel_size > 2);
+    MAT2D_ASSERT(kernel_size % 2);
+
+    Mat2D src_r = mat2D_alloc(src_u32.rows + (kernel_size / 2) * 2, src_u32.cols + (kernel_size / 2) * 2);
+    Mat2D src_g = mat2D_alloc(src_u32.rows + (kernel_size / 2) * 2, src_u32.cols + (kernel_size / 2) * 2);
+    Mat2D src_b = mat2D_alloc(src_u32.rows + (kernel_size / 2) * 2, src_u32.cols + (kernel_size / 2) * 2);
+    Mat2D src_a = mat2D_alloc(src_u32.rows + (kernel_size / 2) * 2, src_u32.cols + (kernel_size / 2) * 2);
+    Mat2D conv_r = mat2D_alloc(src_u32.rows, src_u32.cols);
+    Mat2D conv_g = mat2D_alloc(src_u32.rows, src_u32.cols);
+    Mat2D conv_b = mat2D_alloc(src_u32.rows, src_u32.cols);
+    Mat2D conv_a = mat2D_alloc(src_u32.rows, src_u32.cols);
+    Mat2D kernel = mat2D_alloc(kernel_size, kernel_size);
+
+    for (size_t i = 0; i < src_r.rows; i++) {
+        for (size_t j = 0; j < src_r.cols; j++) {
+            if (i < kernel_size / 2 || i >= src_r.rows - kernel_size / 2 || j < kernel_size / 2|| j >= src_r.cols - kernel_size / 2) {
+                MAT2D_AT(src_r, i, j) = 0;
+                MAT2D_AT(src_g, i, j) = 0;
+                MAT2D_AT(src_b, i, j) = 0;
+                MAT2D_AT(src_a, i, j) = 0;
+            } else {
+                uint32_t pixel = MAT2D_AT(src_u32, i - kernel_size / 2, j - kernel_size / 2);
+                uint8_t r;
+                uint8_t g;
+                uint8_t b;
+                uint8_t a;
+                APNG_HexARGB_TO_RGBA_VAR(pixel, r, g, b, a);
+                MAT2D_AT(src_r, i, j) = r * a / 255;
+                MAT2D_AT(src_g, i, j) = g * a / 255;
+                MAT2D_AT(src_b, i, j) = b * a / 255;
+                MAT2D_AT(src_a, i, j) = a;
+            }
+        }
+    }
+
+    Mat2D window = {0};
+    mat2D_real sum = 0;
+    for (size_t i = 0; i < conv_r.rows; i++) {
+        for (size_t j = 0; j < conv_r.cols; j++) {
+            if (i < kernel_size / 2 || i >= conv_r.rows - kernel_size / 2 || j < kernel_size / 2|| j >= conv_r.cols - kernel_size / 2) {
+                /*r*/
+                window.elements = &MAT2D_AT(src_r, i, j);
+                window.cols = kernel_size;
+                window.rows = kernel_size;
+                window.stride_r = src_r.stride_r;
+                sum = mat2D_elements_sum(window);
+                MAT2D_AT(conv_r, i, j) = sum / mat2D_non_zero_entrys_count(window);
+                /*g*/
+                window.elements = &MAT2D_AT(src_g, i, j);
+                window.cols = kernel_size;
+                window.rows = kernel_size;
+                window.stride_r = src_g.stride_r;
+                sum = mat2D_elements_sum(window);
+                MAT2D_AT(conv_g, i, j) = sum / mat2D_non_zero_entrys_count(window);
+                /*a*/
+                window.elements = &MAT2D_AT(src_a, i, j);
+                window.cols = kernel_size;
+                window.rows = kernel_size;
+                window.stride_r = src_a.stride_r;
+                sum = mat2D_elements_sum(window);
+                MAT2D_AT(conv_a, i, j) = sum / mat2D_non_zero_entrys_count(window);
+                /*b*/
+                window.elements = &MAT2D_AT(src_b, i, j);
+                window.cols = kernel_size;
+                window.rows = kernel_size;
+                window.stride_r = src_b.stride_r;
+                sum = mat2D_elements_sum(window);
+                MAT2D_AT(conv_b, i, j) = sum / mat2D_non_zero_entrys_count(window);
+            } else {
+                /*r*/
+                window.elements = &MAT2D_AT(src_r, i, j);
+                window.cols = kernel_size;
+                window.rows = kernel_size;
+                window.stride_r = src_r.stride_r;
+                MAT2D_AT(conv_r, i, j) = mat2D_median_element(window);
+                /*g*/
+                window.elements = &MAT2D_AT(src_g, i, j);
+                window.cols = kernel_size;
+                window.rows = kernel_size;
+                window.stride_r = src_g.stride_r;
+                MAT2D_AT(conv_g, i, j) = mat2D_median_element(window);
+                /*b*/
+                window.elements = &MAT2D_AT(src_b, i, j);
+                window.cols = kernel_size;
+                window.rows = kernel_size;
+                window.stride_r = src_b.stride_r;
+                MAT2D_AT(conv_b, i, j) = mat2D_median_element(window);
+                /*a*/
+                window.elements = &MAT2D_AT(src_a, i, j);
+                window.cols = kernel_size;
+                window.rows = kernel_size;
+                window.stride_r = src_a.stride_r;
+                MAT2D_AT(conv_a, i, j) = mat2D_median_element(window);
+            }
+        }
+    }
+
+    for (size_t i = 0; i < des_u32.rows; i++) {
+        for (size_t j = 0; j < des_u32.cols; j++) {
+            mat2D_real a = MAT2D_AT(conv_a, i, j);
+            MAT2D_AT(des_u32, i, j) = APNG_RGBA_TO_hexARGB(MAT2D_AT(conv_r, i, j) / a * 255, MAT2D_AT(conv_g, i, j) / a * 255, MAT2D_AT(conv_b, i, j) / a * 255, a);
+        }
+    }
+
+    mat2D_free(src_r);
+    mat2D_free(src_g);
+    mat2D_free(src_b);
+    mat2D_free(src_a);
+    mat2D_free(conv_r);
+    mat2D_free(conv_g);
+    mat2D_free(conv_b);
+    mat2D_free(conv_a);
+    mat2D_free(kernel);
+}
+
 AIM_DEF void aim_sharpen_bw(Mat2D_uint32 des_u32, Mat2D_uint32 src_u32, mat2D_real std, mat2D_real amount)
 {
     /**
@@ -1214,6 +1401,9 @@ AIM_DEF void aim_sharpen_rgba(Mat2D_uint32 des_u32, Mat2D_uint32 src_u32, mat2D_
         for (size_t j = 0; j < src_r.cols; j++) {
             if (i < kernel_size / 2 || i >= src_r.rows - kernel_size / 2 || j < kernel_size / 2|| j >= src_r.cols - kernel_size / 2) {
                 MAT2D_AT(src_r, i, j) = 0;
+                MAT2D_AT(src_g, i, j) = 0;
+                MAT2D_AT(src_b, i, j) = 0;
+                MAT2D_AT(src_a, i, j) = 0;
             } else {
                 uint32_t pixel = MAT2D_AT(src_u32, i - kernel_size / 2, j - kernel_size / 2);
                 uint8_t r;
