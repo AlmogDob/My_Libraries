@@ -71,7 +71,14 @@ struct Ah_Bit_Reader {
 #define AH_FREE free
 #endif
 
-#define AH_DEF static inline
+#ifndef AH_DEF
+    #ifdef AH_DEF_STATIC
+        #define AH_DEF static
+    #else
+        #define AH_DEF extern
+    #endif
+#endif
+#define AH_UNUSED(x) ((void)x)
 #define AH_UNUSED(x) ((void)x)
 #define ah_dprintSTRING(expr) printf("[Info] %s:%d:\n" #expr " = %s\n", __FILE__, __LINE__, expr)
 #define ah_dprintCHAR(expr) printf("[Info] %s:%d:\n" #expr " = %c\n", __FILE__, __LINE__, expr)

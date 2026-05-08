@@ -4,14 +4,10 @@
 
 int main(void)
 {
-    char file_name[] = "../src/test-png.png";
-    printf("Loading PNG '%s'.\n", file_name);
+    char file_name[] = "../src/test_images/test-png1.png";
 
-    struct Apng_Bin_String file = apng_bin_file_read(file_name);
-    apng_decode_png(file);
-
-
-    apng_bin_string_free(file);
+    struct Apng_PNG_Image image = {0};
+    apng_png_load(file_name, &image, true);
 
     return 0;
 }

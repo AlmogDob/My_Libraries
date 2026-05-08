@@ -192,7 +192,11 @@ struct Apl_Window_State {
 #define APL_OK APL_SUCCESS
 #define APL_UNUSED(x) (void)x
 #ifndef APL_DEF
-    #define APL_DEF static inline
+    #ifdef APNG_STATIC
+        #define APNG_DEF static
+    #else
+        #define APNG_DEF extern
+    #endif
 #endif
 #ifndef APL_ASSERT
 #define APL_ASSERT(expr)                                        \
