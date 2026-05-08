@@ -3,46 +3,23 @@
 
 int main(void)
 {
-    Mat2D a = mat2D_alloc(4, 4);
-    Mat2D b = mat2D_alloc(3, 3);
-    Mat2D m = mat2D_alloc(4 - 3 + 1, 4 - 3 + 1);
+    size_t n = 40, m = 60;
+    Mat2D A = mat2D_alloc(n, m);
+    Mat2D Q = mat2D_alloc(n, n);
+    Mat2D R = mat2D_alloc(n, m);
+    Mat2D temp = mat2D_alloc(n, m);
 
-    MAT2D_AT(a, 0, 0) = 3;
-    MAT2D_AT(a, 0, 1) = 3;
-    MAT2D_AT(a, 0, 2) = 2;
-    MAT2D_AT(a, 0, 3) = 1;
-    MAT2D_AT(a, 1, 0) = 0;
-    MAT2D_AT(a, 1, 1) = 0;
-    MAT2D_AT(a, 1, 2) = 1;
-    MAT2D_AT(a, 1, 3) = 3;
-    MAT2D_AT(a, 2, 0) = 3;
-    MAT2D_AT(a, 2, 1) = 1;
-    MAT2D_AT(a, 2, 2) = 2;
-    MAT2D_AT(a, 2, 3) = 2;
-    MAT2D_AT(a, 3, 0) = 2;
-    MAT2D_AT(a, 3, 1) = 0;
-    MAT2D_AT(a, 3, 2) = 0;
-    MAT2D_AT(a, 3, 3) = 2;
+    mat2D_fill_sequence(A, 0, 1);
 
-    MAT2D_AT(b, 0, 0) = 0;
-    MAT2D_AT(b, 0, 1) = 1;
-    MAT2D_AT(b, 0, 2) = 2;
-    MAT2D_AT(b, 1, 0) = 2;
-    MAT2D_AT(b, 1, 1) = 2;
-    MAT2D_AT(b, 1, 2) = 0;
-    MAT2D_AT(b, 2, 0) = 0;
-    MAT2D_AT(b, 2, 1) = 1;
-    MAT2D_AT(b, 2, 2) = 2;
+    // MAT2D_PRINT(A);
 
-    mat2D_rotate_mat_180_deg_inplace(b);
+    // mat2D_QR_householder_factorization(Q, R, A);
+    mat2D_QR_householder_factorization_fast(Q, R, A);
 
-    MAT2D_PRINT(a);
-    MAT2D_PRINT(b);
+    mat2D_dot(temp, Q, R);
 
-    mat2D_convolve(m, a, b);
+    MAT2D_PRINT(temp);
 
-    MAT2D_PRINT(m);
-    
 
     return 0;
 }

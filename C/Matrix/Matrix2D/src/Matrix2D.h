@@ -225,8 +225,6 @@ typedef struct {
  * @details
  * Expands to row-major indexing using stride_r:
  *   (m).elements[(i) * (m).stride_r + (j)]
- *
- * @warning In the “fast” configuration this macro performs no bounds checking.
  */
 #define MAT2D_AT(m, i, j) (m).elements[(MAT2D_ASSERT((i) < (m).rows && (j) < (m).cols), (i) * (m).stride_r + (j))]
 
@@ -306,7 +304,8 @@ MAT2D_DEF void          mat2D_add_scalar(Mat2D m, mat2D_real x);
 MAT2D_DEF Mat2D         mat2D_alloc(size_t rows, size_t cols);
 MAT2D_DEF Mat2D_uint32  mat2D_alloc_uint32(size_t rows, size_t cols);
 MAT2D_DEF void          mat2D_anti_diag_transpose_inplace(Mat2D m);
-
+MAT2D_DEF void          mat2D_apply_householder_left(Mat2D A, size_t row0, size_t col0, Mat2D v);
+MAT2D_DEF void          mat2D_apply_householder_right(Mat2D A, size_t col0, Mat2D v);
 MAT2D_DEF mat2D_real    mat2D_calc_col_norma(Mat2D m, size_t c);
 MAT2D_DEF mat2D_real    mat2D_calc_norma(Mat2D m);
 MAT2D_DEF mat2D_real    mat2D_calc_norma_inf(Mat2D m);
@@ -338,8 +337,12 @@ MAT2D_DEF bool          mat2D_find_first_non_zero_value(Mat2D m, size_t r, size_
 MAT2D_DEF void          mat2D_free(Mat2D m);
 MAT2D_DEF void          mat2D_free_uint32(Mat2D_uint32 m);
 
+MAT2D_DEF void          mat2D_householder_matrix_get(Mat2D des, Mat2D v);
+MAT2D_DEF void          mat2D_householder_top_element_vector_get(Mat2D v_des, Mat2D x);
+
 MAT2D_DEF mat2D_real    mat2D_inner_product(Mat2D v);
 MAT2D_DEF void          mat2D_invert(Mat2D des, Mat2D src);
+MAT2D_DEF bool          mat2D_is_symmetric(Mat2D m);
 
 MAT2D_DEF void          mat2D_LUP_decomposition_with_swap(Mat2D src, Mat2D l, Mat2D p, Mat2D u);
 
@@ -366,6 +369,9 @@ MAT2D_DEF void          mat2D_print(Mat2D m, const char *name, size_t padding);
 MAT2D_DEF void          mat2D_print_uint32(Mat2D_uint32 m, const char *name, size_t padding);
 MAT2D_DEF void          mat2D_print_as_col(Mat2D m, const char *name, size_t padding);
 MAT2D_DEF void          mat2D_project_out_columns(Mat2D v, Mat2D basis, size_t used_cols);
+
+MAT2D_DEF void          mat2D_QR_householder_factorization(Mat2D Q, Mat2D R, Mat2D src);
+MAT2D_DEF void          mat2D_QR_householder_factorization_fast(Mat2D Q, Mat2D R, Mat2D src);
 
 MAT2D_DEF void          mat2D_rand(Mat2D m, mat2D_real low, mat2D_real high);
 MAT2D_DEF mat2D_real    mat2D_rand_mat2D_real(void);
@@ -554,6 +560,47 @@ MAT2D_DEF void mat2D_anti_diag_transpose_inplace(Mat2D m)
         }
     }
 }
+
+MAT2D_DEF void mat2D_apply_householder_left(Mat2D A, size_t row0, size_t col0, Mat2D v)
+{
+    mat2D_real vv = mat2D_inner_product(v);
+    MAT2D_ASSERT(!MAT2D_IS_ZERO(vv));
+
+    mat2D_real beta = (mat2D_real)2 / vv;
+
+    for (size_t j = col0; j < A.cols; ++j) {
+        mat2D_real dot = 0;
+        for (size_t i = 0; i < v.rows; ++i) {
+            dot += MAT2D_AT(v, i, 0) * MAT2D_AT(A, row0 + i, j);
+        }
+        dot *= beta;
+
+        for (size_t i = 0; i < v.rows; ++i) {
+            MAT2D_AT(A, row0 + i, j) -= dot * MAT2D_AT(v, i, 0);
+        }
+    }
+}
+
+MAT2D_DEF void mat2D_apply_householder_right(Mat2D A, size_t col0, Mat2D v)
+{
+    mat2D_real vv = mat2D_inner_product(v);
+    MAT2D_ASSERT(!MAT2D_IS_ZERO(vv));
+
+    mat2D_real beta = (mat2D_real)2 / vv;
+
+    for (size_t i = 0; i < A.rows; ++i) {
+        mat2D_real dot = 0;
+        for (size_t j = 0; j < v.rows; ++j) {
+            dot += MAT2D_AT(A, i, col0 + j) * MAT2D_AT(v, j, 0);
+        }
+        dot *= beta;
+
+        for (size_t j = 0; j < v.rows; ++j) {
+            MAT2D_AT(A, i, col0 + j) -= dot * MAT2D_AT(v, j, 0);
+        }
+    }
+}
+
 
 /**
  * @brief Compute the Euclidean (L2) norm of a matrix column.
@@ -1330,6 +1377,41 @@ MAT2D_DEF void mat2D_free_uint32(Mat2D_uint32 m)
     MAT2D_FREE(m.elements);
 }
 
+MAT2D_DEF void mat2D_householder_matrix_get(Mat2D des, Mat2D v)
+{
+    MAT2D_ASSERT(v.cols == 1);
+    MAT2D_ASSERT(des.cols == des.rows);
+    MAT2D_ASSERT(des.cols == v.rows);
+
+    Mat2D outer_product = mat2D_alloc(v.rows, v.rows);
+    mat2D_outer_product(outer_product, v);
+    mat2D_real inner_product = mat2D_inner_product(v);
+    mat2D_mult(outer_product, (mat2D_real)2 / inner_product);
+    
+    mat2D_set_identity(des);
+
+    mat2D_sub(des, outer_product);
+
+    mat2D_free(outer_product);
+}
+
+MAT2D_DEF void mat2D_householder_top_element_vector_get(Mat2D v_des, Mat2D x)
+{
+    MAT2D_ASSERT(x.cols == 1);
+    MAT2D_ASSERT(v_des.cols == x.cols);
+    MAT2D_ASSERT(v_des.rows == x.rows);
+
+    mat2D_real norm = mat2D_calc_norma(x);
+
+    mat2D_copy(v_des, x);
+    
+    if (MAT2D_AT(x, 0, 0) > 0) {
+        MAT2D_AT(v_des, 0, 0) += norm;
+    } else {
+        MAT2D_AT(v_des, 0, 0) -= norm;
+    }
+}
+
 /**
  * @brief Compute the inner product of a vector with itself: dot(v, v).
  *
@@ -1390,6 +1472,19 @@ MAT2D_DEF void mat2D_invert(Mat2D des, Mat2D src)
     mat2D_copy_src_window_to_des(des, m, 0, src.cols, des.rows-1, 2 * des.cols-1);
 
     mat2D_free(m);
+}
+
+MAT2D_DEF bool mat2D_is_symmetric(Mat2D m)
+{
+    for (size_t i = 0; i < m.rows; i++) {
+        for (size_t j = 0; j < m.cols; j++) {
+            if (!MAT2D_IS_ZERO(MAT2D_AT(m, i, j) - MAT2D_AT(m, j , i))) {
+                return false;
+            }
+        }
+    }
+
+    return true;
 }
 
 /**
@@ -2054,6 +2149,105 @@ MAT2D_DEF void mat2D_project_out_columns(Mat2D v, Mat2D basis, size_t used_cols)
     }
 
     mat2D_free(temp);
+}
+
+MAT2D_DEF void mat2D_QR_householder_factorization(Mat2D Q, Mat2D R, Mat2D src)
+{
+    MAT2D_ASSERT(Q.cols == Q.rows);
+    MAT2D_ASSERT(R.rows == src.rows);
+    MAT2D_ASSERT(R.cols == src.cols);
+    MAT2D_ASSERT(Q.cols == R.rows);
+
+    MAT2D_ASSERT(src.rows > 0);
+    MAT2D_ASSERT(src.cols > 0);
+
+    Mat2D vector = mat2D_alloc(src.rows, 1);
+    Mat2D house  = mat2D_alloc(Q.rows, Q.cols);
+    Mat2D prev_Q = mat2D_alloc(Q.rows, Q.cols);
+    Mat2D prev_R = mat2D_alloc(R.rows, R.cols);
+
+    mat2D_set_identity(prev_Q);
+    mat2D_copy(prev_R, src);
+    mat2D_set_identity(Q);
+    mat2D_copy(R, src);
+
+    Mat2D col = {.cols = 1};
+    Mat2D temp_col = {.cols = 1};
+    Mat2D temp_h = {0};
+    
+    for (size_t i = 0; i < mat2D_min(src.rows-1, src.cols); i++) {
+        col.rows = prev_R.rows - i;
+        col.elements = &MAT2D_AT(prev_R, i, i);
+        col.stride_r = prev_R.stride_r;
+
+        temp_col.rows = vector.rows - i;
+        temp_col.elements = &MAT2D_AT(vector, i, 0);
+        temp_col.stride_r = vector.stride_r;
+        
+        temp_h.rows = house.rows - i;
+        temp_h.cols = house.cols - i;
+        temp_h.elements = &MAT2D_AT(house, i, i);
+        temp_h.stride_r= house.stride_r;
+
+        mat2D_fill(vector, 1);
+        mat2D_set_identity(house);
+
+        mat2D_householder_top_element_vector_get(temp_col, col);
+        mat2D_householder_matrix_get(temp_h, temp_col);
+
+        mat2D_dot(R, house, prev_R);
+        mat2D_dot(Q, prev_Q, house);
+
+        mat2D_copy(prev_Q, Q);
+        mat2D_copy(prev_R, R);
+    }
+
+
+    mat2D_free(vector);
+    mat2D_free(house);
+    mat2D_free(prev_Q);
+    mat2D_free(prev_R);
+}
+
+MAT2D_DEF void mat2D_QR_householder_factorization_fast(Mat2D Q, Mat2D R, Mat2D src)
+{
+    MAT2D_ASSERT(Q.rows == Q.cols);
+    MAT2D_ASSERT(R.rows == src.rows);
+    MAT2D_ASSERT(R.cols == src.cols);
+    MAT2D_ASSERT(Q.rows == src.rows);
+
+    mat2D_copy(R, src);
+    mat2D_set_identity(Q);
+
+    Mat2D vbuf = mat2D_alloc(src.rows, 1);
+
+    size_t steps = mat2D_min(src.rows - 1, src.cols);
+    for (size_t k = 0; k < steps; ++k) {
+        Mat2D x = {
+            .rows = R.rows - k,
+            .cols = 1,
+            .stride_r = R.stride_r,
+            .elements = &MAT2D_AT(R, k, k),
+        };
+
+        Mat2D v = {
+            .rows = vbuf.rows - k,
+            .cols = 1,
+            .stride_r = vbuf.stride_r,
+            .elements = &MAT2D_AT(vbuf, k, 0),
+        };
+
+        mat2D_householder_top_element_vector_get(v, x);
+
+        if (MAT2D_IS_ZERO(mat2D_inner_product(v))) {
+            continue;
+        }
+
+        mat2D_apply_householder_left(R, k, k, v);
+        mat2D_apply_householder_right(Q, k, v);
+    }
+
+    mat2D_free(vbuf);
 }
 
 /**
