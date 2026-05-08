@@ -346,6 +346,7 @@ MAT2D_DEF void          mat2D_LUP_decomposition_with_swap(Mat2D src, Mat2D l, Ma
 MAT2D_DEF void          mat2D_make_orthogonal_Gaussian_elimination(Mat2D des, Mat2D A);
 MAT2D_DEF void          mat2D_make_orthogonal_modified_Gram_Schmidt(Mat2D des, Mat2D A);
 MAT2D_DEF bool          mat2D_mat_is_all_digit(Mat2D m, mat2D_real digit);
+MAT2D_DEF mat2D_real    mat2D_median_element(Mat2D m);
 MAT2D_DEF Mat2D_Minor   mat2D_minor_alloc_fill_from_mat(Mat2D ref_mat, size_t i, size_t j);
 MAT2D_DEF Mat2D_Minor   mat2D_minor_alloc_fill_from_mat_minor(Mat2D_Minor ref_mm, size_t i, size_t j);
 MAT2D_DEF mat2D_real    mat2D_minor_det(Mat2D_Minor mm);
@@ -356,6 +357,7 @@ MAT2D_DEF void          mat2D_mult_row(Mat2D m, size_t r, mat2D_real factor);
 
 MAT2D_DEF void          mat2D_normalize(Mat2D m);
 MAT2D_DEF void          mat2D_normalize_inf(Mat2D m);
+MAT2D_DEF size_t        mat2D_non_zero_entrys_count(Mat2D m);
 
 MAT2D_DEF size_t        mat2D_offset2d(Mat2D m, size_t i, size_t j);
 MAT2D_DEF size_t        mat2D_offset2d_uint32(Mat2D_uint32 m, size_t i, size_t j);
@@ -366,6 +368,8 @@ MAT2D_DEF void          mat2D_print(Mat2D m, const char *name, size_t padding);
 MAT2D_DEF void          mat2D_print_uint32(Mat2D_uint32 m, const char *name, size_t padding);
 MAT2D_DEF void          mat2D_print_as_col(Mat2D m, const char *name, size_t padding);
 MAT2D_DEF void          mat2D_project_out_columns(Mat2D v, Mat2D basis, size_t used_cols);
+
+MAT2D_DEF void          mat2D_qsort(mat2D_real v[], int left, int right);
 
 MAT2D_DEF void          mat2D_rand(Mat2D m, mat2D_real low, mat2D_real high);
 MAT2D_DEF mat2D_real    mat2D_rand_mat2D_real(void);
@@ -389,6 +393,7 @@ MAT2D_DEF void          mat2D_sub_row_time_factor_to_row(Mat2D m, size_t des_r, 
 MAT2D_DEF void          mat2D_SVD_full(Mat2D A, Mat2D U, Mat2D S, Mat2D V, Mat2D init_vec_u, Mat2D init_vec_v, bool return_v_transpose);
 MAT2D_DEF void          mat2D_SVD_thin(Mat2D A, Mat2D U, Mat2D S, Mat2D V, Mat2D init_vec_u, Mat2D init_vec_v, bool return_v_transpose);
 MAT2D_DEF void          mat2D_swap_rows(Mat2D m, size_t r1, size_t r2);
+MAT2D_DEF void          mat2D_swap_elements(mat2D_real v[], int i, int j);
 
 MAT2D_DEF void          mat2D_transpose(Mat2D des, Mat2D src);
 MAT2D_DEF void          mat2D_transpose_inplace(Mat2D m);
@@ -659,6 +664,7 @@ void mat2D_convolve(Mat2D m, Mat2D a, Mat2D b)
         }
     }
 
+    mat2D_rotate_mat_180_deg_inplace(b);
 }
 
 /**
@@ -1596,6 +1602,20 @@ MAT2D_DEF bool mat2D_mat_is_all_digit(Mat2D m, mat2D_real digit)
     return true;
 }
 
+MAT2D_DEF mat2D_real mat2D_median_element(Mat2D m)
+{
+    Mat2D temp = mat2D_alloc(m.rows, m.cols);
+    mat2D_copy(temp, m);
+
+    mat2D_qsort(temp.elements, 0, temp.rows*temp.cols-1);
+
+    mat2D_real median = MAT2D_AT(temp, temp.rows / 2, temp.cols / 2);
+
+    mat2D_free(temp);
+
+    return median;
+}
+
 /**
  * @brief Allocate a minor view by excluding row i and column j of ref_mat.
  * @param ref_mat Reference square matrix.
@@ -1806,6 +1826,18 @@ MAT2D_DEF void mat2D_normalize_inf(Mat2D m)
     }
 
     mat2D_mult(m, (mat2D_real)1 / norma);
+}
+
+MAT2D_DEF size_t mat2D_non_zero_entrys_count(Mat2D m)
+{
+    size_t count = 0;
+    for (size_t i = 0; i < m.rows; i++) {
+        for (size_t j = 0; j < m.cols; j++) {
+            if (!MAT2D_IS_ZERO(MAT2D_AT(m, i, j))) count++;
+        }
+    }
+    
+    return count;
 }
 
 /**
@@ -2054,6 +2086,22 @@ MAT2D_DEF void mat2D_project_out_columns(Mat2D v, Mat2D basis, size_t used_cols)
     }
 
     mat2D_free(temp);
+}
+
+MAT2D_DEF void mat2D_qsort(mat2D_real v[], int left, int right)
+{
+    int i, last;
+
+    if (left >= right)                  /* do nothing if array contains */
+        return;                         /* fewer than two elements */
+    mat2D_swap_elements(v, left, (left + right) / 2);  /* move partition elem */
+    last = left;                        /* to v[0] */
+    for (i = left + 1; i <= right; i++) /* partition */
+        if (v[i] > v[left])
+            mat2D_swap_elements(v, ++last, i);
+    mat2D_swap_elements(v, left, last); /* restore partition elem */
+    mat2D_qsort(v, left, last - 1);
+    mat2D_qsort(v, last + 1, right);
 }
 
 /**
@@ -2698,6 +2746,15 @@ MAT2D_DEF void mat2D_swap_rows(Mat2D m, size_t r1, size_t r2)
         MAT2D_AT(m, r1, j) = MAT2D_AT(m, r2, j);
         MAT2D_AT(m, r2, j) = temp;
     }
+}
+
+MAT2D_DEF void mat2D_swap_elements(mat2D_real v[], int i, int j)
+{
+    mat2D_real temp;
+
+    temp = v[i];
+    v[i] = v[j];
+    v[j] = temp;
 }
 
 /**
