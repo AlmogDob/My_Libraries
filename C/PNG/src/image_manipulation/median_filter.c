@@ -76,11 +76,11 @@ enum Apl_Return_Types apl_setup(struct Apl_Window_State *ws)
     // ws->to_limit_fps = false;
     offzoom = ADL_DEFAULT_OFFSET_ZOOM;
 
-    // char file_name[] = "../src/test_images/test-png3.png";
+    char file_name[] = "../src/test_images/test-png3.png";
     // char file_name[] = "../src/test_images/test-png_wiki.png";
     // char file_name[] = "../src/test_images/Bikesgray.png";
     // char file_name[] = "../src/test_images/file_example_PNG_3MB.png";
-    char file_name[] = "../src/test_images/Valve_original.png";
+    // char file_name[] = "../src/test_images/Valve_original.png";
 
     apng_png_free(&image);
     if (APNG_FAIL == apng_png_load(file_name, &image, true)) {
@@ -92,11 +92,14 @@ enum Apl_Return_Types apl_setup(struct Apl_Window_State *ws)
     results = mat2D_alloc_uint32(image_pixels.rows, image_pixels.cols);
     Mat2D_uint32 temp = mat2D_alloc_uint32(image_pixels.rows, image_pixels.cols);
 
-    aim_sharpen_bw(temp, image_pixels, 10, 0.2);
 
-    aim_edge_detection_sobel_general_cutoff(results, temp, 3, 200);
-
-
+    // mat2D_copy_uint32(results, image_pixels);
+    aim_median_filter_rgba(temp, image_pixels, 3);
+    aim_median_filter_rgba(results, temp, 3);
+    aim_median_filter_rgba(temp, results, 3);
+    aim_median_filter_rgba(results, temp, 3);
+    // aim_sharpen_bw(results, temp, 1.5, 3);
+    // aim_edge_detection_sobel_general_cutoff(results, temp, 3, 200);
 
 
     return APL_SUCCESS;

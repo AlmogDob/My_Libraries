@@ -355,8 +355,8 @@ void adl_point_draw(Mat2D_uint32 screen_mat, float x, float y, uint32_t color, O
     int iy0 = (int)start_y;
     int block = (int)(zoom + 0.5f);
 
-    for (size_t dx = 0; dx < block; dx++) {
-        for (size_t dy = 0; dy < block; dy++) {
+    for (int dx = 0; dx <= block; dx++) {
+        for (int dy = 0; dy <= block; dy++) {
             int ix = ix0 + dx;
             int iy = iy0 + dy;
 

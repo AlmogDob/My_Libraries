@@ -1,20 +1,49 @@
 /**
  * @file
- * @brief Single-header PNG decoder
+ * @brief Single-header PNG decoder with built-in zlib/DEFLATE inflate logic.
  *
- * This library reads a PNG file into memory, validates the PNG signature and
- * chunk CRCs, concatenates and parses the IDAT zlib stream, inflates DEFLATE
- * blocks, reverses PNG scanline filters, and writes the decoded image into a
- * 32-bit pixel buffer.
- * This PNG decoder is based on the PNG parser created in Handmade Hero, Casey Muratori's famous video series. 
- * A link to the video on YouTube: https://youtu.be/lkEWbIUEuN0
- * A link to the website: https://mollyrocket.com/#handmade
- * 
- * You can find the PNG specification (second edition) in the link below:
- * https://www.w3.org/TR/2003/REC-PNG-20031110/
- * 
- * ZLIB specification: https://www.ietf.org/rfc/rfc1950.txt 
- * DEFLATE specification: https://www.ietf.org/rfc/rfc1951.txt 
+ * This library loads a PNG file into memory, validates the 8-byte PNG
+ * signature, parses the PNG chunk stream, verifies each chunk CRC, concatenates
+ * all IDAT chunk payloads into a single zlib stream, inflates the DEFLATE
+ * compressed image data, reverses PNG scanline filtering, and writes the final
+ * image into a 32-bit ARGB pixel buffer.
+ *
+ * Supported PNG features:
+ * - Non-interlaced images only (interlace method 0)
+ * - Compression method 0
+ * - Filter method 0
+ * - Color types 0, 2, 4, and 6
+ * - Bit depths 1, 2, 4, and 8 for the currently supported formats
+ *
+ * Unsupported or partially supported features:
+ * - Indexed-color PNGs (color type 3)
+ * - Interlaced PNGs (Adam7)
+ * - Many ancillary chunk semantics are parsed only at the chunk level or
+ *   ignored entirely
+ *
+ * Internal decode pipeline:
+ * 1. Read the file into an Apng_Byte_String
+ * 2. Parse and validate the PNG signature
+ * 3. Iterate over chunks and validate CRC values
+ * 4. Parse IHDR and collect concatenated IDAT data
+ * 5. Parse the zlib header from the IDAT stream
+ * 6. Inflate DEFLATE blocks (stored, fixed Huffman, or dynamic Huffman)
+ * 7. Verify the Adler-32 checksum
+ * 8. Undo PNG row filters
+ * 9. Convert scanline bytes into a 32-bit pixel buffer
+ *
+ * Public entry points:
+ * - apng_png_load(): load and decode a PNG from disk
+ * - apng_png_decode(): decode an already loaded PNG byte buffer
+ * - apng_png_free(): release memory owned by a decoded image
+ *
+ * This decoder is based on the PNG parser developed in Handmade Hero by
+ * Casey Muratori.
+ *
+ * References:
+ * - PNG specification: https://www.w3.org/TR/2003/REC-PNG-20031110/
+ * - ZLIB specification: https://www.ietf.org/rfc/rfc1950.txt
+ * - DEFLATE specification: https://www.ietf.org/rfc/rfc1951.txt
  */
 #ifndef ALMOG_PNG_H_
 #define ALMOG_PNG_H_
@@ -849,10 +878,19 @@ APNG_DEF struct Apng_IDAT_Header            apng_IDAT_header_get_from_IDAT_chunk
 #undef ALMOG_PNG_IMPLEMENTATION
 
 /**
- * @brief Verify that a buffer matches an expected Adler-32 checksum.
- * @param original_adler32 Expected Adler-32 value from the zlib stream.
- * @param buffer Buffer to validate.
- * @param buffer_length Length of buffer in bytes.
+ * @brief Validate the Adler-32 checksum at the end of the zlib stream.
+ *
+ * The zlib wrapper used by PNG stores an Adler-32 checksum of the uncompressed
+ * data after the DEFLATE payload. This function recomputes the checksum over
+ * the decompressed scanline bytes and compares it to the value read from the
+ * stream.
+ *
+ * It is used at the end of apng_IDAT_decompress() to ensure the image data was
+ * decompressed correctly and was not corrupted.
+ *
+ * @param original_adler32 Expected Adler-32 value read from the zlib stream.
+ * @param buffer Decompressed data buffer.
+ * @param buffer_length Length of the decompressed buffer in bytes.
  * @return APNG_SUCCESS if the checksum matches, otherwise APNG_FAIL.
  */
 APNG_DEF enum Apng_Return_Types apng_adler32_check(uint32_t original_adler32, uint8_t *buffer, size_t buffer_length)
@@ -1018,9 +1056,20 @@ APNG_DEF void apng_bit_reader_init(struct Apng_Bit_Reader *br, struct Apng_Byte_
 }
 
 /**
- * @brief Read one bit from the stream.
- * @param br Bit reader.
- * @return The next bit, read least-significant-bit first within each byte.
+ * @brief Read one bit from a byte stream in DEFLATE bit order.
+ *
+ * This bit reader consumes bits least-significant-bit first from each byte, as
+ * required by the DEFLATE format. When the cached byte is exhausted, it loads
+ * the next byte from the underlying byte string and continues reading.
+ *
+ * This function is used throughout Huffman and block decoding in
+ * apng_IDAT_decompress().
+ *
+ * @param br Bit reader state.
+ * @return The next bit from the compressed stream, either 0 or 1.
+ *
+ * @pre br->file.cursor must not advance past the end of the underlying buffer.
+ * @post The reader state is advanced by one bit.
  */
 APNG_DEF uint8_t apng_bit_reader_read_bit(struct Apng_Bit_Reader *br)
 {
@@ -1038,10 +1087,19 @@ APNG_DEF uint8_t apng_bit_reader_read_bit(struct Apng_Bit_Reader *br)
 }
 
 /**
- * @brief Read multiple bits from the stream.
- * @param br Bit reader.
- * @param count Number of bits to read; must be at most 32.
- * @return The bits packed into the low bits of the result in read order.
+ * @brief Read multiple bits from the DEFLATE stream.
+ *
+ * Reads count bits using apng_bit_reader_read_bit() and packs them into the low
+ * bits of the result in the same order they were read. This matches the way
+ * DEFLATE encodes multi-bit fields such as BFINAL, BTYPE, HLIT, HDIST, and
+ * extra length/distance bits.
+ *
+ * This helper is used extensively by apng_IDAT_decompress() while parsing block
+ * headers and Huffman-coded length/distance extensions.
+ *
+ * @param br Bit reader state.
+ * @param count Number of bits to read, up to 32.
+ * @return A 32-bit value containing the requested bits.
  */
 APNG_DEF uint32_t apng_bit_reader_read_bits(struct Apng_Bit_Reader *br, size_t count)
 {
@@ -1093,9 +1151,23 @@ APNG_DEF struct Apng_Chunk_Footer apng_chunk_footer_get(struct Apng_Byte_String 
 }
 
 /**
- * @brief Parse a PNG chunk header from the current cursor position.
- * @param bs Byte string whose cursor points at a chunk header.
- * @return Parsed chunk header.
+ * @brief Parse the PNG chunk header at the current cursor position.
+ *
+ * Reads 8 bytes from the byte stream: the 4-byte big-endian chunk length and
+ * the 4-byte chunk type. The function advances the byte-string cursor and
+ * converts the raw type code into the internal Apng_Chunk_Type enum.
+ *
+ * This function is used by apng_png_decode() while iterating over the PNG file
+ * chunk-by-chunk. The returned header is then followed by reading the chunk
+ * body and footer and validating the chunk CRC.
+ *
+ * @param bs Byte string whose cursor currently points at the start of a PNG
+ *           chunk header.
+ * @return Parsed chunk header structure containing the chunk length, raw type,
+ *         decoded enum type, and source position.
+ *
+ * @pre bs must contain at least 8 unread bytes.
+ * @post bs->cursor is advanced by APNG_CHUNK_HEADER_SIZE bytes.
  */
 APNG_DEF struct Apng_Chunk_Header apng_chunk_header_get(struct Apng_Byte_String *bs)
 {
@@ -1114,12 +1186,22 @@ APNG_DEF struct Apng_Chunk_Header apng_chunk_header_get(struct Apng_Byte_String 
 }
 
 /**
- * @brief Return a pointer to the next amount bytes and advance the cursor.
+ * @brief Consume a contiguous range of bytes from a byte string.
+ *
+ * Returns a pointer to the next unread bytes in the buffer and advances the
+ * byte-string cursor by the requested amount. No copy is performed; the caller
+ * receives a pointer directly into the underlying storage.
+ *
+ * This function is the basic primitive used by the PNG parser to step through
+ * the file while reading the signature, chunk headers, chunk bodies, chunk
+ * footers, and the Adler-32 trailer.
+ *
  * @param bs Source byte string.
- * @param amount Number of bytes to consume.
+ * @param amount_byte Number of bytes to consume.
  * @return Pointer to the first consumed byte.
  *
- * @pre amount must not exceed the number of remaining bytes.
+ * @pre amount_byte must not exceed the number of unread bytes remaining in bs.
+ * @post bs->cursor is advanced by amount_byte.
  */
 APNG_DEF void * apng_consume_bytes(struct Apng_Byte_String *bs, size_t amount_byte)
 {
@@ -1132,10 +1214,19 @@ APNG_DEF void * apng_consume_bytes(struct Apng_Byte_String *bs, size_t amount_by
 }
 
 /**
- * @brief Verify the CRC of a PNG chunk.
- * @param header Chunk header.
- * @param chunk_data Pointer to the chunk body.
- * @param footer Chunk footer containing the file CRC.
+ * @brief Validate the CRC-32 checksum of a PNG chunk.
+ *
+ * PNG stores a CRC value after every chunk. This function recomputes the CRC
+ * over the chunk type and chunk data exactly as required by the PNG
+ * specification and compares it against the CRC read from the file.
+ *
+ * It is used by apng_png_decode() immediately after reading each chunk body and
+ * footer. A mismatch indicates file corruption or invalid PNG data and causes
+ * decoding to fail.
+ *
+ * @param header Parsed chunk header containing the chunk type and length.
+ * @param chunk_data Pointer to the chunk payload bytes.
+ * @param footer Parsed chunk footer containing the CRC value from the file.
  * @return APNG_SUCCESS if the CRC matches, otherwise APNG_FAIL.
  */
 APNG_DEF enum Apng_Return_Types apng_crc32_check(struct Apng_Chunk_Header header, void *chunk_data, struct Apng_Chunk_Footer footer)
@@ -1237,13 +1328,26 @@ APNG_DEF enum Apng_Return_Types apng_huffman_decode_symbol(struct Apng_Huffman_E
 }
 
 /**
- * @brief Build a canonical Huffman decode table from code lengths.
- * @param code_length_array Array of code lengths indexed by symbol.
- * @param code_length_array_len Number of entries in code_length_array.
- * @return Constructed Huffman table.
+ * @brief Build a canonical Huffman decode table from symbol code lengths.
  *
- * @note The returned table owns a dynamically allocated elements buffer. The
- *       caller is responsible for freeing table.elements when no longer needed.
+ * Given an array of code lengths indexed by symbol, this function constructs
+ * the canonical Huffman codes defined by those lengths and stores them in a
+ * table of symbol/code/code-length entries. Codes are bit-reversed before
+ * storage so they can be matched directly against bits read in DEFLATE's
+ * least-significant-bit-first order.
+ *
+ * This function is used to build:
+ * - fixed literal/length and distance tables
+ * - dynamic code-length tables
+ * - dynamic literal/length and distance tables
+ *
+ * during DEFLATE decoding in apng_IDAT_decompress().
+ *
+ * @param code_length_array Array of code lengths indexed by symbol number.
+ * @param code_length_array_len Number of entries in code_length_array.
+ * @return A dynamically allocated Huffman table ready for symbol decoding.
+ *
+ * @note The caller owns table.elements and must free it when done.
  */
 APNG_DEF struct Apng_Huffman_Entrys_Table apng_huffman_entry_table_create(uint32_t *code_length_array, size_t code_length_array_len)
 {
@@ -1449,11 +1553,44 @@ APNG_DEF struct Apng_Pixel_Buffer apng_pixel_buffer_malloc(size_t rows, size_t c
 }
 
 /**
- * @brief Decode a PNG image from an in-memory byte string.
- * @param file PNG file contents.
- * @param image Output image structure.
- * @param print_info When true, emit informational diagnostics.
+ * @brief Decode a PNG image from an in-memory byte buffer.
+ *
+ * This function performs the main PNG decode pipeline on a byte string that
+ * already contains the full PNG file contents. It validates the PNG signature,
+ * walks through the chunk stream, verifies chunk CRCs, parses important chunks
+ * such as IHDR, concatenates all IDAT chunk payloads, checks overall PNG
+ * structure, and finally decodes the compressed image payload into the output
+ * pixel buffer.
+ *
+ * It is the core worker used by apng_png_load(). Use this function when the PNG
+ * file has already been read into memory by other code and you want to decode
+ * it without going through the file I/O helper.
+ * 
+ * Decode flow overview:
+ * - apng_png_load()
+ *   - apng_bin_file_read()
+ *   - apng_png_decode()
+ *     - apng_png_header_get()
+ *     - apng_chunk_header_get()
+ *     - apng_crc32_check()
+ *     - apng_IHDR_chunk_parse()
+ *     - apng_IDAT_chunk_parse()
+ *     - apng_IDAT_decode()
+ *       - apng_IDAT_decompress()
+ *         - apng_huffman_entry_table_create()
+ *         - apng_huffman_decode_symbol()
+ *         - apng_lit_len_dist_code_length_decode()
+ *         - apng_adler32_check()
+ *       - apng_IDAT_unfiltering()
+ *
+ * @param file Byte string containing the full PNG file contents.
+ * @param image Output image structure that receives parsed chunk state and the
+ *              decoded pixel buffer.
+ * @param print_info When true, emits informational diagnostics while decoding.
  * @return APNG_SUCCESS on success, otherwise APNG_FAIL.
+ *
+ * @pre file.elements must point to a complete PNG file in memory.
+ * @post On success, image contains parsed chunk data and decoded pixels.
  */
 APNG_DEF enum Apng_Return_Types apng_png_decode(struct Apng_Byte_String file, struct Apng_PNG_Image *image, bool print_info)
 {
@@ -1630,11 +1767,30 @@ APNG_DEF bool apng_png_header_signature_correct(struct Apng_PNG_Header h)
 }
 
 /**
- * @brief Load a PNG file from disk and decode it.
- * @param file_name Path to the PNG file.
- * @param image Output image structure.
- * @param print_info When true, emit informational diagnostics.
- * @return APNG_SUCCESS on success, otherwise APNG_FAIL.
+ * @brief Load and decode a PNG image from disk.
+ *
+ * This is the main convenience entry point for the library. It reads the PNG
+ * file into memory, parses the PNG structure, decompresses the IDAT stream,
+ * reconstructs the scanlines, and fills the output image structure with the
+ * decoded pixel buffer and parsed chunk metadata.
+ *
+ * Typical usage:
+ * - Call apng_png_load() with a file path and an output Apng_PNG_Image
+ * - Access image->pixels after successful return
+ * - Release all owned memory with apng_png_free()
+ *
+ * This function internally calls apng_bin_file_read() to read the file and
+ * apng_png_decode() to perform the actual decode pipeline.
+ *
+ * @param file_name Path to the PNG file on disk.
+ * @param image Output image structure that receives the decoded result.
+ * @param print_info When true, emits diagnostic and informational messages
+ *                   during decoding.
+ * @return APNG_SUCCESS on successful decode, otherwise APNG_FAIL.
+ *
+ * @post On success, image contains the loaded file data, parsed chunk
+ *       information, and a populated pixel buffer.
+ * @note The caller must later call apng_png_free() on image.
  */
 APNG_DEF enum Apng_Return_Types apng_png_load(char *file_name, struct Apng_PNG_Image *image, bool print_info)
 {
@@ -1932,9 +2088,23 @@ APNG_DEF enum Apng_Return_Types apng_IDAT_chunk_parse(struct Apng_IDAT_Chunk *ch
 }
 
 /**
- * @brief Decode the image payload from the already-collected IDAT stream.
- * @param image PNG image whose IHDR and IDAT state were previously parsed.
+ * @brief Decode the already-collected IDAT image data into pixels.
+ *
+ * This function performs the final image reconstruction stage after PNG chunk
+ * parsing is complete. It allocates the destination pixel buffer, inflates the
+ * concatenated zlib stream stored in the IDAT chunks, verifies that the
+ * decompressed size matches the expected scanline layout, reverses PNG
+ * filtering, and converts the resulting raw sample data into packed 32-bit ARGB
+ * pixels.
+ *
+ * It is called by apng_png_decode() once IHDR has been parsed and all IDAT
+ * payload bytes have been collected.
+ *
+ * @param image PNG image structure containing parsed IHDR information and the
+ *              concatenated IDAT stream.
  * @return APNG_SUCCESS on success, otherwise APNG_FAIL.
+ *
+ * @post On success, image->pixels is allocated and filled with decoded pixels.
  */
 APNG_DEF enum Apng_Return_Types apng_IDAT_decode(struct Apng_PNG_Image *image)
 {
@@ -2115,13 +2285,29 @@ struct Apng_Huffman_Entry dist_extra[] = {
 };
 
 /**
- * @brief Inflate the concatenated IDAT zlib stream into raw filtered scanline
- *        bytes.
- * @param image PNG image containing parsed IDAT data.
- * @param temp_bs Output byte string for decompressed data.
+ * @brief Inflate the zlib-compressed image data stored in the IDAT stream.
+ *
+ * This function reads the concatenated IDAT payload as a single zlib stream.
+ * It skips the zlib header, decodes DEFLATE blocks, handles uncompressed,
+ * fixed-Huffman, and dynamic-Huffman blocks, appends the decompressed bytes to
+ * the output buffer, and finally validates the Adler-32 checksum at the end of
+ * the zlib stream.
+ *
+ * The output of this function is still PNG-filtered scanline data. The caller
+ * must pass the result to apng_IDAT_unfiltering() before interpreting it as
+ * pixel samples.
+ *
+ * This function is used internally by apng_IDAT_decode().
+ *
+ * @param image PNG image containing the concatenated IDAT data and parsed zlib
+ *              header fields.
+ * @param temp_bs Output byte string that receives the decompressed filtered
+ *                scanline bytes.
  * @return APNG_SUCCESS on success, otherwise APNG_FAIL.
  *
- * @pre temp_bs must already be initialized and writable.
+ * @pre temp_bs must be initialized and writable.
+ * @post temp_bs contains the raw filtered scanline stream, without the final
+ *       Adler-32 bytes.
  */
 APNG_DEF enum Apng_Return_Types apng_IDAT_decompress(struct Apng_PNG_Image *image, struct Apng_Byte_String *temp_bs)
 {
@@ -2342,13 +2528,26 @@ apng_IDAT_decompress_end:
 }
 
 /**
- * @brief Reverse PNG scanline filtering.
- * @param unfiltered_data Output buffer for reconstructed scanline bytes.
- * @param decompressed_data Input buffer containing filter bytes and filtered rows.
+ * @brief Reverse PNG scanline filtering and reconstruct original row bytes.
+ *
+ * PNG stores each decompressed scanline prefixed by a filter type byte.
+ * Depending on the filter type, each byte in the row may be stored relative to
+ * the byte to its left, the byte above it, both, or a Paeth predictor. This
+ * function walks over all decompressed rows, reads each filter byte, and
+ * reconstructs the original unfiltered byte stream for the image.
+ *
+ * It is used after apng_IDAT_decompress() and before pixel-format conversion.
+ * The reconstructed bytes are then interpreted according to the color type and
+ * bit depth from IHDR.
+ *
+ * @param unfiltered_data Output buffer that receives the reconstructed scanline
+ *                        bytes without filter markers.
+ * @param decompressed_data Input buffer containing the filtered scanline stream
+ *                          produced by DEFLATE decompression.
  * @param width Image width in pixels.
  * @param height Image height in pixels.
  * @param num_of_channels Number of channels per pixel.
- * @param bit_per_channel Bit depth of each channel.
+ * @param bit_per_channel Number of bits in each channel.
  * @return APNG_SUCCESS on success, otherwise APNG_FAIL.
  */
 APNG_DEF enum Apng_Return_Types apng_IDAT_unfiltering(uint8_t *unfiltered_data, uint8_t *decompressed_data, size_t width, size_t height, size_t num_of_channels, size_t bit_per_channel)
