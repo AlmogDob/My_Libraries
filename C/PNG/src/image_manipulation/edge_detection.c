@@ -91,7 +91,7 @@ enum Apl_Return_Types apl_setup(struct Apl_Window_State *ws)
     results = mat2D_alloc_uint32(image_pixels.rows, image_pixels.cols);
     Mat2D_uint32 temp = mat2D_alloc_uint32(image_pixels.rows, image_pixels.cols);
 
-    // aim_edge_detection_shcarr_3x3(results, image_pixels);
+    // aim_edge_detection_scharr_3x3(results, image_pixels);
     // aim_edge_detection_sobel_general(results, image_pixels, 3);
     // aim_edge_detection_sobel_general_cutoff(results, image_pixels, 3, 220);
     // aim_edge_detection_sobel_3x3(results, image_pixels);
