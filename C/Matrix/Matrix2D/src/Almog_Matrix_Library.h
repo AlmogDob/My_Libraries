@@ -60,21 +60,21 @@ struct Aml_Mat2d {
     aml_real *elements;
 };
 
-typedef struct {
+struct Aml_Mat2d_uint32 {
     size_t rows;
     size_t cols;
     size_t stride_r; /* elements to traverse to reach the next row */
     uint32_t *elements;
-} Aml_Mat2d_uint32;
+};
 
-typedef struct {
+struct Aml_Mat2d_Minor {
     size_t rows;
     size_t cols;
     size_t stride_r; /* logical stride for the minor shape (not used for access) */
     size_t *rows_list;
     size_t *cols_list;
     struct Aml_Mat2d ref_mat;
-} Aml_Mat2d_Minor;
+};
 
 #define AML_AT(m, i, j) (m).elements[(AML_ASSERT((i) < (m).rows && (j) < (m).cols), (i) * (m).stride_r + (j))]
 
@@ -130,7 +130,7 @@ AML_DEF aml_real    aml_calc_norma_inf(struct Aml_Mat2d m);
 AML_DEF bool          aml_col_is_all_digit(struct Aml_Mat2d m, aml_real digit, size_t c);
 AML_DEF void          aml_convolve(struct Aml_Mat2d m, struct Aml_Mat2d a, struct Aml_Mat2d b);
 AML_DEF void          aml_copy(struct Aml_Mat2d des, struct Aml_Mat2d src);
-AML_DEF void          aml_copy_uint32(Aml_Mat2d_uint32 des, Aml_Mat2d_uint32 src);
+AML_DEF void          aml_copy_uint32(struct Aml_Mat2d_uint32 des, struct Aml_Mat2d_uint32 src);
 AML_DEF void          aml_copy_col_from_src_to_des(struct Aml_Mat2d des, size_t des_col, struct Aml_Mat2d src, size_t src_col);
 AML_DEF void          aml_copy_row_from_src_to_des(struct Aml_Mat2d des, size_t des_row, struct Aml_Mat2d src, size_t src_row);
 AML_DEF void          aml_copy_src_to_des_window(struct Aml_Mat2d des, struct Aml_Mat2d src, size_t is, size_t js, size_t ie, size_t je);
@@ -142,7 +142,7 @@ AML_DEF void          aml_dot(struct Aml_Mat2d dst, struct Aml_Mat2d a, struct A
 AML_DEF aml_real    aml_dot_product(struct Aml_Mat2d v1, struct Aml_Mat2d v2);
 AML_DEF aml_real    aml_det(struct Aml_Mat2d m);
 AML_DEF aml_real    aml_det_2x2_mat(struct Aml_Mat2d m);
-AML_DEF aml_real    aml_det_2x2_mat_minor(Aml_Mat2d_Minor mm);
+AML_DEF aml_real    aml_det_2x2_mat_minor(struct Aml_Mat2d_Minor mm);
 
 AML_DEF void          aml_eig_check(struct Aml_Mat2d A, struct Aml_Mat2d eigenvalues, struct Aml_Mat2d eigenvectors, struct Aml_Mat2d res);
 AML_DEF void          aml_eig_power_iteration(struct Aml_Mat2d A, struct Aml_Mat2d eigenvalues, struct Aml_Mat2d eigenvectors, struct Aml_Mat2d init_vector, bool norm_inf_vectors);
@@ -150,10 +150,10 @@ AML_DEF aml_real    aml_elements_sum(struct Aml_Mat2d m);
 
 AML_DEF void          aml_fill(struct Aml_Mat2d m, aml_real x);
 AML_DEF void          aml_fill_sequence(struct Aml_Mat2d m, aml_real start, aml_real step);
-AML_DEF void          aml_fill_uint32(Aml_Mat2d_uint32 m, uint32_t x);
+AML_DEF void          aml_fill_uint32(struct Aml_Mat2d_uint32 m, uint32_t x);
 AML_DEF bool          aml_find_first_non_zero_value(struct Aml_Mat2d m, size_t r, size_t *non_zero_col);
 AML_DEF void          aml_free(struct Aml_Mat2d m);
-AML_DEF void          aml_free_uint32(Aml_Mat2d_uint32 m);
+AML_DEF void          aml_free_uint32(struct Aml_Mat2d_uint32 m);
 
 AML_DEF void          aml_householder_matrix_get(struct Aml_Mat2d des, struct Aml_Mat2d v);
 AML_DEF void          aml_householder_top_element_vector_get(struct Aml_Mat2d v_des, struct Aml_Mat2d x);
@@ -167,13 +167,13 @@ AML_DEF void          aml_LUP_decomposition_with_swap(struct Aml_Mat2d src, stru
 AML_DEF void          aml_make_orthogonal_Gaussian_elimination(struct Aml_Mat2d des, struct Aml_Mat2d A);
 AML_DEF void          aml_make_orthogonal_modified_Gram_Schmidt(struct Aml_Mat2d des, struct Aml_Mat2d A);
 AML_DEF struct Aml_Mat2d         aml_mat2d_alloc(size_t rows, size_t cols);
-AML_DEF Aml_Mat2d_uint32  aml_mat2d_uint32_alloc(size_t rows, size_t cols);
+AML_DEF struct Aml_Mat2d_uint32  aml_mat2d_uint32_alloc(size_t rows, size_t cols);
 AML_DEF bool          aml_mat2d_is_all_digit(struct Aml_Mat2d m, aml_real digit);
-AML_DEF Aml_Mat2d_Minor   aml_minor_alloc_fill_from_mat(struct Aml_Mat2d ref_mat, size_t i, size_t j);
-AML_DEF Aml_Mat2d_Minor   aml_minor_alloc_fill_from_mat_minor(Aml_Mat2d_Minor ref_mm, size_t i, size_t j);
-AML_DEF aml_real    aml_minor_det(Aml_Mat2d_Minor mm);
-AML_DEF void          aml_minor_free(Aml_Mat2d_Minor mm);
-AML_DEF void          aml_minor_print(Aml_Mat2d_Minor mm, const char *name, size_t padding);
+AML_DEF struct Aml_Mat2d_Minor   aml_minor_alloc_fill_from_mat(struct Aml_Mat2d ref_mat, size_t i, size_t j);
+AML_DEF struct Aml_Mat2d_Minor   aml_minor_alloc_fill_from_mat_minor(struct Aml_Mat2d_Minor ref_mm, size_t i, size_t j);
+AML_DEF aml_real    aml_minor_det(struct Aml_Mat2d_Minor mm);
+AML_DEF void          aml_minor_free(struct Aml_Mat2d_Minor mm);
+AML_DEF void          aml_minor_print(struct Aml_Mat2d_Minor mm, const char *name, size_t padding);
 AML_DEF void          aml_mult(struct Aml_Mat2d m, aml_real factor);
 AML_DEF void          aml_mult_row(struct Aml_Mat2d m, size_t r, aml_real factor);
 
@@ -181,12 +181,12 @@ AML_DEF void          aml_normalize(struct Aml_Mat2d m);
 AML_DEF void          aml_normalize_inf(struct Aml_Mat2d m);
 
 AML_DEF size_t        aml_offset2d(struct Aml_Mat2d m, size_t i, size_t j);
-AML_DEF size_t        aml_offset2d_uint32(Aml_Mat2d_uint32 m, size_t i, size_t j);
+AML_DEF size_t        aml_offset2d_uint32(struct Aml_Mat2d_uint32 m, size_t i, size_t j);
 AML_DEF void          aml_outer_product(struct Aml_Mat2d des, struct Aml_Mat2d v);
 
 AML_DEF int           aml_power_iterate(struct Aml_Mat2d A, struct Aml_Mat2d v, aml_real *lambda, aml_real shift, bool norm_inf_v);
 AML_DEF void          aml_print(struct Aml_Mat2d m, const char *name, size_t padding);
-AML_DEF void          aml_print_uint32(Aml_Mat2d_uint32 m, const char *name, size_t padding);
+AML_DEF void          aml_print_uint32(struct Aml_Mat2d_uint32 m, const char *name, size_t padding);
 AML_DEF void          aml_print_as_col(struct Aml_Mat2d m, const char *name, size_t padding);
 AML_DEF void          aml_project_out_columns(struct Aml_Mat2d v, struct Aml_Mat2d basis, size_t used_cols);
 
@@ -196,7 +196,7 @@ AML_DEF void          aml_QR_householder_factorization_fast(struct Aml_Mat2d Q, 
 AML_DEF void          aml_rand(struct Aml_Mat2d m, aml_real low, aml_real high);
 AML_DEF aml_real    aml_rand_aml_real(void);
 AML_DEF struct Aml_Mat2d         aml_realloc(struct Aml_Mat2d m, size_t rows, size_t cols);
-AML_DEF Aml_Mat2d_uint32  aml_realloc_uint32(Aml_Mat2d_uint32 m, size_t rows, size_t cols);
+AML_DEF struct Aml_Mat2d_uint32  aml_realloc_uint32(struct Aml_Mat2d_uint32 m, size_t rows, size_t cols);
 AML_DEF size_t        aml_reduce(struct Aml_Mat2d m);
 AML_DEF void          aml_rotate_mat_180_deg_inplace(struct Aml_Mat2d m);
 AML_DEF bool          aml_row_is_all_digit(struct Aml_Mat2d m, aml_real digit, size_t r);
@@ -414,7 +414,7 @@ AML_DEF void aml_copy(struct Aml_Mat2d des, struct Aml_Mat2d src)
     }
 }
 
-AML_DEF void aml_copy_uint32(Aml_Mat2d_uint32 des, Aml_Mat2d_uint32 src)
+AML_DEF void aml_copy_uint32(struct Aml_Mat2d_uint32 des, struct Aml_Mat2d_uint32 src)
 {
     AML_ASSERT(des.cols == src.cols);
     AML_ASSERT(des.rows == src.rows);
@@ -572,7 +572,7 @@ AML_DEF aml_real aml_det_2x2_mat(struct Aml_Mat2d m)
     return AML_AT(m, 0, 0) * AML_AT(m, 1, 1) - AML_AT(m, 0, 1) * AML_AT(m, 1, 0);
 }
 
-AML_DEF aml_real aml_det_2x2_mat_minor(Aml_Mat2d_Minor mm)
+AML_DEF aml_real aml_det_2x2_mat_minor(struct Aml_Mat2d_Minor mm)
 {
     AML_ASSERT(2 == mm.cols && 2 == mm.rows && "Not a 2x2 matrix");
     return AML_MINOR_AT(mm, 0, 0) * AML_MINOR_AT(mm, 1, 1) - AML_MINOR_AT(mm, 0, 1) * AML_MINOR_AT(mm, 1, 0);
@@ -713,7 +713,7 @@ AML_DEF void aml_fill_sequence(struct Aml_Mat2d m, aml_real start, aml_real step
     }
 }
 
-AML_DEF void aml_fill_uint32(Aml_Mat2d_uint32 m, uint32_t x)
+AML_DEF void aml_fill_uint32(struct Aml_Mat2d_uint32 m, uint32_t x)
 {
     for (size_t i = 0; i < m.rows; ++i) {
         for (size_t j = 0; j < m.cols; ++j) {
@@ -738,7 +738,7 @@ AML_DEF void aml_free(struct Aml_Mat2d m)
     AML_FREE(m.elements);
 }
 
-AML_DEF void aml_free_uint32(Aml_Mat2d_uint32 m)
+AML_DEF void aml_free_uint32(struct Aml_Mat2d_uint32 m)
 {
     AML_FREE(m.elements);
 }
@@ -961,9 +961,9 @@ AML_DEF struct Aml_Mat2d aml_mat2d_alloc(size_t rows, size_t cols)
     return m;
 }
 
-AML_DEF Aml_Mat2d_uint32 aml_mat2d_uint32_alloc(size_t rows, size_t cols)
+AML_DEF struct Aml_Mat2d_uint32 aml_mat2d_uint32_alloc(size_t rows, size_t cols)
 {
-    Aml_Mat2d_uint32 m;
+    struct Aml_Mat2d_uint32 m;
     m.rows = rows;
     m.cols = cols;
     m.stride_r = cols;
@@ -985,11 +985,11 @@ AML_DEF bool aml_mat2d_is_all_digit(struct Aml_Mat2d m, aml_real digit)
     return true;
 }
 
-AML_DEF Aml_Mat2d_Minor aml_minor_alloc_fill_from_mat(struct Aml_Mat2d ref_mat, size_t i, size_t j)
+AML_DEF struct Aml_Mat2d_Minor aml_minor_alloc_fill_from_mat(struct Aml_Mat2d ref_mat, size_t i, size_t j)
 {
     AML_ASSERT(ref_mat.cols == ref_mat.rows && "minor is defined only for square matrix");
 
-    Aml_Mat2d_Minor mm;
+    struct Aml_Mat2d_Minor mm;
     mm.cols = ref_mat.cols-1;
     mm.rows = ref_mat.rows-1;
     mm.stride_r = ref_mat.cols-1;
@@ -1015,11 +1015,11 @@ AML_DEF Aml_Mat2d_Minor aml_minor_alloc_fill_from_mat(struct Aml_Mat2d ref_mat, 
     return mm;
 }
 
-AML_DEF Aml_Mat2d_Minor aml_minor_alloc_fill_from_mat_minor(Aml_Mat2d_Minor ref_mm, size_t i, size_t j)
+AML_DEF struct Aml_Mat2d_Minor aml_minor_alloc_fill_from_mat_minor(struct Aml_Mat2d_Minor ref_mm, size_t i, size_t j)
 {
     AML_ASSERT(ref_mm.cols == ref_mm.rows && "minor is defined only for square matrix");
 
-    Aml_Mat2d_Minor mm;
+    struct Aml_Mat2d_Minor mm;
     mm.cols = ref_mm.cols-1;
     mm.rows = ref_mm.rows-1;
     mm.stride_r = ref_mm.cols-1;
@@ -1045,7 +1045,7 @@ AML_DEF Aml_Mat2d_Minor aml_minor_alloc_fill_from_mat_minor(Aml_Mat2d_Minor ref_
     return mm;
 }
 
-AML_DEF aml_real aml_minor_det(Aml_Mat2d_Minor mm)
+AML_DEF aml_real aml_minor_det(struct Aml_Mat2d_Minor mm)
 {
     AML_ASSERT(mm.cols == mm.rows && "should be a square matrix");
 
@@ -1053,7 +1053,7 @@ AML_DEF aml_real aml_minor_det(Aml_Mat2d_Minor mm)
     /* TODO: finding beast row or col? */
     for (size_t i = 0, j = 0; i < mm.rows; i++) { /* first column */
         if (aml_fabs(AML_MINOR_AT(mm, i, j)) < 1e-10) continue;
-        Aml_Mat2d_Minor sub_mm = aml_minor_alloc_fill_from_mat_minor(mm, i, j);
+        struct Aml_Mat2d_Minor sub_mm = aml_minor_alloc_fill_from_mat_minor(mm, i, j);
         int factor = (i+j)%2 ? -1 : 1;
         if (sub_mm.cols != 2) {
             AML_ASSERT(sub_mm.cols == sub_mm.rows && "should be a square matrix");
@@ -1066,13 +1066,13 @@ AML_DEF aml_real aml_minor_det(Aml_Mat2d_Minor mm)
     return det;
 }
 
-AML_DEF void aml_minor_free(Aml_Mat2d_Minor mm)
+AML_DEF void aml_minor_free(struct Aml_Mat2d_Minor mm)
 {
     AML_FREE(mm.cols_list);
     AML_FREE(mm.rows_list);
 }
 
-AML_DEF void aml_minor_print(Aml_Mat2d_Minor mm, const char *name, size_t padding)
+AML_DEF void aml_minor_print(struct Aml_Mat2d_Minor mm, const char *name, size_t padding)
 {
     printf("%*s%s = [\n", (int) padding, "", name);
     for (size_t i = 0; i < mm.rows; ++i) {
@@ -1127,7 +1127,7 @@ AML_DEF size_t aml_offset2d(struct Aml_Mat2d m, size_t i, size_t j)
     return i * m.stride_r + j;
 }
 
-AML_DEF size_t aml_offset2d_uint32(Aml_Mat2d_uint32 m, size_t i, size_t j)
+AML_DEF size_t aml_offset2d_uint32(struct Aml_Mat2d_uint32 m, size_t i, size_t j)
 {
     AML_ASSERT(i < m.rows && j < m.cols);
     return i * m.stride_r + j;
@@ -1229,7 +1229,7 @@ AML_DEF void aml_print(struct Aml_Mat2d m, const char *name, size_t padding)
     printf("%*s]\n", (int) padding, "");
 }
 
-AML_DEF void aml_print_uint32(Aml_Mat2d_uint32 m, const char *name, size_t padding)
+AML_DEF void aml_print_uint32(struct Aml_Mat2d_uint32 m, const char *name, size_t padding)
 {
     printf("%*s%s = [\n", (int) padding, "", name);
     for (size_t i = 0; i < m.rows; ++i) {
@@ -1395,7 +1395,7 @@ AML_DEF struct Aml_Mat2d aml_realloc(struct Aml_Mat2d m, size_t rows, size_t col
     return m;
 }
 
-AML_DEF Aml_Mat2d_uint32 aml_realloc_uint32(Aml_Mat2d_uint32 m, size_t rows, size_t cols)
+AML_DEF struct Aml_Mat2d_uint32 aml_realloc_uint32(struct Aml_Mat2d_uint32 m, size_t rows, size_t cols)
 {
     m.rows = rows;
     m.cols = cols;
