@@ -11,14 +11,14 @@ int main(void)
 
     mat2D_fill_sequence(A, 0, 1);
 
-    // MAT2D_PRINT(A);
+    // AML_PRINT(A);
 
     // mat2D_QR_householder_factorization(Q, R, A);
     mat2D_QR_householder_factorization_fast(Q, R, A);
 
     mat2D_dot(temp, Q, R);
 
-    MAT2D_PRINT(temp);
+    AML_PRINT(temp);
 
 
     return 0;
