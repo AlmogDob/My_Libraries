@@ -746,7 +746,7 @@ AML_DEF void aml_householder_matrix_get(struct Aml_Mat2d des, struct Aml_Mat2d v
 
     aml_sub(des, outer_product);
 
-    aml_free(outer_product);
+    aml_mat2d_free(outer_product);
 }
 
 AML_DEF void aml_householder_top_element_vector_get(struct Aml_Mat2d v_des, struct Aml_Mat2d x)
@@ -800,7 +800,7 @@ AML_DEF void aml_invert(struct Aml_Mat2d des, struct Aml_Mat2d src)
 
     aml_copy_src_window_to_des(des, m, 0, src.cols, des.rows-1, 2 * des.cols-1);
 
-    aml_free(m);
+    aml_mat2d_free(m);
 }
 
 AML_DEF bool aml_is_symmetric(struct Aml_Mat2d m)
@@ -885,10 +885,10 @@ AML_DEF void aml_make_orthogonal_Gaussian_elimination(struct Aml_Mat2d des, stru
 
     AML_PRINT(temp);
 
-    aml_free(AT);
-    aml_free(ATA);
-    aml_free(temp);
-    aml_free(temp_des);
+    aml_mat2d_free(AT);
+    aml_mat2d_free(ATA);
+    aml_mat2d_free(temp);
+    aml_mat2d_free(temp_des);
 }
 
 AML_DEF void aml_make_orthogonal_modified_Gram_Schmidt(struct Aml_Mat2d des, struct Aml_Mat2d A)
@@ -934,7 +934,7 @@ AML_DEF void aml_make_orthogonal_modified_Gram_Schmidt(struct Aml_Mat2d des, str
     }
 
 
-    aml_free(temp_col);    
+    aml_mat2d_free(temp_col);    
 }
 
 AML_DEF struct Aml_Mat2d aml_mat2d_alloc(size_t rows, size_t cols)
@@ -1190,9 +1190,9 @@ AML_DEF int aml_power_iterate(struct Aml_Mat2d A, struct Aml_Mat2d v, aml_real *
         }
     }
 
-    aml_free(current_v);
-    aml_free(temp_v);
-    aml_free(B);
+    aml_mat2d_free(current_v);
+    aml_mat2d_free(temp_v);
+    aml_mat2d_free(B);
 
     if (norm_inf_v) aml_normalize_inf(v);
     if (lambda) *lambda = temp_lambda + shift;
@@ -1256,7 +1256,7 @@ AML_DEF void aml_project_out_columns(struct Aml_Mat2d v, struct Aml_Mat2d basis,
         aml_sub(v, temp);
     }
 
-    aml_free(temp);
+    aml_mat2d_free(temp);
 }
 
 AML_DEF void aml_QR_householder_factorization(struct Aml_Mat2d Q, struct Aml_Mat2d R, struct Aml_Mat2d src)
@@ -1311,10 +1311,10 @@ AML_DEF void aml_QR_householder_factorization(struct Aml_Mat2d Q, struct Aml_Mat
     }
 
 
-    aml_free(vector);
-    aml_free(house);
-    aml_free(prev_Q);
-    aml_free(prev_R);
+    aml_mat2d_free(vector);
+    aml_mat2d_free(house);
+    aml_mat2d_free(prev_Q);
+    aml_mat2d_free(prev_R);
 }
 
 AML_DEF void aml_QR_householder_factorization_fast(struct Aml_Mat2d Q, struct Aml_Mat2d R, struct Aml_Mat2d src)
@@ -1355,7 +1355,7 @@ AML_DEF void aml_QR_householder_factorization_fast(struct Aml_Mat2d Q, struct Am
         aml_apply_householder_right(Q, k, v);
     }
 
-    aml_free(vbuf);
+    aml_mat2d_free(vbuf);
 }
 
 AML_DEF void aml_rand(struct Aml_Mat2d m, aml_real low, aml_real high)
@@ -1447,10 +1447,10 @@ AML_DEF void aml_set_DCM_zyx(struct Aml_Mat2d DCM, float yaw_deg, float pitch_de
     aml_dot(temp, RotY, RotZ);
     aml_dot(DCM, RotX, temp); /* I have a DCM */
 
-    aml_free(RotZ);
-    aml_free(RotY);
-    aml_free(RotX);
-    aml_free(temp);
+    aml_mat2d_free(RotZ);
+    aml_mat2d_free(RotY);
+    aml_mat2d_free(RotX);
+    aml_mat2d_free(temp);
 }
 
 AML_DEF void aml_set_identity(struct Aml_Mat2d m)
@@ -1534,12 +1534,12 @@ AML_DEF void aml_solve_linear_sys_LUP_decomposition(struct Aml_Mat2d A, struct A
     aml_fill(x, 0);
     aml_dot(x, inv_u, y);
 
-    aml_free(y);
-    aml_free(l);
-    aml_free(p);
-    aml_free(u);
-    aml_free(inv_l);
-    aml_free(inv_u);
+    aml_mat2d_free(y);
+    aml_mat2d_free(l);
+    aml_mat2d_free(p);
+    aml_mat2d_free(u);
+    aml_mat2d_free(inv_l);
+    aml_mat2d_free(inv_u);
 }
 
 AML_DEF void aml_sub(struct Aml_Mat2d dst, struct Aml_Mat2d a)
@@ -1599,8 +1599,8 @@ AML_DEF void aml_SVD_full(struct Aml_Mat2d A, struct Aml_Mat2d U, struct Aml_Mat
         aml_copy(V, V_full);
     }
 
-    aml_free(U_full);
-    aml_free(V_full);
+    aml_mat2d_free(U_full);
+    aml_mat2d_free(V_full);
 }
 
 AML_DEF void aml_SVD_thin(struct Aml_Mat2d A, struct Aml_Mat2d U, struct Aml_Mat2d S, struct Aml_Mat2d V, struct Aml_Mat2d init_vec_u, struct Aml_Mat2d init_vec_v, bool return_v_transpose)
@@ -1657,11 +1657,11 @@ AML_DEF void aml_SVD_thin(struct Aml_Mat2d A, struct Aml_Mat2d U, struct Aml_Mat
             aml_mult(temp_v_vec, (aml_real)1 / AML_AT(S, c, c));
             aml_copy_col_from_src_to_des(V, c, temp_v_vec, 0);
         }
-        aml_free(AAT);
-        aml_free(left_eigenvalues);
-        aml_free(left_eigenvectors);
-        aml_free(temp_u_vec);
-        aml_free(temp_v_vec);
+        aml_mat2d_free(AAT);
+        aml_mat2d_free(left_eigenvalues);
+        aml_mat2d_free(left_eigenvectors);
+        aml_mat2d_free(temp_u_vec);
+        aml_mat2d_free(temp_v_vec);
     } else {
         struct Aml_Mat2d ATA = aml_mat2d_alloc(m, m);
         struct Aml_Mat2d right_eigenvalues = aml_mat2d_alloc(m, m);
@@ -1692,11 +1692,11 @@ AML_DEF void aml_SVD_thin(struct Aml_Mat2d A, struct Aml_Mat2d U, struct Aml_Mat
             aml_mult(temp_u_vec, (aml_real)1 / AML_AT(S, c, c));
             aml_copy_col_from_src_to_des(U, c, temp_u_vec, 0);
         }
-        aml_free(ATA);
-        aml_free(right_eigenvalues);
-        aml_free(right_eigenvectors);
-        aml_free(temp_u_vec);
-        aml_free(temp_v_vec);
+        aml_mat2d_free(ATA);
+        aml_mat2d_free(right_eigenvalues);
+        aml_mat2d_free(right_eigenvectors);
+        aml_mat2d_free(temp_u_vec);
+        aml_mat2d_free(temp_v_vec);
     }
 
     if (return_v_transpose) {
@@ -1704,10 +1704,10 @@ AML_DEF void aml_SVD_thin(struct Aml_Mat2d A, struct Aml_Mat2d U, struct Aml_Mat
         aml_transpose(v_trans, V);
         aml_copy(V, v_trans);
 
-        aml_free(v_trans);
+        aml_mat2d_free(v_trans);
     }
 
-    aml_free(AT);
+    aml_mat2d_free(AT);
 }
 
 AML_DEF void aml_swap_rows(struct Aml_Mat2d m, size_t r1, size_t r2)
