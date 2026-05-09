@@ -1,5 +1,5 @@
-#define MATRIX2D_IMPLEMENTATION
-#include "Matrix2D.h"
+#define ALMOG_MATRIX_LIBRARY_IMPLEMENTATION
+#include "Almog_Matrix_Library.h"
 
 int main(void)
 {
