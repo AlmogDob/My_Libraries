@@ -67,15 +67,6 @@ struct Aml_Mat2d_uint32 {
     uint32_t *elements;
 };
 
-struct Aml_Mat2d_Minor {
-    size_t rows;
-    size_t cols;
-    size_t stride_r; /* logical stride for the minor shape (not used for access) */
-    size_t *rows_list;
-    size_t *cols_list;
-    struct Aml_Mat2d ref_mat;
-};
-
 #define AML_AT(m, i, j) (m).elements[(AML_ASSERT((i) < (m).rows && (j) < (m).cols), (i) * (m).stride_r + (j))]
 #define AML_PI 3.14159265358979323846
 #define AML_MAX_POWER_ITERATION 100
@@ -130,7 +121,6 @@ AML_DEF void                    aml_dot(struct Aml_Mat2d dst, struct Aml_Mat2d a
 AML_DEF aml_real                aml_dot_product(struct Aml_Mat2d v1, struct Aml_Mat2d v2);
 AML_DEF aml_real                aml_det(struct Aml_Mat2d m);
 AML_DEF aml_real                aml_det_2x2_mat(struct Aml_Mat2d m);
-AML_DEF aml_real                aml_det_2x2_mat_minor(struct Aml_Mat2d_Minor mm);
 
 AML_DEF void                    aml_eig_check(struct Aml_Mat2d A, struct Aml_Mat2d eigenvalues, struct Aml_Mat2d eigenvectors, struct Aml_Mat2d res);
 AML_DEF void                    aml_eig_power_iteration(struct Aml_Mat2d A, struct Aml_Mat2d eigenvalues, struct Aml_Mat2d eigenvectors, struct Aml_Mat2d init_vector, bool norm_inf_vectors);
@@ -157,11 +147,6 @@ AML_DEF void                    aml_make_orthogonal_modified_Gram_Schmidt(struct
 AML_DEF struct Aml_Mat2d        aml_mat2d_alloc(size_t rows, size_t cols);
 AML_DEF struct Aml_Mat2d_uint32 aml_mat2d_uint32_alloc(size_t rows, size_t cols);
 AML_DEF bool                    aml_mat2d_is_all_digit(struct Aml_Mat2d m, aml_real digit);
-AML_DEF struct Aml_Mat2d_Minor  aml_minor_alloc_fill_from_mat(struct Aml_Mat2d ref_mat, size_t i, size_t j);
-AML_DEF struct Aml_Mat2d_Minor  aml_minor_alloc_fill_from_mat_minor(struct Aml_Mat2d_Minor ref_mm, size_t i, size_t j);
-AML_DEF aml_real                aml_minor_det(struct Aml_Mat2d_Minor mm);
-AML_DEF void                    aml_minor_free(struct Aml_Mat2d_Minor mm);
-AML_DEF void                    aml_minor_print(struct Aml_Mat2d_Minor mm, const char *name, size_t padding);
 AML_DEF void                    aml_mult(struct Aml_Mat2d m, aml_real factor);
 AML_DEF void                    aml_mult_row(struct Aml_Mat2d m, size_t r, aml_real factor);
 
@@ -558,12 +543,6 @@ AML_DEF aml_real aml_det_2x2_mat(struct Aml_Mat2d m)
 {
     AML_ASSERT(2 == m.cols && 2 == m.rows && "Not a 2x2 matrix");
     return AML_AT(m, 0, 0) * AML_AT(m, 1, 1) - AML_AT(m, 0, 1) * AML_AT(m, 1, 0);
-}
-
-AML_DEF aml_real aml_det_2x2_mat_minor(struct Aml_Mat2d_Minor mm)
-{
-    AML_ASSERT(2 == mm.cols && 2 == mm.rows && "Not a 2x2 matrix");
-    return AML_MINOR_AT(mm, 0, 0) * AML_MINOR_AT(mm, 1, 1) - AML_MINOR_AT(mm, 0, 1) * AML_MINOR_AT(mm, 1, 0);
 }
 
 AML_DEF void aml_eig_check(struct Aml_Mat2d A, struct Aml_Mat2d eigenvalues, struct Aml_Mat2d eigenvectors, struct Aml_Mat2d res)
@@ -971,106 +950,6 @@ AML_DEF bool aml_mat2d_is_all_digit(struct Aml_Mat2d m, aml_real digit)
         }
     }
     return true;
-}
-
-AML_DEF struct Aml_Mat2d_Minor aml_minor_alloc_fill_from_mat(struct Aml_Mat2d ref_mat, size_t i, size_t j)
-{
-    AML_ASSERT(ref_mat.cols == ref_mat.rows && "minor is defined only for square matrix");
-
-    struct Aml_Mat2d_Minor mm;
-    mm.cols = ref_mat.cols-1;
-    mm.rows = ref_mat.rows-1;
-    mm.stride_r = ref_mat.cols-1;
-    mm.cols_list = (size_t*)AML_MALLOC(sizeof(size_t)*(ref_mat.cols-1));
-    mm.rows_list = (size_t*)AML_MALLOC(sizeof(size_t)*(ref_mat.rows-1));
-    mm.ref_mat = ref_mat;
-
-    AML_ASSERT(mm.cols_list != NULL && mm.rows_list != NULL);
-
-    for (size_t index = 0, temp_index = 0; index < ref_mat.rows; index++) {
-        if (index != i) {
-            mm.rows_list[temp_index] = index;
-            temp_index++;
-        }
-    }
-    for (size_t jndex = 0, temp_jndex = 0; jndex < ref_mat.cols; jndex++) {
-        if (jndex != j) {
-            mm.cols_list[temp_jndex] = jndex;
-            temp_jndex++;
-        }
-    }
-
-    return mm;
-}
-
-AML_DEF struct Aml_Mat2d_Minor aml_minor_alloc_fill_from_mat_minor(struct Aml_Mat2d_Minor ref_mm, size_t i, size_t j)
-{
-    AML_ASSERT(ref_mm.cols == ref_mm.rows && "minor is defined only for square matrix");
-
-    struct Aml_Mat2d_Minor mm;
-    mm.cols = ref_mm.cols-1;
-    mm.rows = ref_mm.rows-1;
-    mm.stride_r = ref_mm.cols-1;
-    mm.cols_list = (size_t*)AML_MALLOC(sizeof(size_t)*(ref_mm.cols-1));
-    mm.rows_list = (size_t*)AML_MALLOC(sizeof(size_t)*(ref_mm.rows-1));
-    mm.ref_mat = ref_mm.ref_mat;
-
-    AML_ASSERT(mm.cols_list != NULL && mm.rows_list != NULL);
-
-    for (size_t index = 0, temp_index = 0; index < ref_mm.rows; index++) {
-        if (index != i) {
-            mm.rows_list[temp_index] = ref_mm.rows_list[index];
-            temp_index++;
-        }
-    }
-    for (size_t jndex = 0, temp_jndex = 0; jndex < ref_mm.cols; jndex++) {
-        if (jndex != j) {
-            mm.cols_list[temp_jndex] = ref_mm.cols_list[jndex];
-            temp_jndex++;
-        }
-    }
-
-    return mm;
-}
-
-AML_DEF aml_real aml_minor_det(struct Aml_Mat2d_Minor mm)
-{
-    AML_ASSERT(mm.cols == mm.rows && "should be a square matrix");
-
-    aml_real det = 0;
-    /* TODO: finding beast row or col? */
-    for (size_t i = 0, j = 0; i < mm.rows; i++) { /* first column */
-        if (aml_fabs(AML_MINOR_AT(mm, i, j)) < 1e-10) continue;
-        struct Aml_Mat2d_Minor sub_mm = aml_minor_alloc_fill_from_mat_minor(mm, i, j);
-        int factor = (i+j)%2 ? -1 : 1;
-        if (sub_mm.cols != 2) {
-            AML_ASSERT(sub_mm.cols == sub_mm.rows && "should be a square matrix");
-            det += AML_MINOR_AT(mm, i, j) * (factor) * aml_minor_det(sub_mm);
-        } else if (sub_mm.cols == 2 && sub_mm.rows == 2) {
-            det += AML_MINOR_AT(mm, i, j) * (factor) * aml_det_2x2_mat_minor(sub_mm);;
-        }
-        aml_minor_free(sub_mm);
-    }
-    return det;
-}
-
-AML_DEF void aml_minor_free(struct Aml_Mat2d_Minor mm)
-{
-    AML_FREE(mm.cols_list);
-    AML_FREE(mm.rows_list);
-}
-
-AML_DEF void aml_minor_print(struct Aml_Mat2d_Minor mm, const char *name, size_t padding)
-{
-    printf("%*s%s = [\n", (int) padding, "", name);
-    for (size_t i = 0; i < mm.rows; ++i) {
-        printf("%*s    ", (int) padding, "");
-        for (size_t j = 0; j < mm.cols; ++j) {
-            printf("%f ", AML_MINOR_AT(mm, i, j));
-        }
-        printf("\n");
-    }
-    printf("%*s]\n", (int) padding, "");
 }
 
 AML_DEF void aml_mult(struct Aml_Mat2d m, aml_real factor)
