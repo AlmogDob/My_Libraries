@@ -58,14 +58,14 @@ typedef struct {
     size_t cols;
     size_t stride_r; /* elements to traverse to reach the next row */
     aml_real *elements;
-} Mat2D;
+} Aml_Mat2D;
 
 typedef struct {
     size_t rows;
     size_t cols;
     size_t stride_r; /* elements to traverse to reach the next row */
     uint32_t *elements;
-} Mat2D_uint32;
+} Aml_Mat2D_uint32;
 
 typedef struct {
     size_t rows;
@@ -73,8 +73,8 @@ typedef struct {
     size_t stride_r; /* logical stride for the minor shape (not used for access) */
     size_t *rows_list;
     size_t *cols_list;
-    Mat2D ref_mat;
-} Mat2D_Minor;
+    Aml_Mat2D ref_mat;
+} Aml_Mat2D_Minor;
 
 #define AML_AT(m, i, j) (m).elements[(AML_ASSERT((i) < (m).rows && (j) < (m).cols), (i) * (m).stride_r + (j))]
 
@@ -116,110 +116,110 @@ enum aml_upper_triangulate_flag{
     #endif
 #endif
 
-AML_DEF void          aml_add(Mat2D dst, Mat2D a);
-AML_DEF void          aml_add_col_to_col(Mat2D des, size_t des_col, Mat2D src, size_t src_col);
-AML_DEF void          aml_add_row_to_row(Mat2D des, size_t des_row, Mat2D src, size_t src_row);
-AML_DEF void          aml_add_row_time_factor_to_row(Mat2D m, size_t des_r, size_t src_r, aml_real factor);
-AML_DEF void          aml_add_scalar(Mat2D m, aml_real x);
-AML_DEF Mat2D         aml_alloc(size_t rows, size_t cols);
-AML_DEF Mat2D_uint32  aml_alloc_uint32(size_t rows, size_t cols);
-AML_DEF void          aml_anti_diag_transpose_inplace(Mat2D m);
-AML_DEF void          aml_apply_householder_left(Mat2D A, size_t row0, size_t col0, Mat2D v);
-AML_DEF void          aml_apply_householder_right(Mat2D A, size_t col0, Mat2D v);
-AML_DEF aml_real    aml_calc_col_norma(Mat2D m, size_t c);
-AML_DEF aml_real    aml_calc_norma(Mat2D m);
-AML_DEF aml_real    aml_calc_norma_inf(Mat2D m);
-AML_DEF bool          aml_col_is_all_digit(Mat2D m, aml_real digit, size_t c);
-AML_DEF void          aml_convolve(Mat2D m, Mat2D a, Mat2D b);
-AML_DEF void          aml_copy(Mat2D des, Mat2D src);
-AML_DEF void          aml_copy_uint32(Mat2D_uint32 des, Mat2D_uint32 src);
-AML_DEF void          aml_copy_col_from_src_to_des(Mat2D des, size_t des_col, Mat2D src, size_t src_col);
-AML_DEF void          aml_copy_row_from_src_to_des(Mat2D des, size_t des_row, Mat2D src, size_t src_row);
-AML_DEF void          aml_copy_src_to_des_window(Mat2D des, Mat2D src, size_t is, size_t js, size_t ie, size_t je);
-AML_DEF void          aml_copy_src_window_to_des(Mat2D des, Mat2D src, size_t is, size_t js, size_t ie, size_t je);
-AML_DEF Mat2D         aml_create_col_ref(Mat2D src, size_t c);
-AML_DEF void          aml_cross(Mat2D dst, Mat2D v1, Mat2D v2);
+AML_DEF void          aml_add(Aml_Mat2D dst, Aml_Mat2D a);
+AML_DEF void          aml_add_col_to_col(Aml_Mat2D des, size_t des_col, Aml_Mat2D src, size_t src_col);
+AML_DEF void          aml_add_row_to_row(Aml_Mat2D des, size_t des_row, Aml_Mat2D src, size_t src_row);
+AML_DEF void          aml_add_row_time_factor_to_row(Aml_Mat2D m, size_t des_r, size_t src_r, aml_real factor);
+AML_DEF void          aml_add_scalar(Aml_Mat2D m, aml_real x);
+AML_DEF Aml_Mat2D         aml_alloc(size_t rows, size_t cols);
+AML_DEF Aml_Mat2D_uint32  aml_alloc_uint32(size_t rows, size_t cols);
+AML_DEF void          aml_anti_diag_transpose_inplace(Aml_Mat2D m);
+AML_DEF void          aml_apply_householder_left(Aml_Mat2D A, size_t row0, size_t col0, Aml_Mat2D v);
+AML_DEF void          aml_apply_householder_right(Aml_Mat2D A, size_t col0, Aml_Mat2D v);
+AML_DEF aml_real    aml_calc_col_norma(Aml_Mat2D m, size_t c);
+AML_DEF aml_real    aml_calc_norma(Aml_Mat2D m);
+AML_DEF aml_real    aml_calc_norma_inf(Aml_Mat2D m);
+AML_DEF bool          aml_col_is_all_digit(Aml_Mat2D m, aml_real digit, size_t c);
+AML_DEF void          aml_convolve(Aml_Mat2D m, Aml_Mat2D a, Aml_Mat2D b);
+AML_DEF void          aml_copy(Aml_Mat2D des, Aml_Mat2D src);
+AML_DEF void          aml_copy_uint32(Aml_Mat2D_uint32 des, Aml_Mat2D_uint32 src);
+AML_DEF void          aml_copy_col_from_src_to_des(Aml_Mat2D des, size_t des_col, Aml_Mat2D src, size_t src_col);
+AML_DEF void          aml_copy_row_from_src_to_des(Aml_Mat2D des, size_t des_row, Aml_Mat2D src, size_t src_row);
+AML_DEF void          aml_copy_src_to_des_window(Aml_Mat2D des, Aml_Mat2D src, size_t is, size_t js, size_t ie, size_t je);
+AML_DEF void          aml_copy_src_window_to_des(Aml_Mat2D des, Aml_Mat2D src, size_t is, size_t js, size_t ie, size_t je);
+AML_DEF Aml_Mat2D         aml_create_col_ref(Aml_Mat2D src, size_t c);
+AML_DEF void          aml_cross(Aml_Mat2D dst, Aml_Mat2D v1, Aml_Mat2D v2);
 
-AML_DEF void          aml_dot(Mat2D dst, Mat2D a, Mat2D b);
-AML_DEF aml_real    aml_dot_product(Mat2D v1, Mat2D v2);
-AML_DEF aml_real    aml_det(Mat2D m);
-AML_DEF aml_real    aml_det_2x2_mat(Mat2D m);
-AML_DEF aml_real    aml_det_2x2_mat_minor(Mat2D_Minor mm);
+AML_DEF void          aml_dot(Aml_Mat2D dst, Aml_Mat2D a, Aml_Mat2D b);
+AML_DEF aml_real    aml_dot_product(Aml_Mat2D v1, Aml_Mat2D v2);
+AML_DEF aml_real    aml_det(Aml_Mat2D m);
+AML_DEF aml_real    aml_det_2x2_mat(Aml_Mat2D m);
+AML_DEF aml_real    aml_det_2x2_mat_minor(Aml_Mat2D_Minor mm);
 
-AML_DEF void          aml_eig_check(Mat2D A, Mat2D eigenvalues, Mat2D eigenvectors, Mat2D res);
-AML_DEF void          aml_eig_power_iteration(Mat2D A, Mat2D eigenvalues, Mat2D eigenvectors, Mat2D init_vector, bool norm_inf_vectors);
-AML_DEF aml_real    aml_elements_sum(Mat2D m);
+AML_DEF void          aml_eig_check(Aml_Mat2D A, Aml_Mat2D eigenvalues, Aml_Mat2D eigenvectors, Aml_Mat2D res);
+AML_DEF void          aml_eig_power_iteration(Aml_Mat2D A, Aml_Mat2D eigenvalues, Aml_Mat2D eigenvectors, Aml_Mat2D init_vector, bool norm_inf_vectors);
+AML_DEF aml_real    aml_elements_sum(Aml_Mat2D m);
 
-AML_DEF void          aml_fill(Mat2D m, aml_real x);
-AML_DEF void          aml_fill_sequence(Mat2D m, aml_real start, aml_real step);
-AML_DEF void          aml_fill_uint32(Mat2D_uint32 m, uint32_t x);
-AML_DEF bool          aml_find_first_non_zero_value(Mat2D m, size_t r, size_t *non_zero_col);
-AML_DEF void          aml_free(Mat2D m);
-AML_DEF void          aml_free_uint32(Mat2D_uint32 m);
+AML_DEF void          aml_fill(Aml_Mat2D m, aml_real x);
+AML_DEF void          aml_fill_sequence(Aml_Mat2D m, aml_real start, aml_real step);
+AML_DEF void          aml_fill_uint32(Aml_Mat2D_uint32 m, uint32_t x);
+AML_DEF bool          aml_find_first_non_zero_value(Aml_Mat2D m, size_t r, size_t *non_zero_col);
+AML_DEF void          aml_free(Aml_Mat2D m);
+AML_DEF void          aml_free_uint32(Aml_Mat2D_uint32 m);
 
-AML_DEF void          aml_householder_matrix_get(Mat2D des, Mat2D v);
-AML_DEF void          aml_householder_top_element_vector_get(Mat2D v_des, Mat2D x);
+AML_DEF void          aml_householder_matrix_get(Aml_Mat2D des, Aml_Mat2D v);
+AML_DEF void          aml_householder_top_element_vector_get(Aml_Mat2D v_des, Aml_Mat2D x);
 
-AML_DEF aml_real    aml_inner_product(Mat2D v);
-AML_DEF void          aml_invert(Mat2D des, Mat2D src);
-AML_DEF bool          aml_is_symmetric(Mat2D m);
+AML_DEF aml_real    aml_inner_product(Aml_Mat2D v);
+AML_DEF void          aml_invert(Aml_Mat2D des, Aml_Mat2D src);
+AML_DEF bool          aml_is_symmetric(Aml_Mat2D m);
 
-AML_DEF void          aml_LUP_decomposition_with_swap(Mat2D src, Mat2D l, Mat2D p, Mat2D u);
+AML_DEF void          aml_LUP_decomposition_with_swap(Aml_Mat2D src, Aml_Mat2D l, Aml_Mat2D p, Aml_Mat2D u);
 
-AML_DEF void          aml_make_orthogonal_Gaussian_elimination(Mat2D des, Mat2D A);
-AML_DEF void          aml_make_orthogonal_modified_Gram_Schmidt(Mat2D des, Mat2D A);
-AML_DEF bool          aml_mat_is_all_digit(Mat2D m, aml_real digit);
-AML_DEF Mat2D_Minor   aml_minor_alloc_fill_from_mat(Mat2D ref_mat, size_t i, size_t j);
-AML_DEF Mat2D_Minor   aml_minor_alloc_fill_from_mat_minor(Mat2D_Minor ref_mm, size_t i, size_t j);
-AML_DEF aml_real    aml_minor_det(Mat2D_Minor mm);
-AML_DEF void          aml_minor_free(Mat2D_Minor mm);
-AML_DEF void          aml_minor_print(Mat2D_Minor mm, const char *name, size_t padding);
-AML_DEF void          aml_mult(Mat2D m, aml_real factor);
-AML_DEF void          aml_mult_row(Mat2D m, size_t r, aml_real factor);
+AML_DEF void          aml_make_orthogonal_Gaussian_elimination(Aml_Mat2D des, Aml_Mat2D A);
+AML_DEF void          aml_make_orthogonal_modified_Gram_Schmidt(Aml_Mat2D des, Aml_Mat2D A);
+AML_DEF bool          aml_mat_is_all_digit(Aml_Mat2D m, aml_real digit);
+AML_DEF Aml_Mat2D_Minor   aml_minor_alloc_fill_from_mat(Aml_Mat2D ref_mat, size_t i, size_t j);
+AML_DEF Aml_Mat2D_Minor   aml_minor_alloc_fill_from_mat_minor(Aml_Mat2D_Minor ref_mm, size_t i, size_t j);
+AML_DEF aml_real    aml_minor_det(Aml_Mat2D_Minor mm);
+AML_DEF void          aml_minor_free(Aml_Mat2D_Minor mm);
+AML_DEF void          aml_minor_print(Aml_Mat2D_Minor mm, const char *name, size_t padding);
+AML_DEF void          aml_mult(Aml_Mat2D m, aml_real factor);
+AML_DEF void          aml_mult_row(Aml_Mat2D m, size_t r, aml_real factor);
 
-AML_DEF void          aml_normalize(Mat2D m);
-AML_DEF void          aml_normalize_inf(Mat2D m);
+AML_DEF void          aml_normalize(Aml_Mat2D m);
+AML_DEF void          aml_normalize_inf(Aml_Mat2D m);
 
-AML_DEF size_t        aml_offset2d(Mat2D m, size_t i, size_t j);
-AML_DEF size_t        aml_offset2d_uint32(Mat2D_uint32 m, size_t i, size_t j);
-AML_DEF void          aml_outer_product(Mat2D des, Mat2D v);
+AML_DEF size_t        aml_offset2d(Aml_Mat2D m, size_t i, size_t j);
+AML_DEF size_t        aml_offset2d_uint32(Aml_Mat2D_uint32 m, size_t i, size_t j);
+AML_DEF void          aml_outer_product(Aml_Mat2D des, Aml_Mat2D v);
 
-AML_DEF int           aml_power_iterate(Mat2D A, Mat2D v, aml_real *lambda, aml_real shift, bool norm_inf_v);
-AML_DEF void          aml_print(Mat2D m, const char *name, size_t padding);
-AML_DEF void          aml_print_uint32(Mat2D_uint32 m, const char *name, size_t padding);
-AML_DEF void          aml_print_as_col(Mat2D m, const char *name, size_t padding);
-AML_DEF void          aml_project_out_columns(Mat2D v, Mat2D basis, size_t used_cols);
+AML_DEF int           aml_power_iterate(Aml_Mat2D A, Aml_Mat2D v, aml_real *lambda, aml_real shift, bool norm_inf_v);
+AML_DEF void          aml_print(Aml_Mat2D m, const char *name, size_t padding);
+AML_DEF void          aml_print_uint32(Aml_Mat2D_uint32 m, const char *name, size_t padding);
+AML_DEF void          aml_print_as_col(Aml_Mat2D m, const char *name, size_t padding);
+AML_DEF void          aml_project_out_columns(Aml_Mat2D v, Aml_Mat2D basis, size_t used_cols);
 
-AML_DEF void          aml_QR_householder_factorization(Mat2D Q, Mat2D R, Mat2D src);
-AML_DEF void          aml_QR_householder_factorization_fast(Mat2D Q, Mat2D R, Mat2D src);
+AML_DEF void          aml_QR_householder_factorization(Aml_Mat2D Q, Aml_Mat2D R, Aml_Mat2D src);
+AML_DEF void          aml_QR_householder_factorization_fast(Aml_Mat2D Q, Aml_Mat2D R, Aml_Mat2D src);
 
-AML_DEF void          aml_rand(Mat2D m, aml_real low, aml_real high);
+AML_DEF void          aml_rand(Aml_Mat2D m, aml_real low, aml_real high);
 AML_DEF aml_real    aml_rand_aml_real(void);
-AML_DEF Mat2D         aml_realloc(Mat2D m, size_t rows, size_t cols);
-AML_DEF Mat2D_uint32  aml_realloc_uint32(Mat2D_uint32 m, size_t rows, size_t cols);
-AML_DEF size_t        aml_reduce(Mat2D m);
-AML_DEF void          aml_rotate_mat_180_deg_inplace(Mat2D m);
-AML_DEF bool          aml_row_is_all_digit(Mat2D m, aml_real digit, size_t r);
+AML_DEF Aml_Mat2D         aml_realloc(Aml_Mat2D m, size_t rows, size_t cols);
+AML_DEF Aml_Mat2D_uint32  aml_realloc_uint32(Aml_Mat2D_uint32 m, size_t rows, size_t cols);
+AML_DEF size_t        aml_reduce(Aml_Mat2D m);
+AML_DEF void          aml_rotate_mat_180_deg_inplace(Aml_Mat2D m);
+AML_DEF bool          aml_row_is_all_digit(Aml_Mat2D m, aml_real digit, size_t r);
 
-AML_DEF void          aml_set_DCM_zyx(Mat2D DCM, float yaw_deg, float pitch_deg, float roll_deg);
-AML_DEF void          aml_set_identity(Mat2D m);
-AML_DEF void          aml_set_rot_mat_x(Mat2D m, float angle_deg);
-AML_DEF void          aml_set_rot_mat_y(Mat2D m, float angle_deg);
-AML_DEF void          aml_set_rot_mat_z(Mat2D m, float angle_deg);
-AML_DEF void          aml_shift(Mat2D m, aml_real shift);
-AML_DEF void          aml_solve_linear_sys_LUP_decomposition(Mat2D A, Mat2D x, Mat2D B);
-AML_DEF void          aml_sub(Mat2D dst, Mat2D a);
-AML_DEF void          aml_sub_col_to_col(Mat2D des, size_t des_col, Mat2D src, size_t src_col);
-AML_DEF void          aml_sub_row_to_row(Mat2D des, size_t des_row, Mat2D src, size_t src_row);
-AML_DEF void          aml_sub_row_time_factor_to_row(Mat2D m, size_t des_r, size_t src_r, aml_real factor);
-AML_DEF void          aml_SVD_full(Mat2D A, Mat2D U, Mat2D S, Mat2D V, Mat2D init_vec_u, Mat2D init_vec_v, bool return_v_transpose);
-AML_DEF void          aml_SVD_thin(Mat2D A, Mat2D U, Mat2D S, Mat2D V, Mat2D init_vec_u, Mat2D init_vec_v, bool return_v_transpose);
-AML_DEF void          aml_swap_rows(Mat2D m, size_t r1, size_t r2);
+AML_DEF void          aml_set_DCM_zyx(Aml_Mat2D DCM, float yaw_deg, float pitch_deg, float roll_deg);
+AML_DEF void          aml_set_identity(Aml_Mat2D m);
+AML_DEF void          aml_set_rot_mat_x(Aml_Mat2D m, float angle_deg);
+AML_DEF void          aml_set_rot_mat_y(Aml_Mat2D m, float angle_deg);
+AML_DEF void          aml_set_rot_mat_z(Aml_Mat2D m, float angle_deg);
+AML_DEF void          aml_shift(Aml_Mat2D m, aml_real shift);
+AML_DEF void          aml_solve_linear_sys_LUP_decomposition(Aml_Mat2D A, Aml_Mat2D x, Aml_Mat2D B);
+AML_DEF void          aml_sub(Aml_Mat2D dst, Aml_Mat2D a);
+AML_DEF void          aml_sub_col_to_col(Aml_Mat2D des, size_t des_col, Aml_Mat2D src, size_t src_col);
+AML_DEF void          aml_sub_row_to_row(Aml_Mat2D des, size_t des_row, Aml_Mat2D src, size_t src_row);
+AML_DEF void          aml_sub_row_time_factor_to_row(Aml_Mat2D m, size_t des_r, size_t src_r, aml_real factor);
+AML_DEF void          aml_SVD_full(Aml_Mat2D A, Aml_Mat2D U, Aml_Mat2D S, Aml_Mat2D V, Aml_Mat2D init_vec_u, Aml_Mat2D init_vec_v, bool return_v_transpose);
+AML_DEF void          aml_SVD_thin(Aml_Mat2D A, Aml_Mat2D U, Aml_Mat2D S, Aml_Mat2D V, Aml_Mat2D init_vec_u, Aml_Mat2D init_vec_v, bool return_v_transpose);
+AML_DEF void          aml_swap_rows(Aml_Mat2D m, size_t r1, size_t r2);
 
-AML_DEF void          aml_transpose(Mat2D des, Mat2D src);
-AML_DEF void          aml_transpose_inplace(Mat2D m);
+AML_DEF void          aml_transpose(Aml_Mat2D des, Aml_Mat2D src);
+AML_DEF void          aml_transpose_inplace(Aml_Mat2D m);
 
-AML_DEF aml_real    aml_upper_triangulate(Mat2D m, uint8_t flags);
+AML_DEF aml_real    aml_upper_triangulate(Aml_Mat2D m, uint8_t flags);
 
 #endif // ALMOG_MATRIX_LIBRARY_H_
 
@@ -227,7 +227,7 @@ AML_DEF aml_real    aml_upper_triangulate(Mat2D m, uint8_t flags);
 #undef ALMOG_MATRIX_LIBRARY_IMPLEMENTATION
 
 
-AML_DEF void aml_add(Mat2D dst, Mat2D a)
+AML_DEF void aml_add(Aml_Mat2D dst, Aml_Mat2D a)
 {
     AML_ASSERT(dst.rows == a.rows);
     AML_ASSERT(dst.cols == a.cols);
@@ -238,7 +238,7 @@ AML_DEF void aml_add(Mat2D dst, Mat2D a)
     }
 }
 
-AML_DEF void aml_add_col_to_col(Mat2D des, size_t des_col, Mat2D src, size_t src_col)
+AML_DEF void aml_add_col_to_col(Aml_Mat2D des, size_t des_col, Aml_Mat2D src, size_t src_col)
 {
     AML_ASSERT(src_col < src.cols);
     AML_ASSERT(des.rows == src.rows);
@@ -249,7 +249,7 @@ AML_DEF void aml_add_col_to_col(Mat2D des, size_t des_col, Mat2D src, size_t src
     }
 }
 
-AML_DEF void aml_add_row_to_row(Mat2D des, size_t des_row, Mat2D src, size_t src_row)
+AML_DEF void aml_add_row_to_row(Aml_Mat2D des, size_t des_row, Aml_Mat2D src, size_t src_row)
 {
     AML_ASSERT(src_row < src.rows);
     AML_ASSERT(des.cols == src.cols);
@@ -260,14 +260,14 @@ AML_DEF void aml_add_row_to_row(Mat2D des, size_t des_row, Mat2D src, size_t src
     }
 }
 
-AML_DEF void aml_add_row_time_factor_to_row(Mat2D m, size_t des_r, size_t src_r, aml_real factor)
+AML_DEF void aml_add_row_time_factor_to_row(Aml_Mat2D m, size_t des_r, size_t src_r, aml_real factor)
 {
     for (size_t j = 0; j < m.cols; ++j) {
         AML_AT(m, des_r, j) += factor * AML_AT(m, src_r, j);
     }
 }
 
-AML_DEF void aml_add_scalar(Mat2D m, aml_real x)
+AML_DEF void aml_add_scalar(Aml_Mat2D m, aml_real x)
 {
     for (size_t i = 0; i < m.rows; i++) {
         for (size_t j = 0; j < m.cols; j++) {
@@ -276,9 +276,9 @@ AML_DEF void aml_add_scalar(Mat2D m, aml_real x)
     }
 }
 
-AML_DEF Mat2D aml_alloc(size_t rows, size_t cols)
+AML_DEF Aml_Mat2D aml_alloc(size_t rows, size_t cols)
 {
-    Mat2D m;
+    Aml_Mat2D m;
     m.rows = rows;
     m.cols = cols;
     m.stride_r = cols;
@@ -288,9 +288,9 @@ AML_DEF Mat2D aml_alloc(size_t rows, size_t cols)
     return m;
 }
 
-AML_DEF Mat2D_uint32 aml_alloc_uint32(size_t rows, size_t cols)
+AML_DEF Aml_Mat2D_uint32 aml_alloc_uint32(size_t rows, size_t cols)
 {
-    Mat2D_uint32 m;
+    Aml_Mat2D_uint32 m;
     m.rows = rows;
     m.cols = cols;
     m.stride_r = cols;
@@ -300,7 +300,7 @@ AML_DEF Mat2D_uint32 aml_alloc_uint32(size_t rows, size_t cols)
     return m;
 }
 
-AML_DEF void aml_anti_diag_transpose_inplace(Mat2D m)
+AML_DEF void aml_anti_diag_transpose_inplace(Aml_Mat2D m)
 {
     AML_ASSERT(m.cols == m.rows);
 
@@ -313,7 +313,7 @@ AML_DEF void aml_anti_diag_transpose_inplace(Mat2D m)
     }
 }
 
-AML_DEF void aml_apply_householder_left(Mat2D A, size_t row0, size_t col0, Mat2D v)
+AML_DEF void aml_apply_householder_left(Aml_Mat2D A, size_t row0, size_t col0, Aml_Mat2D v)
 {
     aml_real vv = aml_inner_product(v);
     AML_ASSERT(!AML_IS_ZERO(vv));
@@ -333,7 +333,7 @@ AML_DEF void aml_apply_householder_left(Mat2D A, size_t row0, size_t col0, Mat2D
     }
 }
 
-AML_DEF void aml_apply_householder_right(Mat2D A, size_t col0, Mat2D v)
+AML_DEF void aml_apply_householder_right(Aml_Mat2D A, size_t col0, Aml_Mat2D v)
 {
     aml_real vv = aml_inner_product(v);
     AML_ASSERT(!AML_IS_ZERO(vv));
@@ -353,7 +353,7 @@ AML_DEF void aml_apply_householder_right(Mat2D A, size_t col0, Mat2D v)
     }
 }
 
-AML_DEF aml_real aml_calc_col_norma(Mat2D m, size_t c)
+AML_DEF aml_real aml_calc_col_norma(Aml_Mat2D m, size_t c)
 {
     AML_ASSERT(c < m.cols);
 
@@ -364,7 +364,7 @@ AML_DEF aml_real aml_calc_col_norma(Mat2D m, size_t c)
     return aml_sqrt(sum);
 }
 
-AML_DEF aml_real aml_calc_norma(Mat2D m)
+AML_DEF aml_real aml_calc_norma(Aml_Mat2D m)
 {
     aml_real sum = 0;
 
@@ -376,7 +376,7 @@ AML_DEF aml_real aml_calc_norma(Mat2D m)
     return aml_sqrt(sum);
 }
  
-AML_DEF aml_real aml_calc_norma_inf(Mat2D m)
+AML_DEF aml_real aml_calc_norma_inf(Aml_Mat2D m)
 {
     aml_real max = 0;
     for (size_t i = 0; i < m.rows; ++i) {
@@ -391,7 +391,7 @@ AML_DEF aml_real aml_calc_norma_inf(Mat2D m)
     return max;
 }
 
-AML_DEF bool aml_col_is_all_digit(Mat2D m, aml_real digit, size_t c)
+AML_DEF bool aml_col_is_all_digit(Aml_Mat2D m, aml_real digit, size_t c)
 {
     for (size_t i = 0; i < m.rows; ++i) {
         if (AML_AT(m, i, c) != digit) {
@@ -401,7 +401,7 @@ AML_DEF bool aml_col_is_all_digit(Mat2D m, aml_real digit, size_t c)
     return true;
 }
 
-void aml_convolve(Mat2D m, Mat2D a, Mat2D b) 
+void aml_convolve(Aml_Mat2D m, Aml_Mat2D a, Aml_Mat2D b) 
 {
     AML_ASSERT(a.cols >= b.cols);
     AML_ASSERT(a.rows >= b.rows);
@@ -413,7 +413,7 @@ void aml_convolve(Mat2D m, Mat2D a, Mat2D b)
 
     for (size_t i = 0; i < m.rows; i++) {
         for (size_t j = 0; j < m.cols; j++) {
-            Mat2D window = {
+            Aml_Mat2D window = {
                 .cols = b.cols,
                 .rows = b.rows,
                 .stride_r = a.stride_r,
@@ -426,7 +426,7 @@ void aml_convolve(Mat2D m, Mat2D a, Mat2D b)
 
 }
 
-AML_DEF void aml_copy(Mat2D des, Mat2D src)
+AML_DEF void aml_copy(Aml_Mat2D des, Aml_Mat2D src)
 {
     AML_ASSERT(des.cols == src.cols);
     AML_ASSERT(des.rows == src.rows);
@@ -438,7 +438,7 @@ AML_DEF void aml_copy(Mat2D des, Mat2D src)
     }
 }
 
-AML_DEF void aml_copy_uint32(Mat2D_uint32 des, Mat2D_uint32 src)
+AML_DEF void aml_copy_uint32(Aml_Mat2D_uint32 des, Aml_Mat2D_uint32 src)
 {
     AML_ASSERT(des.cols == src.cols);
     AML_ASSERT(des.rows == src.rows);
@@ -450,7 +450,7 @@ AML_DEF void aml_copy_uint32(Mat2D_uint32 des, Mat2D_uint32 src)
     }
 }
 
-AML_DEF void aml_copy_col_from_src_to_des(Mat2D des, size_t des_col, Mat2D src, size_t src_col)
+AML_DEF void aml_copy_col_from_src_to_des(Aml_Mat2D des, size_t des_col, Aml_Mat2D src, size_t src_col)
 {
     AML_ASSERT(src_col < src.cols);
     AML_ASSERT(des.rows == src.rows);
@@ -461,7 +461,7 @@ AML_DEF void aml_copy_col_from_src_to_des(Mat2D des, size_t des_col, Mat2D src, 
     }
 }
 
-AML_DEF void aml_copy_row_from_src_to_des(Mat2D des, size_t des_row, Mat2D src, size_t src_row)
+AML_DEF void aml_copy_row_from_src_to_des(Aml_Mat2D des, size_t des_row, Aml_Mat2D src, size_t src_row)
 {
     AML_ASSERT(src_row < src.rows);
     AML_ASSERT(des.cols == src.cols);
@@ -472,7 +472,7 @@ AML_DEF void aml_copy_row_from_src_to_des(Mat2D des, size_t des_row, Mat2D src, 
     }
 }
 
-AML_DEF void aml_copy_src_to_des_window(Mat2D des, Mat2D src, size_t is, size_t js, size_t ie, size_t je)
+AML_DEF void aml_copy_src_to_des_window(Aml_Mat2D des, Aml_Mat2D src, size_t is, size_t js, size_t ie, size_t je)
 {
     AML_ASSERT(je >= js && ie >= is);
     AML_ASSERT(je-js+1 == src.cols);
@@ -487,7 +487,7 @@ AML_DEF void aml_copy_src_to_des_window(Mat2D des, Mat2D src, size_t is, size_t 
     }
 }
 
-AML_DEF void aml_copy_src_window_to_des(Mat2D des, Mat2D src, size_t is, size_t js, size_t ie, size_t je)
+AML_DEF void aml_copy_src_window_to_des(Aml_Mat2D des, Aml_Mat2D src, size_t is, size_t js, size_t ie, size_t je)
 {
     AML_ASSERT(je >= js && ie >= is);
     AML_ASSERT(je-js+1 == des.cols);
@@ -502,11 +502,11 @@ AML_DEF void aml_copy_src_window_to_des(Mat2D des, Mat2D src, size_t is, size_t 
     }
 }
 
-AML_DEF Mat2D aml_create_col_ref(Mat2D src, size_t c)
+AML_DEF Aml_Mat2D aml_create_col_ref(Aml_Mat2D src, size_t c)
 {
     AML_ASSERT(c < src.cols);
 
-    Mat2D col = {.cols = 1,
+    Aml_Mat2D col = {.cols = 1,
                  .rows = src.rows,
                  .stride_r = src.stride_r,
                  .elements = &(AML_AT(src, 0, c))};
@@ -514,7 +514,7 @@ AML_DEF Mat2D aml_create_col_ref(Mat2D src, size_t c)
     return col;
 }
 
-void aml_cross(Mat2D dst, Mat2D v1, Mat2D v2)
+void aml_cross(Aml_Mat2D dst, Aml_Mat2D v1, Aml_Mat2D v2)
 {
     AML_ASSERT(3 == dst.rows && 1 == dst.cols);
     AML_ASSERT(3 == v1.rows && 1 == v1.cols);
@@ -525,7 +525,7 @@ void aml_cross(Mat2D dst, Mat2D v1, Mat2D v2)
     AML_AT(dst, 2, 0) = AML_AT(v1, 0, 0) * AML_AT(v2, 1, 0) - AML_AT(v1, 1, 0) * AML_AT(v2, 0, 0);
 }
 
-AML_DEF void aml_dot(Mat2D dst, Mat2D a, Mat2D b)
+AML_DEF void aml_dot(Aml_Mat2D dst, Aml_Mat2D a, Aml_Mat2D b)
 {
     AML_ASSERT(a.cols == b.rows);
     AML_ASSERT(a.rows == dst.rows);
@@ -544,7 +544,7 @@ AML_DEF void aml_dot(Mat2D dst, Mat2D a, Mat2D b)
 
 }
 
-AML_DEF aml_real aml_dot_product(Mat2D m1, Mat2D m2)
+AML_DEF aml_real aml_dot_product(Aml_Mat2D m1, Aml_Mat2D m2)
 {
     AML_ASSERT(m1.rows == m2.rows);
     AML_ASSERT(m1.cols == m2.cols);
@@ -560,7 +560,7 @@ AML_DEF aml_real aml_dot_product(Mat2D m1, Mat2D m2)
     return dot_product;
 }
 
-AML_DEF aml_real aml_det(Mat2D m)
+AML_DEF aml_real aml_det(Aml_Mat2D m)
 {
     AML_ASSERT(m.cols == m.rows && "should be a square matrix");
 
@@ -578,7 +578,7 @@ AML_DEF aml_real aml_det(Mat2D m)
         }
     }
 
-    Mat2D temp_m = aml_alloc(m.rows, m.cols);
+    Aml_Mat2D temp_m = aml_alloc(m.rows, m.cols);
     aml_copy(temp_m, m);
     aml_real factor = aml_upper_triangulate(temp_m, AML_ROW_SWAPPING);
     aml_real diag_mul = 1; 
@@ -590,19 +590,19 @@ AML_DEF aml_real aml_det(Mat2D m)
     return diag_mul / factor;
 }
 
-AML_DEF aml_real aml_det_2x2_mat(Mat2D m)
+AML_DEF aml_real aml_det_2x2_mat(Aml_Mat2D m)
 {
     AML_ASSERT(2 == m.cols && 2 == m.rows && "Not a 2x2 matrix");
     return AML_AT(m, 0, 0) * AML_AT(m, 1, 1) - AML_AT(m, 0, 1) * AML_AT(m, 1, 0);
 }
 
-AML_DEF aml_real aml_det_2x2_mat_minor(Mat2D_Minor mm)
+AML_DEF aml_real aml_det_2x2_mat_minor(Aml_Mat2D_Minor mm)
 {
     AML_ASSERT(2 == mm.cols && 2 == mm.rows && "Not a 2x2 matrix");
     return AML_MINOR_AT(mm, 0, 0) * AML_MINOR_AT(mm, 1, 1) - AML_MINOR_AT(mm, 0, 1) * AML_MINOR_AT(mm, 1, 0);
 }
 
-AML_DEF void aml_eig_check(Mat2D A, Mat2D eigenvalues, Mat2D eigenvectors, Mat2D res)
+AML_DEF void aml_eig_check(Aml_Mat2D A, Aml_Mat2D eigenvalues, Aml_Mat2D eigenvectors, Aml_Mat2D res)
 {
     AML_ASSERT(A.cols == A.rows); 
     AML_ASSERT(eigenvalues.cols == A.cols);
@@ -613,7 +613,7 @@ AML_DEF void aml_eig_check(Mat2D A, Mat2D eigenvalues, Mat2D eigenvectors, Mat2D
     AML_ASSERT(res.rows == A.rows);
 
     aml_dot(res, A, eigenvectors);
-    Mat2D VL = aml_alloc(A.rows, A.cols);
+    Aml_Mat2D VL = aml_alloc(A.rows, A.cols);
     aml_dot(VL, eigenvectors, eigenvalues);
 
     aml_sub(res, VL);
@@ -646,7 +646,7 @@ AML_DEF void aml_eig_check(Mat2D A, Mat2D eigenvalues, Mat2D eigenvectors, Mat2D
  *
  * @pre A is square; eigenvalues/eigenvectors are N x N; init_vector is N x 1.
  */
-void aml_eig_power_iteration(Mat2D A, Mat2D eigenvalues, Mat2D eigenvectors, Mat2D init_vector, bool norm_inf_vectors)
+void aml_eig_power_iteration(Aml_Mat2D A, Aml_Mat2D eigenvalues, Aml_Mat2D eigenvectors, Aml_Mat2D init_vector, bool norm_inf_vectors)
 {
     /* https://www.youtube.com/watch?v=c8DIOzuZqBs */
 
@@ -665,13 +665,13 @@ void aml_eig_power_iteration(Mat2D A, Mat2D eigenvalues, Mat2D eigenvectors, Mat
     AML_ASSERT(aml_calc_norma_inf(init_vector) > 0);
 
     aml_fill(eigenvalues, 0);
-    Mat2D B = aml_alloc(A.rows, A.cols);
-    Mat2D temp_mat = aml_alloc(A.rows, A.cols);
+    Aml_Mat2D B = aml_alloc(A.rows, A.cols);
+    Aml_Mat2D temp_mat = aml_alloc(A.rows, A.cols);
     aml_copy(B, A);
 
     for (int i = 0, shift_value = 0; i < (int)A.rows; i++) {
         aml_copy_src_to_des_window(eigenvectors, init_vector, 0, i, init_vector.rows-1, i);
-        Mat2D v = {.cols = init_vector.cols,
+        Aml_Mat2D v = {.cols = init_vector.cols,
                    .elements = &AML_AT(eigenvectors, 0, i),
                    .rows = init_vector.rows,
                    .stride_r = eigenvectors.stride_r};
@@ -696,7 +696,7 @@ void aml_eig_power_iteration(Mat2D A, Mat2D eigenvalues, Mat2D eigenvectors, Mat
 
     if (norm_inf_vectors) {
         for (size_t c = 0; c < eigenvectors.cols; c++) {
-            Mat2D v = {.cols = init_vector.cols,
+            Aml_Mat2D v = {.cols = init_vector.cols,
                     .elements = &AML_AT(eigenvectors, 0, c),
                     .rows = init_vector.rows,
                     .stride_r = eigenvectors.stride_r};
@@ -708,7 +708,7 @@ void aml_eig_power_iteration(Mat2D A, Mat2D eigenvalues, Mat2D eigenvectors, Mat
     aml_free(temp_mat);
 }
 
-AML_DEF aml_real aml_elements_sum(Mat2D m)
+AML_DEF aml_real aml_elements_sum(Aml_Mat2D m)
 {
     aml_real sum = 0;
 
@@ -720,7 +720,7 @@ AML_DEF aml_real aml_elements_sum(Mat2D m)
     return sum;
 }
 
-AML_DEF void aml_fill(Mat2D m, aml_real x)
+AML_DEF void aml_fill(Aml_Mat2D m, aml_real x)
 {
     for (size_t i = 0; i < m.rows; ++i) {
         for (size_t j = 0; j < m.cols; ++j) {
@@ -729,7 +729,7 @@ AML_DEF void aml_fill(Mat2D m, aml_real x)
     }
 }
 
-AML_DEF void aml_fill_sequence(Mat2D m, aml_real start, aml_real step) {
+AML_DEF void aml_fill_sequence(Aml_Mat2D m, aml_real start, aml_real step) {
     for (size_t i = 0; i < m.rows; i++) {
         for (size_t j = 0; j < m.cols; j++) {
             AML_AT(m, i, j) = start + step * aml_offset2d(m, i, j);
@@ -737,7 +737,7 @@ AML_DEF void aml_fill_sequence(Mat2D m, aml_real start, aml_real step) {
     }
 }
 
-AML_DEF void aml_fill_uint32(Mat2D_uint32 m, uint32_t x)
+AML_DEF void aml_fill_uint32(Aml_Mat2D_uint32 m, uint32_t x)
 {
     for (size_t i = 0; i < m.rows; ++i) {
         for (size_t j = 0; j < m.cols; ++j) {
@@ -746,7 +746,7 @@ AML_DEF void aml_fill_uint32(Mat2D_uint32 m, uint32_t x)
     }
 }
 
-AML_DEF bool aml_find_first_non_zero_value(Mat2D m, size_t r, size_t *non_zero_col)
+AML_DEF bool aml_find_first_non_zero_value(Aml_Mat2D m, size_t r, size_t *non_zero_col)
 {
     for (size_t c = 0; c < m.cols; ++c) {
         if (!AML_IS_ZERO(AML_AT(m, r, c))) {
@@ -757,23 +757,23 @@ AML_DEF bool aml_find_first_non_zero_value(Mat2D m, size_t r, size_t *non_zero_c
     return false;
 }
 
-AML_DEF void aml_free(Mat2D m)
+AML_DEF void aml_free(Aml_Mat2D m)
 {
     AML_FREE(m.elements);
 }
 
-AML_DEF void aml_free_uint32(Mat2D_uint32 m)
+AML_DEF void aml_free_uint32(Aml_Mat2D_uint32 m)
 {
     AML_FREE(m.elements);
 }
 
-AML_DEF void aml_householder_matrix_get(Mat2D des, Mat2D v)
+AML_DEF void aml_householder_matrix_get(Aml_Mat2D des, Aml_Mat2D v)
 {
     AML_ASSERT(v.cols == 1);
     AML_ASSERT(des.cols == des.rows);
     AML_ASSERT(des.cols == v.rows);
 
-    Mat2D outer_product = aml_alloc(v.rows, v.rows);
+    Aml_Mat2D outer_product = aml_alloc(v.rows, v.rows);
     aml_outer_product(outer_product, v);
     aml_real inner_product = aml_inner_product(v);
     aml_mult(outer_product, (aml_real)2 / inner_product);
@@ -785,7 +785,7 @@ AML_DEF void aml_householder_matrix_get(Mat2D des, Mat2D v)
     aml_free(outer_product);
 }
 
-AML_DEF void aml_householder_top_element_vector_get(Mat2D v_des, Mat2D x)
+AML_DEF void aml_householder_top_element_vector_get(Aml_Mat2D v_des, Aml_Mat2D x)
 {
     AML_ASSERT(x.cols == 1);
     AML_ASSERT(v_des.cols == x.cols);
@@ -802,7 +802,7 @@ AML_DEF void aml_householder_top_element_vector_get(Mat2D v_des, Mat2D x)
     }
 }
 
-AML_DEF aml_real aml_inner_product(Mat2D v)
+AML_DEF aml_real aml_inner_product(Aml_Mat2D v)
 {
     AML_ASSERT((1 == v.cols) || (1 == v.rows));
 
@@ -821,12 +821,12 @@ AML_DEF aml_real aml_inner_product(Mat2D v)
     return dot_product;
 }
 
-AML_DEF void aml_invert(Mat2D des, Mat2D src)
+AML_DEF void aml_invert(Aml_Mat2D des, Aml_Mat2D src)
 {
     AML_ASSERT(src.cols == src.rows && "Must be an NxN matrix");
     AML_ASSERT(des.cols == src.cols && des.rows == des.cols);
 
-    Mat2D m = aml_alloc(src.rows, src.cols * 2);
+    Aml_Mat2D m = aml_alloc(src.rows, src.cols * 2);
     aml_copy_src_to_des_window(m, src, 0, 0, src.rows-1, src.cols-1);
 
     aml_set_identity(des);
@@ -839,7 +839,7 @@ AML_DEF void aml_invert(Mat2D des, Mat2D src)
     aml_free(m);
 }
 
-AML_DEF bool aml_is_symmetric(Mat2D m)
+AML_DEF bool aml_is_symmetric(Aml_Mat2D m)
 {
     for (size_t i = 0; i < m.rows; i++) {
         for (size_t j = 0; j < m.cols; j++) {
@@ -852,7 +852,7 @@ AML_DEF bool aml_is_symmetric(Mat2D m)
     return true;
 }
 
-AML_DEF void aml_LUP_decomposition_with_swap(Mat2D src, Mat2D l, Mat2D p, Mat2D u)
+AML_DEF void aml_LUP_decomposition_with_swap(Aml_Mat2D src, Aml_Mat2D l, Aml_Mat2D p, Aml_Mat2D u)
 {
     /* performing LU decomposition Following the Wikipedia page: https://en.wikipedia.org/wiki/LU_decomposition */
 
@@ -889,7 +889,7 @@ AML_DEF void aml_LUP_decomposition_with_swap(Mat2D src, Mat2D l, Mat2D p, Mat2D 
     AML_AT(l, l.rows-1, l.cols-1) = 1;
 }
 
-AML_DEF void aml_make_orthogonal_Gaussian_elimination(Mat2D des, Mat2D A)
+AML_DEF void aml_make_orthogonal_Gaussian_elimination(Aml_Mat2D des, Aml_Mat2D A)
 {
     /* https://en.wikipedia.org/wiki/Gram%E2%80%93Schmidt_process */
     /** 
@@ -901,10 +901,10 @@ AML_DEF void aml_make_orthogonal_Gaussian_elimination(Mat2D des, Mat2D A)
     AML_ASSERT(des.cols == A.cols);
     AML_ASSERT(des.rows == A.rows);
 
-    Mat2D AT = aml_alloc(A.cols, A.rows);
-    Mat2D ATA = aml_alloc(A.cols, A.cols);
-    Mat2D temp = aml_alloc(ATA.rows, ATA.cols + A.cols);
-    Mat2D temp_des = aml_alloc(des.cols, des.rows);
+    Aml_Mat2D AT = aml_alloc(A.cols, A.rows);
+    Aml_Mat2D ATA = aml_alloc(A.cols, A.cols);
+    Aml_Mat2D temp = aml_alloc(ATA.rows, ATA.cols + A.cols);
+    Aml_Mat2D temp_des = aml_alloc(des.cols, des.rows);
 
     aml_transpose(AT, A);
     aml_dot(ATA, AT, A);
@@ -927,7 +927,7 @@ AML_DEF void aml_make_orthogonal_Gaussian_elimination(Mat2D des, Mat2D A)
     aml_free(temp_des);
 }
 
-AML_DEF void aml_make_orthogonal_modified_Gram_Schmidt(Mat2D des, Mat2D A)
+AML_DEF void aml_make_orthogonal_modified_Gram_Schmidt(Aml_Mat2D des, Aml_Mat2D A)
 {
     /* https://en.wikipedia.org/wiki/Gram%E2%80%93Schmidt_process */
     AML_ASSERT(des.rows == A.rows);
@@ -942,7 +942,7 @@ AML_DEF void aml_make_orthogonal_modified_Gram_Schmidt(Mat2D des, Mat2D A)
 
     aml_rand(des, 1, 2);
 
-    Mat2D temp_col = aml_alloc(des.rows, 1);
+    Aml_Mat2D temp_col = aml_alloc(des.rows, 1);
     size_t out_c = 0;
     for (size_t c = 0; c < A.cols; c++) {
         if (!AML_IS_ZERO(aml_calc_col_norma(A, c))) {
@@ -951,11 +951,11 @@ AML_DEF void aml_make_orthogonal_modified_Gram_Schmidt(Mat2D des, Mat2D A)
         }
     }
     for (size_t c = 0; c < des.cols-1; c++) {
-        Mat2D vc = aml_create_col_ref(des, c);
+        Aml_Mat2D vc = aml_create_col_ref(des, c);
         aml_real vc_vc = aml_inner_product(vc);
         for (size_t k = c+1; k < des.cols; k++) {
             aml_copy(temp_col, vc);
-            Mat2D vk = aml_create_col_ref(des, k);
+            Aml_Mat2D vk = aml_create_col_ref(des, k);
             aml_real vk_vc = aml_dot_product(vc, vk);
             aml_mult(temp_col, vk_vc / vc_vc);
             aml_sub(vk, temp_col);
@@ -964,7 +964,7 @@ AML_DEF void aml_make_orthogonal_modified_Gram_Schmidt(Mat2D des, Mat2D A)
             aml_normalize(vc);
         }
     }
-    Mat2D vc = aml_create_col_ref(des, des.cols-1);
+    Aml_Mat2D vc = aml_create_col_ref(des, des.cols-1);
     if (!AML_IS_ZERO(aml_calc_norma(vc))) {
         aml_normalize(vc);
     }
@@ -973,7 +973,7 @@ AML_DEF void aml_make_orthogonal_modified_Gram_Schmidt(Mat2D des, Mat2D A)
     aml_free(temp_col);    
 }
 
-AML_DEF bool aml_mat_is_all_digit(Mat2D m, aml_real digit)
+AML_DEF bool aml_mat_is_all_digit(Aml_Mat2D m, aml_real digit)
 {
     for (size_t i = 0; i < m.rows; ++i) {
         for (size_t j = 0; j < m.cols; ++j) {
@@ -985,11 +985,11 @@ AML_DEF bool aml_mat_is_all_digit(Mat2D m, aml_real digit)
     return true;
 }
 
-AML_DEF Mat2D_Minor aml_minor_alloc_fill_from_mat(Mat2D ref_mat, size_t i, size_t j)
+AML_DEF Aml_Mat2D_Minor aml_minor_alloc_fill_from_mat(Aml_Mat2D ref_mat, size_t i, size_t j)
 {
     AML_ASSERT(ref_mat.cols == ref_mat.rows && "minor is defined only for square matrix");
 
-    Mat2D_Minor mm;
+    Aml_Mat2D_Minor mm;
     mm.cols = ref_mat.cols-1;
     mm.rows = ref_mat.rows-1;
     mm.stride_r = ref_mat.cols-1;
@@ -1015,11 +1015,11 @@ AML_DEF Mat2D_Minor aml_minor_alloc_fill_from_mat(Mat2D ref_mat, size_t i, size_
     return mm;
 }
 
-AML_DEF Mat2D_Minor aml_minor_alloc_fill_from_mat_minor(Mat2D_Minor ref_mm, size_t i, size_t j)
+AML_DEF Aml_Mat2D_Minor aml_minor_alloc_fill_from_mat_minor(Aml_Mat2D_Minor ref_mm, size_t i, size_t j)
 {
     AML_ASSERT(ref_mm.cols == ref_mm.rows && "minor is defined only for square matrix");
 
-    Mat2D_Minor mm;
+    Aml_Mat2D_Minor mm;
     mm.cols = ref_mm.cols-1;
     mm.rows = ref_mm.rows-1;
     mm.stride_r = ref_mm.cols-1;
@@ -1045,7 +1045,7 @@ AML_DEF Mat2D_Minor aml_minor_alloc_fill_from_mat_minor(Mat2D_Minor ref_mm, size
     return mm;
 }
 
-AML_DEF aml_real aml_minor_det(Mat2D_Minor mm)
+AML_DEF aml_real aml_minor_det(Aml_Mat2D_Minor mm)
 {
     AML_ASSERT(mm.cols == mm.rows && "should be a square matrix");
 
@@ -1053,7 +1053,7 @@ AML_DEF aml_real aml_minor_det(Mat2D_Minor mm)
     /* TODO: finding beast row or col? */
     for (size_t i = 0, j = 0; i < mm.rows; i++) { /* first column */
         if (aml_fabs(AML_MINOR_AT(mm, i, j)) < 1e-10) continue;
-        Mat2D_Minor sub_mm = aml_minor_alloc_fill_from_mat_minor(mm, i, j);
+        Aml_Mat2D_Minor sub_mm = aml_minor_alloc_fill_from_mat_minor(mm, i, j);
         int factor = (i+j)%2 ? -1 : 1;
         if (sub_mm.cols != 2) {
             AML_ASSERT(sub_mm.cols == sub_mm.rows && "should be a square matrix");
@@ -1066,13 +1066,13 @@ AML_DEF aml_real aml_minor_det(Mat2D_Minor mm)
     return det;
 }
 
-AML_DEF void aml_minor_free(Mat2D_Minor mm)
+AML_DEF void aml_minor_free(Aml_Mat2D_Minor mm)
 {
     AML_FREE(mm.cols_list);
     AML_FREE(mm.rows_list);
 }
 
-AML_DEF void aml_minor_print(Mat2D_Minor mm, const char *name, size_t padding)
+AML_DEF void aml_minor_print(Aml_Mat2D_Minor mm, const char *name, size_t padding)
 {
     printf("%*s%s = [\n", (int) padding, "", name);
     for (size_t i = 0; i < mm.rows; ++i) {
@@ -1085,7 +1085,7 @@ AML_DEF void aml_minor_print(Mat2D_Minor mm, const char *name, size_t padding)
     printf("%*s]\n", (int) padding, "");
 }
 
-AML_DEF void aml_mult(Mat2D m, aml_real factor)
+AML_DEF void aml_mult(Aml_Mat2D m, aml_real factor)
 {
     for (size_t i = 0; i < m.rows; ++i) {
         for (size_t j = 0; j < m.cols; ++j) {
@@ -1094,14 +1094,14 @@ AML_DEF void aml_mult(Mat2D m, aml_real factor)
     }
 }
 
-AML_DEF void aml_mult_row(Mat2D m, size_t r, aml_real factor)
+AML_DEF void aml_mult_row(Aml_Mat2D m, size_t r, aml_real factor)
 {
     for (size_t j = 0; j < m.cols; ++j) {
         AML_AT(m, r, j) *= factor;
     }
 }
 
-AML_DEF void aml_normalize(Mat2D m)
+AML_DEF void aml_normalize(Aml_Mat2D m)
 {
     aml_real norma = aml_calc_norma(m);
     if (AML_IS_ZERO(norma)) {
@@ -1111,7 +1111,7 @@ AML_DEF void aml_normalize(Mat2D m)
     aml_mult(m, (aml_real)1 / norma);
 }
 
-AML_DEF void aml_normalize_inf(Mat2D m)
+AML_DEF void aml_normalize_inf(Aml_Mat2D m)
 {
     aml_real norma = aml_calc_norma_inf(m);
     if (AML_IS_ZERO(norma)) {
@@ -1121,19 +1121,19 @@ AML_DEF void aml_normalize_inf(Mat2D m)
     aml_mult(m, (aml_real)1 / norma);
 }
 
-AML_DEF size_t aml_offset2d(Mat2D m, size_t i, size_t j)
+AML_DEF size_t aml_offset2d(Aml_Mat2D m, size_t i, size_t j)
 {
     AML_ASSERT(i < m.rows && j < m.cols);
     return i * m.stride_r + j;
 }
 
-AML_DEF size_t aml_offset2d_uint32(Mat2D_uint32 m, size_t i, size_t j)
+AML_DEF size_t aml_offset2d_uint32(Aml_Mat2D_uint32 m, size_t i, size_t j)
 {
     AML_ASSERT(i < m.rows && j < m.cols);
     return i * m.stride_r + j;
 }
 
-AML_DEF void aml_outer_product(Mat2D des, Mat2D v)
+AML_DEF void aml_outer_product(Aml_Mat2D des, Aml_Mat2D v)
 {
     AML_ASSERT(des.cols == des.rows);
     AML_ASSERT((1 == v.cols && des.rows == v.rows) || (1 == v.rows && des.cols == v.cols));
@@ -1153,7 +1153,7 @@ AML_DEF void aml_outer_product(Mat2D des, Mat2D v)
     }
 }
 
-AML_DEF int aml_power_iterate(Mat2D A, Mat2D v, aml_real *lambda, aml_real shift, bool norm_inf_v)
+AML_DEF int aml_power_iterate(Aml_Mat2D A, Aml_Mat2D v, aml_real *lambda, aml_real shift, bool norm_inf_v)
 {
     /* https://www.youtube.com/watch?v=SkPusgctgpI */
 
@@ -1167,9 +1167,9 @@ AML_DEF int aml_power_iterate(Mat2D A, Mat2D v, aml_real *lambda, aml_real shift
     AML_ASSERT(v.rows == A.rows);
     AML_ASSERT(aml_calc_norma_inf(v) > 0);
 
-    Mat2D current_v = aml_alloc(v.rows, v.cols);
-    Mat2D temp_v = aml_alloc(v.rows, v.cols);
-    Mat2D B = aml_alloc(A.rows, A.cols);
+    Aml_Mat2D current_v = aml_alloc(v.rows, v.cols);
+    Aml_Mat2D temp_v = aml_alloc(v.rows, v.cols);
+    Aml_Mat2D B = aml_alloc(A.rows, A.cols);
     aml_copy(B, A);
     aml_shift(B, shift * -(aml_real)1);
 
@@ -1216,7 +1216,7 @@ AML_DEF int aml_power_iterate(Mat2D A, Mat2D v, aml_real *lambda, aml_real shift
     }
 }
 
-AML_DEF void aml_print(Mat2D m, const char *name, size_t padding)
+AML_DEF void aml_print(Aml_Mat2D m, const char *name, size_t padding)
 {
     printf("%*s%s = [\n", (int) padding, "", name);
     for (size_t i = 0; i < m.rows; ++i) {
@@ -1229,7 +1229,7 @@ AML_DEF void aml_print(Mat2D m, const char *name, size_t padding)
     printf("%*s]\n", (int) padding, "");
 }
 
-AML_DEF void aml_print_uint32(Mat2D_uint32 m, const char *name, size_t padding)
+AML_DEF void aml_print_uint32(Aml_Mat2D_uint32 m, const char *name, size_t padding)
 {
     printf("%*s%s = [\n", (int) padding, "", name);
     for (size_t i = 0; i < m.rows; ++i) {
@@ -1242,7 +1242,7 @@ AML_DEF void aml_print_uint32(Mat2D_uint32 m, const char *name, size_t padding)
     printf("%*s]\n", (int) padding, "");
 }
 
-AML_DEF void aml_print_as_col(Mat2D m, const char *name, size_t padding)
+AML_DEF void aml_print_as_col(Aml_Mat2D m, const char *name, size_t padding)
 {
     printf("%*s%s = [\n", (int) padding, "", name);
     for (size_t i = 0; i < m.rows*m.cols; ++i) {
@@ -1252,16 +1252,16 @@ AML_DEF void aml_print_as_col(Mat2D m, const char *name, size_t padding)
     printf("%*s]\n", (int) padding, "");
 }
 
-AML_DEF void aml_project_out_columns(Mat2D v, Mat2D basis, size_t used_cols)
+AML_DEF void aml_project_out_columns(Aml_Mat2D v, Aml_Mat2D basis, size_t used_cols)
 {
     /* Gram-Schmidt */
     AML_ASSERT(v.cols == 1);
     AML_ASSERT(basis.rows == v.rows);
 
-    Mat2D temp = aml_alloc(v.rows, 1);
+    Aml_Mat2D temp = aml_alloc(v.rows, 1);
 
     for (size_t c = 0; c < used_cols; ++c) {
-        Mat2D bc = aml_create_col_ref(basis, c);
+        Aml_Mat2D bc = aml_create_col_ref(basis, c);
         aml_real alpha = aml_dot_product(v, bc);
         aml_copy(temp, bc);
         aml_mult(temp, alpha);
@@ -1271,7 +1271,7 @@ AML_DEF void aml_project_out_columns(Mat2D v, Mat2D basis, size_t used_cols)
     aml_free(temp);
 }
 
-AML_DEF void aml_QR_householder_factorization(Mat2D Q, Mat2D R, Mat2D src)
+AML_DEF void aml_QR_householder_factorization(Aml_Mat2D Q, Aml_Mat2D R, Aml_Mat2D src)
 {
     AML_ASSERT(Q.cols == Q.rows);
     AML_ASSERT(R.rows == src.rows);
@@ -1281,19 +1281,19 @@ AML_DEF void aml_QR_householder_factorization(Mat2D Q, Mat2D R, Mat2D src)
     AML_ASSERT(src.rows > 0);
     AML_ASSERT(src.cols > 0);
 
-    Mat2D vector = aml_alloc(src.rows, 1);
-    Mat2D house  = aml_alloc(Q.rows, Q.cols);
-    Mat2D prev_Q = aml_alloc(Q.rows, Q.cols);
-    Mat2D prev_R = aml_alloc(R.rows, R.cols);
+    Aml_Mat2D vector = aml_alloc(src.rows, 1);
+    Aml_Mat2D house  = aml_alloc(Q.rows, Q.cols);
+    Aml_Mat2D prev_Q = aml_alloc(Q.rows, Q.cols);
+    Aml_Mat2D prev_R = aml_alloc(R.rows, R.cols);
 
     aml_set_identity(prev_Q);
     aml_copy(prev_R, src);
     aml_set_identity(Q);
     aml_copy(R, src);
 
-    Mat2D col = {.cols = 1};
-    Mat2D temp_col = {.cols = 1};
-    Mat2D temp_h = {0};
+    Aml_Mat2D col = {.cols = 1};
+    Aml_Mat2D temp_col = {.cols = 1};
+    Aml_Mat2D temp_h = {0};
     
     for (size_t i = 0; i < aml_min(src.rows-1, src.cols); i++) {
         col.rows = prev_R.rows - i;
@@ -1329,7 +1329,7 @@ AML_DEF void aml_QR_householder_factorization(Mat2D Q, Mat2D R, Mat2D src)
     aml_free(prev_R);
 }
 
-AML_DEF void aml_QR_householder_factorization_fast(Mat2D Q, Mat2D R, Mat2D src)
+AML_DEF void aml_QR_householder_factorization_fast(Aml_Mat2D Q, Aml_Mat2D R, Aml_Mat2D src)
 {
     AML_ASSERT(Q.rows == Q.cols);
     AML_ASSERT(R.rows == src.rows);
@@ -1339,18 +1339,18 @@ AML_DEF void aml_QR_householder_factorization_fast(Mat2D Q, Mat2D R, Mat2D src)
     aml_copy(R, src);
     aml_set_identity(Q);
 
-    Mat2D vbuf = aml_alloc(src.rows, 1);
+    Aml_Mat2D vbuf = aml_alloc(src.rows, 1);
 
     size_t steps = aml_min(src.rows - 1, src.cols);
     for (size_t k = 0; k < steps; ++k) {
-        Mat2D x = {
+        Aml_Mat2D x = {
             .rows = R.rows - k,
             .cols = 1,
             .stride_r = R.stride_r,
             .elements = &AML_AT(R, k, k),
         };
 
-        Mat2D v = {
+        Aml_Mat2D v = {
             .rows = vbuf.rows - k,
             .cols = 1,
             .stride_r = vbuf.stride_r,
@@ -1370,7 +1370,7 @@ AML_DEF void aml_QR_householder_factorization_fast(Mat2D Q, Mat2D R, Mat2D src)
     aml_free(vbuf);
 }
 
-AML_DEF void aml_rand(Mat2D m, aml_real low, aml_real high)
+AML_DEF void aml_rand(Aml_Mat2D m, aml_real low, aml_real high)
 {
     for (size_t i = 0; i < m.rows; ++i) {
         for (size_t j = 0; j < m.cols; ++j) {
@@ -1384,7 +1384,7 @@ AML_DEF aml_real aml_rand_aml_real(void)
     return (aml_real) rand() / (aml_real) RAND_MAX;
 }
 
-AML_DEF Mat2D aml_realloc(Mat2D m, size_t rows, size_t cols)
+AML_DEF Aml_Mat2D aml_realloc(Aml_Mat2D m, size_t rows, size_t cols)
 {
     m.rows = rows;
     m.cols = cols;
@@ -1395,7 +1395,7 @@ AML_DEF Mat2D aml_realloc(Mat2D m, size_t rows, size_t cols)
     return m;
 }
 
-AML_DEF Mat2D_uint32 aml_realloc_uint32(Mat2D_uint32 m, size_t rows, size_t cols)
+AML_DEF Aml_Mat2D_uint32 aml_realloc_uint32(Aml_Mat2D_uint32 m, size_t rows, size_t cols)
 {
     m.rows = rows;
     m.cols = cols;
@@ -1406,7 +1406,7 @@ AML_DEF Mat2D_uint32 aml_realloc_uint32(Mat2D_uint32 m, size_t rows, size_t cols
     return m;
 }
 
-AML_DEF size_t aml_reduce(Mat2D m)
+AML_DEF size_t aml_reduce(Aml_Mat2D m)
 {
     /* preforming Gauss–Jordan reduction to Reduced Row Echelon Form (RREF) */
     /* Gauss elimination: https://en.wikipedia.org/wiki/Gaussian_elimination */
@@ -1430,13 +1430,13 @@ AML_DEF size_t aml_reduce(Mat2D m)
     return rank;
 }
 
-AML_DEF void aml_rotate_mat_180_deg_inplace(Mat2D m)
+AML_DEF void aml_rotate_mat_180_deg_inplace(Aml_Mat2D m)
 {
     aml_transpose_inplace(m);
     aml_anti_diag_transpose_inplace(m);
 }
 
-AML_DEF bool aml_row_is_all_digit(Mat2D m, aml_real digit, size_t r)
+AML_DEF bool aml_row_is_all_digit(Aml_Mat2D m, aml_real digit, size_t r)
 {
     for (size_t j = 0; j < m.cols; ++j) {
         if (AML_AT(m, r, j) != digit) {
@@ -1446,15 +1446,15 @@ AML_DEF bool aml_row_is_all_digit(Mat2D m, aml_real digit, size_t r)
     return true;
 }
 
-AML_DEF void aml_set_DCM_zyx(Mat2D DCM, float yaw_deg, float pitch_deg, float roll_deg)
+AML_DEF void aml_set_DCM_zyx(Aml_Mat2D DCM, float yaw_deg, float pitch_deg, float roll_deg)
 {
-    Mat2D RotZ = aml_alloc(3,3);
+    Aml_Mat2D RotZ = aml_alloc(3,3);
     aml_set_rot_mat_z(RotZ, yaw_deg);
-    Mat2D RotY = aml_alloc(3,3);
+    Aml_Mat2D RotY = aml_alloc(3,3);
     aml_set_rot_mat_y(RotY, pitch_deg);
-    Mat2D RotX = aml_alloc(3,3);
+    Aml_Mat2D RotX = aml_alloc(3,3);
     aml_set_rot_mat_x(RotX, roll_deg);
-    Mat2D temp = aml_alloc(3,3);
+    Aml_Mat2D temp = aml_alloc(3,3);
 
     aml_dot(temp, RotY, RotZ);
     aml_dot(DCM, RotX, temp); /* I have a DCM */
@@ -1465,7 +1465,7 @@ AML_DEF void aml_set_DCM_zyx(Mat2D DCM, float yaw_deg, float pitch_deg, float ro
     aml_free(temp);
 }
 
-AML_DEF void aml_set_identity(Mat2D m)
+AML_DEF void aml_set_identity(Aml_Mat2D m)
 {
     AML_ASSERT(m.cols == m.rows);
     for (size_t i = 0; i < m.rows; ++i) {
@@ -1475,7 +1475,7 @@ AML_DEF void aml_set_identity(Mat2D m)
     }
 }
 
-AML_DEF void aml_set_rot_mat_x(Mat2D m, float angle_deg)
+AML_DEF void aml_set_rot_mat_x(Aml_Mat2D m, float angle_deg)
 {
     AML_ASSERT(3 == m.cols && 3 == m.rows);
 
@@ -1487,7 +1487,7 @@ AML_DEF void aml_set_rot_mat_x(Mat2D m, float angle_deg)
     AML_AT(m, 2, 2) =  aml_cos(angle_rad);
 }
 
-AML_DEF void aml_set_rot_mat_y(Mat2D m, float angle_deg)
+AML_DEF void aml_set_rot_mat_y(Aml_Mat2D m, float angle_deg)
 {
     AML_ASSERT(3 == m.cols && 3 == m.rows);
 
@@ -1499,7 +1499,7 @@ AML_DEF void aml_set_rot_mat_y(Mat2D m, float angle_deg)
     AML_AT(m, 2, 2) =  aml_cos(angle_rad);
 }
 
-AML_DEF void aml_set_rot_mat_z(Mat2D m, float angle_deg)
+AML_DEF void aml_set_rot_mat_z(Aml_Mat2D m, float angle_deg)
 {
     AML_ASSERT(3 == m.cols && 3 == m.rows);
 
@@ -1511,7 +1511,7 @@ AML_DEF void aml_set_rot_mat_z(Mat2D m, float angle_deg)
     AML_AT(m, 1, 1) =  aml_cos(angle_rad);
 }
 
-AML_DEF void aml_shift(Mat2D m, aml_real shift)
+AML_DEF void aml_shift(Aml_Mat2D m, aml_real shift)
 {
     AML_ASSERT(m.cols == m.rows); 
     for (size_t i = 0; i < m.rows; i++) {
@@ -1519,19 +1519,19 @@ AML_DEF void aml_shift(Mat2D m, aml_real shift)
     }
 }
 
-AML_DEF void aml_solve_linear_sys_LUP_decomposition(Mat2D A, Mat2D x, Mat2D B)
+AML_DEF void aml_solve_linear_sys_LUP_decomposition(Aml_Mat2D A, Aml_Mat2D x, Aml_Mat2D B)
 {
     AML_ASSERT(A.cols == x.rows);
     AML_ASSERT(1 == x.cols);
     AML_ASSERT(A.rows == B.rows);
     AML_ASSERT(1 == B.cols);
 
-    Mat2D y     = aml_alloc(x.rows, x.cols);
-    Mat2D l     = aml_alloc(A.rows, A.cols);
-    Mat2D p     = aml_alloc(A.rows, A.cols);
-    Mat2D u     = aml_alloc(A.rows, A.cols);
-    Mat2D inv_l = aml_alloc(l.rows, l.cols);
-    Mat2D inv_u = aml_alloc(u.rows, u.cols);
+    Aml_Mat2D y     = aml_alloc(x.rows, x.cols);
+    Aml_Mat2D l     = aml_alloc(A.rows, A.cols);
+    Aml_Mat2D p     = aml_alloc(A.rows, A.cols);
+    Aml_Mat2D u     = aml_alloc(A.rows, A.cols);
+    Aml_Mat2D inv_l = aml_alloc(l.rows, l.cols);
+    Aml_Mat2D inv_u = aml_alloc(u.rows, u.cols);
 
     aml_LUP_decomposition_with_swap(A, l, p, u);
 
@@ -1554,7 +1554,7 @@ AML_DEF void aml_solve_linear_sys_LUP_decomposition(Mat2D A, Mat2D x, Mat2D B)
     aml_free(inv_u);
 }
 
-AML_DEF void aml_sub(Mat2D dst, Mat2D a)
+AML_DEF void aml_sub(Aml_Mat2D dst, Aml_Mat2D a)
 {
     AML_ASSERT(dst.rows == a.rows);
     AML_ASSERT(dst.cols == a.cols);
@@ -1565,7 +1565,7 @@ AML_DEF void aml_sub(Mat2D dst, Mat2D a)
     }
 }
 
-AML_DEF void aml_sub_col_to_col(Mat2D des, size_t des_col, Mat2D src, size_t src_col)
+AML_DEF void aml_sub_col_to_col(Aml_Mat2D des, size_t des_col, Aml_Mat2D src, size_t src_col)
 {
     AML_ASSERT(src_col < src.cols);
     AML_ASSERT(des.rows == src.rows);
@@ -1576,7 +1576,7 @@ AML_DEF void aml_sub_col_to_col(Mat2D des, size_t des_col, Mat2D src, size_t src
     }
 }
 
-AML_DEF void aml_sub_row_to_row(Mat2D des, size_t des_row, Mat2D src, size_t src_row)
+AML_DEF void aml_sub_row_to_row(Aml_Mat2D des, size_t des_row, Aml_Mat2D src, size_t src_row)
 {
     AML_ASSERT(src_row < src.rows);
     AML_ASSERT(des.cols == src.cols);
@@ -1587,19 +1587,19 @@ AML_DEF void aml_sub_row_to_row(Mat2D des, size_t des_row, Mat2D src, size_t src
     }
 }
 
-AML_DEF void aml_sub_row_time_factor_to_row(Mat2D m, size_t des_r, size_t src_r, aml_real factor)
+AML_DEF void aml_sub_row_time_factor_to_row(Aml_Mat2D m, size_t des_r, size_t src_r, aml_real factor)
 {
     for (size_t j = 0; j < m.cols; ++j) {
         AML_AT(m, des_r, j) -= factor * AML_AT(m, src_r, j);
     }
 }
 
-AML_DEF void aml_SVD_full(Mat2D A, Mat2D U, Mat2D S, Mat2D V, Mat2D init_vec_u, Mat2D init_vec_v, bool return_v_transpose)
+AML_DEF void aml_SVD_full(Aml_Mat2D A, Aml_Mat2D U, Aml_Mat2D S, Aml_Mat2D V, Aml_Mat2D init_vec_u, Aml_Mat2D init_vec_v, bool return_v_transpose)
 {
     aml_SVD_thin(A, U, S, V, init_vec_u, init_vec_v, false);
 
-    Mat2D U_full = aml_alloc(U.rows, U.cols);
-    Mat2D V_full = aml_alloc(V.rows, V.cols);
+    Aml_Mat2D U_full = aml_alloc(U.rows, U.cols);
+    Aml_Mat2D V_full = aml_alloc(V.rows, V.cols);
 
     aml_make_orthogonal_modified_Gram_Schmidt(U_full, U);
     aml_make_orthogonal_modified_Gram_Schmidt(V_full, V);
@@ -1615,7 +1615,7 @@ AML_DEF void aml_SVD_full(Mat2D A, Mat2D U, Mat2D S, Mat2D V, Mat2D init_vec_u, 
     aml_free(V_full);
 }
 
-AML_DEF void aml_SVD_thin(Mat2D A, Mat2D U, Mat2D S, Mat2D V, Mat2D init_vec_u, Mat2D init_vec_v, bool return_v_transpose)
+AML_DEF void aml_SVD_thin(Aml_Mat2D A, Aml_Mat2D U, Aml_Mat2D S, Aml_Mat2D V, Aml_Mat2D init_vec_u, Aml_Mat2D init_vec_v, bool return_v_transpose)
 {
     /* https://www.youtube.com/watch?v=nbBvuuNVfco */
     /* https://en.wikipedia.org/wiki/Singular_value_decomposition */
@@ -1636,15 +1636,15 @@ AML_DEF void aml_SVD_thin(Mat2D A, Mat2D U, Mat2D S, Mat2D V, Mat2D init_vec_u, 
     aml_fill(S, 0);
     aml_fill(V, 0);
 
-    Mat2D AT = aml_alloc(m, n);
+    Aml_Mat2D AT = aml_alloc(m, n);
     aml_transpose(AT, A);
 
     if (n <= m) {
-        Mat2D AAT = aml_alloc(n, n);
-        Mat2D left_eigenvalues = aml_alloc(n, n);
-        Mat2D left_eigenvectors = aml_alloc(n, n);
-        Mat2D temp_u_vec = aml_alloc(n, 1);
-        Mat2D temp_v_vec = aml_alloc(m, 1);
+        Aml_Mat2D AAT = aml_alloc(n, n);
+        Aml_Mat2D left_eigenvalues = aml_alloc(n, n);
+        Aml_Mat2D left_eigenvectors = aml_alloc(n, n);
+        Aml_Mat2D temp_u_vec = aml_alloc(n, 1);
+        Aml_Mat2D temp_v_vec = aml_alloc(m, 1);
         aml_dot(AAT, A, AT);
         aml_eig_power_iteration(AAT, left_eigenvalues, left_eigenvectors, init_vec_u, 0);
         /* fill matrix sigma (S) */
@@ -1675,11 +1675,11 @@ AML_DEF void aml_SVD_thin(Mat2D A, Mat2D U, Mat2D S, Mat2D V, Mat2D init_vec_u, 
         aml_free(temp_u_vec);
         aml_free(temp_v_vec);
     } else {
-        Mat2D ATA = aml_alloc(m, m);
-        Mat2D right_eigenvalues = aml_alloc(m, m);
-        Mat2D right_eigenvectors = aml_alloc(m, m);
-        Mat2D temp_u_vec = aml_alloc(n, 1);
-        Mat2D temp_v_vec = aml_alloc(m, 1);
+        Aml_Mat2D ATA = aml_alloc(m, m);
+        Aml_Mat2D right_eigenvalues = aml_alloc(m, m);
+        Aml_Mat2D right_eigenvectors = aml_alloc(m, m);
+        Aml_Mat2D temp_u_vec = aml_alloc(n, 1);
+        Aml_Mat2D temp_v_vec = aml_alloc(m, 1);
         aml_dot(ATA, AT, A);
         aml_eig_power_iteration(ATA, right_eigenvalues, right_eigenvectors, init_vec_v, 0);
         /* fill matrix sigma (S) */
@@ -1712,7 +1712,7 @@ AML_DEF void aml_SVD_thin(Mat2D A, Mat2D U, Mat2D S, Mat2D V, Mat2D init_vec_u, 
     }
 
     if (return_v_transpose) {
-        Mat2D v_trans = aml_alloc(V.cols, V.rows);
+        Aml_Mat2D v_trans = aml_alloc(V.cols, V.rows);
         aml_transpose(v_trans, V);
         aml_copy(V, v_trans);
 
@@ -1722,7 +1722,7 @@ AML_DEF void aml_SVD_thin(Mat2D A, Mat2D U, Mat2D S, Mat2D V, Mat2D init_vec_u, 
     aml_free(AT);
 }
 
-AML_DEF void aml_swap_rows(Mat2D m, size_t r1, size_t r2)
+AML_DEF void aml_swap_rows(Aml_Mat2D m, size_t r1, size_t r2)
 {
     for (size_t j = 0; j < m.cols; j++) {
         aml_real temp = AML_AT(m, r1, j);
@@ -1731,7 +1731,7 @@ AML_DEF void aml_swap_rows(Mat2D m, size_t r1, size_t r2)
     }
 }
 
-AML_DEF void aml_transpose(Mat2D des, Mat2D src)
+AML_DEF void aml_transpose(Aml_Mat2D des, Aml_Mat2D src)
 {
     AML_ASSERT(des.cols == src.rows);
     AML_ASSERT(des.rows == src.cols);
@@ -1743,7 +1743,7 @@ AML_DEF void aml_transpose(Mat2D des, Mat2D src)
     }
 }
 
-AML_DEF void aml_transpose_inplace(Mat2D m)
+AML_DEF void aml_transpose_inplace(Aml_Mat2D m)
 {
     AML_ASSERT(m.cols == m.rows);
 
@@ -1756,7 +1756,7 @@ AML_DEF void aml_transpose_inplace(Mat2D m)
     }
 }
 
-AML_DEF aml_real aml_upper_triangulate(Mat2D m, uint8_t flags)
+AML_DEF aml_real aml_upper_triangulate(Aml_Mat2D m, uint8_t flags)
 {
     /* preforming Gauss elimination: https://en.wikipedia.org/wiki/Gaussian_elimination */
     /* returns the factor multiplying the determinant */
