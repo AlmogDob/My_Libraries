@@ -1,5 +1,6 @@
 #define ALMOG_MATRIX_LIBRARY_IMPLEMENTATION
-#include "Almog_Matrix_Library.h"
+#define ALMOG_LINEAR_ALGEBRA_IMPLEMENTATION
+#include "Almog_Linear_Algebra.h"
 
 int main(void)
 {
