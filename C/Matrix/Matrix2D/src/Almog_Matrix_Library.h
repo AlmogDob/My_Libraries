@@ -77,31 +77,19 @@ struct Aml_Mat2d_Minor {
 };
 
 #define AML_AT(m, i, j) (m).elements[(AML_ASSERT((i) < (m).rows && (j) < (m).cols), (i) * (m).stride_r + (j))]
-
 #define AML_PI 3.14159265358979323846
 #define AML_MAX_POWER_ITERATION 100
-
-
-#define AML_IS_ZERO(x) (aml_fabs(x) < AML_EPS)
-
-#define AML_MINOR_AT(mm, i, j) AML_AT((mm).ref_mat, (mm).rows_list[i], (mm).cols_list[j])
-
-#define AML_PRINT(m) aml_print(m, #m, 0)
-
-#define AML_PRINT_UINT32(m) aml_print_uint32(m, #m, 0)
-
-#define AML_PRINT_AS_COL(m) aml_print_as_col(m, #m, 0)
-
-#define AML_MINOR_PRINT(mm) aml_minor_print(mm, #mm, 0)
-
 #define aml_min(a, b) ((a) < (b) ? (a) : (b))
 #define aml_max(a, b) ((a) > (b) ? (a) : (b))
-
+#define AML_IS_ZERO(x) (aml_fabs(x) < AML_EPS)
+#define AML_MINOR_AT(mm, i, j) AML_AT((mm).ref_mat, (mm).rows_list[i], (mm).cols_list[j])
 #define aml_dprintDOUBLE(expr) printf(#expr " = %#g\n", expr)
-
 #define aml_dprintSIZE_T(expr) printf(#expr " = %zu\n", expr)
-
 #define aml_dprintINT(expr) printf(#expr " = %d\n", expr)
+#define AML_PRINT(m) aml_print(m, #m, 0)
+#define AML_PRINT_UINT32(m) aml_print_uint32(m, #m, 0)
+#define AML_PRINT_AS_COL(m) aml_print_as_col(m, #m, 0)
+#define AML_MINOR_PRINT(mm) aml_minor_print(mm, #mm, 0)
 
 enum aml_upper_triangulate_flag{
     AML_ONES_ON_DIAG = 1 << 0,
@@ -116,110 +104,110 @@ enum aml_upper_triangulate_flag{
     #endif
 #endif
 
-AML_DEF void          aml_add(struct Aml_Mat2d dst, struct Aml_Mat2d a);
-AML_DEF void          aml_add_col_to_col(struct Aml_Mat2d des, size_t des_col, struct Aml_Mat2d src, size_t src_col);
-AML_DEF void          aml_add_row_to_row(struct Aml_Mat2d des, size_t des_row, struct Aml_Mat2d src, size_t src_row);
-AML_DEF void          aml_add_row_time_factor_to_row(struct Aml_Mat2d m, size_t des_r, size_t src_r, aml_real factor);
-AML_DEF void          aml_add_scalar(struct Aml_Mat2d m, aml_real x);
-AML_DEF void          aml_anti_diag_transpose_inplace(struct Aml_Mat2d m);
-AML_DEF void          aml_apply_householder_left(struct Aml_Mat2d A, size_t row0, size_t col0, struct Aml_Mat2d v);
-AML_DEF void          aml_apply_householder_right(struct Aml_Mat2d A, size_t col0, struct Aml_Mat2d v);
-AML_DEF aml_real    aml_calc_col_norma(struct Aml_Mat2d m, size_t c);
-AML_DEF aml_real    aml_calc_norma(struct Aml_Mat2d m);
-AML_DEF aml_real    aml_calc_norma_inf(struct Aml_Mat2d m);
-AML_DEF bool          aml_col_is_all_digit(struct Aml_Mat2d m, aml_real digit, size_t c);
-AML_DEF void          aml_convolve(struct Aml_Mat2d m, struct Aml_Mat2d a, struct Aml_Mat2d b);
-AML_DEF void          aml_copy(struct Aml_Mat2d des, struct Aml_Mat2d src);
-AML_DEF void          aml_copy_uint32(struct Aml_Mat2d_uint32 des, struct Aml_Mat2d_uint32 src);
-AML_DEF void          aml_copy_col_from_src_to_des(struct Aml_Mat2d des, size_t des_col, struct Aml_Mat2d src, size_t src_col);
-AML_DEF void          aml_copy_row_from_src_to_des(struct Aml_Mat2d des, size_t des_row, struct Aml_Mat2d src, size_t src_row);
-AML_DEF void          aml_copy_src_to_des_window(struct Aml_Mat2d des, struct Aml_Mat2d src, size_t is, size_t js, size_t ie, size_t je);
-AML_DEF void          aml_copy_src_window_to_des(struct Aml_Mat2d des, struct Aml_Mat2d src, size_t is, size_t js, size_t ie, size_t je);
-AML_DEF struct Aml_Mat2d         aml_create_col_ref(struct Aml_Mat2d src, size_t c);
-AML_DEF void          aml_cross(struct Aml_Mat2d dst, struct Aml_Mat2d v1, struct Aml_Mat2d v2);
+AML_DEF void                    aml_add(struct Aml_Mat2d dst, struct Aml_Mat2d a);
+AML_DEF void                    aml_add_col_to_col(struct Aml_Mat2d des, size_t des_col, struct Aml_Mat2d src, size_t src_col);
+AML_DEF void                    aml_add_row_to_row(struct Aml_Mat2d des, size_t des_row, struct Aml_Mat2d src, size_t src_row);
+AML_DEF void                    aml_add_row_time_factor_to_row(struct Aml_Mat2d m, size_t des_r, size_t src_r, aml_real factor);
+AML_DEF void                    aml_add_scalar(struct Aml_Mat2d m, aml_real x);
+AML_DEF void                    aml_anti_diag_transpose_inplace(struct Aml_Mat2d m);
+AML_DEF void                    aml_apply_householder_left(struct Aml_Mat2d A, size_t row0, size_t col0, struct Aml_Mat2d v);
+AML_DEF void                    aml_apply_householder_right(struct Aml_Mat2d A, size_t col0, struct Aml_Mat2d v);
+AML_DEF aml_real                aml_calc_col_norma(struct Aml_Mat2d m, size_t c);
+AML_DEF aml_real                aml_calc_norma(struct Aml_Mat2d m);
+AML_DEF aml_real                aml_calc_norma_inf(struct Aml_Mat2d m);
+AML_DEF bool                    aml_col_is_all_digit(struct Aml_Mat2d m, aml_real digit, size_t c);
+AML_DEF void                    aml_convolve(struct Aml_Mat2d m, struct Aml_Mat2d a, struct Aml_Mat2d b);
+AML_DEF void                    aml_copy(struct Aml_Mat2d des, struct Aml_Mat2d src);
+AML_DEF void                    aml_copy_uint32(struct Aml_Mat2d_uint32 des, struct Aml_Mat2d_uint32 src);
+AML_DEF void                    aml_copy_col_from_src_to_des(struct Aml_Mat2d des, size_t des_col, struct Aml_Mat2d src, size_t src_col);
+AML_DEF void                    aml_copy_row_from_src_to_des(struct Aml_Mat2d des, size_t des_row, struct Aml_Mat2d src, size_t src_row);
+AML_DEF void                    aml_copy_src_to_des_window(struct Aml_Mat2d des, struct Aml_Mat2d src, size_t is, size_t js, size_t ie, size_t je);
+AML_DEF void                    aml_copy_src_window_to_des(struct Aml_Mat2d des, struct Aml_Mat2d src, size_t is, size_t js, size_t ie, size_t je);
+AML_DEF struct Aml_Mat2d        aml_create_col_ref(struct Aml_Mat2d src, size_t c);
+AML_DEF void                    aml_cross(struct Aml_Mat2d dst, struct Aml_Mat2d v1, struct Aml_Mat2d v2);
 
-AML_DEF void          aml_dot(struct Aml_Mat2d dst, struct Aml_Mat2d a, struct Aml_Mat2d b);
-AML_DEF aml_real    aml_dot_product(struct Aml_Mat2d v1, struct Aml_Mat2d v2);
-AML_DEF aml_real    aml_det(struct Aml_Mat2d m);
-AML_DEF aml_real    aml_det_2x2_mat(struct Aml_Mat2d m);
-AML_DEF aml_real    aml_det_2x2_mat_minor(struct Aml_Mat2d_Minor mm);
+AML_DEF void                    aml_dot(struct Aml_Mat2d dst, struct Aml_Mat2d a, struct Aml_Mat2d b);
+AML_DEF aml_real                aml_dot_product(struct Aml_Mat2d v1, struct Aml_Mat2d v2);
+AML_DEF aml_real                aml_det(struct Aml_Mat2d m);
+AML_DEF aml_real                aml_det_2x2_mat(struct Aml_Mat2d m);
+AML_DEF aml_real                aml_det_2x2_mat_minor(struct Aml_Mat2d_Minor mm);
 
-AML_DEF void          aml_eig_check(struct Aml_Mat2d A, struct Aml_Mat2d eigenvalues, struct Aml_Mat2d eigenvectors, struct Aml_Mat2d res);
-AML_DEF void          aml_eig_power_iteration(struct Aml_Mat2d A, struct Aml_Mat2d eigenvalues, struct Aml_Mat2d eigenvectors, struct Aml_Mat2d init_vector, bool norm_inf_vectors);
-AML_DEF aml_real    aml_elements_sum(struct Aml_Mat2d m);
+AML_DEF void                    aml_eig_check(struct Aml_Mat2d A, struct Aml_Mat2d eigenvalues, struct Aml_Mat2d eigenvectors, struct Aml_Mat2d res);
+AML_DEF void                    aml_eig_power_iteration(struct Aml_Mat2d A, struct Aml_Mat2d eigenvalues, struct Aml_Mat2d eigenvectors, struct Aml_Mat2d init_vector, bool norm_inf_vectors);
+AML_DEF aml_real                aml_elements_sum(struct Aml_Mat2d m);
 
-AML_DEF void          aml_fill(struct Aml_Mat2d m, aml_real x);
-AML_DEF void          aml_fill_sequence(struct Aml_Mat2d m, aml_real start, aml_real step);
-AML_DEF void          aml_fill_uint32(struct Aml_Mat2d_uint32 m, uint32_t x);
-AML_DEF bool          aml_find_first_non_zero_value(struct Aml_Mat2d m, size_t r, size_t *non_zero_col);
-AML_DEF void          aml_free(struct Aml_Mat2d m);
-AML_DEF void          aml_free_uint32(struct Aml_Mat2d_uint32 m);
+AML_DEF void                    aml_fill(struct Aml_Mat2d m, aml_real x);
+AML_DEF void                    aml_fill_sequence(struct Aml_Mat2d m, aml_real start, aml_real step);
+AML_DEF void                    aml_fill_uint32(struct Aml_Mat2d_uint32 m, uint32_t x);
+AML_DEF bool                    aml_find_first_non_zero_value(struct Aml_Mat2d m, size_t r, size_t *non_zero_col);
+AML_DEF void                    aml_mat2d_free(struct Aml_Mat2d m);
+AML_DEF void                    aml_mat2d_uint32_free(struct Aml_Mat2d_uint32 m);
 
-AML_DEF void          aml_householder_matrix_get(struct Aml_Mat2d des, struct Aml_Mat2d v);
-AML_DEF void          aml_householder_top_element_vector_get(struct Aml_Mat2d v_des, struct Aml_Mat2d x);
+AML_DEF void                    aml_householder_matrix_get(struct Aml_Mat2d des, struct Aml_Mat2d v);
+AML_DEF void                    aml_householder_top_element_vector_get(struct Aml_Mat2d v_des, struct Aml_Mat2d x);
 
-AML_DEF aml_real    aml_inner_product(struct Aml_Mat2d v);
-AML_DEF void          aml_invert(struct Aml_Mat2d des, struct Aml_Mat2d src);
-AML_DEF bool          aml_is_symmetric(struct Aml_Mat2d m);
+AML_DEF aml_real                aml_inner_product(struct Aml_Mat2d v);
+AML_DEF void                    aml_invert(struct Aml_Mat2d des, struct Aml_Mat2d src);
+AML_DEF bool                    aml_is_symmetric(struct Aml_Mat2d m);
 
-AML_DEF void          aml_LUP_decomposition_with_swap(struct Aml_Mat2d src, struct Aml_Mat2d l, struct Aml_Mat2d p, struct Aml_Mat2d u);
+AML_DEF void                    aml_LUP_decomposition_with_swap(struct Aml_Mat2d src, struct Aml_Mat2d l, struct Aml_Mat2d p, struct Aml_Mat2d u);
 
-AML_DEF void          aml_make_orthogonal_Gaussian_elimination(struct Aml_Mat2d des, struct Aml_Mat2d A);
-AML_DEF void          aml_make_orthogonal_modified_Gram_Schmidt(struct Aml_Mat2d des, struct Aml_Mat2d A);
-AML_DEF struct Aml_Mat2d         aml_mat2d_alloc(size_t rows, size_t cols);
-AML_DEF struct Aml_Mat2d_uint32  aml_mat2d_uint32_alloc(size_t rows, size_t cols);
-AML_DEF bool          aml_mat2d_is_all_digit(struct Aml_Mat2d m, aml_real digit);
-AML_DEF struct Aml_Mat2d_Minor   aml_minor_alloc_fill_from_mat(struct Aml_Mat2d ref_mat, size_t i, size_t j);
-AML_DEF struct Aml_Mat2d_Minor   aml_minor_alloc_fill_from_mat_minor(struct Aml_Mat2d_Minor ref_mm, size_t i, size_t j);
-AML_DEF aml_real    aml_minor_det(struct Aml_Mat2d_Minor mm);
-AML_DEF void          aml_minor_free(struct Aml_Mat2d_Minor mm);
-AML_DEF void          aml_minor_print(struct Aml_Mat2d_Minor mm, const char *name, size_t padding);
-AML_DEF void          aml_mult(struct Aml_Mat2d m, aml_real factor);
-AML_DEF void          aml_mult_row(struct Aml_Mat2d m, size_t r, aml_real factor);
+AML_DEF void                    aml_make_orthogonal_Gaussian_elimination(struct Aml_Mat2d des, struct Aml_Mat2d A);
+AML_DEF void                    aml_make_orthogonal_modified_Gram_Schmidt(struct Aml_Mat2d des, struct Aml_Mat2d A);
+AML_DEF struct Aml_Mat2d        aml_mat2d_alloc(size_t rows, size_t cols);
+AML_DEF struct Aml_Mat2d_uint32 aml_mat2d_uint32_alloc(size_t rows, size_t cols);
+AML_DEF bool                    aml_mat2d_is_all_digit(struct Aml_Mat2d m, aml_real digit);
+AML_DEF struct Aml_Mat2d_Minor  aml_minor_alloc_fill_from_mat(struct Aml_Mat2d ref_mat, size_t i, size_t j);
+AML_DEF struct Aml_Mat2d_Minor  aml_minor_alloc_fill_from_mat_minor(struct Aml_Mat2d_Minor ref_mm, size_t i, size_t j);
+AML_DEF aml_real                aml_minor_det(struct Aml_Mat2d_Minor mm);
+AML_DEF void                    aml_minor_free(struct Aml_Mat2d_Minor mm);
+AML_DEF void                    aml_minor_print(struct Aml_Mat2d_Minor mm, const char *name, size_t padding);
+AML_DEF void                    aml_mult(struct Aml_Mat2d m, aml_real factor);
+AML_DEF void                    aml_mult_row(struct Aml_Mat2d m, size_t r, aml_real factor);
 
-AML_DEF void          aml_normalize(struct Aml_Mat2d m);
-AML_DEF void          aml_normalize_inf(struct Aml_Mat2d m);
+AML_DEF void                    aml_normalize(struct Aml_Mat2d m);
+AML_DEF void                    aml_normalize_inf(struct Aml_Mat2d m);
 
-AML_DEF size_t        aml_offset2d(struct Aml_Mat2d m, size_t i, size_t j);
-AML_DEF size_t        aml_offset2d_uint32(struct Aml_Mat2d_uint32 m, size_t i, size_t j);
-AML_DEF void          aml_outer_product(struct Aml_Mat2d des, struct Aml_Mat2d v);
+AML_DEF size_t                  aml_offset2d(struct Aml_Mat2d m, size_t i, size_t j);
+AML_DEF size_t                  aml_offset2d_uint32(struct Aml_Mat2d_uint32 m, size_t i, size_t j);
+AML_DEF void                    aml_outer_product(struct Aml_Mat2d des, struct Aml_Mat2d v);
 
-AML_DEF int           aml_power_iterate(struct Aml_Mat2d A, struct Aml_Mat2d v, aml_real *lambda, aml_real shift, bool norm_inf_v);
-AML_DEF void          aml_print(struct Aml_Mat2d m, const char *name, size_t padding);
-AML_DEF void          aml_print_uint32(struct Aml_Mat2d_uint32 m, const char *name, size_t padding);
-AML_DEF void          aml_print_as_col(struct Aml_Mat2d m, const char *name, size_t padding);
-AML_DEF void          aml_project_out_columns(struct Aml_Mat2d v, struct Aml_Mat2d basis, size_t used_cols);
+AML_DEF int                     aml_power_iterate(struct Aml_Mat2d A, struct Aml_Mat2d v, aml_real *lambda, aml_real shift, bool norm_inf_v);
+AML_DEF void                    aml_print(struct Aml_Mat2d m, const char *name, size_t padding);
+AML_DEF void                    aml_print_uint32(struct Aml_Mat2d_uint32 m, const char *name, size_t padding);
+AML_DEF void                    aml_print_as_col(struct Aml_Mat2d m, const char *name, size_t padding);
+AML_DEF void                    aml_project_out_columns(struct Aml_Mat2d v, struct Aml_Mat2d basis, size_t used_cols);
 
-AML_DEF void          aml_QR_householder_factorization(struct Aml_Mat2d Q, struct Aml_Mat2d R, struct Aml_Mat2d src);
-AML_DEF void          aml_QR_householder_factorization_fast(struct Aml_Mat2d Q, struct Aml_Mat2d R, struct Aml_Mat2d src);
+AML_DEF void                    aml_QR_householder_factorization(struct Aml_Mat2d Q, struct Aml_Mat2d R, struct Aml_Mat2d src);
+AML_DEF void                    aml_QR_householder_factorization_fast(struct Aml_Mat2d Q, struct Aml_Mat2d R, struct Aml_Mat2d src);
 
-AML_DEF void          aml_rand(struct Aml_Mat2d m, aml_real low, aml_real high);
-AML_DEF aml_real    aml_rand_aml_real(void);
-AML_DEF struct Aml_Mat2d         aml_realloc(struct Aml_Mat2d m, size_t rows, size_t cols);
-AML_DEF struct Aml_Mat2d_uint32  aml_realloc_uint32(struct Aml_Mat2d_uint32 m, size_t rows, size_t cols);
-AML_DEF size_t        aml_reduce(struct Aml_Mat2d m);
-AML_DEF void          aml_rotate_mat_180_deg_inplace(struct Aml_Mat2d m);
-AML_DEF bool          aml_row_is_all_digit(struct Aml_Mat2d m, aml_real digit, size_t r);
+AML_DEF void                    aml_rand(struct Aml_Mat2d m, aml_real low, aml_real high);
+AML_DEF aml_real                aml_rand_aml_real(void);
+AML_DEF struct Aml_Mat2d        aml_realloc(struct Aml_Mat2d m, size_t rows, size_t cols);
+AML_DEF struct Aml_Mat2d_uint32 aml_realloc_uint32(struct Aml_Mat2d_uint32 m, size_t rows, size_t cols);
+AML_DEF size_t                  aml_reduce(struct Aml_Mat2d m);
+AML_DEF void                    aml_rotate_mat_180_deg_inplace(struct Aml_Mat2d m);
+AML_DEF bool                    aml_row_is_all_digit(struct Aml_Mat2d m, aml_real digit, size_t r);
 
-AML_DEF void          aml_set_DCM_zyx(struct Aml_Mat2d DCM, float yaw_deg, float pitch_deg, float roll_deg);
-AML_DEF void          aml_set_identity(struct Aml_Mat2d m);
-AML_DEF void          aml_set_rot_mat_x(struct Aml_Mat2d m, float angle_deg);
-AML_DEF void          aml_set_rot_mat_y(struct Aml_Mat2d m, float angle_deg);
-AML_DEF void          aml_set_rot_mat_z(struct Aml_Mat2d m, float angle_deg);
-AML_DEF void          aml_shift(struct Aml_Mat2d m, aml_real shift);
-AML_DEF void          aml_solve_linear_sys_LUP_decomposition(struct Aml_Mat2d A, struct Aml_Mat2d x, struct Aml_Mat2d B);
-AML_DEF void          aml_sub(struct Aml_Mat2d dst, struct Aml_Mat2d a);
-AML_DEF void          aml_sub_col_to_col(struct Aml_Mat2d des, size_t des_col, struct Aml_Mat2d src, size_t src_col);
-AML_DEF void          aml_sub_row_to_row(struct Aml_Mat2d des, size_t des_row, struct Aml_Mat2d src, size_t src_row);
-AML_DEF void          aml_sub_row_time_factor_to_row(struct Aml_Mat2d m, size_t des_r, size_t src_r, aml_real factor);
-AML_DEF void          aml_SVD_full(struct Aml_Mat2d A, struct Aml_Mat2d U, struct Aml_Mat2d S, struct Aml_Mat2d V, struct Aml_Mat2d init_vec_u, struct Aml_Mat2d init_vec_v, bool return_v_transpose);
-AML_DEF void          aml_SVD_thin(struct Aml_Mat2d A, struct Aml_Mat2d U, struct Aml_Mat2d S, struct Aml_Mat2d V, struct Aml_Mat2d init_vec_u, struct Aml_Mat2d init_vec_v, bool return_v_transpose);
-AML_DEF void          aml_swap_rows(struct Aml_Mat2d m, size_t r1, size_t r2);
+AML_DEF void                    aml_set_DCM_zyx(struct Aml_Mat2d DCM, float yaw_deg, float pitch_deg, float roll_deg);
+AML_DEF void                    aml_set_identity(struct Aml_Mat2d m);
+AML_DEF void                    aml_set_rot_mat_x(struct Aml_Mat2d m, float angle_deg);
+AML_DEF void                    aml_set_rot_mat_y(struct Aml_Mat2d m, float angle_deg);
+AML_DEF void                    aml_set_rot_mat_z(struct Aml_Mat2d m, float angle_deg);
+AML_DEF void                    aml_shift(struct Aml_Mat2d m, aml_real shift);
+AML_DEF void                    aml_solve_linear_sys_LUP_decomposition(struct Aml_Mat2d A, struct Aml_Mat2d x, struct Aml_Mat2d B);
+AML_DEF void                    aml_sub(struct Aml_Mat2d dst, struct Aml_Mat2d a);
+AML_DEF void                    aml_sub_col_to_col(struct Aml_Mat2d des, size_t des_col, struct Aml_Mat2d src, size_t src_col);
+AML_DEF void                    aml_sub_row_to_row(struct Aml_Mat2d des, size_t des_row, struct Aml_Mat2d src, size_t src_row);
+AML_DEF void                    aml_sub_row_time_factor_to_row(struct Aml_Mat2d m, size_t des_r, size_t src_r, aml_real factor);
+AML_DEF void                    aml_SVD_full(struct Aml_Mat2d A, struct Aml_Mat2d U, struct Aml_Mat2d S, struct Aml_Mat2d V, struct Aml_Mat2d init_vec_u, struct Aml_Mat2d init_vec_v, bool return_v_transpose);
+AML_DEF void                    aml_SVD_thin(struct Aml_Mat2d A, struct Aml_Mat2d U, struct Aml_Mat2d S, struct Aml_Mat2d V, struct Aml_Mat2d init_vec_u, struct Aml_Mat2d init_vec_v, bool return_v_transpose);
+AML_DEF void                    aml_swap_rows(struct Aml_Mat2d m, size_t r1, size_t r2);
 
-AML_DEF void          aml_transpose(struct Aml_Mat2d des, struct Aml_Mat2d src);
-AML_DEF void          aml_transpose_inplace(struct Aml_Mat2d m);
+AML_DEF void                    aml_transpose(struct Aml_Mat2d des, struct Aml_Mat2d src);
+AML_DEF void                    aml_transpose_inplace(struct Aml_Mat2d m);
 
-AML_DEF aml_real    aml_upper_triangulate(struct Aml_Mat2d m, uint8_t flags);
+AML_DEF aml_real                aml_upper_triangulate(struct Aml_Mat2d m, uint8_t flags);
 
 #endif // ALMOG_MATRIX_LIBRARY_H_
 
@@ -561,7 +549,7 @@ AML_DEF aml_real aml_det(struct Aml_Mat2d m)
     for (size_t i = 0; i < temp_m.rows; i++) {
         diag_mul *= AML_AT(temp_m, i, i);
     }
-    aml_free(temp_m);
+    aml_mat2d_free(temp_m);
 
     return diag_mul / factor;
 }
@@ -594,7 +582,7 @@ AML_DEF void aml_eig_check(struct Aml_Mat2d A, struct Aml_Mat2d eigenvalues, str
 
     aml_sub(res, VL);
 
-    aml_free(VL);
+    aml_mat2d_free(VL);
 }
 
 /**
@@ -680,8 +668,8 @@ void aml_eig_power_iteration(struct Aml_Mat2d A, struct Aml_Mat2d eigenvalues, s
         }
     }
 
-    aml_free(B);
-    aml_free(temp_mat);
+    aml_mat2d_free(B);
+    aml_mat2d_free(temp_mat);
 }
 
 AML_DEF aml_real aml_elements_sum(struct Aml_Mat2d m)
@@ -733,12 +721,12 @@ AML_DEF bool aml_find_first_non_zero_value(struct Aml_Mat2d m, size_t r, size_t 
     return false;
 }
 
-AML_DEF void aml_free(struct Aml_Mat2d m)
+AML_DEF void aml_mat2d_free(struct Aml_Mat2d m)
 {
     AML_FREE(m.elements);
 }
 
-AML_DEF void aml_free_uint32(struct Aml_Mat2d_uint32 m)
+AML_DEF void aml_mat2d_uint32_free(struct Aml_Mat2d_uint32 m)
 {
     AML_FREE(m.elements);
 }
