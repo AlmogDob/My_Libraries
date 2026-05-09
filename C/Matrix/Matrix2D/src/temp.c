@@ -14,8 +14,8 @@ int main(void)
 
     // AML_PRINT(A);
 
-    // aml_QR_householder_factorization(Q, R, A);
-    aml_QR_householder_factorization_fast(Q, R, A);
+    // ala_QR_householder_factorization(Q, R, A);
+    ala_QR_householder_factorization_fast(Q, R, A);
 
     aml_dot(temp, Q, R);
 
