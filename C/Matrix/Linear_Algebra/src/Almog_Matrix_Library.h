@@ -74,9 +74,81 @@ struct Aml_Mat2d_uint32 {
 #define aml_max(a, b) ((a) > (b) ? (a) : (b))
 #define AML_IS_ZERO(x) (aml_fabs(x) < AML_EPS)
 #define AML_MINOR_AT(mm, i, j) AML_MAT2D_AT((mm).ref_mat, (mm).rows_list[i], (mm).cols_list[j])
-#define aml_dprintDOUBLE(expr) printf(#expr " = %#g\n", expr)
-#define aml_dprintSIZE_T(expr) printf(#expr " = %zu\n", expr)
-#define aml_dprintINT(expr) printf(#expr " = %d\n", expr)
+/**
+ * @name Debug-print helpers
+ * @brief Convenience macros for diagnostic output.
+ *
+ * The typed variants print to stdout. The INFO/WARNING/ERROR variants print to
+ * stderr and include file, line, and function information.
+ */
+#define aml_dprintSTRING(expr) printf("[Info] %s:%d:\n" #expr " = %s\n", __FILE__, __LINE__, expr)
+/**
+ * @name Debug-print helpers
+ * @brief Convenience macros for diagnostic output.
+ *
+ * The typed variants print to stdout. The INFO/WARNING/ERROR variants print to
+ * stderr and include file, line, and function information.
+ */
+#define aml_dprintCHAR(expr) printf("[Info] %s:%d:\n" #expr " = %c\n", __FILE__, __LINE__, expr)
+/**
+ * @name Debug-print helpers
+ * @brief Convenience macros for diagnostic output.
+ *
+ * The typed variants print to stdout. The INFO/WARNING/ERROR variants print to
+ * stderr and include file, line, and function information.
+ */
+#define aml_dprintINT(expr) printf("[Info] %s:%d:\n" #expr " = %d\n", __FILE__, __LINE__, expr)
+/**
+ * @name Debug-print helpers
+ * @brief Convenience macros for diagnostic output.
+ *
+ * The typed variants print to stdout. The INFO/WARNING/ERROR variants print to
+ * stderr and include file, line, and function information.
+ */
+#define aml_dprintFLOAT(expr) printf("[Info] %s:%d:\n" #expr " = %#g\n", __FILE__, __LINE__, expr)
+/**
+ * @name Debug-print helpers
+ * @brief Convenience macros for diagnostic output.
+ *
+ * The typed variants print to stdout. The INFO/WARNING/ERROR variants print to
+ * stderr and include file, line, and function information.
+ */
+#define aml_dprintDOUBLE(expr) printf("[Info] %s:%d:\n" #expr " = %#g\n", __FILE__, __LINE__, expr)
+/**
+ * @name Debug-print helpers
+ * @brief Convenience macros for diagnostic output.
+ *
+ * The typed variants print to stdout. The INFO/WARNING/ERROR variants print to
+ * stderr and include file, line, and function information.
+ */
+#define aml_dprintSIZE_T(expr) printf("[Info] %s:%d:\n" #expr " = %zu\n", __FILE__, __LINE__, expr)
+/**
+ * @name Debug-print helpers
+ * @brief Convenience macros for diagnostic output.
+ *
+ * The typed variants print to stdout. The INFO/WARNING/ERROR variants print to
+ * stderr and include file, line, and function information.
+ */
+#define aml_dprintINFO(fmt, ...) \
+    fprintf(stderr, "[Info] %s:%d:\n%*sIn function '%s':\n%*s" fmt "\n", __FILE__, __LINE__, 7, "", __func__, 7, "", __VA_ARGS__)
+/**
+ * @name Debug-print helpers
+ * @brief Convenience macros for diagnostic output.
+ *
+ * The typed variants print to stdout. The INFO/WARNING/ERROR variants print to
+ * stderr and include file, line, and function information.
+ */
+#define aml_dprintWARNING(fmt, ...) \
+    fprintf(stderr, "[Warning] %s:%d:\n%*sIn function '%s':\n%*s" fmt "\n", __FILE__, __LINE__, 10, "", __func__, 10, "", __VA_ARGS__)
+/**
+ * @name Debug-print helpers
+ * @brief Convenience macros for diagnostic output.
+ *
+ * The typed variants print to stdout. The INFO/WARNING/ERROR variants print to
+ * stderr and include file, line, and function information.
+ */
+#define aml_dprintERROR(fmt, ...) \
+    fprintf(stderr, "[Error] %s:%d:\n%*sIn function '%s':\n%*s" fmt "\n", __FILE__, __LINE__, 8, "", __func__, 8, "", __VA_ARGS__)
 #define AML_PRINT(m) aml_print(m, #m, 0)
 #define AML_PRINT_UINT32(m) aml_print_uint32(m, #m, 0)
 #define AML_PRINT_AS_COL(m) aml_print_as_col(m, #m, 0)
@@ -657,6 +729,7 @@ AML_DEF aml_real aml_rand_aml_real(void)
 
 AML_DEF void aml_set_rand_symmetric(struct Aml_Mat2d m, aml_real low, aml_real high)
 {
+    AML_ASSERT(m.rows == m.cols);
     for (size_t i = 0; i < m.rows; i++) {
         for (size_t j = 0; j < m.cols; j++) {
             aml_real temp = aml_rand_aml_real() * (high - low) + low;
