@@ -4,10 +4,10 @@
 int main(void)
 {
     size_t n = 40, m = 60;
-    Aml_Mat2d A = aml_alloc(n, m);
-    Aml_Mat2d Q = aml_alloc(n, n);
-    Aml_Mat2d R = aml_alloc(n, m);
-    Aml_Mat2d temp = aml_alloc(n, m);
+    struct Aml_Mat2d A = aml_mat2d_alloc(n, m);
+    struct Aml_Mat2d Q = aml_mat2d_alloc(n, n);
+    struct Aml_Mat2d R = aml_mat2d_alloc(n, m);
+    struct Aml_Mat2d temp = aml_mat2d_alloc(n, m);
 
     aml_fill_sequence(A, 0, 1);
 
