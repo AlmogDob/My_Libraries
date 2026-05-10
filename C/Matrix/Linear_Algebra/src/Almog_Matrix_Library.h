@@ -40,9 +40,10 @@
     #define aml_cos   cosf
     #define aml_exp   expf
     #define aml_ceil  ceilf
+    #define aml_hypot hypotf
 #else 
     typedef double aml_real;
-    #define AML_EPS 1e-15
+    #define AML_EPS 1e-10
     #define aml_fmin  fmin
     #define aml_fmax  fmax
     #define aml_fabs  fabs
@@ -51,6 +52,7 @@
     #define aml_cos   cos
     #define aml_exp   exp
     #define aml_ceil  ceil
+    #define aml_hypot hypot
 #endif
 
 struct Aml_Mat2d {
@@ -197,7 +199,10 @@ AML_DEF void                    aml_fill_uint32(struct Aml_Mat2d_uint32 m, uint3
 
 AML_DEF aml_real                aml_inner_product(struct Aml_Mat2d v);
 AML_DEF bool                    aml_is_symmetric(struct Aml_Mat2d m);
+AML_DEF bool                    aml_is_tridiagonal(struct Aml_Mat2d m);
 
+AML_DEF void                    aml_make_symmetric(struct Aml_Mat2d m);
+AML_DEF void                    aml_make_tridiagonal(struct Aml_Mat2d m);
 AML_DEF struct Aml_Mat2d        aml_mat2d_alloc(size_t rows, size_t cols);
 AML_DEF void                    aml_mat2d_free(struct Aml_Mat2d m);
 AML_DEF void                    aml_mat2d_uint32_free(struct Aml_Mat2d_uint32 m);
@@ -217,9 +222,7 @@ AML_DEF void                    aml_print(struct Aml_Mat2d m, const char *name, 
 AML_DEF void                    aml_print_uint32(struct Aml_Mat2d_uint32 m, const char *name, size_t padding);
 AML_DEF void                    aml_print_as_col(struct Aml_Mat2d m, const char *name, size_t padding);
 
-AML_DEF void                    aml_set_rand(struct Aml_Mat2d m, aml_real low, aml_real high);
 AML_DEF aml_real                aml_rand_aml_real(void);
-AML_DEF void                    aml_set_rand_symmetric(struct Aml_Mat2d m, aml_real low, aml_real high);
 AML_DEF struct Aml_Mat2d        aml_realloc(struct Aml_Mat2d m, size_t rows, size_t cols);
 AML_DEF struct Aml_Mat2d_uint32 aml_realloc_uint32(struct Aml_Mat2d_uint32 m, size_t rows, size_t cols);
 AML_DEF void                    aml_rotate_mat_180_deg_inplace(struct Aml_Mat2d m);
@@ -228,6 +231,8 @@ AML_DEF bool                    aml_row_is_all_the_same(struct Aml_Mat2d m, aml_
 
 AML_DEF void                    aml_set_DCM_zyx(struct Aml_Mat2d DCM, float yaw_deg, float pitch_deg, float roll_deg);
 AML_DEF void                    aml_set_identity(struct Aml_Mat2d m);
+AML_DEF void                    aml_set_rand(struct Aml_Mat2d m, aml_real low, aml_real high);
+AML_DEF void                    aml_set_rand_symmetric(struct Aml_Mat2d m, aml_real low, aml_real high);
 AML_DEF void                    aml_set_rot_mat_x(struct Aml_Mat2d m, float angle_deg);
 AML_DEF void                    aml_set_rot_mat_y(struct Aml_Mat2d m, float angle_deg);
 AML_DEF void                    aml_set_rot_mat_z(struct Aml_Mat2d m, float angle_deg);
@@ -563,6 +568,47 @@ AML_DEF bool aml_is_symmetric(struct Aml_Mat2d m)
     return true;
 }
 
+AML_DEF bool aml_is_tridiagonal(struct Aml_Mat2d m)
+{
+    AML_ASSERT(m.rows == m.cols);
+
+    for (size_t i = 0; i < m.rows; i++) {
+        for (size_t j = 0; j < m.cols; j++) {
+            if (i == j || i + 1 == j || j + 1 == i) continue;
+
+            if (!AML_IS_ZERO(AML_MAT2D_AT(m, i, j))) return false;
+        }
+    }
+
+    return true;
+}
+
+AML_DEF void aml_make_symmetric(struct Aml_Mat2d m)
+{
+    AML_ASSERT(m.rows == m.cols);
+    for (size_t i = 0; i < m.rows; ++i) {
+        for (size_t j = i + 1; j < m.cols; ++j) {
+            aml_real aij = AML_MAT2D_AT(m, i, j);
+            aml_real aji = AML_MAT2D_AT(m, j, i);
+            aml_real v = ((aml_real)0.5) * (aij + aji);
+            AML_MAT2D_AT(m, i, j) = v;
+            AML_MAT2D_AT(m, j, i) = v;
+        }
+    }
+}
+
+AML_DEF void aml_make_tridiagonal(struct Aml_Mat2d m) 
+{
+    AML_ASSERT(m.rows == m.cols);
+    for (size_t i = 0; i < m.rows; ++i) {
+        for (size_t j = 0; j < m.cols; ++j) {
+            if (i + 1 < j || j + 1 < i) {
+                AML_MAT2D_AT(m, i, j) = 0;
+            }
+        }
+    }
+}
+
 AML_DEF struct Aml_Mat2d aml_mat2d_alloc(size_t rows, size_t cols)
 {
     struct Aml_Mat2d m;
@@ -683,7 +729,7 @@ AML_DEF void aml_print(struct Aml_Mat2d m, const char *name, size_t padding)
     for (size_t i = 0; i < m.rows; ++i) {
         printf("%*s    ", (int) padding, "");
         for (size_t j = 0; j < m.cols; ++j) {
-            printf("%9.6f ", AML_MAT2D_AT(m, i, j));
+            printf("%9.6g ", AML_MAT2D_AT(m, i, j));
         }
         printf("\n");
     }
@@ -713,30 +759,9 @@ AML_DEF void aml_print_as_col(struct Aml_Mat2d m, const char *name, size_t paddi
     printf("%*s]\n", (int) padding, "");
 }
 
-AML_DEF void aml_set_rand(struct Aml_Mat2d m, aml_real low, aml_real high)
-{
-    for (size_t i = 0; i < m.rows; ++i) {
-        for (size_t j = 0; j < m.cols; ++j) {
-            AML_MAT2D_AT(m, i, j) = aml_rand_aml_real()*(high - low) + low;
-        }
-    }
-}
-
 AML_DEF aml_real aml_rand_aml_real(void)
 {
     return (aml_real) rand() / (aml_real) RAND_MAX;
-}
-
-AML_DEF void aml_set_rand_symmetric(struct Aml_Mat2d m, aml_real low, aml_real high)
-{
-    AML_ASSERT(m.rows == m.cols);
-    for (size_t i = 0; i < m.rows; i++) {
-        for (size_t j = 0; j < m.cols; j++) {
-            aml_real temp = aml_rand_aml_real() * (high - low) + low;
-            AML_MAT2D_AT(m, i, j) = temp;
-            AML_MAT2D_AT(m, j, i) = temp;
-        }
-    }
 }
 
 AML_DEF struct Aml_Mat2d aml_realloc(struct Aml_Mat2d m, size_t rows, size_t cols)
@@ -813,6 +838,27 @@ AML_DEF void aml_set_identity(struct Aml_Mat2d m)
     for (size_t i = 0; i < m.rows; ++i) {
         for (size_t j = 0; j < m.cols; ++j) {
             AML_MAT2D_AT(m, i, j) = i == j ? (aml_real)1 : (aml_real)0;
+        }
+    }
+}
+
+AML_DEF void aml_set_rand(struct Aml_Mat2d m, aml_real low, aml_real high)
+{
+    for (size_t i = 0; i < m.rows; ++i) {
+        for (size_t j = 0; j < m.cols; ++j) {
+            AML_MAT2D_AT(m, i, j) = aml_rand_aml_real()*(high - low) + low;
+        }
+    }
+}
+
+AML_DEF void aml_set_rand_symmetric(struct Aml_Mat2d m, aml_real low, aml_real high)
+{
+    AML_ASSERT(m.rows == m.cols);
+    for (size_t i = 0; i < m.rows; i++) {
+        for (size_t j = 0; j < m.cols; j++) {
+            aml_real temp = aml_rand_aml_real() * (high - low) + low;
+            AML_MAT2D_AT(m, i, j) = temp;
+            AML_MAT2D_AT(m, j, i) = temp;
         }
     }
 }

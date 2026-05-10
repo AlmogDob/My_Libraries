@@ -16,8 +16,11 @@
     #endif
 #endif
 
-#define ALA_EIG_QR_MAX_ITERATIONS 115500
+#define ALA_SYMMETRIC_EIG_QR_MAX_ITERATIONS 10000
+#define ALA_SYMMETRIC_TRIDIAGONAL_EIG_QR_MAX_ITERATIONS 100000
 
+ALA_DEF void        ala_apply_givens_left(struct Aml_Mat2d A, size_t i, size_t k0, aml_real c, aml_real s);
+ALA_DEF void        ala_apply_givens_right(struct Aml_Mat2d A, size_t j, size_t k0, aml_real c, aml_real s);
 ALA_DEF void        ala_apply_householder_left(struct Aml_Mat2d A, size_t row0, size_t col0, struct Aml_Mat2d v);
 ALA_DEF void        ala_apply_householder_right(struct Aml_Mat2d A, size_t col0, struct Aml_Mat2d v);
 
@@ -26,8 +29,10 @@ ALA_DEF void        ala_convolve(struct Aml_Mat2d m, struct Aml_Mat2d a, struct 
 ALA_DEF aml_real    ala_det(struct Aml_Mat2d m);
 ALA_DEF aml_real    ala_det_2x2_mat(struct Aml_Mat2d m);
 
-ALA_DEF void        ala_eig_check(struct Aml_Mat2d A, struct Aml_Mat2d eigenvalues, struct Aml_Mat2d eigenvectors, struct Aml_Mat2d res);
+ALA_DEF bool        ala_eig_check(struct Aml_Mat2d A, struct Aml_Mat2d eigenvalues, struct Aml_Mat2d eigenvectors, struct Aml_Mat2d res);
 ALA_DEF void        ala_eig_power_iteration(struct Aml_Mat2d A, struct Aml_Mat2d eigenvalues, struct Aml_Mat2d eigenvectors, struct Aml_Mat2d init_vector, bool norm_inf_vectors);
+
+ALA_DEF aml_real    ala_givens_rotations_get_c_and_s(aml_real a11, aml_real a21, aml_real *c, aml_real *s);
 
 ALA_DEF void        ala_householder_matrix_get(struct Aml_Mat2d des, struct Aml_Mat2d v);
 ALA_DEF void        ala_householder_top_element_vector_get(struct Aml_Mat2d v_des, struct Aml_Mat2d x);
@@ -50,8 +55,11 @@ ALA_DEF size_t      ala_reduce(struct Aml_Mat2d m);
 ALA_DEF void        ala_solve_linear_sys_LUP_decomposition(struct Aml_Mat2d A, struct Aml_Mat2d x, struct Aml_Mat2d B);
 ALA_DEF void        ala_SVD_full(struct Aml_Mat2d A, struct Aml_Mat2d U, struct Aml_Mat2d S, struct Aml_Mat2d V, struct Aml_Mat2d init_vec_u, struct Aml_Mat2d init_vec_v, bool return_v_transpose);
 ALA_DEF void        ala_SVD_thin(struct Aml_Mat2d A, struct Aml_Mat2d U, struct Aml_Mat2d S, struct Aml_Mat2d V, struct Aml_Mat2d init_vec_u, struct Aml_Mat2d init_vec_v, bool return_v_transpose);
-ALA_DEF void        ala_symmetric_eig_QR(struct Aml_Mat2d A, struct Aml_Mat2d eigenvalues, struct Aml_Mat2d eigenvectors);
+ALA_DEF void        ala_symmetric_eig_QR_shift(struct Aml_Mat2d A, struct Aml_Mat2d eigenvalues, struct Aml_Mat2d eigenvectors);
+ALA_DEF void        ala_symmetric_eig_QR_tridiagonalize(struct Aml_Mat2d A, struct Aml_Mat2d eigenvalues, struct Aml_Mat2d eigenvectors);
 ALA_DEF void        ala_symmetric_tridiagonalize_householder(struct Aml_Mat2d Q, struct Aml_Mat2d T, struct Aml_Mat2d src);
+ALA_DEF void        ala_symmetric_tridiagonal_eig_QR_shift(struct Aml_Mat2d A, struct Aml_Mat2d eigenvalues, struct Aml_Mat2d eigenvectors);
+ALA_DEF void        ala_symmetric_tridiagonal_QR(struct Aml_Mat2d Q, struct Aml_Mat2d R, struct Aml_Mat2d src);
 
 ALA_DEF aml_real    ala_upper_triangulate(struct Aml_Mat2d m, uint8_t flags);
 
@@ -59,6 +67,34 @@ ALA_DEF aml_real    ala_upper_triangulate(struct Aml_Mat2d m, uint8_t flags);
 
 #ifdef ALMOG_LINEAR_ALGEBRA_IMPLEMENTATION
 #undef ALMOG_LINEAR_ALGEBRA_IMPLEMENTATION
+
+ALA_DEF void ala_apply_givens_left(struct Aml_Mat2d A, size_t i, size_t k0, aml_real c, aml_real s)
+{
+    ALA_ASSERT(i + 1 < A.rows);
+    ALA_ASSERT(k0 < A.cols || A.cols == 0);
+
+    for (size_t j = k0; j < A.cols; ++j) {
+        aml_real x = AML_MAT2D_AT(A, i, j);
+        aml_real y = AML_MAT2D_AT(A, i + 1, j);
+
+        AML_MAT2D_AT(A, i, j)     = c * x + s * y;
+        AML_MAT2D_AT(A, i + 1, j) = -s * x + c * y;
+    }
+}
+
+ALA_DEF void ala_apply_givens_right(struct Aml_Mat2d A, size_t j, size_t k0, aml_real c, aml_real s)
+{
+    ALA_ASSERT(j + 1 < A.cols);
+    ALA_ASSERT(k0 < A.rows || A.rows == 0);
+
+    for (size_t i = k0; i < A.rows; ++i) {
+        aml_real x = AML_MAT2D_AT(A, i, j);
+        aml_real y = AML_MAT2D_AT(A, i, j + 1);
+
+        AML_MAT2D_AT(A, i, j)     = c * x + s * y;
+        AML_MAT2D_AT(A, i, j + 1) = -s * x + c * y;
+    }
+}
 
 ALA_DEF void ala_apply_householder_left(struct Aml_Mat2d A, size_t row0, size_t col0, struct Aml_Mat2d v)
 {
@@ -159,7 +195,7 @@ ALA_DEF aml_real ala_det_2x2_mat(struct Aml_Mat2d m)
     return AML_MAT2D_AT(m, 0, 0) * AML_MAT2D_AT(m, 1, 1) - AML_MAT2D_AT(m, 0, 1) * AML_MAT2D_AT(m, 1, 0);
 }
 
-ALA_DEF void ala_eig_check(struct Aml_Mat2d A, struct Aml_Mat2d eigenvalues, struct Aml_Mat2d eigenvectors, struct Aml_Mat2d res)
+ALA_DEF bool ala_eig_check(struct Aml_Mat2d A, struct Aml_Mat2d eigenvalues, struct Aml_Mat2d eigenvectors, struct Aml_Mat2d res)
 {
     ALA_ASSERT(A.cols == A.rows); 
     ALA_ASSERT(eigenvalues.cols == A.cols);
@@ -175,7 +211,18 @@ ALA_DEF void ala_eig_check(struct Aml_Mat2d A, struct Aml_Mat2d eigenvalues, str
 
     aml_sub(res, VL);
 
+    for (size_t i = 0; i < res.rows; i++) {
+        for (size_t j = 0; j < res.cols; j++) {
+            if (!AML_IS_ZERO(AML_MAT2D_AT(res, i, j))) {
+                aml_dprintDOUBLE(AML_MAT2D_AT(res, i ,j));
+                aml_mat2d_free(VL);
+                return false;
+            }
+        }
+    }
+
     aml_mat2d_free(VL);
+    return true;
 }
 
 ALA_DEF void ala_eig_power_iteration(struct Aml_Mat2d A, struct Aml_Mat2d eigenvalues, struct Aml_Mat2d eigenvectors, struct Aml_Mat2d init_vector, bool norm_inf_vectors)
@@ -238,6 +285,20 @@ ALA_DEF void ala_eig_power_iteration(struct Aml_Mat2d A, struct Aml_Mat2d eigenv
 
     aml_mat2d_free(B);
     aml_mat2d_free(temp_mat);
+}
+
+ALA_DEF aml_real ala_givens_rotations_get_c_and_s(aml_real a11, aml_real a21, aml_real *c, aml_real *s)
+{
+    if (AML_IS_ZERO(a21)) {
+        if (c) *c = (aml_real)1;
+        if (s) *s = (aml_real)0;
+        return a11;
+    }
+
+    aml_real r = aml_hypot(a11, a21);
+    if (c) *c = a11 / r;
+    if (s) *s = a21 / r;
+    return r;
 }
 
 ALA_DEF void ala_householder_matrix_get(struct Aml_Mat2d des, struct Aml_Mat2d v)
@@ -783,8 +844,11 @@ ALA_DEF void ala_SVD_thin(struct Aml_Mat2d A, struct Aml_Mat2d U, struct Aml_Mat
     aml_mat2d_free(AT);
 }
 
-ALA_DEF void ala_symmetric_eig_QR(struct Aml_Mat2d A, struct Aml_Mat2d eigenvalues, struct Aml_Mat2d eigenvectors)
+ALA_DEF void ala_symmetric_eig_QR_shift(struct Aml_Mat2d A, struct Aml_Mat2d eigenvalues, struct Aml_Mat2d eigenvectors)
 {
+    /**
+     * https://youtu.be/HIxSCrFX1Ls?list=PLfNiIduhuYeBfgM2kuZCofXxWHx_bkAr1
+     */
     ALA_ASSERT(aml_is_symmetric(A));
     ALA_ASSERT(A.cols == A.rows); 
     ALA_ASSERT(eigenvalues.cols == A.cols);
@@ -799,12 +863,11 @@ ALA_DEF void ala_symmetric_eig_QR(struct Aml_Mat2d A, struct Aml_Mat2d eigenvalu
     aml_set_identity(eigenvectors);
 
     bool converged = true;
-    for (size_t i = 0, n = A.rows; i < ALA_EIG_QR_MAX_ITERATIONS; i++) {
-        converged = true;
+    for (size_t i = 0, n = A.rows; i < ALA_SYMMETRIC_EIG_QR_MAX_ITERATIONS; i++) {
+        converged = false;
         aml_real mu = AML_MAT2D_AT(eigenvalues, n - 1, n - 1);
 
         aml_shift(eigenvalues, -mu);
-
         ala_QR_householder_factorization_fast(Q, R, eigenvalues);
         aml_dot(eigenvalues, R, Q);
         aml_shift(eigenvalues, mu);
@@ -812,10 +875,13 @@ ALA_DEF void ala_symmetric_eig_QR(struct Aml_Mat2d A, struct Aml_Mat2d eigenvalu
         aml_copy(R, eigenvectors);
         aml_dot(eigenvectors, R, Q);
 
-        for (size_t conv_index = 1; conv_index < eigenvalues.rows; conv_index++) {
-            if (!AML_IS_ZERO(AML_MAT2D_AT(eigenvalues, conv_index, conv_index - 1))) {
-                converged = false;
-                break;
+        if (!(i % 50)) {
+            converged = true;
+            for (size_t conv_index = 1; conv_index < eigenvalues.rows; conv_index++) {
+                if (!AML_IS_ZERO(AML_MAT2D_AT(eigenvalues, conv_index, conv_index - 1))) {
+                    converged = false;
+                    break;
+                }
             }
         }
 
@@ -826,11 +892,36 @@ ALA_DEF void ala_symmetric_eig_QR(struct Aml_Mat2d A, struct Aml_Mat2d eigenvalu
     }
 
     if (!converged) {
-        aml_dprintWARNING("Did not converged after %d iterations.", ALA_EIG_QR_MAX_ITERATIONS);
+        aml_dprintWARNING("Did not converged after %d iterations.", ALA_SYMMETRIC_EIG_QR_MAX_ITERATIONS);
     }
 
     aml_mat2d_free(Q);
     aml_mat2d_free(R);
+}
+
+ALA_DEF void ala_symmetric_eig_QR_tridiagonalize(struct Aml_Mat2d A, struct Aml_Mat2d eigenvalues, struct Aml_Mat2d eigenvectors)
+{
+    ALA_ASSERT(aml_is_symmetric(A));
+    ALA_ASSERT(A.cols == A.rows); 
+    ALA_ASSERT(eigenvalues.cols == A.cols);
+    ALA_ASSERT(eigenvalues.rows == A.rows);
+    ALA_ASSERT(eigenvectors.cols == A.cols);
+    ALA_ASSERT(eigenvectors.rows == A.rows);
+
+    struct Aml_Mat2d Q = aml_mat2d_alloc(A.rows, A.cols);
+    struct Aml_Mat2d T = aml_mat2d_alloc(A.rows, A.cols);
+    struct Aml_Mat2d semi_eigenvectors = aml_mat2d_alloc(A.rows, A.cols);
+
+    ala_symmetric_tridiagonalize_householder(Q, T, A);
+    aml_dprintINFO("%s", "made tridiagonal");
+
+    ala_symmetric_tridiagonal_eig_QR_shift(T, eigenvalues, semi_eigenvectors);
+
+    aml_dot(eigenvectors, Q, semi_eigenvectors);
+
+    aml_mat2d_free(Q);
+    aml_mat2d_free(T);
+    aml_mat2d_free(semi_eigenvectors);
 }
 
 ALA_DEF void ala_symmetric_tridiagonalize_householder(struct Aml_Mat2d Q, struct Aml_Mat2d T, struct Aml_Mat2d src)
@@ -887,6 +978,104 @@ ALA_DEF void ala_symmetric_tridiagonalize_householder(struct Aml_Mat2d Q, struct
 
     aml_mat2d_free(vbuf);
 
+}
+
+ALA_DEF void ala_symmetric_tridiagonal_eig_QR_shift(struct Aml_Mat2d A, struct Aml_Mat2d eigenvalues, struct Aml_Mat2d eigenvectors)
+{
+
+    ALA_ASSERT(aml_is_symmetric(A));
+    ALA_ASSERT(aml_is_tridiagonal(A));
+    ALA_ASSERT(A.cols == A.rows); 
+    ALA_ASSERT(eigenvalues.cols == A.cols);
+    ALA_ASSERT(eigenvalues.rows == A.rows);
+    ALA_ASSERT(eigenvectors.cols == A.cols);
+    ALA_ASSERT(eigenvectors.rows == A.rows);
+
+    struct Aml_Mat2d Q = aml_mat2d_alloc(A.rows, A.cols);
+    struct Aml_Mat2d R = aml_mat2d_alloc(A.rows, A.cols);
+    
+    aml_copy(eigenvalues, A);
+    aml_set_identity(eigenvectors);
+
+    bool converged = true;
+    for (size_t i = 0, n = A.rows; i < ALA_SYMMETRIC_TRIDIAGONAL_EIG_QR_MAX_ITERATIONS; i++) {
+        // aml_dprintSIZE_T(i);
+        converged = false;
+        aml_real mu = AML_MAT2D_AT(eigenvalues, n - 1, n - 1);
+
+        aml_shift(eigenvalues, -mu);
+        ala_symmetric_tridiagonal_QR(Q, R, eigenvalues);
+        aml_dot(eigenvalues, R, Q);
+        aml_shift(eigenvalues, mu);
+
+        aml_make_symmetric(eigenvalues);
+        aml_make_tridiagonal(eigenvalues);
+        
+        aml_copy(R, eigenvectors);
+        aml_dot(eigenvectors, R, Q);
+
+        if (!(i % 50)) {
+            converged = true;
+            for (size_t conv_index = 1; conv_index < eigenvalues.rows; conv_index++) {
+                if (!AML_IS_ZERO(AML_MAT2D_AT(eigenvalues, conv_index, conv_index - 1))) {
+                    converged = false;
+                    break;
+                }
+            }
+        }
+
+        if (converged) {
+            aml_dprintINFO("converged on iteration %zu", i);
+            break;
+        }
+    }
+
+    if (!converged) {
+        aml_dprintWARNING("Did not converged after %d iterations.", ALA_SYMMETRIC_TRIDIAGONAL_EIG_QR_MAX_ITERATIONS);
+    }
+
+    aml_mat2d_free(Q);
+    aml_mat2d_free(R);
+}
+
+ALA_DEF void ala_symmetric_tridiagonal_QR(struct Aml_Mat2d Q, struct Aml_Mat2d R, struct Aml_Mat2d src)
+{
+    /**
+     * https://youtu.be/_IgDCL7OPdU?list=PLfNiIduhuYeBfgM2kuZCofXxWHx_bkAr1
+     */
+
+    ALA_ASSERT(aml_is_symmetric(src));
+    ALA_ASSERT(aml_is_tridiagonal(src));
+    ALA_ASSERT(Q.rows == Q.cols);
+    ALA_ASSERT(R.rows == src.rows);
+    ALA_ASSERT(R.cols == src.cols);
+    ALA_ASSERT(Q.rows == src.rows);
+
+    aml_copy(R, src);
+    aml_set_identity(Q);
+
+    size_t n = src.rows;
+    if (n <= 1) {
+        return;
+    }
+
+    for (size_t k = 0; k < n - 1; ++k) {
+        aml_real a11 = AML_MAT2D_AT(R, k, k);
+        aml_real a21 = AML_MAT2D_AT(R, k + 1, k);
+
+        if (AML_IS_ZERO(a21)) {
+            continue;
+        }
+
+        aml_real c = 0;
+        aml_real s = 0;
+        ala_givens_rotations_get_c_and_s(a11, a21, &c, &s);
+
+        ala_apply_givens_left(R, k, k, c, s);
+        AML_MAT2D_AT(R, k + 1, k) = 0;
+
+        ala_apply_givens_right(Q, k, 0, c, s);
+    }
 }
 
 ALA_DEF aml_real ala_upper_triangulate(struct Aml_Mat2d m, uint8_t flags)
