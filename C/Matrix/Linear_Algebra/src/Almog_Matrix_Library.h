@@ -729,7 +729,8 @@ AML_DEF void aml_print(struct Aml_Mat2d m, const char *name, size_t padding)
     for (size_t i = 0; i < m.rows; ++i) {
         printf("%*s    ", (int) padding, "");
         for (size_t j = 0; j < m.cols; ++j) {
-            printf("%9.6g ", AML_MAT2D_AT(m, i, j));
+            printf("%9.3g ", AML_MAT2D_AT(m, i, j));
+            // printf("%9.6f ", AML_MAT2D_AT(m, i, j));
         }
         printf("\n");
     }
