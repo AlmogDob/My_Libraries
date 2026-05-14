@@ -198,6 +198,7 @@ AML_DEF void                    aml_fill_sequence(struct Aml_Mat2d m, aml_real s
 AML_DEF void                    aml_fill_uint32(struct Aml_Mat2d_uint32 m, uint32_t x);
 
 AML_DEF aml_real                aml_inner_product(struct Aml_Mat2d v);
+AML_DEF bool                    aml_is_diagonal(struct Aml_Mat2d m);
 AML_DEF bool                    aml_is_symmetric(struct Aml_Mat2d m);
 AML_DEF bool                    aml_is_tridiagonal(struct Aml_Mat2d m);
 
@@ -237,6 +238,7 @@ AML_DEF void                    aml_set_rot_mat_x(struct Aml_Mat2d m, float angl
 AML_DEF void                    aml_set_rot_mat_y(struct Aml_Mat2d m, float angle_deg);
 AML_DEF void                    aml_set_rot_mat_z(struct Aml_Mat2d m, float angle_deg);
 AML_DEF void                    aml_shift(struct Aml_Mat2d m, aml_real shift);
+AML_DEF void                    aml_shift_specific(struct Aml_Mat2d m, aml_real shift, size_t is, size_t ie);
 AML_DEF void                    aml_sub(struct Aml_Mat2d dst, struct Aml_Mat2d a);
 AML_DEF void                    aml_sub_col_to_col(struct Aml_Mat2d des, size_t des_col, struct Aml_Mat2d src, size_t src_col);
 AML_DEF void                    aml_sub_row_to_row(struct Aml_Mat2d des, size_t des_row, struct Aml_Mat2d src, size_t src_row);
@@ -551,6 +553,22 @@ AML_DEF aml_real aml_inner_product(struct Aml_Mat2d v)
     }
     
     return dot_product;
+}
+
+AML_DEF bool aml_is_diagonal(struct Aml_Mat2d m)
+{
+    AML_ASSERT(m.rows == m.cols);
+
+    for (size_t i = 0; i < m.rows; i++) {
+        for (size_t j = 0; j < m.cols; j++) {
+            if (i == j) continue;
+            if (!AML_IS_ZERO(AML_MAT2D_AT(m, i, j))) {
+                return false;
+            }
+        }
+    }
+
+    return true;
 }
 
 AML_DEF bool aml_is_symmetric(struct Aml_Mat2d m)
@@ -905,6 +923,14 @@ AML_DEF void aml_shift(struct Aml_Mat2d m, aml_real shift)
 {
     AML_ASSERT(m.cols == m.rows); 
     for (size_t i = 0; i < m.rows; i++) {
+        AML_MAT2D_AT(m, i, i) += shift;
+    }
+}
+
+AML_DEF void aml_shift_specific(struct Aml_Mat2d m, aml_real shift, size_t is, size_t ie)
+{
+    AML_ASSERT(m.cols == m.rows); 
+    for (size_t i = is; i <= ie; i++) {
         AML_MAT2D_AT(m, i, i) += shift;
     }
 }

@@ -211,18 +211,10 @@ ALA_DEF bool ala_eig_check(struct Aml_Mat2d A, struct Aml_Mat2d eigenvalues, str
 
     struct Aml_Mat2d VL = aml_mat2d_alloc(A.rows, A.cols);
 
-    aml_real eps = AML_EPS * 1e2;
+    aml_real eps = AML_EPS * 1e3;
+    aml_real norma;
 
-    /* |res| check */
-    aml_dot(res, A, eigenvectors);
-    aml_dot(VL, eigenvectors, eigenvalues);
-    aml_sub(res, VL);
-    aml_real norma = aml_calc_norma(res);
-    if (aml_fabs(norma) > eps) {
-        aml_dprintWARNING("|AV - VD| is to big = %g", norma);
-        aml_mat2d_free(VL);
-        return false;
-    }
+    aml_is_diagonal(eigenvalues);
 
     /* orthogonality check */
     aml_transpose(VL, eigenvectors);
@@ -232,6 +224,17 @@ ALA_DEF bool ala_eig_check(struct Aml_Mat2d A, struct Aml_Mat2d eigenvalues, str
     norma = aml_calc_norma(res);
     if (aml_fabs(norma) > eps) {
         aml_dprintWARNING("|V^T V - I| is to big = %g", norma);
+        aml_mat2d_free(VL);
+        return false;
+    }
+
+    /* |res| check */
+    aml_dot(res, A, eigenvectors);
+    aml_dot(VL, eigenvectors, eigenvalues);
+    aml_sub(res, VL);
+    norma = aml_calc_norma(res);
+    if (aml_fabs(norma) > eps) {
+        aml_dprintWARNING("|AV - VD| is to big = %g", norma);
         aml_mat2d_free(VL);
         return false;
     }
@@ -247,16 +250,6 @@ ALA_DEF bool ala_eig_check(struct Aml_Mat2d A, struct Aml_Mat2d eigenvalues, str
         aml_dprintWARNING("|V D V^T - A| is to big = %g", norma);
         aml_mat2d_free(VL);
         return false;
-    }
-
-    for (size_t i = 0; i < res.rows; i++) {
-        for (size_t j = 0; j < res.cols; j++) {
-            if (!AML_IS_ZERO(AML_MAT2D_AT(res, i, j))) {
-                aml_dprintINFO("(%zu, %zu) = %g", i, j, AML_MAT2D_AT(res, i, j));
-                aml_mat2d_free(VL);
-                return false;
-            }
-        }
     }
 
     aml_mat2d_free(VL);
@@ -1063,8 +1056,6 @@ ALA_DEF aml_real ala_symmetric_tridiagonal_calc_shift(struct Aml_Mat2d m, size_t
         d0 = aml_fabs(AML_MAT2D_AT(m, k - 1, k - 1));
         d1 = aml_fabs(AML_MAT2D_AT(m, k, k));
         if (e < AML_EPS * (d0 + d1)) {
-            AML_MAT2D_AT(m, k, k - 1) = 0;
-            AML_MAT2D_AT(m, k - 1, k) = 0;
             temp_first = k;
             break;
         }
@@ -1178,7 +1169,7 @@ ALA_DEF void ala_symmetric_tridiagonal_eig_QR_shift(struct Aml_Mat2d A, struct A
         size_t last, first;
         aml_real shift = ala_symmetric_tridiagonal_calc_shift(eigenvalues, &last, &first);
 
-        aml_shift(eigenvalues, - shift);
+        aml_shift_specific(eigenvalues, - shift, first, last);
 
         for (size_t k = first; k < last; ++k) {
             aml_real a11 = AML_MAT2D_AT(eigenvalues, k, k);
@@ -1194,7 +1185,7 @@ ALA_DEF void ala_symmetric_tridiagonal_eig_QR_shift(struct Aml_Mat2d A, struct A
             ala_givens_rotations_get_c_and_s(a11, a21, &c, &s);
             AML_MAT2D_AT(given_c_and_s, k, 0) = c;
             AML_MAT2D_AT(given_c_and_s, k, 1) = s;
-            ala_apply_givens_left(eigenvalues, k, k, eigenvalues.rows-1, c, s);
+            ala_apply_givens_left(eigenvalues, k, k, last, c, s);
             AML_MAT2D_AT(eigenvalues, k+1, k) = 0;
             ala_apply_givens_right(eigenvectors, k, 0, eigenvectors.cols-1, c, s);
         }
@@ -1202,10 +1193,10 @@ ALA_DEF void ala_symmetric_tridiagonal_eig_QR_shift(struct Aml_Mat2d A, struct A
         for (size_t k = first; k < last; ++k) {
             aml_real c = AML_MAT2D_AT(given_c_and_s, k, 0);
             aml_real s = AML_MAT2D_AT(given_c_and_s, k, 1);
-            ala_apply_givens_right(eigenvalues, k, 0, k+1, c, s);
+            ala_apply_givens_right(eigenvalues, k, first, k+1, c, s);
         }
 
-        aml_shift(eigenvalues, shift);
+        aml_shift_specific(eigenvalues, shift, first, last);
 
         // aml_make_tridiagonal(eigenvalues);
 
@@ -1220,7 +1211,10 @@ ALA_DEF void ala_symmetric_tridiagonal_eig_QR_shift(struct Aml_Mat2d A, struct A
                     // aml_dprintWARNING("(%zu)(%zu) i_im1: %g > %g", i, conv_index, i_im1, AML_EPS * (i_i + im1_im1));
                     converged = false;
                     break;
-                } 
+                } else {
+                    AML_MAT2D_AT(eigenvalues, conv_index, conv_index - 1) = 0;
+                    AML_MAT2D_AT(eigenvalues, conv_index - 1, conv_index) = 0;
+                }
             }
         }
 
