@@ -560,6 +560,7 @@ AML_DEF bool aml_is_symmetric(struct Aml_Mat2d m)
     for (size_t i = 0; i < m.rows; i++) {
         for (size_t j = 0; j < m.cols; j++) {
             if (!AML_IS_ZERO(AML_MAT2D_AT(m, i, j) - AML_MAT2D_AT(m, j , i))) {
+                aml_dprintERROR("Not symmetric!. (%zu, %zu): %g != (%zu, %zu): %g", i, j, AML_MAT2D_AT(m, i, j), j, i, AML_MAT2D_AT(m, j, i));
                 return false;
             }
         }
