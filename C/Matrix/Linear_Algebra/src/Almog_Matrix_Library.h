@@ -76,6 +76,7 @@ struct Aml_Mat2d_uint32 {
 #define aml_max(a, b) ((a) > (b) ? (a) : (b))
 #define AML_IS_ZERO(x) (aml_fabs(x) < AML_EPS)
 #define AML_MINOR_AT(mm, i, j) AML_MAT2D_AT((mm).ref_mat, (mm).rows_list[i], (mm).cols_list[j])
+#define AML_UNUSED(x) (void)x
 /**
  * @name Debug-print helpers
  * @brief Convenience macros for diagnostic output.
@@ -423,6 +424,11 @@ AML_DEF void aml_copy_src_to_des_window(struct Aml_Mat2d des, struct Aml_Mat2d s
             AML_MAT2D_AT(des, is+index, js+jndex) = AML_MAT2D_AT(src, index, jndex);
         }
     }
+
+    AML_UNUSED(is);
+    AML_UNUSED(js);
+    AML_UNUSED(ie);
+    AML_UNUSED(je);
 }
 
 AML_DEF void aml_copy_src_window_to_des(struct Aml_Mat2d des, struct Aml_Mat2d src, size_t is, size_t js, size_t ie, size_t je)
@@ -438,6 +444,11 @@ AML_DEF void aml_copy_src_window_to_des(struct Aml_Mat2d des, struct Aml_Mat2d s
             AML_MAT2D_AT(des, index, jndex) = AML_MAT2D_AT(src, is+index, js+jndex);
         }
     }
+
+    AML_UNUSED(is);
+    AML_UNUSED(js);
+    AML_UNUSED(ie);
+    AML_UNUSED(je);
 }
 
 AML_DEF struct Aml_Mat2d aml_create_col_ref(struct Aml_Mat2d src, size_t c)

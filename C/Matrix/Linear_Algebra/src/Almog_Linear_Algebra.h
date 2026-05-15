@@ -17,7 +17,7 @@
 #endif
 
 #define ALA_SYMMETRIC_EIG_QR_MAX_ITERATIONS 10000
-#define ALA_SYMMETRIC_TRIDIAGONAL_EIG_QR_MAX_ITERATIONS 500000
+#define ALA_SYMMETRIC_TRIDIAGONAL_EIG_QR_MAX_ITERATIONS 50000
 
 ALA_DEF void        ala_apply_givens_left(struct Aml_Mat2d A, size_t i, size_t js, size_t je, aml_real c, aml_real s);
 ALA_DEF void        ala_apply_givens_right(struct Aml_Mat2d A, size_t j, size_t is, size_t ie, aml_real c, aml_real s);
@@ -58,7 +58,8 @@ ALA_DEF void        ala_SVD_thin(struct Aml_Mat2d A, struct Aml_Mat2d U, struct 
 ALA_DEF void        ala_symmetric_eig_QR_shift(struct Aml_Mat2d A, struct Aml_Mat2d eigenvalues, struct Aml_Mat2d eigenvectors);
 ALA_DEF void        ala_symmetric_eig_QR_tridiagonalize(struct Aml_Mat2d A, struct Aml_Mat2d eigenvalues, struct Aml_Mat2d eigenvectors);
 ALA_DEF void        ala_symmetric_tridiagonalize_householder(struct Aml_Mat2d Q, struct Aml_Mat2d T, struct Aml_Mat2d src);
-ALA_DEF aml_real    ala_symmetric_tridiagonal_calc_shift(struct Aml_Mat2d m, size_t *last, size_t *first);
+ALA_DEF aml_real    ala_symmetric_tridiagonal_calc_shift(struct Aml_Mat2d m, size_t last);
+ALA_DEF bool        ala_symmetric_tridiagonal_deflate_tail(struct Aml_Mat2d m, size_t *first, size_t *last);
 ALA_DEF void        ala_symmetric_tridiagonal_eig_QR(struct Aml_Mat2d A, struct Aml_Mat2d eigenvalues, struct Aml_Mat2d eigenvectors);
 ALA_DEF void        ala_symmetric_tridiagonal_eig_QR_shift(struct Aml_Mat2d A, struct Aml_Mat2d eigenvalues, struct Aml_Mat2d eigenvectors);
 ALA_DEF void        ala_symmetric_tridiagonal_eig_QR_implicit_shift(struct Aml_Mat2d A, struct Aml_Mat2d eigenvalues, struct Aml_Mat2d eigenvectors);
@@ -1016,54 +1017,70 @@ ALA_DEF void ala_symmetric_tridiagonalize_householder(struct Aml_Mat2d Q, struct
 
 }
 
-ALA_DEF aml_real ala_symmetric_tridiagonal_calc_shift(struct Aml_Mat2d m, size_t *last, size_t *first)
+ALA_DEF aml_real ala_symmetric_tridiagonal_calc_shift(struct Aml_Mat2d m, size_t last)
 {
     ALA_ASSERT(aml_is_symmetric(m));
     ALA_ASSERT(aml_is_tridiagonal(m));
     ALA_ASSERT(m.cols == m.rows); 
     ALA_ASSERT(m.rows > 0); 
 
-    size_t temp_last = m.rows - 1;
     aml_real e, d0, d1;
-    while (temp_last > 0) {
-        e  = aml_fabs(AML_MAT2D_AT(m, temp_last - 1, temp_last));
-        d0 = aml_fabs(AML_MAT2D_AT(m, temp_last - 1, temp_last - 1));
-        d1 = aml_fabs(AML_MAT2D_AT(m, temp_last, temp_last));
-        if (e < AML_EPS * (d0 + d1)) {
-            temp_last--;
-        } else {
-            break;
-        }
-    }
 
-    if (temp_last == 0) {
-        return AML_MAT2D_AT(m, 0, 0);
-    }
-
-    e  = AML_MAT2D_AT(m, temp_last - 1, temp_last);
-    d0 = AML_MAT2D_AT(m, temp_last - 1, temp_last - 1);
-    d1 = AML_MAT2D_AT(m, temp_last, temp_last);
+    e  = AML_MAT2D_AT(m, last - 1, last);
+    d0 = AML_MAT2D_AT(m, last - 1, last - 1);
+    d1 = AML_MAT2D_AT(m, last, last);
 
     aml_real delta = (d0 - d1) * (aml_real)0.5;
     aml_real sign = delta >= 0 ? 1 : -1;
     aml_real shift = d1 - sign * e * e / (aml_fabs(delta) + aml_hypot(delta, e));
 
-    if (last) *last = temp_last;
+    return shift;
+}
 
-    size_t temp_first = 0;
-    for (size_t k = temp_last; k > 0; --k) {
-        e  = aml_fabs(AML_MAT2D_AT(m, k, k - 1));
-        d0 = aml_fabs(AML_MAT2D_AT(m, k - 1, k - 1));
-        d1 = aml_fabs(AML_MAT2D_AT(m, k, k));
-        if (e < AML_EPS * (d0 + d1)) {
-            temp_first = k;
+ALA_DEF bool ala_symmetric_tridiagonal_deflate_tail(struct Aml_Mat2d m, size_t *first, size_t *last)
+{
+    ALA_ASSERT(m.rows == m.cols);
+    ALA_ASSERT(m.rows > 0);
+
+    size_t l = m.rows - 1;
+
+    while (l > 0) {
+        aml_real e = aml_fabs(AML_MAT2D_AT(m, l, l - 1));
+        aml_real d0 = aml_fabs(AML_MAT2D_AT(m, l - 1, l - 1));
+        aml_real d1 = aml_fabs(AML_MAT2D_AT(m, l, l));
+
+        if (e > AML_EPS * (d0 + d1)) {
+            break;
+        }
+
+        AML_MAT2D_AT(m, l, l - 1) = 0;
+        AML_MAT2D_AT(m, l - 1, l) = 0;
+        --l;
+    }
+
+    if (l == 0) {
+        if (first) *first = 0;
+        if (last)  *last = 0;
+        return true;
+    }
+
+    size_t f = 0;
+    for (size_t k = l; k > 0; --k) {
+        aml_real e = aml_fabs(AML_MAT2D_AT(m, k, k - 1));
+        aml_real d0 = aml_fabs(AML_MAT2D_AT(m, k - 1, k - 1));
+        aml_real d1 = aml_fabs(AML_MAT2D_AT(m, k, k));
+
+        if (e <= AML_EPS * (d0 + d1)) {
+            AML_MAT2D_AT(m, k, k - 1) = 0;
+            AML_MAT2D_AT(m, k - 1, k) = 0;
+            f = k;
             break;
         }
     }
 
-    if (first) *first = temp_first;
-
-    return shift;
+    if (first) *first = f;
+    if (last)  *last = l;
+    return false;
 }
 
 ALA_DEF void ala_symmetric_tridiagonal_eig_QR(struct Aml_Mat2d A, struct Aml_Mat2d eigenvalues, struct Aml_Mat2d eigenvectors)
@@ -1162,13 +1179,17 @@ ALA_DEF void ala_symmetric_tridiagonal_eig_QR_shift(struct Aml_Mat2d A, struct A
     aml_copy(eigenvalues, A);
     aml_set_identity(eigenvectors);
 
-    bool converged = true;
+    bool converged = false;
     for (size_t i = 0; i < ALA_SYMMETRIC_TRIDIAGONAL_EIG_QR_MAX_ITERATIONS; i++) {
-        converged = false;
 
         size_t last, first;
-        aml_real shift = ala_symmetric_tridiagonal_calc_shift(eigenvalues, &last, &first);
-
+        if (ala_symmetric_tridiagonal_deflate_tail(eigenvalues, &first, &last)) {
+            converged = true;
+            aml_dprintINFO("converged on iteration %zu", i);
+            break;
+        }
+        
+        aml_real shift = ala_symmetric_tridiagonal_calc_shift(eigenvalues, last);
         aml_shift_specific(eigenvalues, - shift, first, last);
 
         for (size_t k = first; k < last; ++k) {
@@ -1198,30 +1219,6 @@ ALA_DEF void ala_symmetric_tridiagonal_eig_QR_shift(struct Aml_Mat2d A, struct A
 
         aml_shift_specific(eigenvalues, shift, first, last);
 
-        // aml_make_tridiagonal(eigenvalues);
-
-        if (!(i % 10)) {
-            converged = true;
-            aml_real i_i, i_im1, im1_im1;
-            for (size_t conv_index = 1; conv_index < eigenvalues.rows; conv_index++) {
-                i_i   = aml_fabs(AML_MAT2D_AT(eigenvalues, conv_index, conv_index));
-                i_im1 = aml_fabs(AML_MAT2D_AT(eigenvalues, conv_index, conv_index - 1));
-                im1_im1 = aml_fabs(AML_MAT2D_AT(eigenvalues, conv_index - 1, conv_index - 1));
-                if (i_im1 > AML_EPS * (i_i + im1_im1) && !AML_IS_ZERO(i_im1)) {
-                    // aml_dprintWARNING("(%zu)(%zu) i_im1: %g > %g", i, conv_index, i_im1, AML_EPS * (i_i + im1_im1));
-                    converged = false;
-                    break;
-                } else {
-                    AML_MAT2D_AT(eigenvalues, conv_index, conv_index - 1) = 0;
-                    AML_MAT2D_AT(eigenvalues, conv_index - 1, conv_index) = 0;
-                }
-            }
-        }
-
-        if (converged) {
-            aml_dprintINFO("converged on iteration %zu", i);
-            break;
-        }
     }
 
     if (!converged) {

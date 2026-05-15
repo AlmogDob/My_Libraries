@@ -6,7 +6,7 @@
 
 int main(void)
 {
-    size_t n = 601;
+    size_t n = 1001;
     size_t m = n;
     // size_t n = 5, m = 5;
     struct Aml_Mat2d A = aml_mat2d_alloc(n, m);
