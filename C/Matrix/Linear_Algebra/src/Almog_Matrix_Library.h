@@ -574,6 +574,7 @@ AML_DEF bool aml_is_diagonal(struct Aml_Mat2d m)
         for (size_t j = 0; j < m.cols; j++) {
             if (i == j) continue;
             if (!AML_IS_ZERO(AML_MAT2D_AT(m, i, j))) {
+                aml_dprintERROR("Not diagonal!. (%zu, %zu): %g != 0", i, j, AML_MAT2D_AT(m, i, j));
                 return false;
             }
         }

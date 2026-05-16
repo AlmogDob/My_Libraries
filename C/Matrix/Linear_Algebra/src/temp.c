@@ -6,14 +6,18 @@
 
 int main(void)
 {
-    size_t n = 1260;
+    size_t n = 1061;
+    // size_t n = 5;
     size_t m = n;
-    // size_t n = 5, m = 5;
     struct Aml_Mat2d A = aml_mat2d_alloc(n, m);
     struct Aml_Mat2d res = aml_mat2d_alloc(n, m);
     struct Aml_Mat2d eigvalues = aml_mat2d_alloc(n, m);
     struct Aml_Mat2d eigvectors = aml_mat2d_alloc(n, m);
 
+    /** TODO:
+     * check why for srand(6) the explicit algorithm fails to converge while the implicit one succeeded
+     */
+    srand(6);
     // srand((int)time(NULL));
     aml_set_rand_symmetric(A, -2, 2);
     // AML_MAT2D_AT(A, 0, 0) = 1; AML_MAT2D_AT(A, 0, 1) = 2; AML_MAT2D_AT(A, 0, 2) = 3; AML_MAT2D_AT(A, 0, 3) = 4;
