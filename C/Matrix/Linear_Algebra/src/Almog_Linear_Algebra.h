@@ -1,3 +1,11 @@
+/**
+ * @file 
+ * @brief Higher-level linear algebra algorithms built on top of Aml_Mat2d.
+ *
+ * This layer includes factorizations, eigensolvers, SVD routines, Householder
+ * and Givens transformations, and linear-system solvers.
+ */
+
 #ifndef ALMOG_LINEAR_ALGEBRA_H_
 #define ALMOG_LINEAR_ALGEBRA_H_
 
@@ -68,7 +76,7 @@ ALA_DEF void        ala_symmetric_tridiagonal_eig_QR_shift(struct Aml_Mat2d A, s
 ALA_DEF void        ala_symmetric_tridiagonal_eig_QR_implicit_shift(struct Aml_Mat2d A, struct Aml_Mat2d eigenvalues, struct Aml_Mat2d eigenvectors);
 ALA_DEF void        ala_symmetric_tridiagonal_QR(struct Aml_Mat2d Q, struct Aml_Mat2d R, struct Aml_Mat2d src);
 
-ALA_DEF void        ala_tridiagonal_cleanup(struct Aml_Mat2d T, size_t first, size_t last);
+ALA_DEF void        ala_symmetric_tridiagonal_cleanup(struct Aml_Mat2d T, size_t first, size_t last);
 
 ALA_DEF aml_real    ala_upper_triangulate(struct Aml_Mat2d m, uint8_t flags);
 
@@ -77,6 +85,23 @@ ALA_DEF aml_real    ala_upper_triangulate(struct Aml_Mat2d m, uint8_t flags);
 #ifdef ALMOG_LINEAR_ALGEBRA_IMPLEMENTATION
 #undef ALMOG_LINEAR_ALGEBRA_IMPLEMENTATION
 
+/**
+ * @brief Apply a Givens rotation from the left to two adjacent rows.
+ *
+ * Rows `i` and `i+1` are rotated over the column range `[js, je]` using
+ *:
+ * `[[c, s], [-s, c]]`.
+ *
+ * @param A Matrix modified in place.
+ * @param i First row of the rotated pair.
+ * @param js First affected column.
+ * @param je Last affected column.
+ * @param c Cosine term.
+ * @param s Sine term.
+ *
+ * Complexity
+ * `O(je - js + 1)`.
+ */
 ALA_DEF void ala_apply_givens_left(struct Aml_Mat2d A, size_t i, size_t js, size_t je, aml_real c, aml_real s)
 {
     ALA_ASSERT(i + 1 < A.rows);
@@ -93,6 +118,22 @@ ALA_DEF void ala_apply_givens_left(struct Aml_Mat2d A, size_t i, size_t js, size
     }
 }
 
+/**
+ * @brief Apply a Givens rotation from the right to two adjacent columns.
+ *
+ * Columns `j` and `j+1` are rotated over the row range `[is, ie]` using the
+ * same 2x2 rotation convention as ala_apply_givens_left().
+ *
+ * @param A Matrix modified in place.
+ * @param j First column of the rotated pair.
+ * @param is First affected row.
+ * @param ie Last affected row.
+ * @param c Cosine term.
+ * @param s Sine term.
+ *
+ * Complexity
+ * `O(ie - is + 1)`.
+ */
 ALA_DEF void ala_apply_givens_right(struct Aml_Mat2d A, size_t j, size_t is, size_t ie, aml_real c, aml_real s)
 {
     ALA_ASSERT(j + 1 < A.cols);
@@ -109,6 +150,20 @@ ALA_DEF void ala_apply_givens_right(struct Aml_Mat2d A, size_t j, size_t is, siz
     }
 }
 
+/**
+ * @brief Apply a Householder reflector from the left to a trailing submatrix.
+ *
+ * Applies `H = I - 2vv^T/(v^Tv)` to rows `row0..row0+v.rows-1` and columns
+ * `col0..A.cols-1`, i.e. `A <- H A` on the active block.
+ *
+ * @param A Matrix modified in place.
+ * @param row0 First affected row.
+ * @param col0 First affected column.
+ * @param v Householder vector.
+ *
+ * Complexity
+ * `O(v.rows * (A.cols - col0))`.
+ */
 ALA_DEF void ala_apply_householder_left(struct Aml_Mat2d A, size_t row0, size_t col0, struct Aml_Mat2d v)
 {
     aml_real vv = aml_inner_product(v);
@@ -129,6 +184,19 @@ ALA_DEF void ala_apply_householder_left(struct Aml_Mat2d A, size_t row0, size_t 
     }
 }
 
+/**
+ * @brief Apply a Householder reflector from the right to a trailing submatrix.
+ *
+ * Applies `A <- A H` where `H = I - 2vv^T/(v^Tv)` to columns
+ * `col0..col0+v.rows-1`.
+ *
+ * @param A Matrix modified in place.
+ * @param col0 First affected column.
+ * @param v Householder vector.
+ *
+ * Complexity
+ * `O(A.rows * v.rows)`.
+ */
 ALA_DEF void ala_apply_householder_right(struct Aml_Mat2d A, size_t col0, struct Aml_Mat2d v)
 {
     aml_real vv = aml_inner_product(v);
@@ -149,6 +217,21 @@ ALA_DEF void ala_apply_householder_right(struct Aml_Mat2d A, size_t col0, struct
     }
 }
 
+/**
+ * @brief Perform valid 2D convolution of matrix @p a with kernel @p b.
+ *
+ * The kernel is rotated by 180 degrees in place, the valid convolution is
+ * computed, and then the kernel is rotated back, so @p b is restored on return.
+ *
+ * The implementation requires a square kernel.
+ *
+ * @param m Output matrix of size `(a.rows-b.rows+1) x (a.cols-b.cols+1)`.
+ * @param a Input matrix / image.
+ * @param b Square kernel matrix.
+ *
+ * Complexity
+ * `O(m.rows * m.cols * b.rows * b.cols)`.
+ */
 ALA_DEF void ala_convolve(struct Aml_Mat2d m, struct Aml_Mat2d a, struct Aml_Mat2d b) 
 {
     ALA_ASSERT(a.cols >= b.cols);
@@ -173,6 +256,24 @@ ALA_DEF void ala_convolve(struct Aml_Mat2d m, struct Aml_Mat2d a, struct Aml_Mat
     aml_rotate_mat_180_deg_inplace(b);
 }
 
+/**
+ * @brief Compute the determinant of a square matrix.
+ *
+ * The implementation:
+ * - returns 0 early if it finds an exactly zero row or column,
+ * - copies the matrix,
+ * - upper-triangularizes it with row swapping,
+ * - multiplies the diagonal,
+ * - corrects the sign/factor using the elimination return value.
+ *
+ * @param m Input square matrix.
+ * @return Determinant of @p m.
+ *
+ * Complexity
+ * `O(n^3)`.
+ *
+ * @note This is the general determinant routine.
+ */
 ALA_DEF aml_real ala_det(struct Aml_Mat2d m)
 {
     ALA_ASSERT(m.cols == m.rows && "should be a square matrix");
@@ -203,12 +304,46 @@ ALA_DEF aml_real ala_det(struct Aml_Mat2d m)
     return diag_mul / factor;
 }
 
+/**
+ * @brief Compute the determinant of a 2x2 matrix directly.
+ *
+ * Returns `a00*a11 - a01*a10`.
+ *
+ * @param m Input 2x2 matrix.
+ * @return Determinant.
+ *
+ * Complexity
+ * `O(1)`.
+ */
 ALA_DEF aml_real ala_det_2x2_mat(struct Aml_Mat2d m)
 {
     ALA_ASSERT(2 == m.cols && 2 == m.rows && "Not a 2x2 matrix");
     return AML_MAT2D_AT(m, 0, 0) * AML_MAT2D_AT(m, 1, 1) - AML_MAT2D_AT(m, 0, 1) * AML_MAT2D_AT(m, 1, 0);
 }
 
+/**
+ * @brief Verify a symmetric eigendecomposition.
+ *
+ * This routine checks:
+ * - that @p eigenvalues is diagonal,
+ * - orthogonality of `eigenvectors`,
+ * - the residual `A V - V D`,
+ * - the reconstruction `V D V^T - A`.
+ *
+ * Workspace is written into @p res.
+ *
+ * @param A Original square matrix.
+ * @param eigenvalues Diagonal matrix `D`.
+ * @param eigenvectors Eigenvector matrix `V`.
+ * @param res Workspace / residual matrix.
+ * @return `true` if all checks pass within a tolerance.
+ *
+ * Complexity
+ * `O(n^3)`.
+ *
+ * @note This routine assumes an orthonormal eigenbasis and the relation
+ * `A = V D V^T`.
+ */
 ALA_DEF bool ala_eig_check(struct Aml_Mat2d A, struct Aml_Mat2d eigenvalues, struct Aml_Mat2d eigenvectors, struct Aml_Mat2d res)
 {
     ALA_ASSERT(A.cols == A.rows); 
@@ -270,6 +405,31 @@ ALA_DEF bool ala_eig_check(struct Aml_Mat2d A, struct Aml_Mat2d eigenvalues, str
     return true;
 }
 
+/**
+ * @brief Compute eigenpairs by repeated power iteration with deflation.
+ *
+ * The routine repeatedly:
+ * - seeds the next vector from @p init_vector,
+ * - projects out previously found columns,
+ * - calls ala_power_iterate(),
+ * - stores the eigenpair,
+ * - deflates `B <- B - lambda * v v^T`.
+ *
+ * @param A Input square matrix.
+ * @param eigenvalues Output diagonal matrix of eigenvalues.
+ * @param eigenvectors Output matrix whose columns are eigenvectors.
+ * @param init_vector Initial vector reused for each eigenpair.
+ * @param norm_inf_vectors If true, renormalize output eigenvectors with the
+ * infinity norm at the end.
+ *
+ * Complexity
+ * Approximately `O(AML_MAX_POWER_ITERATION * n^3)`.
+ *
+ * @note Best for small educational problems or when only a few dominant
+ * eigenpairs are needed and the assumptions roughly hold.
+ * @warning The source comment states assumptions that the eigenvectors form an
+ * orthonormal basis and that the largest eigenvalue is positive and unique.
+ */
 ALA_DEF void ala_eig_power_iteration(struct Aml_Mat2d A, struct Aml_Mat2d eigenvalues, struct Aml_Mat2d eigenvectors, struct Aml_Mat2d init_vector, bool norm_inf_vectors)
 {
     /* https://www.youtube.com/watch?v=c8DIOzuZqBs */
@@ -332,6 +492,22 @@ ALA_DEF void ala_eig_power_iteration(struct Aml_Mat2d A, struct Aml_Mat2d eigenv
     aml_mat2d_free(temp_mat);
 }
 
+/**
+ * @brief Compute Givens rotation parameters that zero the second entry.
+ *
+ * For inputs `(a11, a21)`, this returns `r = hypot(a11, a21)` and optionally
+ * stores `c = a11/r`, `s = a21/r`, so that applying the corresponding rotation
+ * from the left maps `[a11, a21]^T` to `[r, 0]^T`.
+ *
+ * @param a11 Top entry.
+ * @param a21 Bottom entry.
+ * @param c Optional output cosine.
+ * @param s Optional output sine.
+ * @return The rotated top value `r`.
+ *
+ * Complexity
+ * `O(1)`.
+ */
 ALA_DEF aml_real ala_givens_rotations_get_c_and_s(aml_real a11, aml_real a21, aml_real *c, aml_real *s)
 {
     if (AML_IS_ZERO(a21)) {
@@ -346,6 +522,22 @@ ALA_DEF aml_real ala_givens_rotations_get_c_and_s(aml_real a11, aml_real a21, am
     return r;
 }
 
+/**
+ * @brief Build an explicit Householder matrix from a vector.
+ *
+ * Forms:
+ * `H = I - 2 * (v v^T) / (v^T v)`.
+ *
+ * @param des Output square matrix.
+ * @param v Householder vector.
+ *
+ * Complexity
+ * `O(n^2)`.
+ *
+ * @note Useful for teaching and debugging, but applying explicit Householder
+ * matrices is usually slower and less numerically attractive than applying the
+ * reflector implicitly.
+ */
 ALA_DEF void ala_householder_matrix_get(struct Aml_Mat2d des, struct Aml_Mat2d v)
 {
     ALA_ASSERT(v.cols == 1);
@@ -359,6 +551,18 @@ ALA_DEF void ala_householder_matrix_get(struct Aml_Mat2d des, struct Aml_Mat2d v
     aml_shift(des, 1);
 }
 
+/**
+ * @brief Form the standard Householder vector that zeros entries below the top.
+ *
+ * Copies `x` into `v_des` and modifies the first entry by `±||x||`, choosing
+ * the sign according to the implementation's branch on `x(0)` to avoid catastrophic cancellation.
+ *
+ * @param v_des Output vector.
+ * @param x Input column vector.
+ *
+ * Complexity
+ * `O(n)`.
+ */
 ALA_DEF void ala_householder_top_element_vector_get(struct Aml_Mat2d v_des, struct Aml_Mat2d x)
 {
     ALA_ASSERT(x.cols == 1);
@@ -376,6 +580,21 @@ ALA_DEF void ala_householder_top_element_vector_get(struct Aml_Mat2d v_des, stru
     }
 }
 
+/**
+ * @brief Invert a square matrix by Gauss-Jordan elimination.
+ *
+ * The implementation forms `[src | I]`, reduces it to RREF using ala_reduce(),
+ * and copies the right block into @p des.
+ *
+ * @param des Output inverse matrix.
+ * @param src Input square matrix.
+ *
+ * Complexity
+ * `O(n^3)`.
+ *
+ * @warning No explicit singularity handling beyond what the reduction routine
+ * naturally produces.
+ */
 ALA_DEF void ala_invert(struct Aml_Mat2d des, struct Aml_Mat2d src)
 {
     ALA_ASSERT(src.cols == src.rows && "Must be an NxN matrix");
@@ -394,6 +613,26 @@ ALA_DEF void ala_invert(struct Aml_Mat2d des, struct Aml_Mat2d src)
     aml_mat2d_free(m);
 }
 
+/**
+ * @brief Compute an LUP decomposition with row swaps when a pivot is zero.
+ *
+ * On return, `src` has been decomposed into permutation matrix `p`, unit-lower
+ * triangular `l`, and upper triangular `u`.
+ *
+ * @param src Input matrix.
+ * @param l Output lower-triangular factor with unit diagonal.
+ * @param p Output permutation matrix.
+ * @param u Output upper-triangular factor.
+ *
+ * Complexity
+ * `O(n^3)` for square matrices.
+ *
+ * @note This implementation only searches for a pivot row when the current
+ * diagonal pivot is numerically zero; it is not full partial pivoting at every
+ * step.
+ * @note Best as a simple/reference LU factorization. For difficult numerical
+ * problems, always-on pivoting would be better.
+ */
 ALA_DEF void ala_LUP_decomposition_with_swap(struct Aml_Mat2d src, struct Aml_Mat2d l, struct Aml_Mat2d p, struct Aml_Mat2d u)
 {
     /* performing LU decomposition Following the Wikipedia page: https://en.wikipedia.org/wiki/LU_decomposition */
@@ -431,6 +670,23 @@ ALA_DEF void ala_LUP_decomposition_with_swap(struct Aml_Mat2d src, struct Aml_Ma
     AML_MAT2D_AT(l, l.rows-1, l.cols-1) = 1;
 }
 
+/**
+ * @brief Experimental orthogonalization-like routine based on elimination.
+ *
+ * The implementation forms `A^T A`, builds the augmented matrix
+ * `[A^T A | A^T]`, performs forward elimination with unit pivots, copies the
+ * transformed right block, and transposes it into @p des.
+ *
+ * @param des Output matrix.
+ * @param A Input matrix.
+ *
+ * Complexity
+ * Roughly `O(A.rows * A.cols^2 + A.cols^3)`.
+ *
+ * @warning This is not a standard production orthogonalization routine. It is best treated as a reference/experimental
+ * helper matching this specific implementation rather than as a canonical QR or
+ * Gram-Schmidt replacement.
+ */
 ALA_DEF void ala_make_orthogonal_Gaussian_elimination(struct Aml_Mat2d des, struct Aml_Mat2d A)
 {
     /* https://en.wikipedia.org/wiki/Gram%E2%80%93Schmidt_process */
@@ -469,6 +725,29 @@ ALA_DEF void ala_make_orthogonal_Gaussian_elimination(struct Aml_Mat2d des, stru
     aml_mat2d_free(temp_des);
 }
 
+/**
+ * @brief Build an orthogonal basis using modified Gram-Schmidt.
+ *
+ * The function:
+ * - copies all non-zero columns of @p A into the first columns of @p des,
+ * - fills the remaining columns of @p des with random values,
+ * - runs a modified Gram-Schmidt process across all columns,
+ * - normalizes each resulting column.
+ *
+ * @param des Output square matrix whose columns become an orthogonal basis.
+ * @param A Input matrix whose non-zero columns are used first.
+ *
+ * Complexity
+ * Roughly `O(des.cols^2 * des.rows)`, i.e. `O(n^3)` for square `n x n` output.
+ *
+ * @note Best when you want a simple full orthogonal basis completion from a set
+ * of columns.
+ * @note Compared with classical Gram-Schmidt, modified Gram-Schmidt is usually
+ * more numerically stable and is a better default for practical
+ * orthogonalization.
+ * @warning The function asserts `des.rows == A.rows` and `des.cols == des.rows`,
+ * so the output is always square.
+ */
 ALA_DEF void ala_make_orthogonal_modified_Gram_Schmidt(struct Aml_Mat2d des, struct Aml_Mat2d A)
 {
     /* https://en.wikipedia.org/wiki/Gram%E2%80%93Schmidt_process */
@@ -515,6 +794,29 @@ ALA_DEF void ala_make_orthogonal_modified_Gram_Schmidt(struct Aml_Mat2d des, str
     aml_mat2d_free(temp_col);    
 }
 
+/**
+ * @brief Run power iteration on `A - shift * I`.
+ *
+ * The routine repeatedly multiplies the vector by the shifted matrix, normalizes
+ * it, estimates the eigenvalue with a Rayleigh-like quotient, and stops when
+ * the vector change becomes small up to sign.
+ *
+ * @param A Input square matrix.
+ * @param v On entry: initial guess. On return: approximated eigenvector.
+ * @param lambda Optional output eigenvalue estimate for the original matrix.
+ * @param shift Spectral shift subtracted before iteration and added back to the
+ * returned eigenvalue.
+ * @param norm_inf_v If true, renormalize the output vector by the infinity norm.
+ * @return `0` on apparent convergence, `1` if the iteration did not satisfy the
+ * convergence test and appears to alternate.
+ *
+ * Complexity
+ * `O(AML_MAX_POWER_ITERATION * n^2)`.
+ *
+ * @note Best for the dominant eigenpair when that eigenvalue is well separated.
+ * @note Shifts can help target different parts of the spectrum, but this is
+ * still a basic power-iteration scheme.
+ */
 ALA_DEF int ala_power_iterate(struct Aml_Mat2d A, struct Aml_Mat2d v, aml_real *lambda, aml_real shift, bool norm_inf_v)
 {
     /* https://www.youtube.com/watch?v=SkPusgctgpI */
@@ -578,6 +880,23 @@ ALA_DEF int ala_power_iterate(struct Aml_Mat2d A, struct Aml_Mat2d v, aml_real *
     }
 }
 
+/**
+ * @brief Orthogonally project a vector away from previously used basis columns.
+ *
+ * Performs a simple Gram-Schmidt projection:
+ * `v <- v - sum_c <v, b_c> b_c`
+ * over columns `0 .. used_cols-1` of @p basis.
+ *
+ * @param v Vector modified in place.
+ * @param basis Matrix whose leading columns are treated as basis vectors.
+ * @param used_cols Number of basis columns to remove from @p v.
+ *
+ * Complexity
+ * `O(v.rows * used_cols)`.
+ *
+ * @note This assumes the used basis columns are already orthonormal if you want
+ * the projection to be mathematically exact in one pass.
+ */
 ALA_DEF void ala_project_out_columns(struct Aml_Mat2d v, struct Aml_Mat2d basis, size_t used_cols)
 {
     /* Gram-Schmidt */
@@ -597,6 +916,28 @@ ALA_DEF void ala_project_out_columns(struct Aml_Mat2d v, struct Aml_Mat2d basis,
     aml_mat2d_free(temp);
 }
 
+/**
+ * @brief Compute a QR factorization using explicit Householder matrices.
+ *
+ * This textbook-style implementation constructs each Householder matrix
+ * explicitly and updates:
+ * - `R <- H * R`
+ * - `Q <- Q * H`
+ *
+ * @param Q Output orthogonal matrix.
+ * @param R Output upper-triangular matrix.
+ * @param src Input matrix.
+ *
+ * Complexity
+ * Roughly `O(n^4)` for square matrices because full Householder matrices are
+ * formed and multiplied explicitly.
+ *
+ * @note Best for learning, debugging, and verifying the algorithm step by step.
+ * @note This explicit form is easier to inspect and often feels more
+ * "mathematically correct" because it mirrors the derivation directly.
+ * @warning It is slower and usually less practical than the fast implicit
+ * version.
+ */
 ALA_DEF void ala_QR_householder_factorization(struct Aml_Mat2d Q, struct Aml_Mat2d R, struct Aml_Mat2d src)
 {
     /** 
@@ -661,6 +1002,25 @@ ALA_DEF void ala_QR_householder_factorization(struct Aml_Mat2d Q, struct Aml_Mat
     aml_mat2d_free(prev_R);
 }
 
+/**
+ * @brief Compute a QR factorization using implicit Householder applications.
+ *
+ * Instead of forming each Householder matrix explicitly, this version computes
+ * the reflector vector and applies it directly to `R` and `Q`.
+ *
+ * @param Q Output orthogonal matrix.
+ * @param R Output upper-triangular matrix.
+ * @param src Input matrix.
+ *
+ * Complexity
+ * Roughly `O(n^3)` for square matrices.
+ *
+ * @note This is the practical version to use for performance.
+ * @note It is typically preferable to the explicit version for larger matrices
+ * because it avoids forming dense reflector matrices.
+ * @note The implementation updates `Q` by right-applying the reflectors, so the
+ * returned `Q` matches the factorization used by this code path.
+ */
 ALA_DEF void ala_QR_householder_factorization_fast(struct Aml_Mat2d Q, struct Aml_Mat2d R, struct Aml_Mat2d src)
 {
     /** 
@@ -684,7 +1044,6 @@ ALA_DEF void ala_QR_householder_factorization_fast(struct Aml_Mat2d Q, struct Am
             .stride_r = R.stride_r,
             .elements = &AML_MAT2D_AT(R, k, k),
         };
-
         struct Aml_Mat2d v = {
             .rows = vbuf.rows - k,
             .cols = 1,
@@ -693,7 +1052,6 @@ ALA_DEF void ala_QR_householder_factorization_fast(struct Aml_Mat2d Q, struct Am
         };
 
         ala_householder_top_element_vector_get(v, x);
-
         if (AML_IS_ZERO(aml_inner_product(v))) {
             continue;
         }
@@ -701,10 +1059,26 @@ ALA_DEF void ala_QR_householder_factorization_fast(struct Aml_Mat2d Q, struct Am
         ala_apply_householder_left(R, k, k, v);
         ala_apply_householder_right(Q, k, v);
     }
-
     aml_mat2d_free(vbuf);
 }
 
+/**
+ * @brief Reduce a matrix to reduced row echelon form.
+ *
+ * The function first performs forward elimination via ala_upper_triangulate()
+ * using row swapping and unit pivots, then performs the backward elimination
+ * phase to obtain RREF.
+ *
+ * @param m Matrix modified in place.
+ * @return Rank estimate equal to the number of pivot rows found during the
+ * backward pass.
+ *
+ * Complexity
+ * `O(rows * cols * min(rows, cols))`, i.e. `O(n^3)` for square matrices.
+ *
+ * @note Best for solving small dense systems, computing rank, or educational
+ * row-reduction tasks.
+ */
 ALA_DEF size_t ala_reduce(struct Aml_Mat2d m)
 {
     /* preforming Gauss–Jordan reduction to Reduced Row Echelon Form (RREF) */
@@ -729,6 +1103,26 @@ ALA_DEF size_t ala_reduce(struct Aml_Mat2d m)
     return rank;
 }
 
+/**
+ * @brief Solve a linear system using LUP decomposition.
+ *
+ * The implementation computes `P`, `L`, and `U`, explicitly inverts `L` and
+ * `U`, and then evaluates:
+ * - `x_tmp = P * B`
+ * - `y = inv(L) * x_tmp`
+ * - `x = inv(U) * y`
+ *
+ * @param A System matrix.
+ * @param x Output solution vector.
+ * @param B Right-hand side vector.
+ *
+ * Complexity
+ * `O(n^3)`.
+ *
+ * @note This matches the implementation, but inverting `L` and `U` explicitly
+ * is not the most efficient way to solve triangular systems.
+ * @note Best as a simple reference implementation.
+ */
 ALA_DEF void ala_solve_linear_sys_LUP_decomposition(struct Aml_Mat2d A, struct Aml_Mat2d x, struct Aml_Mat2d B)
 {
     ALA_ASSERT(A.cols == x.rows);
@@ -764,6 +1158,30 @@ ALA_DEF void ala_solve_linear_sys_LUP_decomposition(struct Aml_Mat2d A, struct A
     aml_mat2d_free(inv_u);
 }
 
+/**
+ * @brief Compute a full SVD by first computing the thin SVD and then completing
+ * orthogonal bases.
+ *
+ * This function first calls ala_SVD_thin(), then expands `U` and `V` into full
+ * orthogonal matrices using ala_make_orthogonal_modified_Gram_Schmidt().
+ *
+ * @param A Input matrix.
+ * @param U Output full left singular-vector matrix.
+ * @param S Output rectangular diagonal singular-value matrix.
+ * @param V Output full right singular-vector matrix, or `V^T` if requested.
+ * @param init_vec_u Initial vector for the left-side power iteration path.
+ * @param init_vec_v Initial vector for the right-side power iteration path.
+ * @param return_v_transpose If true, return `V^T` in @p V.
+ *
+ * Complexity
+ * Dominated by repeated power iterations and basis completion; roughly
+ * `O(k n^3)` for square problems, where `k` is the number of power-iteration
+ * steps used internally.
+ *
+ * @note Best when you specifically need full square `U` and `V`.
+ * @note Since this implementation is based on eigendecomposition plus basis
+ * completion, it is more educational than industrial-strength.
+ */
 ALA_DEF void ala_SVD_full(struct Aml_Mat2d A, struct Aml_Mat2d U, struct Aml_Mat2d S, struct Aml_Mat2d V, struct Aml_Mat2d init_vec_u, struct Aml_Mat2d init_vec_v, bool return_v_transpose)
 {
     ala_SVD_thin(A, U, S, V, init_vec_u, init_vec_v, false);
@@ -785,6 +1203,34 @@ ALA_DEF void ala_SVD_full(struct Aml_Mat2d A, struct Aml_Mat2d U, struct Aml_Mat
     aml_mat2d_free(V_full);
 }
 
+/**
+ * @brief Compute an SVD using eigendecomposition of `A A^T` or `A^T A`.
+ *
+ * If `n <= m`, the function diagonalizes `A A^T` to get left singular vectors,
+ * then computes right singular vectors from `A^T u_i / sigma_i`.
+ *
+ * If `n > m`, it diagonalizes `A^T A` to get right singular vectors, then
+ * computes left singular vectors from `A v_i / sigma_i`.
+ *
+ * @param A Input matrix of size `n x m`.
+ * @param U Output left singular-vector matrix buffer.
+ * @param S Output singular-value matrix buffer.
+ * @param V Output right singular-vector matrix buffer, or `V^T` if requested.
+ * @param init_vec_u Initial vector for the `A A^T` eigenpath.
+ * @param init_vec_v Initial vector for the `A^T A` eigenpath.
+ * @param return_v_transpose If true, transpose `V` before returning it.
+ *
+ * Complexity
+ * Dominated by the eigensolver: roughly `O(k n^3)` or `O(k m^3)` depending on
+ * which side is diagonalized.
+ *
+ * @note Despite the name, the implementation expects full-size `U`, `S`, and
+ * `V` buffers and fills the leading meaningful columns/diagonal entries.
+ * @note Best for small to medium matrices when a simple SVD construction is
+ * acceptable.
+ * @warning Since this relies on repeated power iteration, accuracy and ordering
+ * depend on the spectral structure and initialization.
+ */
 ALA_DEF void ala_SVD_thin(struct Aml_Mat2d A, struct Aml_Mat2d U, struct Aml_Mat2d S, struct Aml_Mat2d V, struct Aml_Mat2d init_vec_u, struct Aml_Mat2d init_vec_v, bool return_v_transpose)
 {
     /* https://www.youtube.com/watch?v=nbBvuuNVfco */
@@ -892,6 +1338,28 @@ ALA_DEF void ala_SVD_thin(struct Aml_Mat2d A, struct Aml_Mat2d U, struct Aml_Mat
     aml_mat2d_free(AT);
 }
 
+/**
+ * @brief Compute eigenvalues and eigenvectors of a symmetric matrix by shifted
+ * QR iteration.
+ *
+ * The algorithm repeatedly:
+ * - chooses the last diagonal element as a shift,
+ * - performs QR factorization of `A - mu I`,
+ * - forms the next iterate `R Q + mu I`,
+ * - accumulates eigenvectors.
+ *
+ * @param A Input symmetric matrix.
+ * @param eigenvalues Output matrix converging toward diagonal form.
+ * @param eigenvectors Output orthogonal eigenvector matrix.
+ *
+ * Complexity
+ * Roughly `O(iterations * n^3)`.
+ *
+ * @note Best for symmetric dense matrices when a direct QR eigensolver is
+ * desired.
+ * @note This avoids the tridiagonal reduction step, so it is conceptually
+ * simple but slower than the tridiagonalized approach.
+ */
 ALA_DEF void ala_symmetric_eig_QR_shift(struct Aml_Mat2d A, struct Aml_Mat2d eigenvalues, struct Aml_Mat2d eigenvectors)
 {
     /**
@@ -947,6 +1415,26 @@ ALA_DEF void ala_symmetric_eig_QR_shift(struct Aml_Mat2d A, struct Aml_Mat2d eig
     aml_mat2d_free(R);
 }
 
+/**
+ * @brief Compute eigenpairs of a symmetric matrix by first tridiagonalizing it.
+ *
+ * The function:
+ * - reduces `A` to `T = Q^T A Q` using Householder reflectors,
+ * - solves the symmetric tridiagonal eigenproblem,
+ * - maps eigenvectors back with `Q`.
+ *
+ * @param A Input symmetric matrix.
+ * @param eigenvalues Output eigenvalue matrix.
+ * @param eigenvectors Output eigenvector matrix.
+ *
+ * Complexity
+ * `O(n^3)` overall.
+ *
+ * @note This is generally the preferred structure for symmetric eigensolvers:
+ * dense-to-tridiagonal reduction first, then a specialized tridiagonal method.
+ * @note In this implementation the tridiagonal solve is done by
+ * ala_symmetric_tridiagonal_eig_QR_explicit_shift().
+ */
 ALA_DEF void ala_symmetric_eig_QR_tridiagonalize(struct Aml_Mat2d A, struct Aml_Mat2d eigenvalues, struct Aml_Mat2d eigenvectors)
 {
     ALA_ASSERT(aml_is_symmetric(A));
@@ -963,9 +1451,7 @@ ALA_DEF void ala_symmetric_eig_QR_tridiagonalize(struct Aml_Mat2d A, struct Aml_
     ala_symmetric_tridiagonalize_householder(Q, T, A);
     aml_dprintINFO("%s", "made tridiagonal");
 
-    // ala_symmetric_tridiagonal_eig_QR(T, eigenvalues, semi_eigenvectors);
     ala_symmetric_tridiagonal_eig_QR_shift(T, eigenvalues, semi_eigenvectors);
-    // ala_symmetric_tridiagonal_eig_QR_implicit_shift(T, eigenvalues, semi_eigenvectors);
 
     aml_dot(eigenvectors, Q, semi_eigenvectors);
 
@@ -974,6 +1460,22 @@ ALA_DEF void ala_symmetric_eig_QR_tridiagonalize(struct Aml_Mat2d A, struct Aml_
     aml_mat2d_free(semi_eigenvectors);
 }
 
+/**
+ * @brief Reduce a symmetric matrix to symmetric tridiagonal form using
+ * Householder reflectors.
+ *
+ * On return, `T` contains the tridiagonalized matrix and `Q` accumulates the
+ * orthogonal similarity transforms such that `T = Q^T * src * Q`.
+ *
+ * @param Q Output orthogonal accumulator.
+ * @param T Output tridiagonal matrix.
+ * @param src Input symmetric matrix.
+ *
+ * Complexity
+ * `O(n^3)`.
+ *
+ * @note Best as the preprocessing stage for symmetric QR eigensolvers.
+ */
 ALA_DEF void ala_symmetric_tridiagonalize_householder(struct Aml_Mat2d Q, struct Aml_Mat2d T, struct Aml_Mat2d src)
 {
     /** 
@@ -1026,6 +1528,22 @@ ALA_DEF void ala_symmetric_tridiagonalize_householder(struct Aml_Mat2d Q, struct
     aml_mat2d_free(vbuf);
 }
 
+/**
+ * @brief Compute the Wilkinson-style shift for the trailing 2x2 block of a
+ * symmetric tridiagonal matrix.
+ *
+ * The function uses the last two diagonal entries and the last subdiagonal
+ * entry to compute a scalar shift.
+ *
+ * @param m Symmetric tridiagonal matrix.
+ * @param last Last active index.
+ * @return Shift value.
+ *
+ * Complexity
+ * `O(1)`.
+ *
+ * @note Best used inside shifted QR on symmetric tridiagonal matrices.
+ */
 ALA_DEF aml_real ala_symmetric_tridiagonal_calc_shift(struct Aml_Mat2d m, size_t last)
 {
     ALA_ASSERT(aml_is_symmetric(m));
@@ -1046,6 +1564,58 @@ ALA_DEF aml_real ala_symmetric_tridiagonal_calc_shift(struct Aml_Mat2d m, size_t
     return shift;
 }
 
+/**
+ * @brief Restore exact tridiagonal symmetry on an active block.
+ *
+ * The function:
+ * - zeros all entries outside the tridiagonal band in `[first, last]`,
+ * - replaces each upper/lower off-diagonal pair by their average.
+ *
+ * @param T Matrix modified in place.
+ * @param first First active index.
+ * @param last Last active index.
+ *
+ * Complexity
+ * `O((last - first + 1)^2)`.
+ *
+ * @note Best as a cleanup step after finite-precision updates that should have
+ * preserved symmetric tridiagonal structure.
+ */
+ALA_DEF void ala_symmetric_tridiagonal_cleanup(struct Aml_Mat2d T, size_t first, size_t last)
+{
+    for (size_t i = first; i <= last; ++i) {
+        for (size_t j = first; j <= last; ++j) {
+            if (i + 1 < j || j + 1 < i) {
+                AML_MAT2D_AT(T, i, j) = 0;
+            }
+        }
+    }
+
+    for (size_t i = first; i < last; ++i) {
+        aml_real e = ((aml_real)0.5) *
+            (AML_MAT2D_AT(T, i, i + 1) + AML_MAT2D_AT(T, i + 1, i));
+        AML_MAT2D_AT(T, i, i + 1) = e;
+        AML_MAT2D_AT(T, i + 1, i) = e;
+    }
+} 
+
+/**
+ * @brief Deflate converged trailing entries of a symmetric tridiagonal matrix.
+ *
+ * Small subdiagonal entries are compared against a relative threshold and set
+ * to zero. The function returns the active unreduced block as `[first, last]`.
+ *
+ * @param m Symmetric tridiagonal matrix modified in place.
+ * @param first Optional output first active index.
+ * @param last Optional output last active index.
+ * @param eps Relative tolerance scale.
+ * @return `true` if the whole matrix has deflated to 1x1 blocks.
+ *
+ * Complexity
+ * `O(n)`.
+ *
+ * @note Best used between QR iterations to isolate the current active block.
+ */
 ALA_DEF bool ala_symmetric_tridiagonal_deflate_tail(struct Aml_Mat2d m, size_t *first, size_t *last, aml_real eps)
 {
     ALA_ASSERT(m.rows == m.cols);
@@ -1092,6 +1662,28 @@ ALA_DEF bool ala_symmetric_tridiagonal_deflate_tail(struct Aml_Mat2d m, size_t *
     return false;
 }
 
+/**
+ * @brief Compute eigenpairs of a symmetric tridiagonal matrix by unshifted
+ * explicit QR iteration.
+ *
+ * This version explicitly performs the QR step using stored Givens rotations:
+ * first left-applying them to form `Q^T A`, then right-applying them to form
+ * `R Q`, while accumulating eigenvectors.
+ *
+ * @param A Input symmetric tridiagonal matrix.
+ * @param eigenvalues Output matrix converging toward diagonal form.
+ * @param eigenvectors Output orthogonal eigenvector matrix.
+ *
+ * Complexity
+ * Roughly `O(iterations * n^2)`.
+ *
+ * @note Best as the clearest reference implementation of QR on a tridiagonal
+ * matrix.
+ * @note Because it is explicit and unshifted, it is usually slower and can
+ * converge more poorly than shifted variants.
+ * @note This is the most transparent "textbook" form if you want to inspect
+ * each QR step directly.
+ */
 ALA_DEF void ala_symmetric_tridiagonal_eig_QR(struct Aml_Mat2d A, struct Aml_Mat2d eigenvalues, struct Aml_Mat2d eigenvectors)
 {
     /**
@@ -1168,6 +1760,33 @@ ALA_DEF void ala_symmetric_tridiagonal_eig_QR(struct Aml_Mat2d A, struct Aml_Mat
     aml_mat2d_free(given_c_and_s);
 }
 
+/**
+ * @brief Compute eigenpairs of a symmetric tridiagonal matrix by shifted
+ * explicit QR iteration.
+ *
+ * The algorithm:
+ * - finds the current active trailing block,
+ * - computes a shift,
+ * - explicitly applies Givens rotations for the QR factorization of the shifted
+ * block,
+ * - explicitly forms the next iterate,
+ * - periodically cleans the tridiagonal structure.
+ *
+ * @param A Input symmetric tridiagonal matrix.
+ * @param eigenvalues Output matrix converging toward diagonal form.
+ * @param eigenvectors Output orthogonal eigenvector matrix.
+ *
+ * Complexity
+ * Roughly `O(iterations * n^2)`.
+ *
+ * @note Best when you want a step-by-step explicit shifted QR algorithm that
+ * closely follows the mathematical derivation.
+ * @note In many educational/debug settings, this explicit version can produce a
+ * more directly "correct-looking" result because every transform is exposed and
+ * accumulated plainly.
+ * @warning It is usually less stable and less efficient than a well-implemented
+ * implicit shifted QR method.
+ */
 ALA_DEF void ala_symmetric_tridiagonal_eig_QR_shift(struct Aml_Mat2d A, struct Aml_Mat2d eigenvalues, struct Aml_Mat2d eigenvectors)
 {
     /**
@@ -1228,12 +1847,14 @@ ALA_DEF void ala_symmetric_tridiagonal_eig_QR_shift(struct Aml_Mat2d A, struct A
         for (size_t k = first; k < last; ++k) {
             aml_real c = AML_MAT2D_AT(given_c_and_s, k, 0);
             aml_real s = AML_MAT2D_AT(given_c_and_s, k, 1);
-            ala_apply_givens_right(eigenvalues, k, first, k+1, c, s);
+            ala_apply_givens_right(eigenvalues, k, first, k + 1, c, s);
             // printf("-------right--------\n");
             // AML_PRINT(eigenvalues);
         }
 
         aml_shift_specific(eigenvalues, shift, first, last);
+
+        if (!(i % 10)) ala_symmetric_tridiagonal_cleanup(eigenvalues, first, last);
 
         // AML_PRINT(eigenvalues);
         // printf("---------%zu----------\n", i);
@@ -1247,6 +1868,29 @@ ALA_DEF void ala_symmetric_tridiagonal_eig_QR_shift(struct Aml_Mat2d A, struct A
     aml_mat2d_free(given_c_and_s);
 }
 
+/**
+ * @brief Compute eigenpairs of a symmetric tridiagonal matrix by implicit
+ * shifted QR iteration with bulge chasing.
+ *
+ * This routine computes a shift from the trailing block, introduces the bulge
+ * at the leading edge of the active block, and chases it down the matrix using
+ * Givens rotations while accumulating eigenvectors.
+ *
+ * @param A Input symmetric tridiagonal matrix.
+ * @param eigenvalues Output matrix converging toward diagonal form.
+ * @param eigenvectors Output orthogonal eigenvector matrix.
+ *
+ * Complexity
+ * Roughly `O(iterations * n^2)`.
+ *
+ * @note This is the flavor that is normally preferred in practical symmetric
+ * tridiagonal QR eigensolvers because it preserves structure efficiently.
+ * @note It is generally the more efficient and more sophisticated method than
+ * the explicit shifted version.
+ * @warning The implementation itself contains a comment noting convergence
+ * problems on large matrices, so in this codebase the explicit shifted version
+ * may currently give more trustworthy results for some cases.
+ */
 ALA_DEF void ala_symmetric_tridiagonal_eig_QR_implicit_shift(struct Aml_Mat2d A, struct Aml_Mat2d eigenvalues, struct Aml_Mat2d eigenvectors)
 {
     /** TODO:
@@ -1275,7 +1919,7 @@ ALA_DEF void ala_symmetric_tridiagonal_eig_QR_implicit_shift(struct Aml_Mat2d A,
     for (size_t i = 0; i < ALA_SYMMETRIC_TRIDIAGONAL_EIG_QR_IMPLICIT_MAX_ITERATIONS; i++) {
 
         size_t last, first;
-        if (ala_symmetric_tridiagonal_deflate_tail(eigenvalues, &first, &last, AML_EPS * 100)) {
+        if (ala_symmetric_tridiagonal_deflate_tail(eigenvalues, &first, &last, AML_EPS * 10)) {
             converged = true;
             aml_dprintINFO("converged on iteration %zu", i);
             break;
@@ -1290,17 +1934,6 @@ ALA_DEF void ala_symmetric_tridiagonal_eig_QR_implicit_shift(struct Aml_Mat2d A,
             aml_real s = 0;
             ala_givens_rotations_get_c_and_s(x, z, &c, &s);
 
-            #if 0
-            size_t left_js = k;
-            size_t left_je = aml_min(last, k + 2);
-            ala_apply_givens_left(
-                eigenvalues, k, left_js, left_je, c, s);
-
-            size_t right_is = (k == first) ? first : (k - 1);
-            size_t right_ie = aml_min(last, k + 2);
-            ala_apply_givens_right(
-                eigenvalues, k, right_is, right_ie, c, s);
-            #else 
             size_t begin = (k == first) ? first : (k - 1);
             size_t end = aml_min(k + 2, last);
             ala_apply_givens_left(eigenvalues, k, begin, end, c, s);
@@ -1315,7 +1948,6 @@ ALA_DEF void ala_symmetric_tridiagonal_eig_QR_implicit_shift(struct Aml_Mat2d A,
             }
             // printf("-------right--------\n");
             // AML_PRINT(eigenvalues);
-            #endif
             ala_apply_givens_right(eigenvectors, k, 0, eigenvectors.rows - 1, c, s);
 
             
@@ -1347,6 +1979,24 @@ ALA_DEF void ala_symmetric_tridiagonal_eig_QR_implicit_shift(struct Aml_Mat2d A,
 
 }
 
+/**
+ * @brief Compute a QR factorization specialized for symmetric tridiagonal
+ * matrices.
+ *
+ * The function annihilates each subdiagonal entry with a Givens rotation,
+ * updates the matrix from the left, zeros the eliminated entry explicitly, and
+ * accumulates the orthogonal factor.
+ *
+ * @param Q Output orthogonal matrix.
+ * @param R Output upper-triangular matrix.
+ * @param src Input symmetric tridiagonal matrix.
+ *
+ * Complexity
+ * `O(n^2)`.
+ *
+ * @note Best as a building block for explicit QR iteration on tridiagonal
+ * matrices.
+ */
 ALA_DEF void ala_symmetric_tridiagonal_QR(struct Aml_Mat2d Q, struct Aml_Mat2d R, struct Aml_Mat2d src)
 {
     /**
@@ -1387,24 +2037,29 @@ ALA_DEF void ala_symmetric_tridiagonal_QR(struct Aml_Mat2d Q, struct Aml_Mat2d R
     }
 }
 
-ALA_DEF void ala_tridiagonal_cleanup(struct Aml_Mat2d T, size_t first, size_t last)
-{
-    for (size_t i = first; i <= last; ++i) {
-        for (size_t j = first; j <= last; ++j) {
-            if (i + 1 < j || j + 1 < i) {
-                AML_MAT2D_AT(T, i, j) = 0;
-            }
-        }
-    }
-
-    for (size_t i = first; i < last; ++i) {
-        aml_real e = ((aml_real)0.5) *
-            (AML_MAT2D_AT(T, i, i + 1) + AML_MAT2D_AT(T, i + 1, i));
-        AML_MAT2D_AT(T, i, i + 1) = e;
-        AML_MAT2D_AT(T, i + 1, i) = e;
-    }
-} 
-
+/**
+ * @brief Perform forward Gaussian elimination to upper-triangular form.
+ *
+ * The function scans pivot columns from left to right and pivot rows from top to
+ * bottom. Depending on @p flags, it can:
+ * - swap rows using partial pivot search,
+ * - normalize pivot rows to put ones on the diagonal.
+ *
+ * It returns the cumulative determinant scaling introduced by row swaps and
+ * optional row normalization.
+ *
+ * @param m Matrix modified in place.
+ * @param flags Bitwise OR of enum aml_upper_triangulate_flag values.
+ * @return Factor by which the determinant must be corrected after elimination.
+ *
+ * Complexity
+ * `O(rows * cols * min(rows, cols))`, i.e. `O(n^3)` for square matrices.
+ *
+ * @note Best as a reusable elimination primitive for determinant, RREF, and
+ * related routines.
+ * @note With `AML_ROW_SWAPPING`, the routine uses partial pivoting by choosing
+ * the largest absolute entry in the active column.
+ */
 ALA_DEF aml_real ala_upper_triangulate(struct Aml_Mat2d m, uint8_t flags)
 {
     /* preforming Gauss elimination: https://en.wikipedia.org/wiki/Gaussian_elimination */

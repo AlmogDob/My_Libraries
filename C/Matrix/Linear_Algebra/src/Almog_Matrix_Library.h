@@ -1,3 +1,12 @@
+/**
+ * @file 
+ * @brief Basic dense 2D matrix utilities
+ *
+ * The library stores matrices in row-major order. A matrix view may use a
+ * custom row stride, so functions should use AML_MAT2D_AT() instead of
+ * assuming contiguous compact storage.
+ */
+
 #ifndef ALMOG_MATRIX_LIBRARY_H_
 #define ALMOG_MATRIX_LIBRARY_H_
 
@@ -55,6 +64,18 @@
     #define aml_hypot hypot
 #endif
 
+/**
+ * @brief Dense real-valued 2D matrix view.
+ *
+ * @var Aml_Mat2d::rows
+ * Number of logical rows.
+ * @var Aml_Mat2d::cols
+ * Number of logical columns.
+ * @var Aml_Mat2d::stride_r
+ * Number of elements to skip in memory to move to the next row.
+ * @var Aml_Mat2d::elements
+ * Pointer to the first stored element.
+ */
 struct Aml_Mat2d {
     size_t rows;
     size_t cols;
@@ -62,6 +83,9 @@ struct Aml_Mat2d {
     aml_real *elements;
 };
 
+/**
+ * @brief Dense unsigned-32-bit 2D matrix view.
+ */
 struct Aml_Mat2d_uint32 {
     size_t rows;
     size_t cols;
@@ -157,8 +181,17 @@ struct Aml_Mat2d_uint32 {
 #define AML_PRINT_AS_COL(m) aml_print_as_col(m, #m, 0)
 #define AML_MINOR_PRINT(mm) aml_minor_print(mm, #mm, 0)
 
+/**
+ * @brief Flags for aml_upper_triangulate()-style elimination routines.
+ */
 enum aml_upper_triangulate_flag{
+    /**
+     * Normalize pivot rows so the diagonal pivot becomes 1.
+     */
     AML_ONES_ON_DIAG = 1 << 0,
+    /**
+     * Enable row swapping / pivot search.
+     */
     AML_ROW_SWAPPING = 1 << 1,
 };
 
@@ -207,8 +240,8 @@ AML_DEF void                    aml_make_symmetric(struct Aml_Mat2d m);
 AML_DEF void                    aml_make_tridiagonal(struct Aml_Mat2d m);
 AML_DEF struct Aml_Mat2d        aml_mat2d_alloc(size_t rows, size_t cols);
 AML_DEF void                    aml_mat2d_free(struct Aml_Mat2d m);
-AML_DEF void                    aml_mat2d_uint32_free(struct Aml_Mat2d_uint32 m);
 AML_DEF struct Aml_Mat2d_uint32 aml_mat2d_uint32_alloc(size_t rows, size_t cols);
+AML_DEF void                    aml_mat2d_uint32_free(struct Aml_Mat2d_uint32 m);
 AML_DEF bool                    aml_mat2d_is_all_the_same(struct Aml_Mat2d m, aml_real number);
 AML_DEF void                    aml_mult(struct Aml_Mat2d m, aml_real factor);
 AML_DEF void                    aml_mult_row(struct Aml_Mat2d m, size_t r, aml_real factor);
@@ -254,7 +287,18 @@ AML_DEF void                    aml_transpose_inplace(struct Aml_Mat2d m);
 #ifdef ALMOG_MATRIX_LIBRARY_IMPLEMENTATION
 #undef ALMOG_MATRIX_LIBRARY_IMPLEMENTATION
 
-
+/**
+ * @brief Add matrix @p a into @p dst element-wise.
+ *
+ * Computes `dst(i,j) += a(i,j)` for all elements.
+ *
+ * @param dst Destination matrix, modified in place.
+ * @param a Matrix added to @p dst.
+ * @pre The matrices must have identical dimensions.
+ *
+ * Complexity
+ * `O(rows * cols)`.
+ */
 AML_DEF void aml_add(struct Aml_Mat2d dst, struct Aml_Mat2d a)
 {
     AML_ASSERT(dst.rows == a.rows);
@@ -266,6 +310,20 @@ AML_DEF void aml_add(struct Aml_Mat2d dst, struct Aml_Mat2d a)
     }
 }
 
+/**
+ * @brief Add one source column into one destination column.
+ *
+ * Computes `des(:,des_col) += src(:,src_col)`.
+ *
+ * @param des Destination matrix, modified in place.
+ * @param des_col Destination column index.
+ * @param src Source matrix.
+ * @param src_col Source column index.
+ * @pre `des.rows == src.rows`.
+ *
+ * Complexity
+ * `O(rows)`.
+ */
 AML_DEF void aml_add_col_to_col(struct Aml_Mat2d des, size_t des_col, struct Aml_Mat2d src, size_t src_col)
 {
     AML_ASSERT(src_col < src.cols);
@@ -277,6 +335,20 @@ AML_DEF void aml_add_col_to_col(struct Aml_Mat2d des, size_t des_col, struct Aml
     }
 }
 
+/**
+ * @brief Add one source row into one destination row.
+ *
+ * Computes `des(des_row,:) += src(src_row,:)`.
+ *
+ * @param des Destination matrix, modified in place.
+ * @param des_row Destination row index.
+ * @param src Source matrix.
+ * @param src_row Source row index.
+ * @pre `des.cols == src.cols`.
+ *
+ * Complexity
+ * `O(cols)`.
+ */
 AML_DEF void aml_add_row_to_row(struct Aml_Mat2d des, size_t des_row, struct Aml_Mat2d src, size_t src_row)
 {
     AML_ASSERT(src_row < src.rows);
@@ -288,6 +360,19 @@ AML_DEF void aml_add_row_to_row(struct Aml_Mat2d des, size_t des_row, struct Aml
     }
 }
 
+/**
+ * @brief Add a scaled source row into a destination row.
+ *
+ * Computes `row(des_r) += factor * row(src_r)`.
+ *
+ * @param m Matrix modified in place.
+ * @param des_r Destination row index.
+ * @param src_r Source row index.
+ * @param factor Scale applied to the source row.
+ *
+ * Complexity
+ * `O(cols)`.
+ */
 AML_DEF void aml_add_row_time_factor_to_row(struct Aml_Mat2d m, size_t des_r, size_t src_r, aml_real factor)
 {
     for (size_t j = 0; j < m.cols; ++j) {
@@ -295,6 +380,15 @@ AML_DEF void aml_add_row_time_factor_to_row(struct Aml_Mat2d m, size_t des_r, si
     }
 }
 
+/**
+ * @brief Add a scalar to every element of a matrix.
+ *
+ * @param m Matrix modified in place.
+ * @param x Scalar added to every entry.
+ *
+ * Complexity
+ * `O(rows * cols)`.
+ */
 AML_DEF void aml_add_scalar(struct Aml_Mat2d m, aml_real x)
 {
     for (size_t i = 0; i < m.rows; i++) {
@@ -304,6 +398,17 @@ AML_DEF void aml_add_scalar(struct Aml_Mat2d m, aml_real x)
     }
 }
 
+/**
+ * @brief Reflect a square matrix across the anti-diagonal in place.
+ *
+ * This swaps entry `(i,j)` with `(n-1-j,n-1-i)`.
+ *
+ * @param m Square matrix modified in place.
+ * @pre `m.rows == m.cols`.
+ *
+ * Complexity
+ * `O(n^2)`.
+ */
 AML_DEF void aml_anti_diag_transpose_inplace(struct Aml_Mat2d m)
 {
     AML_ASSERT(m.cols == m.rows);
@@ -317,6 +422,18 @@ AML_DEF void aml_anti_diag_transpose_inplace(struct Aml_Mat2d m)
     }
 }
 
+/**
+ * @brief Compute the Euclidean norm of a column.
+ *
+ * Returns `sqrt(sum_i m(i,c)^2)`.
+ *
+ * @param m Matrix containing the column.
+ * @param c Column index.
+ * @return Euclidean norm of column @p c.
+ *
+ * Complexity
+ * `O(rows)`.
+ */
 AML_DEF aml_real aml_calc_col_norma(struct Aml_Mat2d m, size_t c)
 {
     AML_ASSERT(c < m.cols);
@@ -328,6 +445,17 @@ AML_DEF aml_real aml_calc_col_norma(struct Aml_Mat2d m, size_t c)
     return aml_sqrt(sum);
 }
 
+/**
+ * @brief Compute the Frobenius norm of a matrix.
+ *
+ * Returns `sqrt(sum_{i,j} m(i,j)^2)`.
+ *
+ * @param m Input matrix.
+ * @return Frobenius norm.
+ *
+ * Complexity
+ * `O(rows * cols)`.
+ */
 AML_DEF aml_real aml_calc_norma(struct Aml_Mat2d m)
 {
     aml_real sum = 0;
@@ -340,6 +468,18 @@ AML_DEF aml_real aml_calc_norma(struct Aml_Mat2d m)
     return aml_sqrt(sum);
 }
  
+/**
+ * @brief Compute the infinity-like entrywise max norm used by this library.
+ *
+ * This implementation returns the maximum absolute element value, not the
+ * operator infinity norm.
+ *
+ * @param m Input matrix.
+ * @return `max_{i,j} |m(i,j)|`.
+ *
+ * Complexity
+ * `O(rows * cols)`.
+ */
 AML_DEF aml_real aml_calc_norma_inf(struct Aml_Mat2d m)
 {
     aml_real max = 0;
@@ -355,6 +495,19 @@ AML_DEF aml_real aml_calc_norma_inf(struct Aml_Mat2d m)
     return max;
 }
 
+/**
+ * @brief Test whether an entire column is exactly equal to one value.
+ *
+ * Comparison is exact, not epsilon-based.
+ *
+ * @param m Input matrix.
+ * @param number Value to compare against.
+ * @param c Column index.
+ * @return `true` if every entry in the column equals @p number.
+ *
+ * Complexity
+ * `O(rows)`.
+ */
 AML_DEF bool aml_col_is_all_the_same(struct Aml_Mat2d m, aml_real number, size_t c)
 {
     for (size_t i = 0; i < m.rows; ++i) {
@@ -365,6 +518,16 @@ AML_DEF bool aml_col_is_all_the_same(struct Aml_Mat2d m, aml_real number, size_t
     return true;
 }
 
+/**
+ * @brief Copy one matrix into another.
+ *
+ * @param des Destination matrix.
+ * @param src Source matrix.
+ * @pre Dimensions must match exactly.
+ *
+ * Complexity
+ * `O(rows * cols)`.
+ */
 AML_DEF void aml_copy(struct Aml_Mat2d des, struct Aml_Mat2d src)
 {
     AML_ASSERT(des.cols == src.cols);
@@ -377,6 +540,16 @@ AML_DEF void aml_copy(struct Aml_Mat2d des, struct Aml_Mat2d src)
     }
 }
 
+/**
+ * @brief Copy one uint32 matrix into another.
+ *
+ * @param des Destination matrix.
+ * @param src Source matrix.
+ * @pre Dimensions must match exactly.
+ *
+ * Complexity
+ * `O(rows * cols)`.
+ */
 AML_DEF void aml_copy_uint32(struct Aml_Mat2d_uint32 des, struct Aml_Mat2d_uint32 src)
 {
     AML_ASSERT(des.cols == src.cols);
@@ -389,6 +562,20 @@ AML_DEF void aml_copy_uint32(struct Aml_Mat2d_uint32 des, struct Aml_Mat2d_uint3
     }
 }
 
+/**
+ * @brief Copy one source column into one destination column.
+ *
+ * Computes `des(:,des_col) = src(:,src_col)`.
+ *
+ * @param des Destination matrix.
+ * @param des_col Destination column index.
+ * @param src Source matrix.
+ * @param src_col Source column index.
+ * @pre `des.rows == src.rows`.
+ *
+ * Complexity
+ * `O(rows)`.
+ */
 AML_DEF void aml_copy_col_from_src_to_des(struct Aml_Mat2d des, size_t des_col, struct Aml_Mat2d src, size_t src_col)
 {
     AML_ASSERT(src_col < src.cols);
@@ -400,6 +587,20 @@ AML_DEF void aml_copy_col_from_src_to_des(struct Aml_Mat2d des, size_t des_col, 
     }
 }
 
+/**
+ * @brief Copy one source row into one destination row.
+ *
+ * Computes `des(des_row,:) = src(src_row,:)`.
+ *
+ * @param des Destination matrix.
+ * @param des_row Destination row index.
+ * @param src Source matrix.
+ * @param src_row Source row index.
+ * @pre `des.cols == src.cols`.
+ *
+ * Complexity
+ * `O(cols)`.
+ */
 AML_DEF void aml_copy_row_from_src_to_des(struct Aml_Mat2d des, size_t des_row, struct Aml_Mat2d src, size_t src_row)
 {
     AML_ASSERT(src_row < src.rows);
@@ -411,6 +612,23 @@ AML_DEF void aml_copy_row_from_src_to_des(struct Aml_Mat2d des, size_t des_row, 
     }
 }
 
+/**
+ * @brief Copy the full @p src matrix into a window of @p des.
+ *
+ * The top-left corner in @p des is `(is, js)`. The parameters @p ie and @p je
+ * are only used to assert that the destination window size matches the source
+ * size.
+ *
+ * @param des Destination matrix.
+ * @param src Source matrix.
+ * @param is Destination start row.
+ * @param js Destination start column.
+ * @param ie Destination end row, used for bounds/shape checks.
+ * @param je Destination end column, used for bounds/shape checks.
+ *
+ * Complexity
+ * `O(src.rows * src.cols)`.
+ */
 AML_DEF void aml_copy_src_to_des_window(struct Aml_Mat2d des, struct Aml_Mat2d src, size_t is, size_t js, size_t ie, size_t je)
 {
     AML_ASSERT(je >= js && ie >= is);
@@ -431,6 +649,22 @@ AML_DEF void aml_copy_src_to_des_window(struct Aml_Mat2d des, struct Aml_Mat2d s
     AML_UNUSED(je);
 }
 
+/**
+ * @brief Copy a rectangular window from @p src into the full @p des matrix.
+ *
+ * The copied source window is `[is..ie] x [js..je]`, and its size must match
+ * the full size of @p des.
+ *
+ * @param des Destination matrix.
+ * @param src Source matrix.
+ * @param is Source start row.
+ * @param js Source start column.
+ * @param ie Source end row.
+ * @param je Source end column.
+ *
+ * Complexity
+ * `O(des.rows * des.cols)`.
+ */
 AML_DEF void aml_copy_src_window_to_des(struct Aml_Mat2d des, struct Aml_Mat2d src, size_t is, size_t js, size_t ie, size_t je)
 {
     AML_ASSERT(je >= js && ie >= is);
@@ -451,6 +685,18 @@ AML_DEF void aml_copy_src_window_to_des(struct Aml_Mat2d des, struct Aml_Mat2d s
     AML_UNUSED(je);
 }
 
+/**
+ * @brief Create a non-owning column view into an existing matrix.
+ *
+ * The returned matrix has one column and shares storage with @p src.
+ *
+ * @param src Source matrix.
+ * @param c Column index to reference.
+ * @return A column view into @p src.
+ *
+ * Complexity
+ * `O(1)`.
+ */
 AML_DEF struct Aml_Mat2d aml_create_col_ref(struct Aml_Mat2d src, size_t c)
 {
     AML_ASSERT(c < src.cols);
@@ -463,6 +709,18 @@ AML_DEF struct Aml_Mat2d aml_create_col_ref(struct Aml_Mat2d src, size_t c)
     return col;
 }
 
+/**
+ * @brief Compute the 3D cross product of two column vectors.
+ *
+ * Computes `dst = v1 x v2`.
+ *
+ * @param dst Output 3x1 vector.
+ * @param v1 First 3x1 input vector.
+ * @param v2 Second 3x1 input vector.
+ *
+ * Complexity
+ * `O(1)`.
+ */
 void aml_cross(struct Aml_Mat2d dst, struct Aml_Mat2d v1, struct Aml_Mat2d v2)
 {
     AML_ASSERT(3 == dst.rows && 1 == dst.cols);
@@ -473,6 +731,21 @@ void aml_cross(struct Aml_Mat2d dst, struct Aml_Mat2d v1, struct Aml_Mat2d v2)
     AML_MAT2D_AT(dst, 1, 0) = AML_MAT2D_AT(v1, 2, 0) * AML_MAT2D_AT(v2, 0, 0) - AML_MAT2D_AT(v1, 0, 0) * AML_MAT2D_AT(v2, 2, 0);
     AML_MAT2D_AT(dst, 2, 0) = AML_MAT2D_AT(v1, 0, 0) * AML_MAT2D_AT(v2, 1, 0) - AML_MAT2D_AT(v1, 1, 0) * AML_MAT2D_AT(v2, 0, 0);
 }
+/**
+ * @brief Matrix multiplication.
+ *
+ * Computes `dst = a * b`.
+ *
+ * @param dst Output matrix.
+ * @param a Left factor.
+ * @param b Right factor.
+ * @pre `a.cols == b.rows`, `dst.rows == a.rows`, `dst.cols == b.cols`.
+ * @warning The implementation writes directly into @p dst, so aliasing @p dst
+ * with @p a or @p b is unsafe.
+ *
+ * Complexity
+ * `O(a.rows * a.cols * b.cols)`.
+ */
 
 AML_DEF void aml_dot(struct Aml_Mat2d dst, struct Aml_Mat2d a, struct Aml_Mat2d b)
 {
@@ -493,6 +766,19 @@ AML_DEF void aml_dot(struct Aml_Mat2d dst, struct Aml_Mat2d a, struct Aml_Mat2d 
 
 }
 
+/**
+ * @brief Compute the element-wise inner product of two equal-shaped matrices.
+ *
+ * For vectors this is the usual dot product. For general matrices this is the
+ * Frobenius inner product.
+ *
+ * @param v1 First input matrix.
+ * @param v2 Second input matrix.
+ * @return `sum_{i,j} v1(i,j) * v2(i,j)`.
+ *
+ * Complexity
+ * `O(rows * cols)`.
+ */
 AML_DEF aml_real aml_dot_product(struct Aml_Mat2d m1, struct Aml_Mat2d m2)
 {
     AML_ASSERT(m1.rows == m2.rows);
@@ -509,6 +795,15 @@ AML_DEF aml_real aml_dot_product(struct Aml_Mat2d m1, struct Aml_Mat2d m2)
     return dot_product;
 }
 
+/**
+ * @brief Sum all matrix elements.
+ *
+ * @param m Input matrix.
+ * @return Sum of all entries.
+ *
+ * Complexity
+ * `O(rows * cols)`.
+ */
 AML_DEF aml_real aml_elements_sum(struct Aml_Mat2d m)
 {
     aml_real sum = 0;
@@ -521,6 +816,15 @@ AML_DEF aml_real aml_elements_sum(struct Aml_Mat2d m)
     return sum;
 }
 
+/**
+ * @brief Fill a matrix with a constant value.
+ *
+ * @param m Matrix modified in place.
+ * @param x Fill value.
+ *
+ * Complexity
+ * `O(rows * cols)`.
+ */
 AML_DEF void aml_fill(struct Aml_Mat2d m, aml_real x)
 {
     for (size_t i = 0; i < m.rows; ++i) {
@@ -530,6 +834,18 @@ AML_DEF void aml_fill(struct Aml_Mat2d m, aml_real x)
     }
 }
 
+/**
+ * @brief Fill a matrix with an arithmetic progression in storage order.
+ *
+ * Entry `(i,j)` receives `start + step * aml_offset2d(m, i, j)`.
+ *
+ * @param m Matrix modified in place.
+ * @param start First value.
+ * @param step Increment between consecutive stored elements.
+ *
+ * Complexity
+ * `O(rows * cols)`.
+ */
 AML_DEF void aml_fill_sequence(struct Aml_Mat2d m, aml_real start, aml_real step) {
     for (size_t i = 0; i < m.rows; i++) {
         for (size_t j = 0; j < m.cols; j++) {
@@ -538,6 +854,15 @@ AML_DEF void aml_fill_sequence(struct Aml_Mat2d m, aml_real start, aml_real step
     }
 }
 
+/**
+ * @brief Fill a uint32 matrix with a constant value.
+ *
+ * @param m Matrix modified in place.
+ * @param x Fill value.
+ *
+ * Complexity
+ * `O(rows * cols)`.
+ */
 AML_DEF void aml_fill_uint32(struct Aml_Mat2d_uint32 m, uint32_t x)
 {
     for (size_t i = 0; i < m.rows; ++i) {
@@ -547,6 +872,18 @@ AML_DEF void aml_fill_uint32(struct Aml_Mat2d_uint32 m, uint32_t x)
     }
 }
 
+/**
+ * @brief Compute the squared Euclidean norm of a vector-shaped matrix.
+ *
+ * This function accepts either a column vector or a row vector and returns the
+ * sum of squares, without a square root.
+ *
+ * @param v Input row or column vector.
+ * @return `sum v_i^2`.
+ *
+ * Complexity
+ * `O(length)`.
+ */
 AML_DEF aml_real aml_inner_product(struct Aml_Mat2d v)
 {
     AML_ASSERT((1 == v.cols) || (1 == v.rows));
@@ -566,6 +903,17 @@ AML_DEF aml_real aml_inner_product(struct Aml_Mat2d v)
     return dot_product;
 }
 
+/**
+ * @brief Test whether a square matrix is diagonal.
+ *
+ * Off-diagonal entries are checked using `AML_IS_ZERO`.
+ *
+ * @param m Input square matrix.
+ * @return `true` if all off-diagonal entries are numerically zero.
+ *
+ * Complexity
+ * `O(n^2)`.
+ */
 AML_DEF bool aml_is_diagonal(struct Aml_Mat2d m)
 {
     AML_ASSERT(m.rows == m.cols);
@@ -583,6 +931,17 @@ AML_DEF bool aml_is_diagonal(struct Aml_Mat2d m)
     return true;
 }
 
+/**
+ * @brief Test whether a square matrix is symmetric.
+ *
+ * Symmetry is checked with the library epsilon.
+ *
+ * @param m Input square matrix.
+ * @return `true` if `m(i,j) == m(j,i)` up to `AML_EPS`.
+ *
+ * Complexity
+ * `O(n^2)`.
+ */
 AML_DEF bool aml_is_symmetric(struct Aml_Mat2d m)
 {
     AML_ASSERT(m.rows == m.cols);
@@ -599,6 +958,18 @@ AML_DEF bool aml_is_symmetric(struct Aml_Mat2d m)
     return true;
 }
 
+/**
+ * @brief Test whether a square matrix is tridiagonal.
+ *
+ * Entries outside the main diagonal and first off-diagonals are checked with
+ * `AML_IS_ZERO`.
+ *
+ * @param m Input square matrix.
+ * @return `true` if @p m is numerically tridiagonal.
+ *
+ * Complexity
+ * `O(n^2)`.
+ */
 AML_DEF bool aml_is_tridiagonal(struct Aml_Mat2d m)
 {
     AML_ASSERT(m.rows == m.cols);
@@ -614,6 +985,16 @@ AML_DEF bool aml_is_tridiagonal(struct Aml_Mat2d m)
     return true;
 }
 
+/**
+ * @brief Symmetrize a square matrix by averaging mirrored entries.
+ *
+ * For each `i < j`, both `m(i,j)` and `m(j,i)` are replaced by their average.
+ *
+ * @param m Matrix modified in place.
+ *
+ * Complexity
+ * `O(n^2)`.
+ */
 AML_DEF void aml_make_symmetric(struct Aml_Mat2d m)
 {
     AML_ASSERT(m.rows == m.cols);
@@ -628,6 +1009,16 @@ AML_DEF void aml_make_symmetric(struct Aml_Mat2d m)
     }
 }
 
+/**
+ * @brief Zero all entries outside the tridiagonal band.
+ *
+ * The main diagonal and first upper/lower diagonals are preserved.
+ *
+ * @param m Square matrix modified in place.
+ *
+ * Complexity
+ * `O(n^2)`.
+ */
 AML_DEF void aml_make_tridiagonal(struct Aml_Mat2d m) 
 {
     AML_ASSERT(m.rows == m.cols);
@@ -640,6 +1031,18 @@ AML_DEF void aml_make_tridiagonal(struct Aml_Mat2d m)
     }
 }
 
+/**
+ * @brief Allocate a dense matrix with compact row-major storage.
+ *
+ * Memory is uninitialized.
+ *
+ * @param rows Number of rows.
+ * @param cols Number of columns.
+ * @return Newly allocated matrix.
+ *
+ * Complexity
+ * `O(1)` plus allocation cost.
+ */
 AML_DEF struct Aml_Mat2d aml_mat2d_alloc(size_t rows, size_t cols)
 {
     struct Aml_Mat2d m;
@@ -652,16 +1055,31 @@ AML_DEF struct Aml_Mat2d aml_mat2d_alloc(size_t rows, size_t cols)
     return m;
 }
 
+/**
+ * @brief Free a matrix allocated by aml_mat2d_alloc() or aml_realloc().
+ *
+ * @param m Matrix whose storage will be released.
+ *
+ * Complexity
+ * `O(1)`.
+ */
 AML_DEF void aml_mat2d_free(struct Aml_Mat2d m)
 {
     AML_FREE(m.elements);
 }
 
-AML_DEF void aml_mat2d_uint32_free(struct Aml_Mat2d_uint32 m)
-{
-    AML_FREE(m.elements);
-}
-
+/**
+ * @brief Allocate a dense uint32 matrix with compact row-major storage.
+ *
+ * Memory is uninitialized.
+ *
+ * @param rows Number of rows.
+ * @param cols Number of columns.
+ * @return Newly allocated matrix.
+ *
+ * Complexity
+ * `O(1)` plus allocation cost.
+ */
 AML_DEF struct Aml_Mat2d_uint32 aml_mat2d_uint32_alloc(size_t rows, size_t cols)
 {
     struct Aml_Mat2d_uint32 m;
@@ -674,6 +1092,31 @@ AML_DEF struct Aml_Mat2d_uint32 aml_mat2d_uint32_alloc(size_t rows, size_t cols)
     return m;
 }
 
+/**
+ * @brief Free a uint32 matrix allocated by aml_mat2d_uint32_alloc().
+ *
+ * @param m Matrix whose storage will be released.
+ *
+ * Complexity
+ * `O(1)`.
+ */
+AML_DEF void aml_mat2d_uint32_free(struct Aml_Mat2d_uint32 m)
+{
+    AML_FREE(m.elements);
+}
+
+/**
+ * @brief Test whether every element is exactly equal to one value.
+ *
+ * Comparison is exact, not epsilon-based.
+ *
+ * @param m Input matrix.
+ * @param number Value to compare against.
+ * @return `true` if every entry equals @p number.
+ *
+ * Complexity
+ * `O(rows * cols)`.
+ */
 AML_DEF bool aml_mat2d_is_all_the_same(struct Aml_Mat2d m, aml_real number)
 {
     for (size_t i = 0; i < m.rows; ++i) {
@@ -686,6 +1129,15 @@ AML_DEF bool aml_mat2d_is_all_the_same(struct Aml_Mat2d m, aml_real number)
     return true;
 }
 
+/**
+ * @brief Scale every element of a matrix by a scalar.
+ *
+ * @param m Matrix modified in place.
+ * @param factor Scalar multiplier.
+ *
+ * Complexity
+ * `O(rows * cols)`.
+ */
 AML_DEF void aml_mult(struct Aml_Mat2d m, aml_real factor)
 {
     for (size_t i = 0; i < m.rows; ++i) {
@@ -695,6 +1147,16 @@ AML_DEF void aml_mult(struct Aml_Mat2d m, aml_real factor)
     }
 }
 
+/**
+ * @brief Scale one row by a scalar.
+ *
+ * @param m Matrix modified in place.
+ * @param r Row index.
+ * @param factor Scalar multiplier.
+ *
+ * Complexity
+ * `O(cols)`.
+ */
 AML_DEF void aml_mult_row(struct Aml_Mat2d m, size_t r, aml_real factor)
 {
     for (size_t j = 0; j < m.cols; ++j) {
@@ -702,6 +1164,16 @@ AML_DEF void aml_mult_row(struct Aml_Mat2d m, size_t r, aml_real factor)
     }
 }
 
+/**
+ * @brief Normalize a matrix by its Frobenius norm.
+ *
+ * If the norm is numerically zero, the matrix is left unchanged.
+ *
+ * @param m Matrix modified in place.
+ *
+ * Complexity
+ * `O(rows * cols)`.
+ */
 AML_DEF void aml_normalize(struct Aml_Mat2d m)
 {
     aml_real norma = aml_calc_norma(m);
@@ -712,6 +1184,16 @@ AML_DEF void aml_normalize(struct Aml_Mat2d m)
     aml_mult(m, (aml_real)1 / norma);
 }
 
+/**
+ * @brief Normalize a matrix by its entrywise max absolute value.
+ *
+ * If the norm is numerically zero, the matrix is left unchanged.
+ *
+ * @param m Matrix modified in place.
+ *
+ * Complexity
+ * `O(rows * cols)`.
+ */
 AML_DEF void aml_normalize_inf(struct Aml_Mat2d m)
 {
     aml_real norma = aml_calc_norma_inf(m);
@@ -722,18 +1204,52 @@ AML_DEF void aml_normalize_inf(struct Aml_Mat2d m)
     aml_mult(m, (aml_real)1 / norma);
 }
 
+/**
+ * @brief Convert a 2D matrix index into a linear storage offset.
+ *
+ * @param m Matrix view.
+ * @param i Row index.
+ * @param j Column index.
+ * @return Linear offset `i * stride_r + j`.
+ *
+ * Complexity
+ * `O(1)`.
+ */
 AML_DEF size_t aml_offset2d(struct Aml_Mat2d m, size_t i, size_t j)
 {
     AML_ASSERT(i < m.rows && j < m.cols);
     return i * m.stride_r + j;
 }
 
+/**
+ * @brief Convert a 2D uint32 matrix index into a linear storage offset.
+ *
+ * @param m Matrix view.
+ * @param i Row index.
+ * @param j Column index.
+ * @return Linear offset `i * stride_r + j`.
+ *
+ * Complexity
+ * `O(1)`.
+ */
 AML_DEF size_t aml_offset2d_uint32(struct Aml_Mat2d_uint32 m, size_t i, size_t j)
 {
     AML_ASSERT(i < m.rows && j < m.cols);
     return i * m.stride_r + j;
 }
 
+/**
+ * @brief Compute the outer product of a vector with itself.
+ *
+ * If @p v is a column vector, computes `des(i,j) = v(i) * v(j)`.
+ * If @p v is a row vector, computes `des(i,j) = v(i) * v(j)` using row access.
+ *
+ * @param des Output square matrix.
+ * @param v Input row or column vector.
+ *
+ * Complexity
+ * `O(n^2)`.
+ */
 AML_DEF void aml_outer_product(struct Aml_Mat2d des, struct Aml_Mat2d v)
 {
     AML_ASSERT(des.cols == des.rows);
@@ -754,6 +1270,16 @@ AML_DEF void aml_outer_product(struct Aml_Mat2d des, struct Aml_Mat2d v)
     }
 }
 
+/**
+ * @brief Print a real matrix in a compact human-readable format.
+ *
+ * @param m Matrix to print.
+ * @param name Label shown before the matrix contents.
+ * @param padding Left indentation width.
+ *
+ * Complexity
+ * `O(rows * cols)`.
+ */
 AML_DEF void aml_print(struct Aml_Mat2d m, const char *name, size_t padding)
 {
     printf("%*s%s = [\n", (int) padding, "", name);
@@ -768,6 +1294,16 @@ AML_DEF void aml_print(struct Aml_Mat2d m, const char *name, size_t padding)
     printf("%*s]\n", (int) padding, "");
 }
 
+/**
+ * @brief Print a uint32 matrix in hexadecimal form.
+ *
+ * @param m Matrix to print.
+ * @param name Label shown before the matrix contents.
+ * @param padding Left indentation width.
+ *
+ * Complexity
+ * `O(rows * cols)`.
+ */
 AML_DEF void aml_print_uint32(struct Aml_Mat2d_uint32 m, const char *name, size_t padding)
 {
     printf("%*s%s = [\n", (int) padding, "", name);
@@ -781,6 +1317,18 @@ AML_DEF void aml_print_uint32(struct Aml_Mat2d_uint32 m, const char *name, size_
     printf("%*s]\n", (int) padding, "");
 }
 
+/**
+ * @brief Print raw stored elements as a single column.
+ *
+ * This prints `rows * cols` elements in linear storage order, not in 2D form.
+ *
+ * @param m Matrix to print.
+ * @param name Label shown before the values.
+ * @param padding Left indentation width.
+ *
+ * Complexity
+ * `O(rows * cols)`.
+ */
 AML_DEF void aml_print_as_col(struct Aml_Mat2d m, const char *name, size_t padding)
 {
     printf("%*s%s = [\n", (int) padding, "", name);
@@ -791,11 +1339,35 @@ AML_DEF void aml_print_as_col(struct Aml_Mat2d m, const char *name, size_t paddi
     printf("%*s]\n", (int) padding, "");
 }
 
+/**
+ * @brief Generate a pseudo-random real number in `[0, 1]`.
+ *
+ * Uses the C standard library `rand()`.
+ *
+ * @return Pseudo-random value in `[0,1]`.
+ *
+ * Complexity
+ * `O(1)`.
+ */
 AML_DEF aml_real aml_rand_aml_real(void)
 {
     return (aml_real) rand() / (aml_real) RAND_MAX;
 }
 
+/**
+ * @brief Reallocate a matrix to a new size.
+ *
+ * The matrix remains row-major and compact after reallocation. Existing data
+ * preservation follows the semantics of `realloc()`.
+ *
+ * @param m Existing matrix.
+ * @param rows New row count.
+ * @param cols New column count.
+ * @return Resized matrix view.
+ *
+ * Complexity
+ * `O(1)` amortized plus reallocation cost.
+ */
 AML_DEF struct Aml_Mat2d aml_realloc(struct Aml_Mat2d m, size_t rows, size_t cols)
 {
     m.rows = rows;
@@ -807,6 +1379,17 @@ AML_DEF struct Aml_Mat2d aml_realloc(struct Aml_Mat2d m, size_t rows, size_t col
     return m;
 }
 
+/**
+ * @brief Reallocate a uint32 matrix to a new size.
+ *
+ * @param m Existing matrix.
+ * @param rows New row count.
+ * @param cols New column count.
+ * @return Resized matrix view.
+ *
+ * Complexity
+ * `O(1)` amortized plus reallocation cost.
+ */
 AML_DEF struct Aml_Mat2d_uint32 aml_realloc_uint32(struct Aml_Mat2d_uint32 m, size_t rows, size_t cols)
 {
     m.rows = rows;
@@ -818,12 +1401,36 @@ AML_DEF struct Aml_Mat2d_uint32 aml_realloc_uint32(struct Aml_Mat2d_uint32 m, si
     return m;
 }
 
+/**
+ * @brief Rotate a square matrix by 180 degrees in place.
+ *
+ * Implemented as a transpose followed by an anti-diagonal transpose.
+ *
+ * @param m Square matrix modified in place.
+ *
+ * Complexity
+ * `O(n^2)`.
+ */
 AML_DEF void aml_rotate_mat_180_deg_inplace(struct Aml_Mat2d m)
 {
     aml_transpose_inplace(m);
     aml_anti_diag_transpose_inplace(m);
 }
 
+/**
+ * @brief Find the first numerically non-zero entry in a row.
+ *
+ * Scans columns from left to right starting at column 0 and writes the first
+ * matching column index into @p non_zero_col.
+ *
+ * @param m Input matrix.
+ * @param r Row index.
+ * @param non_zero_col Output column index.
+ * @return `true` if a non-zero entry was found.
+ *
+ * Complexity
+ * `O(cols)`.
+ */
 AML_DEF bool aml_row_find_first_non_zero_value(struct Aml_Mat2d m, size_t r, size_t *non_zero_col)
 {
     for (size_t c = 0; c < m.cols; ++c) {
@@ -835,6 +1442,19 @@ AML_DEF bool aml_row_find_first_non_zero_value(struct Aml_Mat2d m, size_t r, siz
     return false;
 }
 
+/**
+ * @brief Test whether an entire row is exactly equal to one value.
+ *
+ * Comparison is exact, not epsilon-based.
+ *
+ * @param m Input matrix.
+ * @param number Value to compare against.
+ * @param r Row index.
+ * @return `true` if every entry in the row equals @p number.
+ *
+ * Complexity
+ * `O(cols)`.
+ */
 AML_DEF bool aml_row_is_all_the_same(struct Aml_Mat2d m, aml_real number, size_t r)
 {
     for (size_t j = 0; j < m.cols; ++j) {
@@ -845,7 +1465,21 @@ AML_DEF bool aml_row_is_all_the_same(struct Aml_Mat2d m, aml_real number, size_t
     return true;
 }
 
-AML_DEF void aml_set_DCM_zyx(struct Aml_Mat2d DCM, float yaw_deg, float pitch_deg, float roll_deg)
+/**
+ * @brief Build a 3x3 direction-cosine matrix from yaw, pitch, and roll.
+ *
+ * The implementation computes:
+ * `DCM = RotX(roll) * RotY(pitch) * RotZ(yaw)`.
+ *
+ * @param DCM Output 3x3 matrix.
+ * @param yaw_deg Rotation about Z in degrees.
+ * @param pitch_deg Rotation about Y in degrees.
+ * @param roll_deg Rotation about X in degrees.
+ *
+ * Complexity
+ * `O(1)`.
+ */
+AML_DEF void aml_set_DCM_xyz(struct Aml_Mat2d DCM, float roll_deg, float pitch_deg, float yaw_deg)
 {
     struct Aml_Mat2d RotZ = aml_mat2d_alloc(3,3);
     aml_set_rot_mat_z(RotZ, yaw_deg);
@@ -864,6 +1498,14 @@ AML_DEF void aml_set_DCM_zyx(struct Aml_Mat2d DCM, float yaw_deg, float pitch_de
     aml_mat2d_free(temp);
 }
 
+/**
+ * @brief Set a square matrix to the identity matrix.
+ *
+ * @param m Square matrix modified in place.
+ *
+ * Complexity
+ * `O(n^2)`.
+ */
 AML_DEF void aml_set_identity(struct Aml_Mat2d m)
 {
     AML_ASSERT(m.cols == m.rows);
@@ -874,6 +1516,18 @@ AML_DEF void aml_set_identity(struct Aml_Mat2d m)
     }
 }
 
+/**
+ * @brief Fill a matrix with independent uniform random values.
+ *
+ * Each entry is drawn from `[low, high]`.
+ *
+ * @param m Matrix modified in place.
+ * @param low Lower bound.
+ * @param high Upper bound.
+ *
+ * Complexity
+ * `O(rows * cols)`.
+ */
 AML_DEF void aml_set_rand(struct Aml_Mat2d m, aml_real low, aml_real high)
 {
     for (size_t i = 0; i < m.rows; ++i) {
@@ -883,6 +1537,19 @@ AML_DEF void aml_set_rand(struct Aml_Mat2d m, aml_real low, aml_real high)
     }
 }
 
+/**
+ * @brief Fill a square matrix with symmetric random values.
+ *
+ * The implementation writes random values to `(i,j)` and mirrors them to
+ * `(j,i)`, so the matrix is symmetric on return.
+ *
+ * @param m Square matrix modified in place.
+ * @param low Lower bound.
+ * @param high Upper bound.
+ *
+ * Complexity
+ * `O(n^2)`.
+ */
 AML_DEF void aml_set_rand_symmetric(struct Aml_Mat2d m, aml_real low, aml_real high)
 {
     AML_ASSERT(m.rows == m.cols);
@@ -895,6 +1562,17 @@ AML_DEF void aml_set_rand_symmetric(struct Aml_Mat2d m, aml_real low, aml_real h
     }
 }
 
+/**
+ * @brief Set a 3x3 rotation matrix about the X axis.
+ *
+ * Angle is specified in degrees.
+ *
+ * @param m Output 3x3 matrix.
+ * @param angle_deg Rotation angle in degrees.
+ *
+ * Complexity
+ * `O(1)`.
+ */
 AML_DEF void aml_set_rot_mat_x(struct Aml_Mat2d m, float angle_deg)
 {
     AML_ASSERT(3 == m.cols && 3 == m.rows);
@@ -907,6 +1585,17 @@ AML_DEF void aml_set_rot_mat_x(struct Aml_Mat2d m, float angle_deg)
     AML_MAT2D_AT(m, 2, 2) =  aml_cos(angle_rad);
 }
 
+/**
+ * @brief Set a 3x3 rotation matrix about the Y axis.
+ *
+ * Angle is specified in degrees.
+ *
+ * @param m Output 3x3 matrix.
+ * @param angle_deg Rotation angle in degrees.
+ *
+ * Complexity
+ * `O(1)`.
+ */
 AML_DEF void aml_set_rot_mat_y(struct Aml_Mat2d m, float angle_deg)
 {
     AML_ASSERT(3 == m.cols && 3 == m.rows);
@@ -919,6 +1608,17 @@ AML_DEF void aml_set_rot_mat_y(struct Aml_Mat2d m, float angle_deg)
     AML_MAT2D_AT(m, 2, 2) =  aml_cos(angle_rad);
 }
 
+/**
+ * @brief Set a 3x3 rotation matrix about the Z axis.
+ *
+ * Angle is specified in degrees.
+ *
+ * @param m Output 3x3 matrix.
+ * @param angle_deg Rotation angle in degrees.
+ *
+ * Complexity
+ * `O(1)`.
+ */
 AML_DEF void aml_set_rot_mat_z(struct Aml_Mat2d m, float angle_deg)
 {
     AML_ASSERT(3 == m.cols && 3 == m.rows);
@@ -931,6 +1631,17 @@ AML_DEF void aml_set_rot_mat_z(struct Aml_Mat2d m, float angle_deg)
     AML_MAT2D_AT(m, 1, 1) =  aml_cos(angle_rad);
 }
 
+/**
+ * @brief Add a scalar shift to the diagonal of a square matrix.
+ *
+ * Computes `m <- m + shift * I`.
+ *
+ * @param m Matrix modified in place.
+ * @param shift Diagonal increment.
+ *
+ * Complexity
+ * `O(n)`.
+ */
 AML_DEF void aml_shift(struct Aml_Mat2d m, aml_real shift)
 {
     AML_ASSERT(m.cols == m.rows); 
@@ -939,6 +1650,19 @@ AML_DEF void aml_shift(struct Aml_Mat2d m, aml_real shift)
     }
 }
 
+/**
+ * @brief Add a scalar shift to part of the diagonal of a square matrix.
+ *
+ * Only diagonal indices `is..ie` are modified.
+ *
+ * @param m Matrix modified in place.
+ * @param shift Diagonal increment.
+ * @param is First diagonal index.
+ * @param ie Last diagonal index.
+ *
+ * Complexity
+ * `O(ie - is + 1)`.
+ */
 AML_DEF void aml_shift_specific(struct Aml_Mat2d m, aml_real shift, size_t is, size_t ie)
 {
     AML_ASSERT(m.cols == m.rows); 
@@ -947,6 +1671,17 @@ AML_DEF void aml_shift_specific(struct Aml_Mat2d m, aml_real shift, size_t is, s
     }
 }
 
+/**
+ * @brief Subtract matrix @p a from @p dst element-wise.
+ *
+ * Computes `dst(i,j) -= a(i,j)` for all elements.
+ *
+ * @param dst Destination matrix, modified in place.
+ * @param a Matrix subtracted from @p dst.
+ *
+ * Complexity
+ * `O(rows * cols)`.
+ */
 AML_DEF void aml_sub(struct Aml_Mat2d dst, struct Aml_Mat2d a)
 {
     AML_ASSERT(dst.rows == a.rows);
@@ -958,6 +1693,19 @@ AML_DEF void aml_sub(struct Aml_Mat2d dst, struct Aml_Mat2d a)
     }
 }
 
+/**
+ * @brief Subtract one source column from one destination column.
+ *
+ * Computes `des(:,des_col) -= src(:,src_col)`.
+ *
+ * @param des Destination matrix.
+ * @param des_col Destination column index.
+ * @param src Source matrix.
+ * @param src_col Source column index.
+ *
+ * Complexity
+ * `O(rows)`.
+ */
 AML_DEF void aml_sub_col_to_col(struct Aml_Mat2d des, size_t des_col, struct Aml_Mat2d src, size_t src_col)
 {
     AML_ASSERT(src_col < src.cols);
@@ -969,6 +1717,19 @@ AML_DEF void aml_sub_col_to_col(struct Aml_Mat2d des, size_t des_col, struct Aml
     }
 }
 
+/**
+ * @brief Subtract one source row from one destination row.
+ *
+ * Computes `des(des_row,:) -= src(src_row,:)`.
+ *
+ * @param des Destination matrix.
+ * @param des_row Destination row index.
+ * @param src Source matrix.
+ * @param src_row Source row index.
+ *
+ * Complexity
+ * `O(cols)`.
+ */
 AML_DEF void aml_sub_row_to_row(struct Aml_Mat2d des, size_t des_row, struct Aml_Mat2d src, size_t src_row)
 {
     AML_ASSERT(src_row < src.rows);
@@ -980,6 +1741,19 @@ AML_DEF void aml_sub_row_to_row(struct Aml_Mat2d des, size_t des_row, struct Aml
     }
 }
 
+/**
+ * @brief Subtract a scaled source row from a destination row.
+ *
+ * Computes `row(des_r) -= factor * row(src_r)`.
+ *
+ * @param m Matrix modified in place.
+ * @param des_r Destination row index.
+ * @param src_r Source row index.
+ * @param factor Row scale factor.
+ *
+ * Complexity
+ * `O(cols)`.
+ */
 AML_DEF void aml_sub_row_time_factor_to_row(struct Aml_Mat2d m, size_t des_r, size_t src_r, aml_real factor)
 {
     for (size_t j = 0; j < m.cols; ++j) {
@@ -987,6 +1761,16 @@ AML_DEF void aml_sub_row_time_factor_to_row(struct Aml_Mat2d m, size_t des_r, si
     }
 }
 
+/**
+ * @brief Swap two matrix rows in place.
+ *
+ * @param m Matrix modified in place.
+ * @param r1 First row index.
+ * @param r2 Second row index.
+ *
+ * Complexity
+ * `O(cols)`.
+ */
 AML_DEF void aml_swap_rows(struct Aml_Mat2d m, size_t r1, size_t r2)
 {
     for (size_t j = 0; j < m.cols; j++) {
@@ -996,6 +1780,19 @@ AML_DEF void aml_swap_rows(struct Aml_Mat2d m, size_t r1, size_t r2)
     }
 }
 
+/**
+ * @brief Compute the transpose of a matrix.
+ *
+ * Computes `des = src^T`.
+ *
+ * @param des Output matrix.
+ * @param src Input matrix.
+ * @warning This is an out-of-place transpose; aliasing @p des and @p src is
+ * not safe.
+ *
+ * Complexity
+ * `O(rows * cols)`.
+ */
 AML_DEF void aml_transpose(struct Aml_Mat2d des, struct Aml_Mat2d src)
 {
     AML_ASSERT(des.cols == src.rows);
@@ -1008,6 +1805,14 @@ AML_DEF void aml_transpose(struct Aml_Mat2d des, struct Aml_Mat2d src)
     }
 }
 
+/**
+ * @brief Transpose a square matrix in place.
+ *
+ * @param m Square matrix modified in place.
+ *
+ * par Complexity
+ * `O(n^2)`.
+ */
 AML_DEF void aml_transpose_inplace(struct Aml_Mat2d m)
 {
     AML_ASSERT(m.cols == m.rows);
