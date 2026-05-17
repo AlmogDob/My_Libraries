@@ -6,7 +6,7 @@
 
 int main(void)
 {
-    size_t n = 361;
+    size_t n = 1261;
     // size_t n = 5;
     size_t m = n;
     struct Aml_Mat2d A = aml_mat2d_alloc(n, m);
@@ -15,7 +15,7 @@ int main(void)
     struct Aml_Mat2d eigvectors = aml_mat2d_alloc(n, m);
 
     // srand((int)time(NULL));
-    srand(8);
+    srand(9);
     aml_set_rand_symmetric(A, -2, 2);
     // AML_MAT2D_AT(A, 0, 0) = 1; AML_MAT2D_AT(A, 0, 1) = 2; AML_MAT2D_AT(A, 0, 2) = 3; AML_MAT2D_AT(A, 0, 3) = 4;
     // AML_MAT2D_AT(A, 1, 0) = 2; AML_MAT2D_AT(A, 1, 1) = 0; AML_MAT2D_AT(A, 1, 2) = 5; AML_MAT2D_AT(A, 1, 3) = 0;
@@ -23,7 +23,6 @@ int main(void)
     // AML_MAT2D_AT(A, 3, 0) = 4; AML_MAT2D_AT(A, 3, 1) = 0; AML_MAT2D_AT(A, 3, 2) = 1; AML_MAT2D_AT(A, 3, 3) = -2;
 
     ala_symmetric_eig_QR_tridiagonalize(A, eigvalues, eigvectors);
-    // ala_symmetric_eig_QR_shift(A, eigvalues, eigvectors);
 
     // AML_PRINT(A);
 

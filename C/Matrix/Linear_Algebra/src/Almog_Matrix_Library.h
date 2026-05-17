@@ -14,6 +14,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <float.h>
 #include <stdbool.h>
 #include <math.h>
 
@@ -41,6 +42,7 @@
 #if defined(AML_SINGLE_PRECISION)
     typedef float aml_real;
     #define AML_EPS 1e-5
+    #define AML_INFINITY FLT_MAX
     #define aml_fmin  fminf
     #define aml_fmax  fmaxf
     #define aml_fabs  fabsf
@@ -53,6 +55,7 @@
 #else 
     typedef double aml_real;
     #define AML_EPS 1e-10
+    #define AML_INFINITY DBL_MAX
     #define aml_fmin  fmin
     #define aml_fmax  fmax
     #define aml_fabs  fabs
@@ -63,6 +66,7 @@
     #define aml_ceil  ceil
     #define aml_hypot hypot
 #endif
+
 
 /**
  * @brief Dense real-valued 2D matrix view.
