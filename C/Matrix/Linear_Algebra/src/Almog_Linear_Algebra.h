@@ -71,6 +71,7 @@ ALA_DEF void        ala_symmetric_eig_QR_shift(struct Aml_Mat2d A, struct Aml_Ma
 ALA_DEF void        ala_symmetric_eig_QR_tridiagonalize(struct Aml_Mat2d A, struct Aml_Mat2d eigenvalues, struct Aml_Mat2d eigenvectors);
 ALA_DEF void        ala_symmetric_eig_QR_tridiagonalize_implicit_shift(struct Aml_Mat2d A, struct Aml_Mat2d eigenvalues, struct Aml_Mat2d eigenvectors);
 ALA_DEF void        ala_symmetric_eigen_approximation(struct Aml_Mat2d approx, struct Aml_Mat2d A, size_t order);
+ALA_DEF void        ala_symmetric_eigen_approximation_build(struct Aml_Mat2d approx, struct Aml_Mat2d eigenvalues, struct Aml_Mat2d eigenvectors, size_t order);
 
 ALA_DEF void        ala_symmetric_tridiagonalize_householder(struct Aml_Mat2d Q, struct Aml_Mat2d T, struct Aml_Mat2d src);
 ALA_DEF aml_real    ala_symmetric_tridiagonal_calc_shift(struct Aml_Mat2d m, size_t last);
@@ -1506,27 +1507,42 @@ ALA_DEF void ala_symmetric_eig_QR_tridiagonalize_implicit_shift(struct Aml_Mat2d
 ALA_DEF void ala_symmetric_eigen_approximation(struct Aml_Mat2d approx, struct Aml_Mat2d A, size_t order)
 {
     AML_ASSERT(order <= A.rows);
+    AML_ASSERT(A.cols == A.rows);
+    AML_ASSERT(approx.cols == approx.rows);
     AML_ASSERT(aml_is_symmetric(A));
 
     struct Aml_Mat2d eigenvalues  = aml_mat2d_alloc(A.rows, A.cols);
     struct Aml_Mat2d eigenvectors = aml_mat2d_alloc(A.rows, A.cols);
-    struct Aml_Mat2d temp         = aml_mat2d_alloc(A.rows, A.cols);
-    struct Aml_Mat2d n_values     = aml_mat2d_alloc(A.rows, A.cols);
-    struct Aml_Mat2d n_vectors    = aml_mat2d_alloc(A.rows, A.cols);
 
     ala_symmetric_eig_QR_tridiagonalize(A, eigenvalues, eigenvectors);
-
     aml_make_diagonal(eigenvalues);
     ala_eigenpairs_sort(eigenvalues, eigenvectors);
 
-    AML_PRINT(eigenvalues);
+    ala_symmetric_eigen_approximation_build(approx, eigenvalues, eigenvectors, order);
+
+    aml_mat2d_free(eigenvalues);
+    aml_mat2d_free(eigenvectors);
+}
+
+ALA_DEF void ala_symmetric_eigen_approximation_build(struct Aml_Mat2d approx, struct Aml_Mat2d eigenvalues, struct Aml_Mat2d eigenvectors, size_t order)
+{
+    AML_ASSERT(order <= eigenvalues.rows);
+    AML_ASSERT(eigenvalues.rows == eigenvalues.cols);
+    AML_ASSERT(approx.rows == approx.cols);
+    AML_ASSERT(eigenvectors.cols == eigenvectors.rows);
+    AML_ASSERT(eigenvalues.rows == eigenvectors.rows);
+    AML_ASSERT(eigenvalues.rows == approx.rows);
+
+    struct Aml_Mat2d temp         = aml_mat2d_alloc(eigenvalues.rows, eigenvalues.cols);
+    struct Aml_Mat2d n_values     = aml_mat2d_alloc(eigenvalues.rows, eigenvalues.cols);
+    struct Aml_Mat2d n_vectors    = aml_mat2d_alloc(eigenvalues.rows, eigenvalues.cols);
+
+    size_t n = order == 0 ? eigenvalues.rows : order;
 
     aml_fill(approx, 0);
     aml_fill(temp, 0);
     aml_fill(n_values, 0);
     aml_fill(n_vectors, 0);
-
-    size_t n = order == 0 ? A.rows : order;
 
     for (size_t i = 0; i < n; i++) {
         AML_MAT2D_AT(n_values, i, i) = AML_MAT2D_AT(eigenvalues, i, i);
@@ -1537,8 +1553,6 @@ ALA_DEF void ala_symmetric_eigen_approximation(struct Aml_Mat2d approx, struct A
     aml_transpose_inplace(n_vectors);
     aml_dot(approx, n_vectors, temp);
 
-    aml_mat2d_free(eigenvalues);
-    aml_mat2d_free(eigenvectors);
     aml_mat2d_free(temp);
     aml_mat2d_free(n_values);
     aml_mat2d_free(n_vectors);
@@ -1711,6 +1725,13 @@ ALA_DEF bool ala_symmetric_tridiagonal_deflate_tail(struct Aml_Mat2d m, size_t *
         aml_real e = aml_fabs(AML_MAT2D_AT(m, l, l - 1));
         aml_real d0 = aml_fabs(AML_MAT2D_AT(m, l - 1, l - 1));
         aml_real d1 = aml_fabs(AML_MAT2D_AT(m, l, l));
+
+        if (d1 < eps) {
+            AML_MAT2D_AT(m, l, l - 1) = 0;
+            AML_MAT2D_AT(m, l - 1, l) = 0;
+            --l;
+            continue;
+        }
 
         if (e > eps * (d0 + d1)) {
             break;

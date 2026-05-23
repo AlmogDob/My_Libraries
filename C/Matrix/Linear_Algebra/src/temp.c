@@ -14,7 +14,7 @@ int main(void)
     // srand((int)time(NULL));
     aml_set_rand_symmetric(A, -2, 2);
 
-    ala_symmetric_eigen_approximation(res, A, 7);
+    ala_symmetric_eigen_approximation(res, A, 1);
 
     AML_PRINT(A);
     AML_PRINT(res);
