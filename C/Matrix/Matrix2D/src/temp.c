@@ -1,48 +1,26 @@
-#define MATRIX2D_IMPLEMENTATION
-#include "Matrix2D.h"
+#define ALMOG_MATRIX_LIBRARY_IMPLEMENTATION
+#define ALMOG_LINEAR_ALGEBRA_IMPLEMENTATION
+#include "Almog_Linear_Algebra.h"
 
 int main(void)
 {
-    Mat2D a = mat2D_alloc(4, 4);
-    Mat2D b = mat2D_alloc(3, 3);
-    Mat2D m = mat2D_alloc(4 - 3 + 1, 4 - 3 + 1);
+    size_t n = 40, m = 60;
+    struct Aml_Mat2d A = aml_mat2d_alloc(n, m);
+    struct Aml_Mat2d Q = aml_mat2d_alloc(n, n);
+    struct Aml_Mat2d R = aml_mat2d_alloc(n, m);
+    struct Aml_Mat2d temp = aml_mat2d_alloc(n, m);
 
-    MAT2D_AT(a, 0, 0) = 3;
-    MAT2D_AT(a, 0, 1) = 3;
-    MAT2D_AT(a, 0, 2) = 2;
-    MAT2D_AT(a, 0, 3) = 1;
-    MAT2D_AT(a, 1, 0) = 0;
-    MAT2D_AT(a, 1, 1) = 0;
-    MAT2D_AT(a, 1, 2) = 1;
-    MAT2D_AT(a, 1, 3) = 3;
-    MAT2D_AT(a, 2, 0) = 3;
-    MAT2D_AT(a, 2, 1) = 1;
-    MAT2D_AT(a, 2, 2) = 2;
-    MAT2D_AT(a, 2, 3) = 2;
-    MAT2D_AT(a, 3, 0) = 2;
-    MAT2D_AT(a, 3, 1) = 0;
-    MAT2D_AT(a, 3, 2) = 0;
-    MAT2D_AT(a, 3, 3) = 2;
+    aml_fill_sequence(A, 0, 1);
 
-    MAT2D_AT(b, 0, 0) = 0;
-    MAT2D_AT(b, 0, 1) = 1;
-    MAT2D_AT(b, 0, 2) = 2;
-    MAT2D_AT(b, 1, 0) = 2;
-    MAT2D_AT(b, 1, 1) = 2;
-    MAT2D_AT(b, 1, 2) = 0;
-    MAT2D_AT(b, 2, 0) = 0;
-    MAT2D_AT(b, 2, 1) = 1;
-    MAT2D_AT(b, 2, 2) = 2;
+    // AML_PRINT(A);
 
-    mat2D_rotate_mat_180_deg_inplace(b);
+    // ala_QR_householder_factorization(Q, R, A);
+    ala_QR_householder_factorization_fast(Q, R, A);
 
-    MAT2D_PRINT(a);
-    MAT2D_PRINT(b);
+    aml_dot(temp, Q, R);
 
-    mat2D_convolve(m, a, b);
+    AML_PRINT(temp);
 
-    MAT2D_PRINT(m);
-    
 
     return 0;
 }
