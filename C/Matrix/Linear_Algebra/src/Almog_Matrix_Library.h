@@ -41,7 +41,7 @@
 
 #if defined(AML_SINGLE_PRECISION)
     typedef float aml_real;
-    #define AML_EPS 1e-5
+    #define AML_EPS 1e-5f
     #define AML_INFINITY FLT_MAX
     #define aml_fmin  fminf
     #define aml_fmax  fmaxf
@@ -213,6 +213,7 @@ AML_DEF void                    aml_add_row_to_row(struct Aml_Mat2d des, size_t 
 AML_DEF void                    aml_add_row_time_factor_to_row(struct Aml_Mat2d m, size_t des_r, size_t src_r, aml_real factor);
 AML_DEF void                    aml_add_scalar(struct Aml_Mat2d m, aml_real x);
 AML_DEF void                    aml_anti_diag_transpose_inplace(struct Aml_Mat2d m);
+
 AML_DEF aml_real                aml_calc_col_norma(struct Aml_Mat2d m, size_t c);
 AML_DEF aml_real                aml_calc_norma(struct Aml_Mat2d m);
 AML_DEF aml_real                aml_calc_norma_inf(struct Aml_Mat2d m);
@@ -237,8 +238,10 @@ AML_DEF void                    aml_fill_sequence(struct Aml_Mat2d m, aml_real s
 AML_DEF void                    aml_fill_uint32(struct Aml_Mat2d_uint32 m, uint32_t x);
 
 AML_DEF aml_real                aml_inner_product(struct Aml_Mat2d v);
+AML_DEF bool                    aml_is_close(aml_real a, aml_real b, aml_real eps);
 AML_DEF bool                    aml_is_diagonal(struct Aml_Mat2d m);
 AML_DEF bool                    aml_is_symmetric(struct Aml_Mat2d m);
+AML_DEF bool                    aml_is_symmetric_relative(struct Aml_Mat2d m);
 AML_DEF bool                    aml_is_tridiagonal(struct Aml_Mat2d m);
 
 AML_DEF void                    aml_make_diagonal(struct Aml_Mat2d m);
@@ -526,7 +529,7 @@ AML_DEF bool aml_col_is_all_the_same(struct Aml_Mat2d m, aml_real number, size_t
 
 AML_DEF void aml_cols_swap(struct Aml_Mat2d m, size_t c1, size_t c2)
 {
-    for (size_t i = 0; i < m.cols; i++) {
+    for (size_t i = 0; i < m.rows; i++) {
         aml_real temp = AML_MAT2D_AT(m, i, c1);
         AML_MAT2D_AT(m, i, c1) = AML_MAT2D_AT(m, i, c2);
         AML_MAT2D_AT(m, i, c2) = temp;
@@ -918,6 +921,12 @@ AML_DEF aml_real aml_inner_product(struct Aml_Mat2d v)
     return dot_product;
 }
 
+AML_DEF bool aml_is_close(aml_real a, aml_real b, aml_real eps)
+{
+    aml_real scale = aml_fmax((aml_real)1, aml_fmax(aml_fabs(a), aml_fabs(b)));
+    return aml_fabs(a - b) <= eps * scale;
+}
+
 /**
  * @brief Test whether a square matrix is diagonal.
  *
@@ -964,7 +973,23 @@ AML_DEF bool aml_is_symmetric(struct Aml_Mat2d m)
     for (size_t i = 0; i < m.rows; i++) {
         for (size_t j = 0; j < m.cols; j++) {
             if (!AML_IS_ZERO(AML_MAT2D_AT(m, i, j) - AML_MAT2D_AT(m, j , i))) {
-                aml_dprintERROR("Not symmetric!. (%zu, %zu): %g != (%zu, %zu): %g", i, j, AML_MAT2D_AT(m, i, j), j, i, AML_MAT2D_AT(m, j, i));
+                aml_dprintERROR("Not symmetric!. (%zu, %zu): %-.10g != (%zu, %zu): %-.10g", i, j, AML_MAT2D_AT(m, i, j), j, i, AML_MAT2D_AT(m, j, i));
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+AML_DEF bool aml_is_symmetric_relative(struct Aml_Mat2d m)
+{
+    AML_ASSERT(m.rows == m.cols);
+
+    for (size_t i = 0; i < m.rows; i++) {
+        for (size_t j = 0; j < m.cols; j++) {
+            if (!aml_is_close(AML_MAT2D_AT(m, i, j), AML_MAT2D_AT(m, j , i), AML_EPS)) {
+                aml_dprintERROR("Not symmetric!. (%zu, %zu): %-.10g != (%zu, %zu): %-.10g", i, j, AML_MAT2D_AT(m, i, j), j, i, AML_MAT2D_AT(m, j, i));
                 return false;
             }
         }

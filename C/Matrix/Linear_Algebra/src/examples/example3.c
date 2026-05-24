@@ -6,15 +6,15 @@
 
 int main(void)
 {
-    size_t n = 12;
+    size_t n = 1600;
     size_t m = n;
     struct Aml_Mat2d A = aml_mat2d_alloc(n, m);
     struct Aml_Mat2d res = aml_mat2d_alloc(n, m);
 
     // srand((int)time(NULL));
-    aml_set_rand_symmetric(A, -2, 2);
+    aml_set_rand_symmetric(A, -1, 1);
 
-    ala_symmetric_eigen_approximation(res, A, 7);
+    ala_symmetric_eigen_approximation(res, A, 0);
 
     AML_PRINT(A);
     AML_PRINT(res);
