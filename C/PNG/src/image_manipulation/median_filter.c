@@ -76,9 +76,9 @@ enum Apl_Return_Types apl_setup(struct Apl_Window_State *ws)
     // ws->to_limit_fps = false;
     offzoom = ADL_DEFAULT_OFFSET_ZOOM;
 
-    char file_name[] = "../src/test_images/test-png3.png";
+    // char file_name[] = "../src/test_images/test-png3.png";
     // char file_name[] = "../src/test_images/test-png_wiki.png";
-    // char file_name[] = "../src/test_images/Bikesgray.png";
+    char file_name[] = "../src/test_images/Bikesgray.png";
     // char file_name[] = "../src/test_images/file_example_PNG_3MB.png";
     // char file_name[] = "../src/test_images/Valve_original.png";
 
@@ -94,13 +94,16 @@ enum Apl_Return_Types apl_setup(struct Apl_Window_State *ws)
 
 
     // mat2D_copy_uint32(results, image_pixels);
-    aim_median_filter_rgba(temp, image_pixels, 3);
+    aim_median_filter_rgba(temp, image_pixels, 5);
     aim_median_filter_rgba(results, temp, 3);
     aim_median_filter_rgba(temp, results, 3);
+    aim_median_filter_rgba(results, temp, 5);
+    aim_median_filter_rgba(temp, results, 3);
     aim_median_filter_rgba(results, temp, 3);
-    // aim_sharpen_bw(results, temp, 1.5, 3);
-    // aim_edge_detection_sobel_general_cutoff(results, temp, 3, 200);
-
+    aim_median_filter_rgba(temp, results, 5);
+    aim_median_filter_rgba(results, temp, 3);
+    aim_median_filter_rgba(temp, results, 5);
+    aim_median_filter_rgba(results, temp, 3);
 
     return APL_SUCCESS;
 }
@@ -148,19 +151,25 @@ enum Apl_Return_Types apl_input(struct Apl_Window_State *ws)
         // apl_dprintFLOAT(offzoom.zoom_multiplier);
         ws->to_render = true;
     } else if (ws->buttons.r_is_pressed) {
-        offzoom = ADL_DEFAULT_OFFSET_ZOOM;
+        apl_real w_factor = (apl_real)ws->window_pixels_mat.cols / results.cols;
+        apl_real h_factor = (apl_real)ws->window_pixels_mat.rows / results.rows;
+        offzoom.offset_x = (((float)ws->window_pixels_mat.cols - (float)results.cols) / 2);
+        offzoom.offset_y = (((float)ws->window_pixels_mat.rows - (float)results.rows) / 2);
+        offzoom.zoom_multiplier = apl_min(w_factor, h_factor);
+        apl_sleep(10 * 1000);
+        ws->to_update = true;
         ws->to_render = true;
     } else if (ws->buttons.d_is_pressed) {
-        offzoom.offset_x -= results.cols / 100;
+        offzoom.offset_x -= results.cols / offzoom.zoom_multiplier / 5;
         ws->to_render = true;
     } else if (ws->buttons.a_is_pressed) {
-        offzoom.offset_x += results.cols / 100;
+        offzoom.offset_x += results.cols / offzoom.zoom_multiplier / 5;
         ws->to_render = true;
     } else if (ws->buttons.s_is_pressed) {
-        offzoom.offset_y -= results.rows / 100;
+        offzoom.offset_y -= results.rows / offzoom.zoom_multiplier / 5;
         ws->to_render = true;
     } else if (ws->buttons.w_is_pressed) {
-        offzoom.offset_y += results.rows / 100;
+        offzoom.offset_y += results.rows / offzoom.zoom_multiplier / 5;
         ws->to_render = true;
     }
     APL_UNUSED(ws);

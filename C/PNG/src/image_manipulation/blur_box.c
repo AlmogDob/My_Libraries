@@ -78,7 +78,7 @@ enum Apl_Return_Types apl_setup(struct Apl_Window_State *ws)
     Mat2D_uint32 image_pixels = apng_pixel_buffer_mat2d_u32(image.pixels);
 
     results = mat2D_alloc_uint32(image_pixels.rows, image_pixels.cols);
-    aim_blur_box_blur_bw(results, image_pixels, 3);
+    // aim_blur_box_blur_bw(results, image_pixels, 11);
     aim_blur_box_blur_rgba(results, image_pixels, 7);
 
     // mat2D_copy_uint32(results, image_pixels);
