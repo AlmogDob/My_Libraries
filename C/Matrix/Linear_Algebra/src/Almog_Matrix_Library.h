@@ -99,7 +99,6 @@ struct Aml_Mat2d_uint32 {
 
 #define AML_MAT2D_AT(m, i, j) (m).elements[(AML_ASSERT((i) < (m).rows && (j) < (m).cols), (i) * (m).stride_r + (j))]
 #define AML_PI 3.14159265358979323846
-#define AML_MAX_POWER_ITERATION 100
 #define aml_min(a, b) ((a) < (b) ? (a) : (b))
 #define aml_max(a, b) ((a) > (b) ? (a) : (b))
 #define AML_IS_ZERO(x) (aml_fabs(x) < AML_EPS)

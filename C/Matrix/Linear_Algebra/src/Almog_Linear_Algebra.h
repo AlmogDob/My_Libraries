@@ -34,6 +34,7 @@ struct Ala_Symmetric_Spectrum_Info {
     #endif
 #endif
 
+#define ALA_MAX_POWER_ITERATION 100
 #define ALA_SYMMETRIC_EIG_QR_MAX_ITERATIONS 10000
 #define ALA_SYMMETRIC_TRIDIAGONAL_EIG_QR_MAX_ITERATIONS 10000
 #define ALA_SYMMETRIC_TRIDIAGONAL_EIG_QR_MAX_ITERATIONS_MULTIPLAYER 150
@@ -65,6 +66,7 @@ ALA_DEF void                                ala_LUP_decomposition_with_swap(stru
 ALA_DEF void                                ala_make_orthogonal_Gaussian_elimination(struct Aml_Mat2d des, struct Aml_Mat2d A);
 ALA_DEF void                                ala_make_orthogonal_modified_Gram_Schmidt(struct Aml_Mat2d des, struct Aml_Mat2d A);
 
+ALA_DEF bool                                ala_positive_definite_check(struct Aml_Mat2d A);
 ALA_DEF bool                                ala_positive_definite_RTR_Cholesky_decomposition(struct Aml_Mat2d R, struct Aml_Mat2d A);
 ALA_DEF int                                 ala_power_iterate(struct Aml_Mat2d A, struct Aml_Mat2d v, aml_real *lambda, aml_real shift, bool norm_inf_v);
 ALA_DEF void                                ala_project_out_columns(struct Aml_Mat2d v, struct Aml_Mat2d basis, size_t used_cols);
@@ -824,6 +826,24 @@ ALA_DEF void ala_make_orthogonal_modified_Gram_Schmidt(struct Aml_Mat2d des, str
     aml_mat2d_free(temp_col);    
 }
 
+ALA_DEF bool ala_positive_definite_check(struct Aml_Mat2d A)
+{
+    ALA_ASSERT(A.rows == A.cols);
+    ALA_ASSERT(A.rows >= 1);
+    ALA_ASSERT(aml_is_symmetric(A));
+
+    struct Aml_Mat2d R = aml_mat2d_alloc(A.rows, A.cols);
+
+    bool res = true;
+    if (!ala_positive_definite_RTR_Cholesky_decomposition(R, A)) {
+        res = false;
+        aml_dprintERROR("%s", "Matrix A failed the Cholesky decomposition hanse it is not positive definite.");
+    }
+
+    aml_mat2d_free(R);
+    return res;
+}
+
 ALA_DEF bool ala_positive_definite_RTR_Cholesky_decomposition(struct Aml_Mat2d R, struct Aml_Mat2d A)
 {
     /* This decomposition will succeed only when A is positive definite */
@@ -832,7 +852,7 @@ ALA_DEF bool ala_positive_definite_RTR_Cholesky_decomposition(struct Aml_Mat2d R
     ALA_ASSERT(A.rows == A.cols);
     ALA_ASSERT(R.rows == R.cols);
     ALA_ASSERT(R.rows == A.rows);
-    ALA_ASSERT(A.rows >= 2);
+    ALA_ASSERT(A.rows >= 1);
     ALA_ASSERT(aml_is_symmetric(A));
 
     size_t n = A.rows;
@@ -890,7 +910,7 @@ ALA_DEF bool ala_positive_definite_RTR_Cholesky_decomposition(struct Aml_Mat2d R
  * convergence test and appears to alternate.
  *
  * Complexity
- * `O(AML_MAX_POWER_ITERATION * n^2)`.
+ * `O(ALA_MAX_POWER_ITERATION * n^2)`.
  *
  * @note Best for the dominant eigenpair when that eigenvalue is well separated.
  * @note Shifts can help target different parts of the spectrum, but this is
@@ -925,7 +945,7 @@ ALA_DEF int ala_power_iterate(struct Aml_Mat2d A, struct Aml_Mat2d v, aml_real *
     aml_dot(temp_v, B, v);
     temp_lambda = aml_dot_product(temp_v, v) / (aml_calc_norma(v) * aml_calc_norma(v));
     int i = 0;
-    for (i = 0; i < AML_MAX_POWER_ITERATION; i++) {
+    for (i = 0; i < ALA_MAX_POWER_ITERATION; i++) {
         aml_copy(current_v, v);
         aml_dot(v, B, current_v);
         aml_normalize(v);

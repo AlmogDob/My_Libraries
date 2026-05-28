@@ -7,7 +7,7 @@
 
 int main(void)
 {
-    size_t n = 1500;
+    size_t n = 1000;
     size_t m = n;
     struct Aml_Mat2d A = aml_mat2d_alloc(n, m);
     struct Aml_Mat2d R = aml_mat2d_alloc(n, m);
@@ -19,7 +19,8 @@ int main(void)
     aml_transpose(check, R);
     aml_dot(A, check, R);
 
-    ala_positive_definite_RTR_Cholesky_decomposition(R, A);
+    // ala_positive_definite_RTR_Cholesky_decomposition(R, A);
+    aml_dprintINT(ala_positive_definite_check(A));
 
     // AML_PRINT(A);
     // AML_PRINT(R);
