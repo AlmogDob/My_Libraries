@@ -12,7 +12,6 @@
 #include "Almog_Matrix_Library.h"
 
 #ifndef ALA_ASSERT
-#include <assert.h>
 #define ALA_ASSERT AML_ASSERT
 #endif //ALA_ASSERT
 

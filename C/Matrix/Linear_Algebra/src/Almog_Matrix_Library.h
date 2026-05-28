@@ -232,6 +232,8 @@ AML_DEF void                    aml_dot(struct Aml_Mat2d dst, struct Aml_Mat2d a
 AML_DEF aml_real                aml_dot_product(struct Aml_Mat2d v1, struct Aml_Mat2d v2);
 
 AML_DEF aml_real                aml_elements_sum(struct Aml_Mat2d m);
+AML_DEF aml_real                aml_elements_col_sum(struct Aml_Mat2d m, size_t c);
+AML_DEF aml_real                aml_elements_row_sum(struct Aml_Mat2d m, size_t r);
 
 AML_DEF void                    aml_fill(struct Aml_Mat2d m, aml_real x);
 AML_DEF void                    aml_fill_sequence(struct Aml_Mat2d m, aml_real start, aml_real step);
@@ -830,6 +832,26 @@ AML_DEF aml_real aml_elements_sum(struct Aml_Mat2d m)
         for (size_t j = 0; j < m.cols; ++j) {
             sum += AML_MAT2D_AT(m, i, j);
         }
+    }
+    return sum;
+}
+
+AML_DEF aml_real aml_elements_col_sum(struct Aml_Mat2d m, size_t c)
+{
+    aml_real sum = 0;
+
+    for (size_t i = 0; i < m.rows; ++i) {
+        sum += AML_MAT2D_AT(m, i, c);
+    }
+    return sum;
+}
+
+AML_DEF aml_real aml_elements_row_sum(struct Aml_Mat2d m, size_t r)
+{
+    aml_real sum = 0;
+
+    for (size_t j = 0; j < m.cols; ++j) {
+        sum += AML_MAT2D_AT(m, r, j);
     }
     return sum;
 }
