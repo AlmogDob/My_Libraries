@@ -184,19 +184,6 @@ struct Aml_Mat2d_uint32 {
 #define AML_PRINT_AS_COL(m) aml_print_as_col(m, #m, 0)
 #define AML_MINOR_PRINT(mm) aml_minor_print(mm, #mm, 0)
 
-/**
- * @brief Flags for aml_upper_triangulate()-style elimination routines.
- */
-enum aml_upper_triangulate_flag{
-    /**
-     * Normalize pivot rows so the diagonal pivot becomes 1.
-     */
-    AML_ONES_ON_DIAG = 1 << 0,
-    /**
-     * Enable row swapping / pivot search.
-     */
-    AML_ROW_SWAPPING = 1 << 1,
-};
 
 #ifndef AML_DEF
     #ifdef AML_DEF_STATIC
@@ -287,7 +274,8 @@ AML_DEF void                    aml_shift_specific(struct Aml_Mat2d m, aml_real 
 AML_DEF void                    aml_sub(struct Aml_Mat2d dst, struct Aml_Mat2d a);
 AML_DEF void                    aml_sub_col_to_col(struct Aml_Mat2d des, size_t des_col, struct Aml_Mat2d src, size_t src_col);
 AML_DEF void                    aml_sub_row_to_row(struct Aml_Mat2d des, size_t des_row, struct Aml_Mat2d src, size_t src_row);
-AML_DEF void                    aml_sub_row_time_factor_to_row(struct Aml_Mat2d m, size_t des_r, size_t src_r, aml_real factor);
+AML_DEF void                    aml_sub_src_row_time_factor_from_des_row(struct Aml_Mat2d m, size_t des_r, size_t src_r, aml_real factor);
+AML_DEF void                    aml_sub_src_row_time_factor_from_des_row_range(struct Aml_Mat2d m, size_t des_r, size_t src_r, aml_real factor, size_t js, size_t je);
 
 AML_DEF void                    aml_transpose(struct Aml_Mat2d des, struct Aml_Mat2d src);
 AML_DEF void                    aml_transpose_inplace(struct Aml_Mat2d m);
@@ -1360,7 +1348,7 @@ AML_DEF void aml_print(struct Aml_Mat2d m, const char *name, size_t padding)
         printf("%*s    ", (int) padding, "");
         for (size_t j = 0; j < m.cols; ++j) {
             printf("%9.3g ", AML_MAT2D_AT(m, i, j));
-            // printf("%9.6f ", AML_MAT2D_AT(m, i, j));
+            // printf("%12.8f ", AML_MAT2D_AT(m, i, j));
         }
         printf("\n");
     }
@@ -1846,9 +1834,21 @@ AML_DEF void aml_sub_row_to_row(struct Aml_Mat2d des, size_t des_row, struct Aml
  * Complexity
  * `O(cols)`.
  */
-AML_DEF void aml_sub_row_time_factor_to_row(struct Aml_Mat2d m, size_t des_r, size_t src_r, aml_real factor)
+AML_DEF void aml_sub_src_row_time_factor_from_des_row(struct Aml_Mat2d m, size_t des_r, size_t src_r, aml_real factor)
 {
+    AML_ASSERT(des_r < m.rows);
+    AML_ASSERT(src_r < m.rows);
     for (size_t j = 0; j < m.cols; ++j) {
+        AML_MAT2D_AT(m, des_r, j) -= factor * AML_MAT2D_AT(m, src_r, j);
+    }
+}
+
+AML_DEF void aml_sub_src_row_time_factor_from_des_row_range(struct Aml_Mat2d m, size_t des_r, size_t src_r, aml_real factor, size_t js, size_t je)
+{
+    AML_ASSERT(des_r < m.rows);
+    AML_ASSERT(src_r < m.rows);
+    AML_ASSERT(je >= js);
+    for (size_t j = js; j <= je; ++j) {
         AML_MAT2D_AT(m, des_r, j) -= factor * AML_MAT2D_AT(m, src_r, j);
     }
 }

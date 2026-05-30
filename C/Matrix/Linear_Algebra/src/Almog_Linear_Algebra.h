@@ -2,7 +2,7 @@
  * @file 
  * @brief Higher-level linear algebra algorithms built on top of Aml_Mat2d.
  *
- * This layer includes factorizations, eigensolvers, SVD routines, Householder
+ * This layer includes decompositions, eigensolvers, SVD routines, Householder
  * and Givens transformations, and linear-system solvers.
  */
 
@@ -24,6 +24,20 @@ struct Ala_Symmetric_Spectrum_Info {
     aml_real effective_condition_number;
     size_t numerical_rank;
     bool is_numerically_singular;
+};
+
+/**
+ * @brief Flags for aml_upper_triangulate()-style elimination routines.
+ */
+enum Ala_Upper_Triangulate_Flag{
+    /**
+     * Normalize pivot rows so the diagonal pivot becomes 1.
+     */
+    ALA_UPPER_TRIANGULATE_ONES_ON_DIAG = 1 << 0,
+    /**
+     * Enable row swapping / pivot search.
+     */
+    ALA_UPPER_TRIANGULATE_ROW_SWAPPING = 1 << 1,
 };
 
 #ifndef ALA_DEF
@@ -71,8 +85,8 @@ ALA_DEF bool                                ala_positive_definite_RTR_Cholesky_d
 ALA_DEF int                                 ala_power_iterate(struct Aml_Mat2d A, struct Aml_Mat2d v, aml_real *lambda, aml_real shift, bool norm_inf_v);
 ALA_DEF void                                ala_project_out_columns(struct Aml_Mat2d v, struct Aml_Mat2d basis, size_t used_cols);
 
-ALA_DEF void                                ala_QR_householder_factorization(struct Aml_Mat2d Q, struct Aml_Mat2d R, struct Aml_Mat2d src);
-ALA_DEF void                                ala_QR_householder_factorization_fast(struct Aml_Mat2d Q, struct Aml_Mat2d R, struct Aml_Mat2d src);
+ALA_DEF void                                ala_QR_householder_decomposition(struct Aml_Mat2d Q, struct Aml_Mat2d R, struct Aml_Mat2d src);
+ALA_DEF void                                ala_QR_householder_decomposition_fast(struct Aml_Mat2d Q, struct Aml_Mat2d R, struct Aml_Mat2d src);
 
 ALA_DEF size_t                              ala_reduce(struct Aml_Mat2d m);
 
@@ -90,15 +104,15 @@ ALA_DEF void                                ala_symmetric_spectrum_info_print(co
 
 ALA_DEF void                                ala_symmetric_tridiagonalize_householder(struct Aml_Mat2d Q, struct Aml_Mat2d T, struct Aml_Mat2d src);
 ALA_DEF aml_real                            ala_symmetric_tridiagonal_calc_shift(struct Aml_Mat2d m, size_t last);
+ALA_DEF void                                ala_symmetric_tridiagonal_cleanup(struct Aml_Mat2d T, size_t first, size_t last);
 ALA_DEF bool                                ala_symmetric_tridiagonal_deflate_tail(struct Aml_Mat2d m, size_t *first, size_t *last, aml_real eps);
 ALA_DEF void                                ala_symmetric_tridiagonal_eig_QR(struct Aml_Mat2d A, struct Aml_Mat2d eigenvalues, struct Aml_Mat2d eigenvectors);
 ALA_DEF void                                ala_symmetric_tridiagonal_eig_QR_shift(struct Aml_Mat2d A, struct Aml_Mat2d eigenvalues, struct Aml_Mat2d eigenvectors);
 ALA_DEF void                                ala_symmetric_tridiagonal_eig_QR_implicit_shift(struct Aml_Mat2d A, struct Aml_Mat2d eigenvalues, struct Aml_Mat2d eigenvectors);
 ALA_DEF void                                ala_symmetric_tridiagonal_QR(struct Aml_Mat2d Q, struct Aml_Mat2d R, struct Aml_Mat2d src);
 
-ALA_DEF void                                ala_symmetric_tridiagonal_cleanup(struct Aml_Mat2d T, size_t first, size_t last);
 
-ALA_DEF aml_real                            ala_upper_triangulate(struct Aml_Mat2d m, uint8_t flags);
+ALA_DEF aml_real                            ala_upper_triangulate(struct Aml_Mat2d m, enum Ala_Upper_Triangulate_Flag flags);
 
 #endif // ALMOG_LINEAR_ALGEBRA_H_
 
@@ -315,7 +329,7 @@ ALA_DEF aml_real ala_det(struct Aml_Mat2d m)
 
     struct Aml_Mat2d temp_m = aml_mat2d_alloc(m.rows, m.cols);
     aml_copy(temp_m, m);
-    aml_real factor = ala_upper_triangulate(temp_m, AML_ROW_SWAPPING);
+    aml_real factor = ala_upper_triangulate(temp_m, ALA_UPPER_TRIANGULATE_ROW_SWAPPING);
     aml_real diag_mul = 1; 
     for (size_t i = 0; i < temp_m.rows; i++) {
         diag_mul *= AML_MAT2D_AT(temp_m, i, i);
@@ -662,44 +676,80 @@ ALA_DEF void ala_invert(struct Aml_Mat2d des, struct Aml_Mat2d src)
  * @note This implementation only searches for a pivot row when the current
  * diagonal pivot is numerically zero; it is not full partial pivoting at every
  * step.
- * @note Best as a simple/reference LU factorization. For difficult numerical
+ * @note Best as a simple/reference LU decomposition. For difficult numerical
  * problems, always-on pivoting would be better.
  */
 ALA_DEF void ala_LUP_decomposition_with_swap(struct Aml_Mat2d src, struct Aml_Mat2d l, struct Aml_Mat2d p, struct Aml_Mat2d u)
 {
     /* performing LU decomposition Following the Wikipedia page: https://en.wikipedia.org/wiki/LU_decomposition */
+    /**
+     * Rectangular LUP decomposition with partial pivoting:
+     *
+     *     P * A = L * U
+     *
+     * Shapes:
+     *     A : m x n
+     *     P : m x m
+     *     L : m x m   (unit lower triangular)
+     *     U : m x n   (upper trapezoidal)
+     */
+    ALA_ASSERT(p.rows == p.cols);
+    ALA_ASSERT(p.rows == src.rows);
+    ALA_ASSERT(l.rows == l.cols);
+    ALA_ASSERT(l.rows == src.rows);
+    ALA_ASSERT(u.rows == l.cols);
+    ALA_ASSERT(u.cols == src.cols);
 
     aml_copy(u, src);
     aml_set_identity(p);
-    aml_fill(l, 0);
+    aml_set_identity(l);
 
-    for (size_t i = 0; i < (size_t)aml_min(u.rows-1, u.cols); i++) {
-        if (AML_IS_ZERO(AML_MAT2D_AT(u, i, i))) {   /* swapping only if it is zero */
-            /* finding biggest first number (absolute value) */
-            size_t biggest_r = i;
-            for (size_t index = i; index < u.rows; index++) {
-                if (aml_fabs(AML_MAT2D_AT(u, index, i)) > aml_fabs(AML_MAT2D_AT(u, biggest_r, i))) {
-                    biggest_r = index;
-                }
-            }
-            if (i != biggest_r) {
-                aml_rows_swap(u, i, biggest_r);
-                aml_rows_swap(p, i, biggest_r);
-                aml_rows_swap(l, i, biggest_r);
+    aml_real scale = aml_calc_norma_inf(src);
+    if (AML_IS_ZERO(scale)) return;
+
+    aml_real tol = AML_EPS * scale;
+    size_t steps = aml_min(src.rows, src.cols);
+    for (size_t i = 0; i < steps; i++) {
+        /* partial pivoting: find largest entry in column i from row i downward */
+        size_t pivot_r = i;
+        aml_real best = aml_fabs(AML_MAT2D_AT(u, i, i));
+        for (size_t r = i + 1; r < u.rows; r++) {
+            aml_real v = aml_fabs(AML_MAT2D_AT(u, r, i));
+            if (v > best) {
+                best = v;
+                pivot_r = r;
             }
         }
-        for (size_t j = i+1; j < u.rows; j++) {
-            aml_real factor = 1 / AML_MAT2D_AT(u, i, i);
-            if (!isfinite(factor)) {
-                printf("%s:%d:\n%s:\n[Error] unable to transfrom into uper triangular matrix. Probably some of the rows are not independent.\n", __FILE__, __LINE__, __func__);
+        /* if whole pivot column below i is zero, skip this column */
+        if (AML_IS_ZERO(best)) {
+            for (size_t temp_r = i + 1; temp_r < u.rows; temp_r++) {
+                AML_MAT2D_AT(u, temp_r, i) = 0;
             }
-            aml_real mat_value = AML_MAT2D_AT(u, j, i);
-            aml_sub_row_time_factor_to_row(u, j, i, mat_value * factor);
-            AML_MAT2D_AT(l, j, i) = mat_value * factor;
+            continue;
         }
-        AML_MAT2D_AT(l, i, i) = 1;
+        if (pivot_r != i) {
+            aml_rows_swap(u, i, pivot_r);
+            aml_rows_swap(p, i, pivot_r);
+            /* Swap only the already computed multipliers in L: columns [0, i) */
+            for (size_t c = 0; c < i; c++) {
+                aml_real tmp = AML_MAT2D_AT(l, i, c);
+                AML_MAT2D_AT(l, i, c) = AML_MAT2D_AT(l, pivot_r, c);
+                AML_MAT2D_AT(l, pivot_r, c) = tmp;
+            }
+        }
+        aml_real pivot = AML_MAT2D_AT(u, i, i);
+        for (size_t temp_r = i + 1; temp_r < u.rows; temp_r++) {
+            aml_real a = AML_MAT2D_AT(u, temp_r, i);
+            if (aml_fabs(a) <= tol) {
+                AML_MAT2D_AT(u, temp_r, i) = 0;
+                continue;
+            }
+            aml_real mult = a / pivot;
+            AML_MAT2D_AT(l, temp_r, i) = mult;
+            aml_sub_src_row_time_factor_from_des_row_range(u, temp_r, i, mult, i, u.cols-1);
+            AML_MAT2D_AT(u, temp_r, i) = 0;
+        }
     }
-    AML_MAT2D_AT(l, l.rows-1, l.cols-1) = 1;
 }
 
 /**
@@ -743,7 +793,7 @@ ALA_DEF void ala_make_orthogonal_Gaussian_elimination(struct Aml_Mat2d des, stru
 
     AML_PRINT(temp);
 
-    ala_upper_triangulate(temp, AML_ONES_ON_DIAG);
+    ala_upper_triangulate(temp, ALA_UPPER_TRIANGULATE_ONES_ON_DIAG);
 
     aml_copy_src_window_to_des(temp_des, temp, 0, ATA.cols, AT.rows-1, ATA.cols + AT.cols-1);
 
@@ -1016,7 +1066,7 @@ ALA_DEF void ala_project_out_columns(struct Aml_Mat2d v, struct Aml_Mat2d basis,
 }
 
 /**
- * @brief Compute a QR factorization using explicit Householder matrices.
+ * @brief Compute a QR decomposition using explicit Householder matrices.
  *
  * This textbook-style implementation constructs each Householder matrix
  * explicitly and updates:
@@ -1037,7 +1087,7 @@ ALA_DEF void ala_project_out_columns(struct Aml_Mat2d v, struct Aml_Mat2d basis,
  * @warning It is slower and usually less practical than the fast implicit
  * version.
  */
-ALA_DEF void ala_QR_householder_factorization(struct Aml_Mat2d Q, struct Aml_Mat2d R, struct Aml_Mat2d src)
+ALA_DEF void ala_QR_householder_decomposition(struct Aml_Mat2d Q, struct Aml_Mat2d R, struct Aml_Mat2d src)
 {
     /** 
      * https://youtu.be/5MeeuSoFBdY?list=PLfNiIduhuYeAhoLm2NboJmzpHNaqgnx0n
@@ -1102,7 +1152,7 @@ ALA_DEF void ala_QR_householder_factorization(struct Aml_Mat2d Q, struct Aml_Mat
 }
 
 /**
- * @brief Compute a QR factorization using implicit Householder applications.
+ * @brief Compute a QR decomposition using implicit Householder applications.
  *
  * Instead of forming each Householder matrix explicitly, this version computes
  * the reflector vector and applies it directly to `R` and `Q`.
@@ -1118,9 +1168,9 @@ ALA_DEF void ala_QR_householder_factorization(struct Aml_Mat2d Q, struct Aml_Mat
  * @note It is typically preferable to the explicit version for larger matrices
  * because it avoids forming dense reflector matrices.
  * @note The implementation updates `Q` by right-applying the reflectors, so the
- * returned `Q` matches the factorization used by this code path.
+ * returned `Q` matches the decomposition used by this code path.
  */
-ALA_DEF void ala_QR_householder_factorization_fast(struct Aml_Mat2d Q, struct Aml_Mat2d R, struct Aml_Mat2d src)
+ALA_DEF void ala_QR_householder_decomposition_fast(struct Aml_Mat2d Q, struct Aml_Mat2d R, struct Aml_Mat2d src)
 {
     /** 
      * https://youtu.be/5MeeuSoFBdY?list=PLfNiIduhuYeAhoLm2NboJmzpHNaqgnx0n
@@ -1183,7 +1233,7 @@ ALA_DEF size_t ala_reduce(struct Aml_Mat2d m)
     /* preforming Gauss–Jordan reduction to Reduced Row Echelon Form (RREF) */
     /* Gauss elimination: https://en.wikipedia.org/wiki/Gaussian_elimination */
 
-    ala_upper_triangulate(m, AML_ONES_ON_DIAG | AML_ROW_SWAPPING);
+    ala_upper_triangulate(m, ALA_UPPER_TRIANGULATE_ONES_ON_DIAG | ALA_UPPER_TRIANGULATE_ROW_SWAPPING);
 
     size_t rank = 0;
 
@@ -1194,7 +1244,7 @@ ALA_DEF size_t ala_reduce(struct Aml_Mat2d m)
         }
         for (int i = 0; i < r; i++) {
             aml_real factor = AML_MAT2D_AT(m, i, c);
-            aml_sub_row_time_factor_to_row(m, i, r, factor);
+            aml_sub_src_row_time_factor_from_des_row(m, i, r, factor);
         }
         rank++;
     }
@@ -1443,7 +1493,7 @@ ALA_DEF void ala_SVD_thin(struct Aml_Mat2d A, struct Aml_Mat2d U, struct Aml_Mat
  *
  * The algorithm repeatedly:
  * - chooses the last diagonal element as a shift,
- * - performs QR factorization of `A - mu I`,
+ * - performs QR decomposition of `A - mu I`,
  * - forms the next iterate `R Q + mu I`,
  * - accumulates eigenvectors.
  *
@@ -1483,7 +1533,7 @@ ALA_DEF void ala_symmetric_eig_QR_shift(struct Aml_Mat2d A, struct Aml_Mat2d eig
         aml_real mu = AML_MAT2D_AT(eigenvalues, n - 1, n - 1);
 
         aml_shift(eigenvalues, -mu);
-        ala_QR_householder_factorization_fast(Q, R, eigenvalues);
+        ala_QR_householder_decomposition_fast(Q, R, eigenvalues);
         aml_dot(eigenvalues, R, Q);
         aml_shift(eigenvalues, mu);
         
@@ -2051,7 +2101,7 @@ ALA_DEF void ala_symmetric_tridiagonal_eig_QR(struct Aml_Mat2d A, struct Aml_Mat
  * The algorithm:
  * - finds the current active trailing block,
  * - computes a shift,
- * - explicitly applies Givens rotations for the QR factorization of the shifted
+ * - explicitly applies Givens rotations for the QR decomposition of the shifted
  * block,
  * - explicitly forms the next iterate,
  * - periodically cleans the tridiagonal structure.
@@ -2277,7 +2327,7 @@ ALA_DEF void ala_symmetric_tridiagonal_eig_QR_implicit_shift(struct Aml_Mat2d A,
 }
 
 /**
- * @brief Compute a QR factorization specialized for symmetric tridiagonal
+ * @brief Compute a QR decomposition specialized for symmetric tridiagonal
  * matrices.
  *
  * The function annihilates each subdiagonal entry with a Givens rotation,
@@ -2357,7 +2407,7 @@ ALA_DEF void ala_symmetric_tridiagonal_QR(struct Aml_Mat2d Q, struct Aml_Mat2d R
  * @note With `AML_ROW_SWAPPING`, the routine uses partial pivoting by choosing
  * the largest absolute entry in the active column.
  */
-ALA_DEF aml_real ala_upper_triangulate(struct Aml_Mat2d m, uint8_t flags)
+ALA_DEF aml_real ala_upper_triangulate(struct Aml_Mat2d m, enum Ala_Upper_Triangulate_Flag flags)
 {
     /* preforming Gauss elimination: https://en.wikipedia.org/wiki/Gaussian_elimination */
     /* returns the factor multiplying the determinant */
@@ -2366,7 +2416,7 @@ ALA_DEF aml_real ala_upper_triangulate(struct Aml_Mat2d m, uint8_t flags)
 
     size_t r = 0;
     for (size_t c = 0; c < m.cols && r < m.rows; c++) {
-        if (flags & AML_ROW_SWAPPING) {
+        if (flags & ALA_UPPER_TRIANGULATE_ROW_SWAPPING) {
             /* finding biggest first number (absolute value); partial pivoting */
             size_t piv = r;
             aml_real best = aml_fabs(AML_MAT2D_AT(m, r, c));
@@ -2389,7 +2439,7 @@ ALA_DEF aml_real ala_upper_triangulate(struct Aml_Mat2d m, uint8_t flags)
         aml_real pivot = AML_MAT2D_AT(m, r, c);
         AML_ASSERT(!AML_IS_ZERO(pivot));
 
-        if (flags & AML_ONES_ON_DIAG) {
+        if (flags & ALA_UPPER_TRIANGULATE_ONES_ON_DIAG) {
             aml_mult_row(m, r, (aml_real)1 / pivot);
             factor_to_return *= pivot;
             pivot = (aml_real)1;
@@ -2398,7 +2448,7 @@ ALA_DEF aml_real ala_upper_triangulate(struct Aml_Mat2d m, uint8_t flags)
         /* Eliminate entries below pivot in column c */
         for (size_t i = r + 1; i < m.rows; i++) {
             aml_real f = AML_MAT2D_AT(m, i, c) / pivot;
-            aml_sub_row_time_factor_to_row(m, i, r, f);
+            aml_sub_src_row_time_factor_from_des_row(m, i, r, f);
         }
         r++;
     }
