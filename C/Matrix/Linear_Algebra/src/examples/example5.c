@@ -19,7 +19,7 @@ int main(void)
     srand(1);
     aml_set_rand(A, 1, 2);
 
-    ala_QR_householder_factorization_fast(Q, R, A);
+    ala_QR_householder_decomposition_fast(Q, R, A);
 
     // AML_PRINT(A);
     // AML_PRINT(Q);

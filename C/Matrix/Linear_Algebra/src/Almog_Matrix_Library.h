@@ -228,6 +228,7 @@ AML_DEF void                    aml_fill_uint32(struct Aml_Mat2d_uint32 m, uint3
 AML_DEF aml_real                aml_inner_product(struct Aml_Mat2d v);
 AML_DEF bool                    aml_is_close(aml_real a, aml_real b, aml_real eps);
 AML_DEF bool                    aml_is_diagonal(struct Aml_Mat2d m);
+AML_DEF bool                    aml_is_hessenberg(struct Aml_Mat2d m);
 AML_DEF bool                    aml_is_symmetric(struct Aml_Mat2d m);
 AML_DEF bool                    aml_is_symmetric_relative(struct Aml_Mat2d m);
 AML_DEF bool                    aml_is_tridiagonal(struct Aml_Mat2d m);
@@ -961,6 +962,19 @@ AML_DEF bool aml_is_diagonal(struct Aml_Mat2d m)
         }
     }
 
+    return true;
+}
+
+AML_DEF bool aml_is_hessenberg(struct Aml_Mat2d m)
+{
+    AML_ASSERT(m.rows == m.cols);
+    for (size_t i = 0; i < m.rows; ++i) {
+        for (size_t j = 0; j < m.cols; ++j) {
+            if (i > j + 1 && !AML_IS_ZERO(AML_MAT2D_AT(m, i, j))) {
+                return false;
+            }
+        }
+    }
     return true;
 }
 

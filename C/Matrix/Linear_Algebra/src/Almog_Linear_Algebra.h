@@ -70,6 +70,7 @@ ALA_DEF void                                ala_eigenpairs_sort(struct Aml_Mat2d
 
 ALA_DEF aml_real                            ala_givens_rotations_get_c_and_s(aml_real a11, aml_real a21, aml_real *c, aml_real *s);
 
+ALA_DEF void                                ala_hessenberg_decomposition_householder(struct Aml_Mat2d Q, struct Aml_Mat2d H, struct Aml_Mat2d A);
 ALA_DEF void                                ala_householder_matrix_get(struct Aml_Mat2d des, struct Aml_Mat2d v);
 ALA_DEF void                                ala_householder_top_element_vector_get(struct Aml_Mat2d v_des, struct Aml_Mat2d x);
 
@@ -566,6 +567,53 @@ ALA_DEF aml_real ala_givens_rotations_get_c_and_s(aml_real a11, aml_real a21, am
     if (c) *c = a11 / r;
     if (s) *s = a21 / r;
     return r;
+}
+
+ALA_DEF void ala_hessenberg_decomposition_householder(struct Aml_Mat2d Q, struct Aml_Mat2d H, struct Aml_Mat2d A)
+{
+    ALA_ASSERT(A.rows == A.cols);
+    ALA_ASSERT(Q.rows == Q.cols);
+    ALA_ASSERT(H.rows == H.cols);
+    ALA_ASSERT(Q.rows == A.rows);
+    ALA_ASSERT(H.rows == A.rows);
+
+    size_t n = A.rows;
+    aml_copy(H, A);
+    aml_set_identity(Q);
+
+    if (n <= 2) return;
+
+    struct Aml_Mat2d vbuf = aml_mat2d_alloc(n, 1);
+
+    for (size_t k = 0; k < n - 2; ++k) {
+        struct Aml_Mat2d x = {
+            .rows = n - (k + 1),
+            .cols = 1,
+            .stride_r = H.stride_r,
+            .elements = &AML_MAT2D_AT(H, k + 1, k),
+        };
+        struct Aml_Mat2d v = {
+            .rows = x.rows,
+            .cols = 1,
+            .stride_r = vbuf.stride_r,
+            .elements = &AML_MAT2D_AT(vbuf, k + 1, 0),
+        };
+
+        ala_householder_top_element_vector_get(v, x);
+        if (AML_IS_ZERO(aml_inner_product(v))) {
+            continue;
+        }
+
+        ala_apply_householder_left(H, k + 1, k, v);
+        ala_apply_householder_right(H, k + 1, v);
+        ala_apply_householder_right(Q, k + 1, v);
+
+        for (size_t i = k + 2; i < n; ++i) {
+            AML_MAT2D_AT(H, i, k) = 0;
+        }
+    }
+
+    aml_mat2d_free(vbuf);
 }
 
 /**
@@ -1694,6 +1742,15 @@ ALA_DEF void ala_symmetric_eigen_approximation_build(struct Aml_Mat2d approx, st
 
 ALA_DEF struct Ala_Symmetric_Spectrum_Info ala_symmetric_spectrum_analyze(struct Aml_Mat2d eigenvalues, aml_real rel_tol_multiplier)
 {
+    /** Warning
+     * The use of eigenvalues to calculate the condition number is acceptable only for symmetric matrices.
+     * The real definition of the condition number is the ratio between the largest and smallest singular value.
+     */
+    /** Explanation
+     * The reported effective condition number estimates the conditioning of the matrix as a linear operator
+     * on its numerically significant subspace. It is a matrix inversion / linear solve / pseudoinverse style condition number.
+     */
+
     ALA_ASSERT(eigenvalues.rows == eigenvalues.cols);
     ALA_ASSERT(aml_is_diagonal(eigenvalues));
 
