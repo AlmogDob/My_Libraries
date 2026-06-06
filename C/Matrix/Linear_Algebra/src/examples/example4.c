@@ -1,16 +1,17 @@
 // #define AML_SINGLE_PRECISION 
 #define ALMOG_MATRIX_LIBRARY_IMPLEMENTATION
 #define ALMOG_LINEAR_ALGEBRA_IMPLEMENTATION
-#include "Almog_Linear_Algebra.h"
+#include "../Almog_Linear_Algebra.h"
 
 #include <time.h>
 
 int main(void)
 {
-    size_t n = 1500;
+    size_t n = 1000;
     size_t m = n;
     struct Aml_Mat2d A = aml_mat2d_alloc(n, m);
     struct Aml_Mat2d R = aml_mat2d_alloc(n, m);
+    struct Aml_Mat2d RT = aml_mat2d_alloc(n, m);
     struct Aml_Mat2d check = aml_mat2d_alloc(n, m);
 
     // srand((int)time(NULL));
@@ -24,10 +25,13 @@ int main(void)
     // AML_PRINT(A);
     // AML_PRINT(R);
 
-    // aml_transpose(A, R);
-    // aml_dot(check, A, R);
+    aml_transpose(RT, R);
+    aml_dot(check, RT, R);
+
+    aml_sub(check, A);
     
-    // AML_PRINT(check);
+    aml_dprintDOUBLE(aml_calc_norma(check));
+    aml_dprintDOUBLE(aml_calc_norma(check) / aml_calc_norma(A));
 
 
     return 0;

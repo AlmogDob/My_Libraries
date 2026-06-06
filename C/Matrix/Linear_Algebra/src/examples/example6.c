@@ -1,17 +1,15 @@
 // #define AML_SINGLE_PRECISION 
 #define ALMOG_MATRIX_LIBRARY_IMPLEMENTATION
 #define ALMOG_LINEAR_ALGEBRA_IMPLEMENTATION
-#include "Almog_Linear_Algebra.h"
+#include "../Almog_Linear_Algebra.h"
 
 #include <time.h>
 
 int main(void)
 {
-    size_t n = 1601;
+    size_t n = 1001;
     size_t m = n - 31;
 
-    // size_t n = 16;
-    // size_t m = n - 3;
     struct Aml_Mat2d A = aml_mat2d_alloc(n, m);
     struct Aml_Mat2d l = aml_mat2d_alloc(n, n);
     struct Aml_Mat2d u = aml_mat2d_alloc(n, m);

@@ -1,13 +1,13 @@
 // #define AML_SINGLE_PRECISION 
 #define ALMOG_MATRIX_LIBRARY_IMPLEMENTATION
 #define ALMOG_LINEAR_ALGEBRA_IMPLEMENTATION
-#include "Almog_Linear_Algebra.h"
+#include "../Almog_Linear_Algebra.h"
 
 #include <time.h>
 
 int main(void)
 {
-    size_t n = 10;
+    size_t n = 1000;
     size_t m = n;
     struct Aml_Mat2d A = aml_mat2d_alloc(n, m);
     struct Aml_Mat2d Q = aml_mat2d_alloc(n, n);
@@ -22,9 +22,9 @@ int main(void)
     ala_hessenberg_decomposition_householder(Q, T, A);
     aml_dprintINFO("%s", "Finished hessenberg decomposition.");
 
-    AML_PRINT(A);
-    AML_PRINT(Q);
-    AML_PRINT(T);
+    // AML_PRINT(A);
+    // AML_PRINT(Q);
+    // AML_PRINT(T);
 
     aml_transpose_inplace(Q);
     aml_dot(diff, T, Q);
@@ -34,7 +34,7 @@ int main(void)
     aml_sub(diff, A);
     
     // AML_PRINT(QR);
-    AML_PRINT(diff);
+    // AML_PRINT(diff);
     aml_dprintDOUBLE(aml_calc_norma(diff));
     aml_dprintDOUBLE(aml_calc_norma(diff) / aml_calc_norma(A));
 
