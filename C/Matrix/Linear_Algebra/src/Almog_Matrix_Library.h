@@ -236,6 +236,7 @@ AML_DEF bool                    aml_is_tridiagonal(struct Aml_Mat2d m);
 AML_DEF void                    aml_make_diagonal(struct Aml_Mat2d m);
 AML_DEF void                    aml_make_symmetric(struct Aml_Mat2d m);
 AML_DEF void                    aml_make_tridiagonal(struct Aml_Mat2d m);
+AML_DEF void                    aml_make_upper_hessenberg_range(struct Aml_Mat2d m, size_t start, size_t end);
 AML_DEF struct Aml_Mat2d        aml_mat2d_alloc(size_t rows, size_t cols);
 AML_DEF void                    aml_mat2d_free(struct Aml_Mat2d m);
 AML_DEF struct Aml_Mat2d_uint32 aml_mat2d_uint32_alloc(size_t rows, size_t cols);
@@ -1104,6 +1105,23 @@ AML_DEF void aml_make_tridiagonal(struct Aml_Mat2d m)
             }
         }
     }
+}
+
+AML_DEF void aml_make_upper_hessenberg_range(struct Aml_Mat2d m, size_t start, size_t end)
+{
+    AML_ASSERT(m.rows == m.cols);
+    AML_ASSERT(start <= end);
+    AML_ASSERT(start >= 0);
+    AML_ASSERT(end < m.cols);
+
+    for (size_t i = start; i < end; ++i) {
+        for (size_t j = start; j < end; ++j) {
+            if (i > j + 1) {
+                AML_MAT2D_AT(m, i, j) = 0;
+            }
+        }
+    }
+
 }
 
 /**
