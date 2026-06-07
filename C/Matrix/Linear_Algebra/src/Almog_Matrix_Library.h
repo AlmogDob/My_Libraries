@@ -111,7 +111,7 @@ struct Aml_Mat2d_uint32 {
  * The typed variants print to stdout. The INFO/WARNING/ERROR variants print to
  * stderr and include file, line, and function information.
  */
-#define aml_dprintSTRING(expr) printf("[Info] %s:%d:\n" #expr " = %s\n", __FILE__, __LINE__, expr)
+#define aml_dprintSTRING(expr) printf("[Info] %s:%d:\n%*s" #expr " = %s\n", __FILE__, __LINE__, 7, "", expr)
 /**
  * @name Debug-print helpers
  * @brief Convenience macros for diagnostic output.
@@ -119,7 +119,7 @@ struct Aml_Mat2d_uint32 {
  * The typed variants print to stdout. The INFO/WARNING/ERROR variants print to
  * stderr and include file, line, and function information.
  */
-#define aml_dprintCHAR(expr) printf("[Info] %s:%d:\n" #expr " = %c\n", __FILE__, __LINE__, expr)
+#define aml_dprintCHAR(expr) printf("[Info] %s:%d:\n%*s" #expr " = %c\n", __FILE__, __LINE__, 7, "", expr)
 /**
  * @name Debug-print helpers
  * @brief Convenience macros for diagnostic output.
@@ -127,7 +127,7 @@ struct Aml_Mat2d_uint32 {
  * The typed variants print to stdout. The INFO/WARNING/ERROR variants print to
  * stderr and include file, line, and function information.
  */
-#define aml_dprintINT(expr) printf("[Info] %s:%d:\n" #expr " = %d\n", __FILE__, __LINE__, expr)
+#define aml_dprintINT(expr) printf("[Info] %s:%d:\n%*s" #expr " = %d\n", __FILE__, __LINE__, 7, "", expr)
 /**
  * @name Debug-print helpers
  * @brief Convenience macros for diagnostic output.
@@ -135,7 +135,7 @@ struct Aml_Mat2d_uint32 {
  * The typed variants print to stdout. The INFO/WARNING/ERROR variants print to
  * stderr and include file, line, and function information.
  */
-#define aml_dprintFLOAT(expr) printf("[Info] %s:%d:\n" #expr " = %#g\n", __FILE__, __LINE__, expr)
+#define aml_dprintFLOAT(expr) printf("[Info] %s:%d:\n%*s" #expr " = %#f\n", __FILE__, __LINE__, 7, "", expr)
 /**
  * @name Debug-print helpers
  * @brief Convenience macros for diagnostic output.
@@ -143,7 +143,7 @@ struct Aml_Mat2d_uint32 {
  * The typed variants print to stdout. The INFO/WARNING/ERROR variants print to
  * stderr and include file, line, and function information.
  */
-#define aml_dprintDOUBLE(expr) printf("[Info] %s:%d:\n" #expr " = %#g\n", __FILE__, __LINE__, expr)
+#define aml_dprintDOUBLE(expr) printf("[Info] %s:%d:\n%*s" #expr " = %#g\n", __FILE__, __LINE__, 7, "", expr)
 /**
  * @name Debug-print helpers
  * @brief Convenience macros for diagnostic output.
@@ -151,7 +151,7 @@ struct Aml_Mat2d_uint32 {
  * The typed variants print to stdout. The INFO/WARNING/ERROR variants print to
  * stderr and include file, line, and function information.
  */
-#define aml_dprintSIZE_T(expr) printf("[Info] %s:%d:\n" #expr " = %zu\n", __FILE__, __LINE__, expr)
+#define aml_dprintSIZE_T(expr) printf("[Info] %s:%d:\n%*s" #expr " = %zu\n", __FILE__, __LINE__, 7, "", expr)
 /**
  * @name Debug-print helpers
  * @brief Convenience macros for diagnostic output.
@@ -1114,8 +1114,8 @@ AML_DEF void aml_make_upper_hessenberg_range(struct Aml_Mat2d m, size_t start, s
     AML_ASSERT(start >= 0);
     AML_ASSERT(end < m.cols);
 
-    for (size_t i = start; i < end; ++i) {
-        for (size_t j = start; j < end; ++j) {
+    for (size_t i = start; i <= end; ++i) {
+        for (size_t j = start; j <= end; ++j) {
             if (i > j + 1) {
                 AML_MAT2D_AT(m, i, j) = 0;
             }

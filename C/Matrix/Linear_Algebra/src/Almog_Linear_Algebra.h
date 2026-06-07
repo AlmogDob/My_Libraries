@@ -71,13 +71,15 @@ ALA_DEF aml_real                            ala_det_2x2_mat(struct Aml_Mat2d m);
 ALA_DEF bool                                ala_eig_check(struct Aml_Mat2d A, struct Aml_Mat2d eigenvalues, struct Aml_Mat2d eigenvectors, struct Aml_Mat2d res);
 ALA_DEF void                                ala_eig_power_iteration(struct Aml_Mat2d A, struct Aml_Mat2d eigenvalues, struct Aml_Mat2d eigenvectors, struct Aml_Mat2d init_vector, bool norm_inf_vectors);
 ALA_DEF void                                ala_eigenpairs_sort(struct Aml_Mat2d eigenvalues, struct Aml_Mat2d eigenvectors);
+ALA_DEF bool                                ala_eigenvalues_real_2x2(aml_real a, aml_real b, aml_real c, aml_real d);
 
 ALA_DEF aml_real                            ala_givens_2x2_rotations_get_c_and_s(aml_real a11, aml_real a21, aml_real *c, aml_real *s);
 
 ALA_DEF void                                ala_hessenberg_decomposition_householder(struct Aml_Mat2d Q, struct Aml_Mat2d H, struct Aml_Mat2d A);
 ALA_DEF void                                ala_hessenberg_calc_double_shift(struct Aml_Mat2d m, size_t last, aml_real *trace, aml_real *det);
 ALA_DEF bool                                ala_hessenberg_deflate_tail(struct Aml_Mat2d m, size_t *first, size_t *last, aml_real eps);
-ALA_DEF void                                ala_hessenberg_QUQm1_schur_decomposition(struct Aml_Mat2d Q, struct Aml_Mat2d U, struct Aml_Mat2d A);
+ALA_DEF void                                ala_hessenberg_QUQm1_schur_decomposition_given(struct Aml_Mat2d Q, struct Aml_Mat2d U, struct Aml_Mat2d A);
+ALA_DEF bool                                ala_hessenberg_real_schur_2x2(struct Aml_Mat2d Q, struct Aml_Mat2d U, size_t k);
 ALA_DEF void                                ala_householder_matrix_get(struct Aml_Mat2d des, struct Aml_Mat2d v);
 ALA_DEF void                                ala_householder_top_element_vector_get(struct Aml_Mat2d v_des, struct Aml_Mat2d x);
 
@@ -546,6 +548,12 @@ ALA_DEF void ala_eigenpairs_sort(struct Aml_Mat2d eigenvalues, struct Aml_Mat2d 
     }
 }
 
+ALA_DEF bool ala_eigenvalues_real_2x2(aml_real a, aml_real b, aml_real c, aml_real d)
+{
+    aml_real discriminant = (a - d) * (a - d) + 4 * b * c;
+    return (discriminant > 0) || (AML_IS_ZERO(discriminant)); 
+}
+
 /**
  * @brief Compute Givens rotation parameters that zero the second entry.
  *
@@ -628,6 +636,7 @@ ALA_DEF void ala_hessenberg_calc_double_shift(struct Aml_Mat2d m, size_t last, a
     ALA_ASSERT(aml_is_hessenberg(m));
     ALA_ASSERT(m.rows > 0); 
     ALA_ASSERT(last < m.rows); 
+    ALA_ASSERT(last > 0);
 
     aml_real a, b, c, d;
     
@@ -661,6 +670,11 @@ ALA_DEF bool ala_hessenberg_deflate_tail(struct Aml_Mat2d m, size_t *first, size
             --l;
             continue;
         }
+        aml_real a = AML_MAT2D_AT(m, l - 1, l - 1);
+        aml_real b = AML_MAT2D_AT(m, l - 1, l);
+        aml_real c = AML_MAT2D_AT(m, l, l - 1);
+        aml_real d = AML_MAT2D_AT(m, l, l);
+        // if (sub_lm1 <= eps * (dl + dlm1 + dlm2) && !ala_eigenvalues_real_2x2(a, b, c, d)) {
         if (sub_lm1 <= eps * (dl + dlm1 + dlm2)) {
             AML_MAT2D_AT(m, l - 1, l - 2) = 0;
             l -= 2;
@@ -690,6 +704,11 @@ ALA_DEF bool ala_hessenberg_deflate_tail(struct Aml_Mat2d m, size_t *first, size
             f = k;
             break;
         }
+        // aml_real a = AML_MAT2D_AT(m, k - 1, k - 1);
+        // aml_real b = AML_MAT2D_AT(m, k - 1, k);
+        // aml_real c = AML_MAT2D_AT(m, k, k - 1);
+        // aml_real d = AML_MAT2D_AT(m, k, k);
+        // if (sub_km1 <= eps * (dk + dkm1 + dkm2) && !ala_eigenvalues_real_2x2(a, b, c, d)) {
         if (sub_km1 <= eps * (dk + dkm1 + dkm2)) {
             AML_MAT2D_AT(m, k - 1, k - 2) = 0;
             f = k - 1;
@@ -699,11 +718,12 @@ ALA_DEF bool ala_hessenberg_deflate_tail(struct Aml_Mat2d m, size_t *first, size
 
     if (first) *first = f;
     if (last)  *last = l;
-    return (l - f + 1) <= 2;
+    return ((l - f + 1) <= 2) && (f == 0);
 }
 
-ALA_DEF void ala_hessenberg_QUQm1_schur_decomposition(struct Aml_Mat2d Q, struct Aml_Mat2d U, struct Aml_Mat2d H)
+ALA_DEF void ala_hessenberg_QUQm1_schur_decomposition_given(struct Aml_Mat2d Q, struct Aml_Mat2d U, struct Aml_Mat2d H)
 {
+    /* THIS DOES NOT WORK */
     /**
      * https://en.wikipedia.org/wiki/Schur_decomposition
      * https://www.mathworks.com/help/matlab/ref/schur.html
@@ -719,14 +739,12 @@ ALA_DEF void ala_hessenberg_QUQm1_schur_decomposition(struct Aml_Mat2d Q, struct
     aml_copy(U, H);
     aml_set_identity(Q);
 
-    AML_PRINT(H);
-    AML_PRINT(Q);
-    AML_PRINT(U);
-
     bool converged = false;
 
-    for (size_t i = 0; i < ALA_HESSENBERG_SCHUR_DECOMPOSITION_MAX_ITERATIONS_MULTIPLAYER * U.rows; i++) {
-        printf("\n\33[A\33[2K\ri: %zu", i);
+    aml_dprintINFO("%s", "");
+    printf("\33[A");
+    for (size_t i = 0; i < ALA_HESSENBERG_SCHUR_DECOMPOSITION_MAX_ITERATIONS_MULTIPLAYER * n; i++) {
+        printf("\n\33[A\33[2K\r       i: %zu", i);
         size_t last = 0, first = 0;
         if (ala_hessenberg_deflate_tail(U, &first, &last, aml_min(AML_EPS * 100, (aml_real)1e-4))) {
             converged = true;
@@ -734,62 +752,141 @@ ALA_DEF void ala_hessenberg_QUQm1_schur_decomposition(struct Aml_Mat2d Q, struct
             aml_dprintINFO("converged on iteration %zu", i);
             break;
         }
+        
+        // size_t block_size = last - first + 1;
 
-        aml_dprintSIZE_T(first);
-        aml_dprintSIZE_T(last);
+        // if (block_size == 1) continue;
+        // if (block_size == 2) {
+        //     aml_real a = AML_MAT2D_AT(U, first, first);
+        //     aml_real b = AML_MAT2D_AT(U, first, first + 1);
+        //     aml_real c = AML_MAT2D_AT(U, first + 1, first);
+        //     aml_real d = AML_MAT2D_AT(U, first + 1, first + 1);
+
+        //     if (ala_eigenvalues_real_2x2(a, b, c, d)) {
+        //         ala_hessenberg_real_schur_2x2(Q, U, first);
+        //     }
+
+        //     continue;
+        // }
+
+        // printf("first: %zu, last: %zu\n", first, last);
 
         aml_real trace = 0, det = 0;
         ala_hessenberg_calc_double_shift(U, last, &trace, &det);
 
-        aml_dprintDOUBLE(trace);
-        aml_dprintDOUBLE(det);
+        aml_real u_k_k     = AML_MAT2D_AT(U, first    , first    );
+        aml_real u_kp1_k   = AML_MAT2D_AT(U, first + 1, first    );
+        aml_real u_k_kp1   = AML_MAT2D_AT(U, first    , first + 1);
+        aml_real u_kp1_kp1 = AML_MAT2D_AT(U, first + 1, first + 1);
+        aml_real u_kp2_kp1 = AML_MAT2D_AT(U, first + 2, first + 1);
 
-        exit(1);
+        aml_real x = u_k_k * u_k_k + u_k_kp1 * u_kp1_k - trace * u_k_k + det;
+        aml_real y = u_kp1_k * (u_k_k + u_kp1_kp1 - trace);
+        aml_real z = u_kp1_k * u_kp2_kp1;
 
-    //     aml_real x = AML_MAT2D_AT(U, first, first) - shift;
-    //     aml_real z = AML_MAT2D_AT(U, first + 1, first);
+        for (size_t k = first; k + 1 <= last; ++k) {
+            if (k + 2 <= last) {
+                aml_real c1 = 0, s1 = 0, c2 = 0, s2 = 0;
+                ala_givens_2x2_rotations_get_c_and_s(y, z, &c1, &s1);
+                ala_givens_2x2_rotations_get_c_and_s(x, aml_hypot(y, z), &c2, &s2);
 
-    //     for (size_t k = first; k < last; ++k) {
-    //         aml_real c = 0;
-    //         aml_real s = 0;
-    //         ala_givens_2x2_rotations_get_c_and_s(x, z, &c, &s);
+                size_t begin = (k == first) ? first : (k - 1);
+                size_t end = last;
+                ala_apply_givens_2x2_left(U, k+1, begin, end, c1, s1);
+                ala_apply_givens_2x2_left(U, k, begin, end, c2, s2);
 
-    //         size_t begin = (k == first) ? first : (k - 1);
-    //         size_t end = aml_min(k + 2, last);
-    //         ala_apply_givens_2x2_left(U, k, begin, end, c, s);
-    //         if (k > first) {
-    //             AML_MAT2D_AT(U, k + 1, k - 1) = 0;
-    //         }
-    //         // printf("-------left---------\n");
-    //         // AML_PRINT(U);
-    //         ala_apply_givens_2x2_right(U, k, begin, end, c, s);
-    //         if (k > first) {
-    //             AML_MAT2D_AT(U, k - 1, k + 1) = 0;
-    //         }
-    //         // printf("-------right--------\n");
-    //         // AML_PRINT(U);
-    //         ala_apply_givens_2x2_right(U, k, 0, U.rows - 1, c, s);
+                // printf("-------left k = %zu ---------\n", k);
+                // AML_PRINT(U);
 
-            
-    //         if (k + 1 < last) {
-    //             x = AML_MAT2D_AT(U, k + 1, k);
-    //             z = AML_MAT2D_AT(U, k + 2, k);
-    //         }
-    //     }
+                ala_apply_givens_2x2_right(U, k+1, 0, n - 1, c1, s1);
+                ala_apply_givens_2x2_right(U, k, 0, n - 1, c2, s2);
 
-        aml_make_upper_hessenberg_range(U, first, last);
+                if (k > first) {
+                    AML_MAT2D_AT(U, k + 1, k - 1) = 0;
+                    AML_MAT2D_AT(U, k + 2, k - 1) = 0;
+                }
 
-        printf("--------%zu-----------\n", i);
-        AML_PRINT(U);
+                // printf("-------right k = %zu ---------\n", k);
+                // AML_PRINT(U);
 
-        if (i == 10) exit(1);
+                ala_apply_givens_2x2_right(Q, k+1, 0, n - 1, c1, s1);
+                ala_apply_givens_2x2_right(Q, k, 0, n - 1, c2, s2);
+
+                
+                if (k + 2 < last) {
+                    x = AML_MAT2D_AT(U, k + 1, k);
+                    y = AML_MAT2D_AT(U, k + 2, k);
+                    z = AML_MAT2D_AT(U, k + 3, k);
+                }
+            } else {
+                aml_real c1 = 0, s1 = 0;
+                x = AML_MAT2D_AT(U, k, k - 1);
+                y = AML_MAT2D_AT(U, k + 1, k - 1);
+                ala_givens_2x2_rotations_get_c_and_s(x, y, &c1, &s1);
+
+                size_t begin = (k == first) ? first : (k - 1);
+                size_t end = last;
+                ala_apply_givens_2x2_left(U, k, begin, end, c1, s1);
+                AML_MAT2D_AT(U, k + 1, k - 1) = 0;
+
+                // printf("-------left 2x2 k = %zu ---------\n", k);
+                // AML_PRINT(U);
+
+                ala_apply_givens_2x2_right(U, k, 0, n - 1, c1, s1);
+
+                // printf("-------right 2x2 k = %zu ---------\n", k);
+                // AML_PRINT(U);
+
+                ala_apply_givens_2x2_right(Q, k, 0, n - 1, c1, s1);
+            }
+        }
+
+        // aml_make_upper_hessenberg_range(U, first, last);
+
+        // printf("--------%zu-----------\n", i);
+        // AML_PRINT(U);
+
+        // if (i == 1) exit(1);
     }
     printf("\n");
 
     if (!converged) {
-        aml_dprintWARNING("Did not converged after %zu iterations.", ALA_HESSENBERG_SCHUR_DECOMPOSITION_MAX_ITERATIONS_MULTIPLAYER * U.rows);
+        aml_dprintWARNING("Did not converged after %zu iterations.", ALA_HESSENBERG_SCHUR_DECOMPOSITION_MAX_ITERATIONS_MULTIPLAYER * n);
+    }
+}
+
+ALA_DEF bool ala_hessenberg_real_schur_2x2(struct Aml_Mat2d Q, struct Aml_Mat2d U, size_t k)
+{
+    aml_real a = AML_MAT2D_AT(U, k, k);
+    aml_real b = AML_MAT2D_AT(U, k, k + 1);
+    aml_real c = AML_MAT2D_AT(U, k + 1, k);
+    aml_real d = AML_MAT2D_AT(U, k + 1, k + 1);
+
+    if (!ala_eigenvalues_real_2x2(a, b, c, d)) {
+        return false;
     }
 
+    aml_real disc = aml_sqrt((a - d) * (a - d) + 4 * b * c);
+    aml_real lambda = ((a + d) + (a >= d ? disc : -disc)) * (aml_real)0.5;
+
+    aml_real x = b;
+    aml_real y = lambda - a;
+
+    if (AML_IS_ZERO(x) && AML_IS_ZERO(y)) {
+        x = lambda - d;
+        y = c;
+    }
+
+    aml_real cs = 1;
+    aml_real sn = 0;
+    ala_givens_2x2_rotations_get_c_and_s(x, y, &cs, &sn);
+
+    ala_apply_givens_2x2_left(U, k, k, U.cols - 1, cs, sn);
+    ala_apply_givens_2x2_right(U, k, 0, U.rows - 1, cs, sn);
+    ala_apply_givens_2x2_right(Q, k, 0, Q.rows - 1, cs, sn);
+
+    AML_MAT2D_AT(U, k + 1, k) = 0;
+    return true;
 }
 
 /**
