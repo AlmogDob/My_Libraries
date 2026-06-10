@@ -8,7 +8,7 @@
 int main(void)
 {
     // size_t n = 3;
-    size_t n = 15;
+    size_t n = 50;
     struct Aml_Mat2d A = aml_mat2d_alloc(n, n);
     struct Aml_Mat2d Q = aml_mat2d_alloc(n, n);
     struct Aml_Mat2d Q_h = aml_mat2d_alloc(n, n);
@@ -30,15 +30,18 @@ int main(void)
     // AML_MAT2D_AT(A, 1, 0) =  3; AML_MAT2D_AT(A, 1, 1) = 5; AML_MAT2D_AT(A, 1, 2) = 7;
     // AML_MAT2D_AT(A, 2, 0) =  4; AML_MAT2D_AT(A, 2, 1) = 9; AML_MAT2D_AT(A, 2, 2) = 2;
 
+    aml_dprintINFO("n = %zu", n);
     ala_hessenberg_decomposition_householder(Q_h, H, A);
     aml_dprintINFO("%s", "Finished hessenberg decomposition.");
+
     ala_hessenberg_QUQm1_schur_decomposition_given(Q_u, U, H);
 
-    AML_PRINT(A);
-    AML_PRINT(Q_h);
-    AML_PRINT(H);
-    AML_PRINT(Q_u);
-    AML_PRINT(U);
+    // AML_PRINT(A);
+    // AML_PRINT(Q_h);
+    // AML_PRINT(H);
+    // AML_PRINT(Q_u);
+    // AML_PRINT(U);
+
 
     aml_dot(Q, Q_h, Q_u);
     aml_transpose_inplace(Q);
@@ -47,7 +50,6 @@ int main(void)
     aml_dot(diff, Q, Q_h);
     aml_sub(diff, A);
     
-    // AML_PRINT(diff);
     aml_dprintDOUBLE(aml_calc_norma(diff));
     aml_dprintDOUBLE(aml_calc_norma(diff) / aml_calc_norma(A));
 

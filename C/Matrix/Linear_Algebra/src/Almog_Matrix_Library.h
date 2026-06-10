@@ -179,7 +179,9 @@ struct Aml_Mat2d_uint32 {
  */
 #define aml_dprintERROR(fmt, ...) \
     fprintf(stderr, "[Error] %s:%d:\n%*sIn function '%s':\n%*s" fmt "\n", __FILE__, __LINE__, 8, "", __func__, 8, "", __VA_ARGS__)
-#define AML_PRINT(m) aml_print(m, #m, 0)
+#define AML_PRINT(m) aml_dprintINFO("%s", ""); printf("\33[A\33[2K\r"); aml_print(m, #m, 7)
+
+    // 
 #define AML_PRINT_UINT32(m) aml_print_uint32(m, #m, 0)
 #define AML_PRINT_AS_COL(m) aml_print_as_col(m, #m, 0)
 #define AML_MINOR_PRINT(mm) aml_minor_print(mm, #mm, 0)
