@@ -35,7 +35,8 @@ int main(void)
     aml_dprintINFO("%s", "Finished hessenberg decomposition.");
 
     // ala_hessenberg_QUQm1_schur_decomposition_given(Q_u, U, H);
-    ala_hessenberg_QUQm1_schur_decomposition_householder(Q_u, U, H);
+    // ala_hessenberg_QUQm1_schur_decomposition_householder(Q_u, U, H, true);
+    ala_hessenberg_QUQm1_schur_decomposition_householder_fast(Q_u, U, H, true);
 
     // AML_PRINT(A);
     // AML_PRINT(Q_h);
