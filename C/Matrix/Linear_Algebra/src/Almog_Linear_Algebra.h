@@ -96,8 +96,8 @@ ALA_DEF bool                                ala_positive_definite_RTR_Cholesky_d
 ALA_DEF int                                 ala_power_iterate(struct Aml_Mat2d A, struct Aml_Mat2d v, aml_real *lambda, aml_real shift, bool norm_inf_v);
 ALA_DEF void                                ala_project_out_columns(struct Aml_Mat2d v, struct Aml_Mat2d basis, size_t used_cols);
 
-ALA_DEF void                                ala_QR_householder_decomposition(struct Aml_Mat2d Q, struct Aml_Mat2d R, struct Aml_Mat2d src);
-ALA_DEF void                                ala_QR_householder_decomposition_fast(struct Aml_Mat2d Q, struct Aml_Mat2d R, struct Aml_Mat2d src);
+ALA_DEF void                                ala_QR_decomposition_householder(struct Aml_Mat2d Q, struct Aml_Mat2d R, struct Aml_Mat2d src);
+ALA_DEF void                                ala_QR_decomposition_householder_fast(struct Aml_Mat2d Q, struct Aml_Mat2d R, struct Aml_Mat2d src);
 
 ALA_DEF size_t                              ala_reduce(struct Aml_Mat2d m);
 
@@ -725,7 +725,6 @@ ALA_DEF bool ala_hessenberg_deflate_tail(struct Aml_Mat2d m, size_t *first, size
 
 ALA_DEF void ala_hessenberg_QUQm1_schur_decomposition_given(struct Aml_Mat2d Q, struct Aml_Mat2d U, struct Aml_Mat2d H)
 {
-    /* THIS DOES NOT WORK */
     /**
      * https://en.wikipedia.org/wiki/Schur_decomposition
      * https://www.mathworks.com/help/matlab/ref/schur.html
@@ -749,7 +748,7 @@ ALA_DEF void ala_hessenberg_QUQm1_schur_decomposition_given(struct Aml_Mat2d Q, 
     for (size_t i = 0; i < ALA_HESSENBERG_SCHUR_DECOMPOSITION_MAX_ITERATIONS_MULTIPLAYER * n; i++) {
         printf("\33[A\33[2K\r       i: %zu\n", i);
         size_t last = 0, first = 0;
-        deflated = ala_hessenberg_deflate_tail(U, &first, &last, aml_min(AML_EPS * 100, (aml_real)1e-4));
+        deflated = ala_hessenberg_deflate_tail(U, &first, &last, aml_min(AML_EPS * 10, (aml_real)1e-4));
         if (deflated || last - first < 2) {
             converged = true;
             aml_dprintINFO("converged on iteration %zu", i);
@@ -787,10 +786,10 @@ ALA_DEF void ala_hessenberg_QUQm1_schur_decomposition_given(struct Aml_Mat2d Q, 
                 ala_apply_givens_2x2_right(U, k+1, 0, n - 1, c1, s1);
                 ala_apply_givens_2x2_right(U, k, 0, n - 1, c2, s2);
 
-                if (k > first) {
-                    AML_MAT2D_AT(U, k + 1, k - 1) = 0;
-                    AML_MAT2D_AT(U, k + 2, k - 1) = 0;
-                }
+                // if (k > first) {
+                //     AML_MAT2D_AT(U, k + 1, k - 1) = 0;
+                //     AML_MAT2D_AT(U, k + 2, k - 1) = 0;
+                // }
 
 
                 // printf("-------right k = %zu ---------\n", k);
@@ -815,7 +814,8 @@ ALA_DEF void ala_hessenberg_QUQm1_schur_decomposition_given(struct Aml_Mat2d Q, 
 
                 size_t begin = (k == first) ? first : (k - 1);
                 ala_apply_givens_2x2_left(U, k, begin, n - 1, c1, s1);
-                AML_MAT2D_AT(U, k + 1, k - 1) = 0;
+
+                // AML_MAT2D_AT(U, k + 1, k - 1) = 0;
 
                 // printf("-------left 2x2 k = %zu ---------\n", k);
                 // AML_PRINT(U);
@@ -833,7 +833,8 @@ ALA_DEF void ala_hessenberg_QUQm1_schur_decomposition_given(struct Aml_Mat2d Q, 
         }
 
         // aml_dprintDOUBLE(ala_schur_residual(H, Q, U));
-        // aml_make_upper_hessenberg_range(U, first, last);
+
+        aml_make_upper_hessenberg_range(U, first, last);
 
         // printf("--------%zu-----------\n", i);
         // AML_PRINT(U);
@@ -848,6 +849,7 @@ ALA_DEF void ala_hessenberg_QUQm1_schur_decomposition_given(struct Aml_Mat2d Q, 
 
 ALA_DEF void ala_hessenberg_QUQm1_schur_decomposition_householder(struct Aml_Mat2d Q, struct Aml_Mat2d U, struct Aml_Mat2d H)
 {
+    /* works better than the Given's rotations one. */
     /**
      * https://en.wikipedia.org/wiki/Schur_decomposition
      * https://www.mathworks.com/help/matlab/ref/schur.html
@@ -857,11 +859,17 @@ ALA_DEF void ala_hessenberg_QUQm1_schur_decomposition_householder(struct Aml_Mat
     ALA_ASSERT(U.rows == U.cols);
     ALA_ASSERT(Q.rows == H.rows);
     ALA_ASSERT(U.rows == H.rows);
+    ALA_ASSERT(H.rows > 2);
     ALA_ASSERT(aml_is_hessenberg(H));
 
     size_t n = H.rows;
     aml_copy(U, H);
     aml_set_identity(Q);
+    struct Aml_Mat2d v3buf = aml_mat2d_alloc(3, 1);
+    struct Aml_Mat2d x3buf = aml_mat2d_alloc(3, 1);
+    struct Aml_Mat2d v2buf = aml_mat2d_alloc(2, 1);
+    struct Aml_Mat2d x2buf = aml_mat2d_alloc(2, 1);
+
 
     bool converged = false;
 
@@ -870,105 +878,104 @@ ALA_DEF void ala_hessenberg_QUQm1_schur_decomposition_householder(struct Aml_Mat
     for (size_t i = 0; i < ALA_HESSENBERG_SCHUR_DECOMPOSITION_MAX_ITERATIONS_MULTIPLAYER * n; i++) {
         printf("\n\33[A\33[2K\r       i: %zu", i);
         size_t last = 0, first = 0;
-        if (ala_hessenberg_deflate_tail(U, &first, &last, aml_min(AML_EPS * 100, (aml_real)1e-4))) {
+        if (ala_hessenberg_deflate_tail(U, &first, &last, aml_min(AML_EPS, (aml_real)1e-4))) {
             converged = true;
             printf("\n");
             aml_dprintINFO("converged on iteration %zu", i);
             break;
         }
+
+        // aml_dprintINFO("first = %zu | last = %zu", first, last);
         
-        // size_t block_size = last - first + 1;
-
-        // if (block_size == 1) continue;
-        // if (block_size == 2) {
-        //     aml_real a = AML_MAT2D_AT(U, first, first);
-        //     aml_real b = AML_MAT2D_AT(U, first, first + 1);
-        //     aml_real c = AML_MAT2D_AT(U, first + 1, first);
-        //     aml_real d = AML_MAT2D_AT(U, first + 1, first + 1);
-
-        //     if (ala_eigenvalues_real_2x2(a, b, c, d)) {
-        //         ala_hessenberg_real_schur_2x2(Q, U, first);
-        //     }
-
-        //     continue;
-        // }
-
-        // printf("first: %zu, last: %zu\n", first, last);
-
         aml_real trace = 0, det = 0;
         ala_hessenberg_calc_double_shift(U, last, &trace, &det);
 
-        aml_real u_k_k     = AML_MAT2D_AT(U, first    , first    );
-        aml_real u_kp1_k   = AML_MAT2D_AT(U, first + 1, first    );
-        aml_real u_k_kp1   = AML_MAT2D_AT(U, first    , first + 1);
-        aml_real u_kp1_kp1 = AML_MAT2D_AT(U, first + 1, first + 1);
-        aml_real u_kp2_kp1 = AML_MAT2D_AT(U, first + 2, first + 1);
+        {
+            aml_real u00 = AML_MAT2D_AT(U, first, first);
+            aml_real u01 = AML_MAT2D_AT(U, first, first + 1);
+            aml_real u10 = AML_MAT2D_AT(U, first + 1, first);
+            aml_real u11 = AML_MAT2D_AT(U, first + 1, first + 1);
+            aml_real u21 = AML_MAT2D_AT(U, first + 2, first + 1);
 
-        aml_real x = u_k_k * u_k_k + u_k_kp1 * u_kp1_k - trace * u_k_k + det;
-        aml_real y = u_kp1_k * (u_k_k + u_kp1_kp1 - trace);
-        aml_real z = u_kp1_k * u_kp2_kp1;
+            aml_real x = u00 * u00 + u01 * u10 - trace * u00 + det;
+            aml_real y = u10 * (u00 + u11 - trace);
+            aml_real z = u10 * u21;
 
-        for (size_t k = first; k + 1 <= last; ++k) {
-            if (k + 2 <= last) {
-                aml_real c1 = 0, s1 = 0, c2 = 0, s2 = 0;
-                ala_givens_2x2_rotations_get_c_and_s(y, z, &c1, &s1);
-                ala_givens_2x2_rotations_get_c_and_s(x, aml_hypot(y, z), &c2, &s2);
+            AML_MAT2D_AT(x3buf, 0, 0) = x;
+            AML_MAT2D_AT(x3buf, 1, 0) = y;
+            AML_MAT2D_AT(x3buf, 2, 0) = z;
 
-                size_t begin = (k == first) ? first : (k - 1);
-                size_t end = last;
-                ala_apply_givens_2x2_left(U, k+1, begin, end, c1, s1);
-                ala_apply_givens_2x2_left(U, k, begin, end, c2, s2);
+            ala_householder_top_element_vector_get(v3buf, x3buf);
 
-                // printf("-------left k = %zu ---------\n", k);
+            if (!AML_IS_ZERO(aml_inner_product(v3buf))) {
+                /* initial step acts on first:first+2 */
+                ala_apply_householder_left(U, first, first, v3buf);
+                // printf("-------left first ---------\n");
                 // AML_PRINT(U);
 
-                ala_apply_givens_2x2_right(U, k+1, 0, n - 1, c1, s1);
-                ala_apply_givens_2x2_right(U, k, 0, n - 1, c2, s2);
-
-                if (k > first) {
-                    AML_MAT2D_AT(U, k + 1, k - 1) = 0;
-                    AML_MAT2D_AT(U, k + 2, k - 1) = 0;
-                }
-
-                // printf("-------right k = %zu ---------\n", k);
+                ala_apply_householder_right(U, first, v3buf);
+                // printf("-------right first ---------\n");
                 // AML_PRINT(U);
 
-                ala_apply_givens_2x2_right(Q, k+1, 0, n - 1, c1, s1);
-                ala_apply_givens_2x2_right(Q, k, 0, n - 1, c2, s2);
-
-                
-                if (k + 2 < last) {
-                    x = AML_MAT2D_AT(U, k + 1, k);
-                    y = AML_MAT2D_AT(U, k + 2, k);
-                    z = AML_MAT2D_AT(U, k + 3, k);
-                }
-            } else {
-                aml_real c1 = 0, s1 = 0;
-                x = AML_MAT2D_AT(U, k, k - 1);
-                y = AML_MAT2D_AT(U, k + 1, k - 1);
-                ala_givens_2x2_rotations_get_c_and_s(x, y, &c1, &s1);
-
-                size_t begin = (k == first) ? first : (k - 1);
-                size_t end = last;
-                ala_apply_givens_2x2_left(U, k, begin, end, c1, s1);
-                AML_MAT2D_AT(U, k + 1, k - 1) = 0;
-
-                // printf("-------left 2x2 k = %zu ---------\n", k);
-                // AML_PRINT(U);
-
-                ala_apply_givens_2x2_right(U, k, 0, n - 1, c1, s1);
-
-                // printf("-------right 2x2 k = %zu ---------\n", k);
-                // AML_PRINT(U);
-
-                ala_apply_givens_2x2_right(Q, k, 0, n - 1, c1, s1);
+                ala_apply_householder_right(Q, first, v3buf);
             }
         }
 
-        // aml_make_upper_hessenberg_range(U, first, last);
+        /* chase the bulge with 3x3 reflectors */
+        for (size_t k = first; k + 3 <= last; ++k) {
+            AML_MAT2D_AT(x3buf, 0, 0) = AML_MAT2D_AT(U, k + 1, k);
+            AML_MAT2D_AT(x3buf, 1, 0) = AML_MAT2D_AT(U, k + 2, k);
+            AML_MAT2D_AT(x3buf, 2, 0) = AML_MAT2D_AT(U, k + 3, k);
+
+            ala_householder_top_element_vector_get(v3buf, x3buf);
+
+            if (AML_IS_ZERO(aml_inner_product(v3buf))) {
+                continue;
+            }
+
+            ala_apply_householder_left(U, k + 1, k, v3buf);
+            // printf("-------left k = %zu ---------\n", k);
+            // AML_PRINT(U);
+            
+            ala_apply_householder_right(U, k + 1, v3buf);
+            // printf("-------right k = %zu ---------\n", k);
+            // AML_PRINT(U);
+            
+            ala_apply_householder_right(Q, k + 1, v3buf);
+
+            AML_MAT2D_AT(U, k + 2, k) = 0;
+            AML_MAT2D_AT(U, k + 3, k) = 0;
+        }
+
+        /* final 2x2 */
+        if (last >= first + 2) {
+            size_t k = last - 2;
+
+            AML_MAT2D_AT(x2buf, 0, 0) = AML_MAT2D_AT(U, k + 1, k);
+            AML_MAT2D_AT(x2buf, 1, 0) = AML_MAT2D_AT(U, k + 2, k);
+
+            ala_householder_top_element_vector_get(v2buf, x2buf);
+
+            if (!AML_IS_ZERO(aml_inner_product(v2buf))) {
+                ala_apply_householder_left(U, k + 1, k, v2buf);
+                // printf("-------left k 2x2 = %zu ---------\n", k);
+                // AML_PRINT(U);
+
+                ala_apply_householder_right(U, k + 1, v2buf);
+                // printf("-------right k 2x2 = %zu ---------\n", k);
+                // AML_PRINT(U);
+
+                ala_apply_householder_right(Q, k + 1, v2buf);
+
+                AML_MAT2D_AT(U, k + 2, k) = 0;
+            }
+        }
 
         // printf("--------%zu-----------\n", i);
         // AML_PRINT(U);
+
+
+        aml_make_upper_hessenberg_range(U, first, last);
 
         // if (i == 1) exit(1);
     }
@@ -977,6 +984,11 @@ ALA_DEF void ala_hessenberg_QUQm1_schur_decomposition_householder(struct Aml_Mat
     if (!converged) {
         aml_dprintWARNING("Did not converged after %zu iterations.", ALA_HESSENBERG_SCHUR_DECOMPOSITION_MAX_ITERATIONS_MULTIPLAYER * n);
     }
+
+    aml_mat2d_free(v3buf);
+    aml_mat2d_free(x3buf);
+    aml_mat2d_free(v2buf);
+    aml_mat2d_free(x2buf);
 }
 
 ALA_DEF bool ala_hessenberg_real_schur_2x2(struct Aml_Mat2d Q, struct Aml_Mat2d U, size_t k)
@@ -1528,7 +1540,7 @@ ALA_DEF void ala_project_out_columns(struct Aml_Mat2d v, struct Aml_Mat2d basis,
  * @warning It is slower and usually less practical than the fast implicit
  * version.
  */
-ALA_DEF void ala_QR_householder_decomposition(struct Aml_Mat2d Q, struct Aml_Mat2d R, struct Aml_Mat2d src)
+ALA_DEF void ala_QR_decomposition_householder(struct Aml_Mat2d Q, struct Aml_Mat2d R, struct Aml_Mat2d src)
 {
     /** 
      * https://youtu.be/5MeeuSoFBdY?list=PLfNiIduhuYeAhoLm2NboJmzpHNaqgnx0n
@@ -1611,7 +1623,7 @@ ALA_DEF void ala_QR_householder_decomposition(struct Aml_Mat2d Q, struct Aml_Mat
  * @note The implementation updates `Q` by right-applying the reflectors, so the
  * returned `Q` matches the decomposition used by this code path.
  */
-ALA_DEF void ala_QR_householder_decomposition_fast(struct Aml_Mat2d Q, struct Aml_Mat2d R, struct Aml_Mat2d src)
+ALA_DEF void ala_QR_decomposition_householder_fast(struct Aml_Mat2d Q, struct Aml_Mat2d R, struct Aml_Mat2d src)
 {
     /** 
      * https://youtu.be/5MeeuSoFBdY?list=PLfNiIduhuYeAhoLm2NboJmzpHNaqgnx0n
@@ -1999,7 +2011,7 @@ ALA_DEF void ala_symmetric_eig_QR_shift(struct Aml_Mat2d A, struct Aml_Mat2d eig
         aml_real mu = AML_MAT2D_AT(eigenvalues, n - 1, n - 1);
 
         aml_shift(eigenvalues, -mu);
-        ala_QR_householder_decomposition_fast(Q, R, eigenvalues);
+        ala_QR_decomposition_householder_fast(Q, R, eigenvalues);
         aml_dot(eigenvalues, R, Q);
         aml_shift(eigenvalues, mu);
         

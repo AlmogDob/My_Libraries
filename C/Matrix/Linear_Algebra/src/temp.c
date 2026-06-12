@@ -8,7 +8,7 @@
 int main(void)
 {
     // size_t n = 3;
-    size_t n = 50;
+    size_t n = 1200;
     struct Aml_Mat2d A = aml_mat2d_alloc(n, n);
     struct Aml_Mat2d Q = aml_mat2d_alloc(n, n);
     struct Aml_Mat2d Q_h = aml_mat2d_alloc(n, n);
@@ -34,7 +34,8 @@ int main(void)
     ala_hessenberg_decomposition_householder(Q_h, H, A);
     aml_dprintINFO("%s", "Finished hessenberg decomposition.");
 
-    ala_hessenberg_QUQm1_schur_decomposition_given(Q_u, U, H);
+    // ala_hessenberg_QUQm1_schur_decomposition_given(Q_u, U, H);
+    ala_hessenberg_QUQm1_schur_decomposition_householder(Q_u, U, H);
 
     // AML_PRINT(A);
     // AML_PRINT(Q_h);
