@@ -577,27 +577,31 @@ struct Token al_lexer_next_token(struct Lexer *l)
     } else if (l->content[l->cursor] == '"') {
         token.kind = TOKEN_STRING_LIT;
         al_lexer_chop_char(l);
-        token.text++;
-        start = l->cursor+1;
+        token.text = &l->content[l->cursor];
+        start = l->cursor;
 
         for ( ; (l->cursor < l->content_len) && (l->content[l->cursor] != '"') && (l->content[l->cursor] != '\n'); ) {
             al_lexer_chop_char(l);
         }
+        token.text_len = l->cursor - start;
         if ((l->cursor < l->content_len) && (l->content[l->cursor] == '"')) {
             al_lexer_chop_char(l);
         }
+        return token;
     } else if (l->content[l->cursor] == '\'') {
         token.kind = TOKEN_CHAR_LIT;
         al_lexer_chop_char(l);
-        token.text++;
-        start = l->cursor+1;
+        token.text = &l->content[l->cursor];
+        start = l->cursor;
 
         for ( ; (l->cursor < l->content_len) && (l->content[l->cursor] != '\'') && (l->content[l->cursor] != '\n'); ) {
             al_lexer_chop_char(l);
         }
+        token.text_len = l->cursor - start;
         if ((l->cursor < l->content_len) && (l->content[l->cursor] == '\'')) {
             al_lexer_chop_char(l);
         }
+        return token;
     } else if (al_lexer_start_with(l, "//")) {
         token.kind = TOKEN_COMMENT;
         for (;l->cursor < l->content_len && l->content[l->cursor] != '\n';) {
@@ -631,6 +635,7 @@ struct Token al_lexer_next_token(struct Lexer *l)
             /* optional exponent */
             if (al_lexer_peek(l, 0) == 'e' || al_lexer_peek(l, 0) == 'E') {
                 is_float = true;
+                token.kind = TOKEN_FLOAT_LIT_DEC;
                 al_lexer_chop_char(l);
                 if (al_lexer_peek(l, 0) == '+' || al_lexer_peek(l, 0) == '-') {
                     al_lexer_chop_char(l);
@@ -668,6 +673,7 @@ struct Token al_lexer_next_token(struct Lexer *l)
                 /* Hex float requires p/P exponent if it's a float form. */
                 if (al_lexer_peek(l, 0) == 'p' || al_lexer_peek(l, 0) == 'P') {
                     is_float = true;
+                    token.kind = TOKEN_FLOAT_LIT_HEX;
                     al_lexer_chop_char(l);
                     if (al_lexer_peek(l, 0) == '+' || al_lexer_peek(l, 0) == '-') {
                         al_lexer_chop_char(l);
@@ -711,6 +717,7 @@ struct Token al_lexer_next_token(struct Lexer *l)
 
                 if (al_lexer_peek(l, 0) == 'e' || al_lexer_peek(l, 0) == 'E') {
                     is_float = true;
+                    token.kind = TOKEN_FLOAT_LIT_DEC;
                     al_lexer_chop_char(l);
                     if (al_lexer_peek(l, 0) == '+' || al_lexer_peek(l, 0) == '-') {
                         al_lexer_chop_char(l);

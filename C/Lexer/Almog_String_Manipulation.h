@@ -65,62 +65,80 @@
 #endif
 
 /**
- * @def asm_dprintSTRING(expr)
- * @brief Debug-print a C string expression as "expr = value\n".
+ * @name Debug-print helpers
+ * @brief Convenience macros for diagnostic output.
  *
- * @param expr An expression that yields a pointer to char (const or
- *             non-const). The expression is evaluated exactly once.
+ * The typed variants print to stdout. The INFO/WARNING/ERROR variants print to
+ * stderr and include file, line, and function information.
  */
-#define asm_dprintSTRING(expr) printf(#expr " = %s\n", expr)
-
+#define asm_dprintSTRING(expr) printf("[Info] %s:%d:\n%*s" #expr " = %s\n", __FILE__, __LINE__, 7, "", expr)
 /**
- * @def asm_dprintCHAR(expr)
- * @brief Debug-print a character expression as "expr = c\n".
+ * @name Debug-print helpers
+ * @brief Convenience macros for diagnostic output.
  *
- * @param expr An expression that yields a character (or an int promoted from
- *             a character). The expression is evaluated exactly once.
+ * The typed variants print to stdout. The INFO/WARNING/ERROR variants print to
+ * stderr and include file, line, and function information.
  */
-#define asm_dprintCHAR(expr) printf(#expr " = %c\n", expr)
-
+#define asm_dprintCHAR(expr) printf("[Info] %s:%d:\n%*s" #expr " = %c\n", __FILE__, __LINE__, 7, "", expr)
 /**
- * @def asm_dprintINT(expr)
- * @brief Debug-print an integer expression as "expr = n\n".
+ * @name Debug-print helpers
+ * @brief Convenience macros for diagnostic output.
  *
- * @param expr An expression that yields an int. The expression is evaluated
- *             exactly once.
+ * The typed variants print to stdout. The INFO/WARNING/ERROR variants print to
+ * stderr and include file, line, and function information.
  */
-#define asm_dprintINT(expr) printf(#expr " = %d\n", expr)
-
+#define asm_dprintINT(expr) printf("[Info] %s:%d:\n%*s" #expr " = %d\n", __FILE__, __LINE__, 7, "", expr)
 /**
- * @def asm_dprintFLOAT(expr)
- * @brief Debug-print a float expression as "expr = n\n".
+ * @name Debug-print helpers
+ * @brief Convenience macros for diagnostic output.
  *
- * @param expr An expression that yields a float. The expression is evaluated
- *             exactly once.
+ * The typed variants print to stdout. The INFO/WARNING/ERROR variants print to
+ * stderr and include file, line, and function information.
  */
-#define asm_dprintFLOAT(expr) printf(#expr " = %#g\n", expr)
-
+#define asm_dprintFLOAT(expr) printf("[Info] %s:%d:\n%*s" #expr " = %#f\n", __FILE__, __LINE__, 7, "", expr)
 /**
- * @def asm_dprintDOUBLE(expr)
- * @brief Debug-print a double expression as "expr = n\n".
+ * @name Debug-print helpers
+ * @brief Convenience macros for diagnostic output.
  *
- * @param expr An expression that yields a double. The expression is evaluated
- *             exactly once.
+ * The typed variants print to stdout. The INFO/WARNING/ERROR variants print to
+ * stderr and include file, line, and function information.
  */
-#define asm_dprintDOUBLE(expr) printf(#expr " = %#g\n", expr)
-
+#define asm_dprintDOUBLE(expr) printf("[Info] %s:%d:\n%*s" #expr " = %#g\n", __FILE__, __LINE__, 7, "", expr)
 /**
- * @def asm_dprintSIZE_T(expr)
- * @brief Debug-print a size_t expression as "expr = n\n".
+ * @name Debug-print helpers
+ * @brief Convenience macros for diagnostic output.
  *
- * @param expr An expression that yields a size_t. The expression is evaluated
- *             exactly once.
+ * The typed variants print to stdout. The INFO/WARNING/ERROR variants print to
+ * stderr and include file, line, and function information.
  */
-#define asm_dprintSIZE_T(expr) printf(#expr " = %zu\n", expr)
-
+#define asm_dprintSIZE_T(expr) printf("[Info] %s:%d:\n%*s" #expr " = %zu\n", __FILE__, __LINE__, 7, "", expr)
+/**
+ * @name Debug-print helpers
+ * @brief Convenience macros for diagnostic output.
+ *
+ * The typed variants print to stdout. The INFO/WARNING/ERROR variants print to
+ * stderr and include file, line, and function information.
+ */
+#define asm_dprintINFO(fmt, ...) \
+    fprintf(stderr, "[Info] %s:%d:\n%*sIn function '%s':\n%*s" fmt "\n", __FILE__, __LINE__, 7, "", __func__, 7, "", __VA_ARGS__)
+/**
+ * @name Debug-print helpers
+ * @brief Convenience macros for diagnostic output.
+ *
+ * The typed variants print to stdout. The INFO/WARNING/ERROR variants print to
+ * stderr and include file, line, and function information.
+ */
+#define asm_dprintWARNING(fmt, ...) \
+    fprintf(stderr, "[Warning] %s:%d:\n%*sIn function '%s':\n%*s" fmt "\n", __FILE__, __LINE__, 10, "", __func__, 10, "", __VA_ARGS__)
+/**
+ * @name Debug-print helpers
+ * @brief Convenience macros for diagnostic output.
+ *
+ * The typed variants print to stdout. The INFO/WARNING/ERROR variants print to
+ * stderr and include file, line, and function information.
+ */
 #define asm_dprintERROR(fmt, ...) \
-    fprintf(stderr, "\n%s:%d:\n[Error] in function '%s':\n        " \
-    fmt "\n\n", __FILE__, __LINE__, __func__, __VA_ARGS__)
+    fprintf(stderr, "[Error] %s:%d:\n%*sIn function '%s':\n%*s" fmt "\n", __FILE__, __LINE__, 8, "", __func__, 8, "", __VA_ARGS__)
 
 /**
  * @def asm_min
@@ -299,7 +317,7 @@ int asm_get_line(FILE *fp, char * const dst)
     int i = 0;
     int c;
     while ((c = fgetc(fp)) != '\n' && c != EOF) {
-        dst[i++] = c;
+        dst[i++] = (char)c;
         if (i >= ASM_MAX_LEN) {
             #ifndef NO_ERRORS
             asm_dprintERROR("%s", "index exceeds ASM_MAX_LEN. Line in file is too long.");
@@ -920,7 +938,7 @@ float asm_str2float(const char * const s, const char ** const end, const size_t 
     float right = 0.0f;
     int expo = 0;
     for (; asm_check_char_belong_to_base(s[i+num_of_whitespace], base); i++) {
-        left = base * left + asm_get_char_value_in_base(s[i+num_of_whitespace], base);
+        left = (int)base * left + asm_get_char_value_in_base(s[i+num_of_whitespace], base);
     }
 
     if (s[i+num_of_whitespace] == '.') {
@@ -991,7 +1009,7 @@ int asm_str2int(const char * const s, const char ** const end, const size_t base
     int sign = s[0+num_of_whitespace] == '-' ? -1 : 1;
 
     for (; asm_check_char_belong_to_base(s[i+num_of_whitespace], base); i++) {
-        n = base * n + asm_get_char_value_in_base(s[i+num_of_whitespace], base);
+        n = (int)base * n + asm_get_char_value_in_base(s[i+num_of_whitespace], base);
     }
 
     if (end) *end = s + i+num_of_whitespace;
@@ -1119,7 +1137,7 @@ int asm_strncat(char * const s1, const char * const s2, const size_t N)
 {
     size_t len_s1 = asm_length(s1);
 
-    int limit = N;
+    int limit = (int)N;
     if (limit == 0) {
         limit = ASM_MAX_LEN;
     }
@@ -1209,7 +1227,7 @@ int asm_strncpy(char * const s1, const char * const s2, const size_t N)
     }
     s1[i] = '\0';
 
-    return i;
+    return (int)i;
 }
 
 /**
