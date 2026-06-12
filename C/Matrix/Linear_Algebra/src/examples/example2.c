@@ -1,6 +1,6 @@
 #define ALMOG_MATRIX_LIBRARY_IMPLEMENTATION
 #define ALMOG_LINEAR_ALGEBRA_IMPLEMENTATION
-#include "Almog_Linear_Algebra.h"
+#include "../Almog_Linear_Algebra.h"
 
 #include <time.h>
 

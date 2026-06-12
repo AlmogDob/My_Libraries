@@ -14,6 +14,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <float.h>
 #include <stdbool.h>
 #include <math.h>
 
@@ -40,7 +41,8 @@
 
 #if defined(AML_SINGLE_PRECISION)
     typedef float aml_real;
-    #define AML_EPS 1e-5
+    #define AML_EPS 1e-5f
+    #define AML_INFINITY FLT_MAX
     #define aml_fmin  fminf
     #define aml_fmax  fmaxf
     #define aml_fabs  fabsf
@@ -53,6 +55,7 @@
 #else 
     typedef double aml_real;
     #define AML_EPS 1e-10
+    #define AML_INFINITY DBL_MAX
     #define aml_fmin  fmin
     #define aml_fmax  fmax
     #define aml_fabs  fabs
@@ -63,6 +66,7 @@
     #define aml_ceil  ceil
     #define aml_hypot hypot
 #endif
+
 
 /**
  * @brief Dense real-valued 2D matrix view.
@@ -209,10 +213,12 @@ AML_DEF void                    aml_add_row_to_row(struct Aml_Mat2d des, size_t 
 AML_DEF void                    aml_add_row_time_factor_to_row(struct Aml_Mat2d m, size_t des_r, size_t src_r, aml_real factor);
 AML_DEF void                    aml_add_scalar(struct Aml_Mat2d m, aml_real x);
 AML_DEF void                    aml_anti_diag_transpose_inplace(struct Aml_Mat2d m);
+
 AML_DEF aml_real                aml_calc_col_norma(struct Aml_Mat2d m, size_t c);
 AML_DEF aml_real                aml_calc_norma(struct Aml_Mat2d m);
 AML_DEF aml_real                aml_calc_norma_inf(struct Aml_Mat2d m);
 AML_DEF bool                    aml_col_is_all_the_same(struct Aml_Mat2d m, aml_real number, size_t c);
+AML_DEF void                    aml_cols_swap(struct Aml_Mat2d m, size_t c1, size_t c2);
 AML_DEF void                    aml_copy(struct Aml_Mat2d des, struct Aml_Mat2d src);
 AML_DEF void                    aml_copy_uint32(struct Aml_Mat2d_uint32 des, struct Aml_Mat2d_uint32 src);
 AML_DEF void                    aml_copy_col_from_src_to_des(struct Aml_Mat2d des, size_t des_col, struct Aml_Mat2d src, size_t src_col);
@@ -226,16 +232,21 @@ AML_DEF void                    aml_dot(struct Aml_Mat2d dst, struct Aml_Mat2d a
 AML_DEF aml_real                aml_dot_product(struct Aml_Mat2d v1, struct Aml_Mat2d v2);
 
 AML_DEF aml_real                aml_elements_sum(struct Aml_Mat2d m);
+AML_DEF aml_real                aml_elements_col_sum(struct Aml_Mat2d m, size_t c);
+AML_DEF aml_real                aml_elements_row_sum(struct Aml_Mat2d m, size_t r);
 
 AML_DEF void                    aml_fill(struct Aml_Mat2d m, aml_real x);
 AML_DEF void                    aml_fill_sequence(struct Aml_Mat2d m, aml_real start, aml_real step);
 AML_DEF void                    aml_fill_uint32(struct Aml_Mat2d_uint32 m, uint32_t x);
 
 AML_DEF aml_real                aml_inner_product(struct Aml_Mat2d v);
+AML_DEF bool                    aml_is_close(aml_real a, aml_real b, aml_real eps);
 AML_DEF bool                    aml_is_diagonal(struct Aml_Mat2d m);
 AML_DEF bool                    aml_is_symmetric(struct Aml_Mat2d m);
+AML_DEF bool                    aml_is_symmetric_relative(struct Aml_Mat2d m);
 AML_DEF bool                    aml_is_tridiagonal(struct Aml_Mat2d m);
 
+AML_DEF void                    aml_make_diagonal(struct Aml_Mat2d m);
 AML_DEF void                    aml_make_symmetric(struct Aml_Mat2d m);
 AML_DEF void                    aml_make_tridiagonal(struct Aml_Mat2d m);
 AML_DEF struct Aml_Mat2d        aml_mat2d_alloc(size_t rows, size_t cols);
@@ -263,6 +274,7 @@ AML_DEF struct Aml_Mat2d_uint32 aml_realloc_uint32(struct Aml_Mat2d_uint32 m, si
 AML_DEF void                    aml_rotate_mat_180_deg_inplace(struct Aml_Mat2d m);
 AML_DEF bool                    aml_row_find_first_non_zero_value(struct Aml_Mat2d m, size_t r, size_t *non_zero_col);
 AML_DEF bool                    aml_row_is_all_the_same(struct Aml_Mat2d m, aml_real number, size_t r);
+AML_DEF void                    aml_rows_swap(struct Aml_Mat2d m, size_t r1, size_t r2);
 
 AML_DEF void                    aml_set_DCM_zyx(struct Aml_Mat2d DCM, float yaw_deg, float pitch_deg, float roll_deg);
 AML_DEF void                    aml_set_identity(struct Aml_Mat2d m);
@@ -277,7 +289,6 @@ AML_DEF void                    aml_sub(struct Aml_Mat2d dst, struct Aml_Mat2d a
 AML_DEF void                    aml_sub_col_to_col(struct Aml_Mat2d des, size_t des_col, struct Aml_Mat2d src, size_t src_col);
 AML_DEF void                    aml_sub_row_to_row(struct Aml_Mat2d des, size_t des_row, struct Aml_Mat2d src, size_t src_row);
 AML_DEF void                    aml_sub_row_time_factor_to_row(struct Aml_Mat2d m, size_t des_r, size_t src_r, aml_real factor);
-AML_DEF void                    aml_swap_rows(struct Aml_Mat2d m, size_t r1, size_t r2);
 
 AML_DEF void                    aml_transpose(struct Aml_Mat2d des, struct Aml_Mat2d src);
 AML_DEF void                    aml_transpose_inplace(struct Aml_Mat2d m);
@@ -516,6 +527,15 @@ AML_DEF bool aml_col_is_all_the_same(struct Aml_Mat2d m, aml_real number, size_t
         }
     }
     return true;
+}
+
+AML_DEF void aml_cols_swap(struct Aml_Mat2d m, size_t c1, size_t c2)
+{
+    for (size_t i = 0; i < m.rows; i++) {
+        aml_real temp = AML_MAT2D_AT(m, i, c1);
+        AML_MAT2D_AT(m, i, c1) = AML_MAT2D_AT(m, i, c2);
+        AML_MAT2D_AT(m, i, c2) = temp;
+    }
 }
 
 /**
@@ -816,6 +836,26 @@ AML_DEF aml_real aml_elements_sum(struct Aml_Mat2d m)
     return sum;
 }
 
+AML_DEF aml_real aml_elements_col_sum(struct Aml_Mat2d m, size_t c)
+{
+    aml_real sum = 0;
+
+    for (size_t i = 0; i < m.rows; ++i) {
+        sum += AML_MAT2D_AT(m, i, c);
+    }
+    return sum;
+}
+
+AML_DEF aml_real aml_elements_row_sum(struct Aml_Mat2d m, size_t r)
+{
+    aml_real sum = 0;
+
+    for (size_t j = 0; j < m.cols; ++j) {
+        sum += AML_MAT2D_AT(m, r, j);
+    }
+    return sum;
+}
+
 /**
  * @brief Fill a matrix with a constant value.
  *
@@ -903,6 +943,12 @@ AML_DEF aml_real aml_inner_product(struct Aml_Mat2d v)
     return dot_product;
 }
 
+AML_DEF bool aml_is_close(aml_real a, aml_real b, aml_real eps)
+{
+    aml_real scale = aml_fmax((aml_real)1, aml_fmax(aml_fabs(a), aml_fabs(b)));
+    return aml_fabs(a - b) <= eps * scale;
+}
+
 /**
  * @brief Test whether a square matrix is diagonal.
  *
@@ -949,7 +995,23 @@ AML_DEF bool aml_is_symmetric(struct Aml_Mat2d m)
     for (size_t i = 0; i < m.rows; i++) {
         for (size_t j = 0; j < m.cols; j++) {
             if (!AML_IS_ZERO(AML_MAT2D_AT(m, i, j) - AML_MAT2D_AT(m, j , i))) {
-                aml_dprintERROR("Not symmetric!. (%zu, %zu): %g != (%zu, %zu): %g", i, j, AML_MAT2D_AT(m, i, j), j, i, AML_MAT2D_AT(m, j, i));
+                aml_dprintERROR("Not symmetric!. (%zu, %zu): %-.10g != (%zu, %zu): %-.10g", i, j, AML_MAT2D_AT(m, i, j), j, i, AML_MAT2D_AT(m, j, i));
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+AML_DEF bool aml_is_symmetric_relative(struct Aml_Mat2d m)
+{
+    AML_ASSERT(m.rows == m.cols);
+
+    for (size_t i = 0; i < m.rows; i++) {
+        for (size_t j = 0; j < m.cols; j++) {
+            if (!aml_is_close(AML_MAT2D_AT(m, i, j), AML_MAT2D_AT(m, j , i), AML_EPS)) {
+                aml_dprintERROR("Not symmetric!. (%zu, %zu): %-.10g != (%zu, %zu): %-.10g", i, j, AML_MAT2D_AT(m, i, j), j, i, AML_MAT2D_AT(m, j, i));
                 return false;
             }
         }
@@ -983,6 +1045,18 @@ AML_DEF bool aml_is_tridiagonal(struct Aml_Mat2d m)
     }
 
     return true;
+}
+
+AML_DEF void aml_make_diagonal(struct Aml_Mat2d m)
+{
+    AML_ASSERT(m.rows == m.cols);
+    for (size_t i = 0; i < m.rows; ++i) {
+        for (size_t j = 0; j < m.cols; ++j) {
+            if (i != j) {
+                AML_MAT2D_AT(m, i, j) = 0;
+            }
+        }
+    }
 }
 
 /**
@@ -1286,8 +1360,8 @@ AML_DEF void aml_print(struct Aml_Mat2d m, const char *name, size_t padding)
     for (size_t i = 0; i < m.rows; ++i) {
         printf("%*s    ", (int) padding, "");
         for (size_t j = 0; j < m.cols; ++j) {
-            // printf("%9.3g ", AML_MAT2D_AT(m, i, j));
-            printf("%9.6f ", AML_MAT2D_AT(m, i, j));
+            printf("%9.3g ", AML_MAT2D_AT(m, i, j));
+            // printf("%9.6f ", AML_MAT2D_AT(m, i, j));
         }
         printf("\n");
     }
@@ -1463,6 +1537,25 @@ AML_DEF bool aml_row_is_all_the_same(struct Aml_Mat2d m, aml_real number, size_t
         }
     }
     return true;
+}
+
+/**
+ * @brief Swap two matrix rows in place.
+ *
+ * @param m Matrix modified in place.
+ * @param r1 First row index.
+ * @param r2 Second row index.
+ *
+ * Complexity
+ * `O(cols)`.
+ */
+AML_DEF void aml_rows_swap(struct Aml_Mat2d m, size_t r1, size_t r2)
+{
+    for (size_t j = 0; j < m.cols; j++) {
+        aml_real temp = AML_MAT2D_AT(m, r1, j);
+        AML_MAT2D_AT(m, r1, j) = AML_MAT2D_AT(m, r2, j);
+        AML_MAT2D_AT(m, r2, j) = temp;
+    }
 }
 
 /**
@@ -1758,25 +1851,6 @@ AML_DEF void aml_sub_row_time_factor_to_row(struct Aml_Mat2d m, size_t des_r, si
 {
     for (size_t j = 0; j < m.cols; ++j) {
         AML_MAT2D_AT(m, des_r, j) -= factor * AML_MAT2D_AT(m, src_r, j);
-    }
-}
-
-/**
- * @brief Swap two matrix rows in place.
- *
- * @param m Matrix modified in place.
- * @param r1 First row index.
- * @param r2 Second row index.
- *
- * Complexity
- * `O(cols)`.
- */
-AML_DEF void aml_swap_rows(struct Aml_Mat2d m, size_t r1, size_t r2)
-{
-    for (size_t j = 0; j < m.cols; j++) {
-        aml_real temp = AML_MAT2D_AT(m, r1, j);
-        AML_MAT2D_AT(m, r1, j) = AML_MAT2D_AT(m, r2, j);
-        AML_MAT2D_AT(m, r2, j) = temp;
     }
 }
 
