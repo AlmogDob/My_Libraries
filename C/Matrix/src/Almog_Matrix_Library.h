@@ -231,9 +231,11 @@ AML_DEF aml_real                aml_inner_product(struct Aml_Mat2d v);
 AML_DEF bool                    aml_is_close(aml_real a, aml_real b, aml_real eps);
 AML_DEF bool                    aml_is_diagonal(struct Aml_Mat2d m);
 AML_DEF bool                    aml_is_hessenberg(struct Aml_Mat2d m);
+AML_DEF bool                    aml_is_lower_triangular_nonsingular(struct Aml_Mat2d m);
 AML_DEF bool                    aml_is_symmetric(struct Aml_Mat2d m);
 AML_DEF bool                    aml_is_symmetric_relative(struct Aml_Mat2d m);
 AML_DEF bool                    aml_is_tridiagonal(struct Aml_Mat2d m);
+AML_DEF bool                    aml_is_upper_triangular_nonsingular(struct Aml_Mat2d m);
 
 AML_DEF void                    aml_make_diagonal(struct Aml_Mat2d m);
 AML_DEF void                    aml_make_symmetric(struct Aml_Mat2d m);
@@ -269,7 +271,9 @@ AML_DEF void                    aml_rows_swap(struct Aml_Mat2d m, size_t r1, siz
 AML_DEF void                    aml_set_DCM_zyx(struct Aml_Mat2d DCM, float yaw_deg, float pitch_deg, float roll_deg);
 AML_DEF void                    aml_set_identity(struct Aml_Mat2d m);
 AML_DEF void                    aml_set_rand(struct Aml_Mat2d m, aml_real low, aml_real high);
+AML_DEF void                    aml_set_rand_lower_triangular(struct Aml_Mat2d m, aml_real low, aml_real high);
 AML_DEF void                    aml_set_rand_symmetric(struct Aml_Mat2d m, aml_real low, aml_real high);
+AML_DEF void                    aml_set_rand_upper_triangular(struct Aml_Mat2d m, aml_real low, aml_real high);
 AML_DEF void                    aml_set_rot_mat_x(struct Aml_Mat2d m, float angle_deg);
 AML_DEF void                    aml_set_rot_mat_y(struct Aml_Mat2d m, float angle_deg);
 AML_DEF void                    aml_set_rot_mat_z(struct Aml_Mat2d m, float angle_deg);
@@ -981,6 +985,26 @@ AML_DEF bool aml_is_hessenberg(struct Aml_Mat2d m)
     return true;
 }
 
+AML_DEF bool aml_is_lower_triangular_nonsingular(struct Aml_Mat2d m)
+{
+    for (size_t i = 0; i < m.rows; i++) {
+        for (size_t j = 0; j < m.cols; j++) {
+            if (j > i) {
+                if (!AML_IS_ZERO(AML_MAT2D_AT(m, i, j))) {
+                    return false;
+                }
+            }
+            if (j == i) {
+                if (AML_IS_ZERO(AML_MAT2D_AT(m, i, j))) {
+                    return false;
+                }
+            }
+        }
+    }
+
+    return true;
+}
+
 /**
  * @brief Test whether a square matrix is symmetric.
  *
@@ -1045,6 +1069,26 @@ AML_DEF bool aml_is_tridiagonal(struct Aml_Mat2d m)
             if (i == j || i + 1 == j || j + 1 == i) continue;
 
             if (!AML_IS_ZERO(AML_MAT2D_AT(m, i, j))) return false;
+        }
+    }
+
+    return true;
+}
+
+AML_DEF bool aml_is_upper_triangular_nonsingular(struct Aml_Mat2d m)
+{
+    for (size_t i = 0; i < m.rows; i++) {
+        for (size_t j = 0; j < m.cols; j++) {
+            if (j < i) {
+                if (!AML_IS_ZERO(AML_MAT2D_AT(m, i, j))) {
+                    return false;
+                }
+            }
+            if (j == i) {
+                if (AML_IS_ZERO(AML_MAT2D_AT(m, i, j))) {
+                    return false;
+                }
+            }
         }
     }
 
@@ -1381,7 +1425,7 @@ AML_DEF void aml_print(struct Aml_Mat2d m, const char *name, size_t padding)
     for (size_t i = 0; i < m.rows; ++i) {
         printf("%*s    ", (int) padding, "");
         for (size_t j = 0; j < m.cols; ++j) {
-            printf("%9.3g ", AML_MAT2D_AT(m, i, j));
+            printf("%9.4g ", AML_MAT2D_AT(m, i, j));
             // printf("%12.8f ", AML_MAT2D_AT(m, i, j));
         }
         printf("\n");
@@ -1651,6 +1695,19 @@ AML_DEF void aml_set_rand(struct Aml_Mat2d m, aml_real low, aml_real high)
     }
 }
 
+AML_DEF void aml_set_rand_lower_triangular(struct Aml_Mat2d m, aml_real low, aml_real high)
+{
+    for (size_t i = 0; i < m.rows; i++) {
+        for (size_t j = 0; j < m.cols; j++) {
+            if (j <= i) {
+                AML_MAT2D_AT(m, i, j) = aml_rand_aml_real()*(high - low) + low;
+            } else {
+                AML_MAT2D_AT(m, i, j) = 0;
+            }
+        }
+    }
+}
+
 /**
  * @brief Fill a square matrix with symmetric random values.
  *
@@ -1672,6 +1729,19 @@ AML_DEF void aml_set_rand_symmetric(struct Aml_Mat2d m, aml_real low, aml_real h
             aml_real temp = aml_rand_aml_real() * (high - low) + low;
             AML_MAT2D_AT(m, i, j) = temp;
             AML_MAT2D_AT(m, j, i) = temp;
+        }
+    }
+}
+
+AML_DEF void aml_set_rand_upper_triangular(struct Aml_Mat2d m, aml_real low, aml_real high)
+{
+    for (size_t i = 0; i < m.rows; i++) {
+        for (size_t j = 0; j < m.cols; j++) {
+            if (j >= i) {
+                AML_MAT2D_AT(m, i, j) = aml_rand_aml_real()*(high - low) + low;
+            } else {
+                AML_MAT2D_AT(m, i, j) = 0;
+            }
         }
     }
 }
