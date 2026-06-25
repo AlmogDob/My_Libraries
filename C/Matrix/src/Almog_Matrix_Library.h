@@ -20,6 +20,9 @@
 
 #if defined(_WIN32) || defined(_WIN64) 
     #pragma warning(disable : 4709)
+    #define AML_RESTRICT __restrict
+#else
+    #define AML_RESTRICT restrict
 #endif
 
 #ifndef AML_MALLOC
@@ -217,6 +220,7 @@ AML_DEF struct Aml_Mat2d        aml_create_col_ref(struct Aml_Mat2d src, size_t 
 AML_DEF void                    aml_cross(struct Aml_Mat2d dst, struct Aml_Mat2d v1, struct Aml_Mat2d v2);
 
 AML_DEF void                    aml_dot(struct Aml_Mat2d dst, struct Aml_Mat2d a, struct Aml_Mat2d b);
+AML_DEF void                    aml_dot_fast(struct Aml_Mat2d *AML_RESTRICT dst, struct Aml_Mat2d *AML_RESTRICT a, struct Aml_Mat2d *AML_RESTRICT b);
 AML_DEF aml_real                aml_dot_product(struct Aml_Mat2d v1, struct Aml_Mat2d v2);
 
 AML_DEF aml_real                aml_elements_sum(struct Aml_Mat2d m);
@@ -231,9 +235,11 @@ AML_DEF aml_real                aml_inner_product(struct Aml_Mat2d v);
 AML_DEF bool                    aml_is_close(aml_real a, aml_real b, aml_real eps);
 AML_DEF bool                    aml_is_diagonal(struct Aml_Mat2d m);
 AML_DEF bool                    aml_is_hessenberg(struct Aml_Mat2d m);
+AML_DEF bool                    aml_is_lower_triangular_nonsingular(struct Aml_Mat2d m);
 AML_DEF bool                    aml_is_symmetric(struct Aml_Mat2d m);
 AML_DEF bool                    aml_is_symmetric_relative(struct Aml_Mat2d m);
 AML_DEF bool                    aml_is_tridiagonal(struct Aml_Mat2d m);
+AML_DEF bool                    aml_is_upper_triangular_nonsingular(struct Aml_Mat2d m);
 
 AML_DEF void                    aml_make_diagonal(struct Aml_Mat2d m);
 AML_DEF void                    aml_make_symmetric(struct Aml_Mat2d m);
@@ -269,7 +275,9 @@ AML_DEF void                    aml_rows_swap(struct Aml_Mat2d m, size_t r1, siz
 AML_DEF void                    aml_set_DCM_zyx(struct Aml_Mat2d DCM, float yaw_deg, float pitch_deg, float roll_deg);
 AML_DEF void                    aml_set_identity(struct Aml_Mat2d m);
 AML_DEF void                    aml_set_rand(struct Aml_Mat2d m, aml_real low, aml_real high);
+AML_DEF void                    aml_set_rand_lower_triangular(struct Aml_Mat2d m, aml_real low, aml_real high);
 AML_DEF void                    aml_set_rand_symmetric(struct Aml_Mat2d m, aml_real low, aml_real high);
+AML_DEF void                    aml_set_rand_upper_triangular(struct Aml_Mat2d m, aml_real low, aml_real high);
 AML_DEF void                    aml_set_rot_mat_x(struct Aml_Mat2d m, float angle_deg);
 AML_DEF void                    aml_set_rot_mat_y(struct Aml_Mat2d m, float angle_deg);
 AML_DEF void                    aml_set_rot_mat_z(struct Aml_Mat2d m, float angle_deg);
@@ -760,9 +768,15 @@ void aml_cross(struct Aml_Mat2d dst, struct Aml_Mat2d v1, struct Aml_Mat2d v2)
 
 AML_DEF void aml_dot(struct Aml_Mat2d dst, struct Aml_Mat2d a, struct Aml_Mat2d b)
 {
+    #if 1
+    aml_dot_fast(&dst, &a, &b);
+    #else 
     AML_ASSERT(a.cols == b.rows);
     AML_ASSERT(a.rows == dst.rows);
     AML_ASSERT(b.cols == dst.cols);
+
+    AML_ASSERT(dst.elements != a.elements);
+    AML_ASSERT(dst.elements != b.elements);
 
     size_t i, j, k;
 
@@ -774,6 +788,72 @@ AML_DEF void aml_dot(struct Aml_Mat2d dst, struct Aml_Mat2d a, struct Aml_Mat2d 
             }
         }
     }
+    #endif
+}
+
+AML_DEF void aml_dot_fast(struct Aml_Mat2d *AML_RESTRICT dst, struct Aml_Mat2d *AML_RESTRICT a, struct Aml_Mat2d *AML_RESTRICT b)
+{
+    AML_ASSERT(a->cols == b->rows);
+    AML_ASSERT(a->rows == dst->rows);
+    AML_ASSERT(b->cols == dst->cols);
+
+    AML_ASSERT(dst->elements != a->elements);
+    AML_ASSERT(dst->elements != b->elements);
+
+    size_t i, j, k;
+
+    aml_fill(*dst, 0);
+
+    #if 1 /* simple block optimized version */
+    const size_t m = dst->rows;
+    const size_t n = dst->cols;
+    const size_t kmax = a->cols;
+    const size_t as = a->stride_r;
+    const size_t bs = b->stride_r;
+    const size_t cs = dst->stride_r;
+    aml_real *AML_RESTRICT c = dst->elements;
+    const aml_real *AML_RESTRICT ae = a->elements;
+    const aml_real *AML_RESTRICT be = b->elements;
+
+    /**
+     * The best BI/BK/BJ values depend on CPU and whether aml_real is float or double, so benchmark a few combinations. 
+     */
+    enum { BI = 32, BK = 64, BJ = 128 };
+
+    for (size_t ii = 0; ii < m; ii += BI) {
+        const size_t i_end = aml_min(ii + BI, m);
+        for (size_t kk = 0; kk < kmax; kk += BK) {
+            const size_t k_end = aml_min(kk + BK, kmax);
+            for (size_t jj = 0; jj < n; jj += BJ) {
+                const size_t j_end = aml_min(jj + BJ, n);
+                for (i = ii; i < i_end; ++i) {
+                    aml_real *AML_RESTRICT crow = c + i * cs + jj;
+                    for (k = kk; k < k_end; ++k) {
+                        const aml_real aik = ae[i * as + k];
+                        const aml_real *AML_RESTRICT brow = be + k * bs + jj;
+                        for (j = 0; j < j_end - jj; ++j) {
+                            crow[j] += aik * brow[j];
+                        }
+                    }
+                }
+            }
+        }
+    }
+    #else /* simple non block optimized version */
+    for (i = 0; i < dst->rows; i++) {
+        aml_real *AML_RESTRICT a_row = &AML_MAT2D_AT(*a, i, 0);
+        aml_real *AML_RESTRICT dst_row = &AML_MAT2D_AT(*dst, i, 0);
+
+        for (k = 0; k < a->cols; k++) {
+            aml_real aik = *(a_row++);
+            aml_real *AML_RESTRICT b_row = &AML_MAT2D_AT(*b, k, 0);
+
+            for (j = 0; j < dst->cols; j++) {
+                dst_row[j] += aik * *(b_row++);
+            }
+        }
+    }
+    #endif
 
 }
 
@@ -981,6 +1061,26 @@ AML_DEF bool aml_is_hessenberg(struct Aml_Mat2d m)
     return true;
 }
 
+AML_DEF bool aml_is_lower_triangular_nonsingular(struct Aml_Mat2d m)
+{
+    for (size_t i = 0; i < m.rows; i++) {
+        for (size_t j = 0; j < m.cols; j++) {
+            if (j > i) {
+                if (!AML_IS_ZERO(AML_MAT2D_AT(m, i, j))) {
+                    return false;
+                }
+            }
+            if (j == i) {
+                if (AML_IS_ZERO(AML_MAT2D_AT(m, i, j))) {
+                    return false;
+                }
+            }
+        }
+    }
+
+    return true;
+}
+
 /**
  * @brief Test whether a square matrix is symmetric.
  *
@@ -1045,6 +1145,26 @@ AML_DEF bool aml_is_tridiagonal(struct Aml_Mat2d m)
             if (i == j || i + 1 == j || j + 1 == i) continue;
 
             if (!AML_IS_ZERO(AML_MAT2D_AT(m, i, j))) return false;
+        }
+    }
+
+    return true;
+}
+
+AML_DEF bool aml_is_upper_triangular_nonsingular(struct Aml_Mat2d m)
+{
+    for (size_t i = 0; i < m.rows; i++) {
+        for (size_t j = 0; j < m.cols; j++) {
+            if (j < i) {
+                if (!AML_IS_ZERO(AML_MAT2D_AT(m, i, j))) {
+                    return false;
+                }
+            }
+            if (j == i) {
+                if (AML_IS_ZERO(AML_MAT2D_AT(m, i, j))) {
+                    return false;
+                }
+            }
         }
     }
 
@@ -1381,7 +1501,7 @@ AML_DEF void aml_print(struct Aml_Mat2d m, const char *name, size_t padding)
     for (size_t i = 0; i < m.rows; ++i) {
         printf("%*s    ", (int) padding, "");
         for (size_t j = 0; j < m.cols; ++j) {
-            printf("%9.3g ", AML_MAT2D_AT(m, i, j));
+            printf("%9.4g ", AML_MAT2D_AT(m, i, j));
             // printf("%12.8f ", AML_MAT2D_AT(m, i, j));
         }
         printf("\n");
@@ -1651,6 +1771,19 @@ AML_DEF void aml_set_rand(struct Aml_Mat2d m, aml_real low, aml_real high)
     }
 }
 
+AML_DEF void aml_set_rand_lower_triangular(struct Aml_Mat2d m, aml_real low, aml_real high)
+{
+    for (size_t i = 0; i < m.rows; i++) {
+        for (size_t j = 0; j < m.cols; j++) {
+            if (j <= i) {
+                AML_MAT2D_AT(m, i, j) = aml_rand_aml_real()*(high - low) + low;
+            } else {
+                AML_MAT2D_AT(m, i, j) = 0;
+            }
+        }
+    }
+}
+
 /**
  * @brief Fill a square matrix with symmetric random values.
  *
@@ -1672,6 +1805,19 @@ AML_DEF void aml_set_rand_symmetric(struct Aml_Mat2d m, aml_real low, aml_real h
             aml_real temp = aml_rand_aml_real() * (high - low) + low;
             AML_MAT2D_AT(m, i, j) = temp;
             AML_MAT2D_AT(m, j, i) = temp;
+        }
+    }
+}
+
+AML_DEF void aml_set_rand_upper_triangular(struct Aml_Mat2d m, aml_real low, aml_real high)
+{
+    for (size_t i = 0; i < m.rows; i++) {
+        for (size_t j = 0; j < m.cols; j++) {
+            if (j >= i) {
+                AML_MAT2D_AT(m, i, j) = aml_rand_aml_real()*(high - low) + low;
+            } else {
+                AML_MAT2D_AT(m, i, j) = 0;
+            }
         }
     }
 }

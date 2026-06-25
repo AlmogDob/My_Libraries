@@ -33,6 +33,7 @@ set "BUILDONLY=0"
 set "CLEANONLY=0"
 set "RELEASE=0"
 set "HELP=0"
+set "REPEAT=1"
 set "FILES="
 set "INPUT_ARG="
 
@@ -51,6 +52,48 @@ if /i "%~1"=="--time"       (set "TIMEIT=1"    & shift & goto parse)
 if /i "%~1"=="-t"           (set "TIMEIT=1"    & shift & goto parse)
 if /i "%~1"=="--help"       (set "HELP=1"      & shift & goto parse)
 if /i "%~1"=="-h"           (set "HELP=1"      & shift & goto parse)
+if /i "%~1"=="--repeat" (
+  if "%~2"=="" (
+    set "FAIL_RC=1"
+    set "FAIL_MSG=--repeat requires a numeric argument."
+    goto fail
+  )
+  echo(%~2| findstr /r "^[0-9][0-9]*$" >nul || (
+    set "FAIL_RC=1"
+    set "FAIL_MSG=--repeat requires a positive integer."
+    goto fail
+  )
+  if "%~2"=="0" (
+    set "FAIL_RC=1"
+    set "FAIL_MSG=--repeat must be greater than 0."
+    goto fail
+  )
+  set "REPEAT=%~2"
+  shift
+  shift
+  goto parse
+)
+if /i "%~1"=="-rp" (
+  if "%~2"=="" (
+    set "FAIL_RC=1"
+    set "FAIL_MSG=-rp requires a numeric argument."
+    goto fail
+  )
+  echo(%~2| findstr /r "^[0-9][0-9]*$" >nul || (
+    set "FAIL_RC=1"
+    set "FAIL_MSG=-rp requires a positive integer."
+    goto fail
+  )
+  if "%~2"=="0" (
+    set "FAIL_RC=1"
+    set "FAIL_MSG=-rp must be greater than 0."
+    goto fail
+  )
+  set "REPEAT=%~2"
+  shift
+  shift
+  goto parse
+)
 if /i "%~1"=="--input" (
   if "%~2"=="" (
     set "FAIL_RC=1"
@@ -262,7 +305,7 @@ endlocal & exit /b 0
 
 
 :run
-setlocal EnableExtensions
+setlocal EnableExtensions EnableDelayedExpansion
 
 if "%~1"=="" (
   endlocal
@@ -277,7 +320,7 @@ set "EXE=%NAME%.exe"
 if not exist "%BUILDDIR%\%EXE%" (
   endlocal
   set "FAIL_RC=1"
-  set "FAIL_MSG=run: "%BUILDDIR%\%EXE%" not found. Build it first."
+  set "FAIL_MSG=run: ""%BUILDDIR%\%EXE%"" not found. Build it first."
   exit /b 1
 )
 
@@ -285,15 +328,64 @@ echo [INFO] running "%EXE%"
 echo.
 
 pushd "%BUILDDIR%" || (
-  e/ndlocal
+  endlocal
   set "FAIL_RC=1"
-  set "FAIL_MSG=run: failed to change directory to "%BUILDDIR%"."
-  exit b 1
+  set "FAIL_MSG=run: failed to change directory to ""%BUILDDIR%""."
+  exit /b 1
 )
 
-call :invoke_exe "%EXE%"
-set "RC=%errorlevel%"
+set "RC=0"
+set "RUN_TIMES_CSV="
+
+for /L %%N in (1,1,%REPEAT%) do (
+  if "%REPEAT%" NEQ "1" echo [INFO] Run No. %%N of %REPEAT%
+
+  if "%TIMEIT%"=="1" (
+    for /f %%I in ('
+      powershell -NoProfile -Command ^
+        "[DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()"
+    ') do set "TSTART_MS=%%I"
+  )
+
+  call :invoke_exe "%EXE%"
+  set "RC=!errorlevel!"
+
+  if "%TIMEIT%"=="1" (
+    for /f %%I in ('
+      powershell -NoProfile -Command ^
+        "[DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds() - !TSTART_MS!"
+    ') do set "RUN_ELAPSED_MS=%%I"
+
+  powershell -NoProfile -Command ^
+    "$ms = [double]$env:RUN_ELAPSED_MS; " ^
+    "Write-Host ('[TIME] Run %%N: {0:N3} ms ({1:N6} s)' -f $ms, ($ms / 1000.0))"
+
+    if defined RUN_TIMES_CSV (
+      set "RUN_TIMES_CSV=!RUN_TIMES_CSV!,!RUN_ELAPSED_MS!"
+    ) else (
+      set "RUN_TIMES_CSV=!RUN_ELAPSED_MS!"
+    )
+  )
+
+  if not "!RC!"=="0" goto run_done
+)
+
+:run_done
 popd
+
+if "%TIMEIT%"=="1" if defined RUN_TIMES_CSV (
+  powershell -NoProfile -Command ^
+    "$times = @($env:RUN_TIMES_CSV -split ',' | " ^
+    "  Where-Object { $_ -ne '' } | " ^
+    "  ForEach-Object { [double]$_ }); " ^
+    "$avg = ($times | Measure-Object -Average).Average; " ^
+    "$min = ($times | Measure-Object -Minimum).Minimum; " ^
+    "$max = ($times | Measure-Object -Maximum).Maximum; " ^
+    "Write-Host ''; " ^
+    "Write-Host ('[TIME] Average: {0:N3} ms ({1:N6} s)' -f $avg, ($avg / 1000.0)); " ^
+    "Write-Host ('[TIME] Min:     {0:N3} ms ({1:N6} s)' -f $min, ($min / 1000.0)); " ^
+    "Write-Host ('[TIME] Max:     {0:N3} ms ({1:N6} s)' -f $max, ($max / 1000.0))"
+)
 
 if not "%RC%"=="0" (
   endlocal
@@ -306,40 +398,12 @@ echo.
 endlocal & exit /b 0
 
 :invoke_exe
-if "%TIMEIT%"=="1" goto invoke_timed
-goto invoke_normal
-
-:invoke_normal
 if not defined INPUT_ARG goto invoke_no_arg
 "%~1" "%INPUT_ARG%"
 exit /b %errorlevel%
 
 :invoke_no_arg
 "%~1"
-exit /b %errorlevel%
-
-:invoke_timed
-if not defined INPUT_ARG goto invoke_timed_no_arg
-
-powershell -NoProfile -Command ^
-  "$sw = [System.Diagnostics.Stopwatch]::StartNew(); " ^
-  "& '.\%~1' '%INPUT_ARG%'; " ^
-  "$rc = $LASTEXITCODE; " ^
-  "$sw.Stop(); " ^
-  "Write-Host ''; " ^
-  "Write-Host ('[TIME] {0:N3} ms ({1:N6} s)' -f $sw.Elapsed.TotalMilliseconds, $sw.Elapsed.TotalSeconds); " ^
-  "exit $rc"
-exit /b %errorlevel%
-
-:invoke_timed_no_arg
-powershell -NoProfile -Command ^
-  "$sw = [System.Diagnostics.Stopwatch]::StartNew(); " ^
-  "& '.\%~1'; " ^
-  "$rc = $LASTEXITCODE; " ^
-  "$sw.Stop(); " ^
-  "Write-Host ''; " ^
-  "Write-Host ('[TIME] {0:N3} ms ({1:N6} s)' -f $sw.Elapsed.TotalMilliseconds, $sw.Elapsed.TotalSeconds); " ^
-  "exit $rc"
 exit /b %errorlevel%
 
 :clean
@@ -379,6 +443,7 @@ echo.
 echo Options:
 echo   --help, -h           Show this help message
 echo   --input, -i "args"   Pass a single argument string to the program
+echo   --repeat, -rp N      Run the program N times ^(N must be a positive integer^)
 echo   --no-clean, -nc      Do not remove build artifacts after running
 echo   --build-only, -b     Build only, do not run
 echo   --clean-only, -c     Remove build artifacts only
