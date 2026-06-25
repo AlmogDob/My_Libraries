@@ -28,12 +28,21 @@ int main(void)
     // AML_PRINT(Q_u);
     // AML_PRINT(U);
 
+    #if 1
+    aml_dot_fast(&Q, &Q_h, &Q_u);
+    aml_transpose_inplace(Q);
+    aml_dot_fast(&Q_h, &U, &Q);
+    aml_transpose_inplace(Q);
+    aml_dot_fast(&diff, &Q, &Q_h);
+    aml_sub(diff, A);
+    #else
     aml_dot(Q, Q_h, Q_u);
     aml_transpose_inplace(Q);
     aml_dot(Q_h, U, Q);
     aml_transpose_inplace(Q);
     aml_dot(diff, Q, Q_h);
     aml_sub(diff, A);
+    #endif
     
     aml_dprintDOUBLE(aml_calc_norma(diff));
     aml_dprintDOUBLE(aml_calc_norma(diff) / aml_calc_norma(A));

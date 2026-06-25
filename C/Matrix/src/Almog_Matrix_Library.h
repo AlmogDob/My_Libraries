@@ -20,6 +20,9 @@
 
 #if defined(_WIN32) || defined(_WIN64) 
     #pragma warning(disable : 4709)
+    #define AML_RESTRICT __restrict
+#else
+    #define AML_RESTRICT restrict
 #endif
 
 #ifndef AML_MALLOC
@@ -217,6 +220,7 @@ AML_DEF struct Aml_Mat2d        aml_create_col_ref(struct Aml_Mat2d src, size_t 
 AML_DEF void                    aml_cross(struct Aml_Mat2d dst, struct Aml_Mat2d v1, struct Aml_Mat2d v2);
 
 AML_DEF void                    aml_dot(struct Aml_Mat2d dst, struct Aml_Mat2d a, struct Aml_Mat2d b);
+AML_DEF void                    aml_dot_fast(struct Aml_Mat2d *AML_RESTRICT dst, struct Aml_Mat2d *AML_RESTRICT a, struct Aml_Mat2d *AML_RESTRICT b);
 AML_DEF aml_real                aml_dot_product(struct Aml_Mat2d v1, struct Aml_Mat2d v2);
 
 AML_DEF aml_real                aml_elements_sum(struct Aml_Mat2d m);
@@ -764,9 +768,15 @@ void aml_cross(struct Aml_Mat2d dst, struct Aml_Mat2d v1, struct Aml_Mat2d v2)
 
 AML_DEF void aml_dot(struct Aml_Mat2d dst, struct Aml_Mat2d a, struct Aml_Mat2d b)
 {
+    #if 1
+    aml_dot_fast(&dst, &a, &b);
+    #else 
     AML_ASSERT(a.cols == b.rows);
     AML_ASSERT(a.rows == dst.rows);
     AML_ASSERT(b.cols == dst.cols);
+
+    AML_ASSERT(dst.elements != a.elements);
+    AML_ASSERT(dst.elements != b.elements);
 
     size_t i, j, k;
 
@@ -778,6 +788,72 @@ AML_DEF void aml_dot(struct Aml_Mat2d dst, struct Aml_Mat2d a, struct Aml_Mat2d 
             }
         }
     }
+    #endif
+}
+
+AML_DEF void aml_dot_fast(struct Aml_Mat2d *AML_RESTRICT dst, struct Aml_Mat2d *AML_RESTRICT a, struct Aml_Mat2d *AML_RESTRICT b)
+{
+    AML_ASSERT(a->cols == b->rows);
+    AML_ASSERT(a->rows == dst->rows);
+    AML_ASSERT(b->cols == dst->cols);
+
+    AML_ASSERT(dst->elements != a->elements);
+    AML_ASSERT(dst->elements != b->elements);
+
+    size_t i, j, k;
+
+    aml_fill(*dst, 0);
+
+    #if 1 /* simple block optimized version */
+    const size_t m = dst->rows;
+    const size_t n = dst->cols;
+    const size_t kmax = a->cols;
+    const size_t as = a->stride_r;
+    const size_t bs = b->stride_r;
+    const size_t cs = dst->stride_r;
+    aml_real *AML_RESTRICT c = dst->elements;
+    const aml_real *AML_RESTRICT ae = a->elements;
+    const aml_real *AML_RESTRICT be = b->elements;
+
+    /**
+     * The best BI/BK/BJ values depend on CPU and whether aml_real is float or double, so benchmark a few combinations. 
+     */
+    enum { BI = 32, BK = 64, BJ = 128 };
+
+    for (size_t ii = 0; ii < m; ii += BI) {
+        const size_t i_end = aml_min(ii + BI, m);
+        for (size_t kk = 0; kk < kmax; kk += BK) {
+            const size_t k_end = aml_min(kk + BK, kmax);
+            for (size_t jj = 0; jj < n; jj += BJ) {
+                const size_t j_end = aml_min(jj + BJ, n);
+                for (i = ii; i < i_end; ++i) {
+                    aml_real *AML_RESTRICT crow = c + i * cs + jj;
+                    for (k = kk; k < k_end; ++k) {
+                        const aml_real aik = ae[i * as + k];
+                        const aml_real *AML_RESTRICT brow = be + k * bs + jj;
+                        for (j = 0; j < j_end - jj; ++j) {
+                            crow[j] += aik * brow[j];
+                        }
+                    }
+                }
+            }
+        }
+    }
+    #else /* simple non block optimized version */
+    for (i = 0; i < dst->rows; i++) {
+        aml_real *AML_RESTRICT a_row = &AML_MAT2D_AT(*a, i, 0);
+        aml_real *AML_RESTRICT dst_row = &AML_MAT2D_AT(*dst, i, 0);
+
+        for (k = 0; k < a->cols; k++) {
+            aml_real aik = *(a_row++);
+            aml_real *AML_RESTRICT b_row = &AML_MAT2D_AT(*b, k, 0);
+
+            for (j = 0; j < dst->cols; j++) {
+                dst_row[j] += aik * *(b_row++);
+            }
+        }
+    }
+    #endif
 
 }
 

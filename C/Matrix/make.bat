@@ -320,7 +320,7 @@ set "EXE=%NAME%.exe"
 if not exist "%BUILDDIR%\%EXE%" (
   endlocal
   set "FAIL_RC=1"
-  set "FAIL_MSG=run: "%BUILDDIR%\%EXE%" not found. Build it first."
+  set "FAIL_MSG=run: ""%BUILDDIR%\%EXE%"" not found. Build it first."
   exit /b 1
 )
 
@@ -330,38 +330,61 @@ echo.
 pushd "%BUILDDIR%" || (
   endlocal
   set "FAIL_RC=1"
-  set "FAIL_MSG=run: failed to change directory to "%BUILDDIR%"."
+  set "FAIL_MSG=run: failed to change directory to ""%BUILDDIR%""."
   exit /b 1
 )
 
-if "%TIMEIT%"=="1" (
-  for /f %%I in ('
-    powershell -NoProfile -Command ^
-      "[DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()"
-  ') do set "TSTART_MS=%%I"
-)
-
 set "RC=0"
+set "RUN_TIMES_CSV="
+
 for /L %%N in (1,1,%REPEAT%) do (
-  if "%REPEAT%" NEQ "1" echo [INFO] iteration %%N of %REPEAT%
+  if "%REPEAT%" NEQ "1" echo [INFO] Run No. %%N of %REPEAT%
+
+  if "%TIMEIT%"=="1" (
+    for /f %%I in ('
+      powershell -NoProfile -Command ^
+        "[DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()"
+    ') do set "TSTART_MS=%%I"
+  )
+
   call :invoke_exe "%EXE%"
   set "RC=!errorlevel!"
+
+  if "%TIMEIT%"=="1" (
+    for /f %%I in ('
+      powershell -NoProfile -Command ^
+        "[DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds() - !TSTART_MS!"
+    ') do set "RUN_ELAPSED_MS=%%I"
+
+  powershell -NoProfile -Command ^
+    "$ms = [double]$env:RUN_ELAPSED_MS; " ^
+    "Write-Host ('[TIME] Run %%N: {0:N3} ms ({1:N6} s)' -f $ms, ($ms / 1000.0))"
+
+    if defined RUN_TIMES_CSV (
+      set "RUN_TIMES_CSV=!RUN_TIMES_CSV!,!RUN_ELAPSED_MS!"
+    ) else (
+      set "RUN_TIMES_CSV=!RUN_ELAPSED_MS!"
+    )
+  )
+
   if not "!RC!"=="0" goto run_done
 )
 
 :run_done
 popd
 
-if "%TIMEIT%"=="1" (
-  for /f %%I in ('
-    powershell -NoProfile -Command ^
-      "[DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()"
-  ') do set "TEND_MS=%%I"
-
+if "%TIMEIT%"=="1" if defined RUN_TIMES_CSV (
   powershell -NoProfile -Command ^
-    "$elapsed = [double](!TEND_MS! - !TSTART_MS!); " ^
+    "$times = @($env:RUN_TIMES_CSV -split ',' | " ^
+    "  Where-Object { $_ -ne '' } | " ^
+    "  ForEach-Object { [double]$_ }); " ^
+    "$avg = ($times | Measure-Object -Average).Average; " ^
+    "$min = ($times | Measure-Object -Minimum).Minimum; " ^
+    "$max = ($times | Measure-Object -Maximum).Maximum; " ^
     "Write-Host ''; " ^
-    "Write-Host ('[TIME] {0:N3} ms ({1:N6} s)' -f $elapsed, ($elapsed / 1000.0))"
+    "Write-Host ('[TIME] Average: {0:N3} ms ({1:N6} s)' -f $avg, ($avg / 1000.0)); " ^
+    "Write-Host ('[TIME] Min:     {0:N3} ms ({1:N6} s)' -f $min, ($min / 1000.0)); " ^
+    "Write-Host ('[TIME] Max:     {0:N3} ms ({1:N6} s)' -f $max, ($max / 1000.0))"
 )
 
 if not "%RC%"=="0" (
