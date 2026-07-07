@@ -331,6 +331,8 @@ struct Apl_Window_State {
 #define apl_min(a, b) ((a) < (b) ? (a) : (b))
 #define apl_max(a, b) ((a) > (b) ? (a) : (b))
 
+#define APL_BUFFER_AT(m, i, j) (m).elements[(APL_ASSERT((i) < (m).rows && (j) < (m).cols), (i) * (m).stride_r + (j))]
+
 #define APL_INIT_WINDOW_WIDTH 800
 #define APL_INIT_WINDOW_HEIGHT 600
 #define APL_WANTED_FPS 100
