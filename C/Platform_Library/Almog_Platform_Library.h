@@ -188,7 +188,14 @@ enum Apl_Return_Types {
     APL_FAIL,
 };
 
-typedef float apl_real;
+#ifndef apl_real
+    #if defined(APL_SINGLE_PRECISION)
+        typedef float apl_real_type;
+    #else 
+        typedef double apl_real_type;
+    #endif
+    #define apl_real apl_real_type
+#endif
 
 /**
  * @brief 2D pixel buffer used as the software-render target.
@@ -330,6 +337,8 @@ struct Apl_Window_State {
 
 #define apl_min(a, b) ((a) < (b) ? (a) : (b))
 #define apl_max(a, b) ((a) > (b) ? (a) : (b))
+
+#define APL_BUFFER_AT(m, i, j) (m).elements[(APL_ASSERT((i) < (m).rows && (j) < (m).cols), (i) * (m).stride_r + (j))]
 
 #define APL_INIT_WINDOW_WIDTH 800
 #define APL_INIT_WINDOW_HEIGHT 600
