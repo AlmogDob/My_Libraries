@@ -9,61 +9,30 @@
 #define ALMOG_PLATFORM_LIBRARY_IMPLEMENTATION
 #include "includes/Almog_Platform_Library.h"
 
+#define adl_real apl_real
 #define ALMOG_DRAW_LIBRARY_IMPLEMENTATION
 #include "includes/Almog_Draw_Library.h"
 
-void apl_depth_buffer_to_adl_depth_buffer(struct Adl_Depth_Buffer adl_b, struct Apl_Depth_Buffer apl_b)
+struct Adl_Pixel_Buffer apl_pixel_buffer_as_adl_pixel_buffer(struct Apl_Pixel_Buffer apl_b) 
 {
-    ADL_ASSERT(adl_b.rows == apl_b.rows);
-    ADL_ASSERT(adl_b.cols == apl_b.cols);
-    ADL_ASSERT(adl_b.stride_r == apl_b.stride_r);
+    ADL_ASSERT(sizeof(adl_real) == sizeof(apl_real));
 
-    for (size_t i = 0; i < apl_b.rows; i++) {
-        for (size_t j = 0; j < apl_b.cols; j++) {
-            ADL_BUFFER_AT(adl_b, i, j) = APL_BUFFER_AT(apl_b, i, j);
-        }
-    }
+    struct Adl_Pixel_Buffer adl_b = {
+        .cols = apl_b.cols,
+        .rows = apl_b.rows,
+        .stride_r = apl_b.stride_r,
+        .elements = apl_b.elements,
+    };
+
+    return adl_b;
 }
 
-void adl_depth_buffer_to_apl_depth_buffer(struct Apl_Depth_Buffer apl_b, struct Adl_Depth_Buffer adl_b)
-{
-    APL_ASSERT(adl_b.rows == apl_b.rows);
-    APL_ASSERT(adl_b.cols == apl_b.cols);
-    APL_ASSERT(adl_b.stride_r == apl_b.stride_r);
-
-    for (size_t i = 0; i < adl_b.rows; i++) {
-        for (size_t j = 0; j < adl_b.cols; j++) {
-            APL_BUFFER_AT(apl_b, i, j) = ADL_BUFFER_AT(adl_b, i, j);
-        }
-    }
-}
+struct Adl_Offset_Zoom offzoom = {0};
 
 enum Apl_Return_Types apl_setup(struct Apl_Window_State *ws)
 {
     ws->to_limit_fps = false;
-    APL_UNUSED(ws);
-
-    return APL_SUCCESS;
-}
-
-enum Apl_Return_Types apl_input(struct Apl_Window_State *ws)
-{
-    if (ws->buttons.w_is_pressed) {
-        printf("w");
-    }
-    if (ws->buttons.a_is_pressed) {
-        printf("a");
-    }
-    if (ws->buttons.s_is_pressed) {
-        printf("s");
-    }
-    if (ws->buttons.d_is_pressed) {
-        printf("d");
-    }
-    if (ws->buttons.space_bar_is_pressed) {
-        printf("\n");
-    }
-    APL_UNUSED(ws);
+    offzoom = ADL_DEFAULT_OFFSET_ZOOM;
 
     return APL_SUCCESS;
 }
@@ -77,10 +46,40 @@ enum Apl_Return_Types apl_update(struct Apl_Window_State *ws)
 
 enum Apl_Return_Types apl_render(struct Apl_Window_State *ws)
 {
-    Mat2D_uint32 pixel_mat2D = apl_pixel_buffer_mat2d_u32(ws->window_pixels_mat);
-    adl_circle_fill(pixel_mat2D, 100, 100, 100, APL_COLOR_WHITE_hexARGB, ADL_DEFAULT_OFFSET_ZOOM);
-    adl_circle_fill(pixel_mat2D, 300, 500, 100, APL_COLOR_WHITE_hexARGB, ADL_DEFAULT_OFFSET_ZOOM);
+    struct Adl_Pixel_Buffer pixels = apl_pixel_buffer_as_adl_pixel_buffer(ws->window_pixels_mat);
 
+    adl_circle_fill(pixels, 200, 200, 500, ADL_COLOR_BLUE_hexARGB, offzoom);
+    adl_circle_draw(pixels, 200, 200, 500, ADL_COLOR_WHITE_hexARGB, offzoom);
+
+    if (ws->elapsed_time_micro_sec > 1) ws->to_render = false;
+
+    return APL_SUCCESS;
+}
+
+enum Apl_Return_Types apl_input(struct Apl_Window_State *ws)
+{
+    if (ws->buttons.e_is_pressed) {
+        offzoom.zoom_multiplier *= 1.1f;
+        ws->to_render = true;
+    } else if (ws->buttons.q_is_pressed) {
+        offzoom.zoom_multiplier /= 1.1f;
+        ws->to_render = true;
+    } else if (ws->buttons.r_is_pressed) {
+        offzoom = ADL_DEFAULT_OFFSET_ZOOM;
+        ws->to_render = true;
+    } else if (ws->buttons.d_is_pressed) {
+        offzoom.offset_x -= 1 / offzoom.zoom_multiplier * ws->window_pixels_mat.cols / 100;
+        ws->to_render = true;
+    } else if (ws->buttons.a_is_pressed) {
+        offzoom.offset_x += 1 / offzoom.zoom_multiplier * ws->window_pixels_mat.cols / 100;
+        ws->to_render = true;
+    } else if (ws->buttons.s_is_pressed) {
+        offzoom.offset_y -= 1 / offzoom.zoom_multiplier * ws->window_pixels_mat.rows / 100;
+        ws->to_render = true;
+    } else if (ws->buttons.w_is_pressed) {
+        offzoom.offset_y += 1 / offzoom.zoom_multiplier * ws->window_pixels_mat.rows / 100;
+        ws->to_render = true;
+    }
     APL_UNUSED(ws);
 
     return APL_SUCCESS;

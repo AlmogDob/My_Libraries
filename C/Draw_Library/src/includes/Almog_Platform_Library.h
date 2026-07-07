@@ -188,7 +188,14 @@ enum Apl_Return_Types {
     APL_FAIL,
 };
 
-typedef float apl_real;
+#ifndef apl_real
+    #if defined(APL_SINGLE_PRECISION)
+        typedef float apl_real_type;
+    #else 
+        typedef double apl_real_type;
+    #endif
+    #define apl_real apl_real_type
+#endif
 
 /**
  * @brief 2D pixel buffer used as the software-render target.
