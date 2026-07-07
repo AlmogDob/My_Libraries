@@ -32,7 +32,10 @@ set "NOCLEAN=0"
 set "BUILDONLY=0"
 set "CLEANONLY=0"
 set "RELEASE=0"
+set "HELP=0"
+set "REPEAT=1"
 set "FILES="
+set "INPUT_ARG="
 
 :parse
 if "%~1"=="" goto doneparse
@@ -45,6 +48,74 @@ if /i "%~1"=="--clean-only" (set "CLEANONLY=1" & shift & goto parse)
 if /i "%~1"=="-c"           (set "CLEANONLY=1" & shift & goto parse)
 if /i "%~1"=="--release"    (set "RELEASE=1"   & shift & goto parse)
 if /i "%~1"=="-r"           (set "RELEASE=1"   & shift & goto parse)
+if /i "%~1"=="--time"       (set "TIMEIT=1"    & shift & goto parse)
+if /i "%~1"=="-t"           (set "TIMEIT=1"    & shift & goto parse)
+if /i "%~1"=="--help"       (set "HELP=1"      & shift & goto parse)
+if /i "%~1"=="-h"           (set "HELP=1"      & shift & goto parse)
+if /i "%~1"=="--repeat" (
+  if "%~2"=="" (
+    set "FAIL_RC=1"
+    set "FAIL_MSG=--repeat requires a numeric argument."
+    goto fail
+  )
+  echo(%~2| findstr /r "^[0-9][0-9]*$" >nul || (
+    set "FAIL_RC=1"
+    set "FAIL_MSG=--repeat requires a positive integer."
+    goto fail
+  )
+  if "%~2"=="0" (
+    set "FAIL_RC=1"
+    set "FAIL_MSG=--repeat must be greater than 0."
+    goto fail
+  )
+  set "REPEAT=%~2"
+  shift
+  shift
+  goto parse
+)
+if /i "%~1"=="-rp" (
+  if "%~2"=="" (
+    set "FAIL_RC=1"
+    set "FAIL_MSG=-rp requires a numeric argument."
+    goto fail
+  )
+  echo(%~2| findstr /r "^[0-9][0-9]*$" >nul || (
+    set "FAIL_RC=1"
+    set "FAIL_MSG=-rp requires a positive integer."
+    goto fail
+  )
+  if "%~2"=="0" (
+    set "FAIL_RC=1"
+    set "FAIL_MSG=-rp must be greater than 0."
+    goto fail
+  )
+  set "REPEAT=%~2"
+  shift
+  shift
+  goto parse
+)
+if /i "%~1"=="--input" (
+  if "%~2"=="" (
+    set "FAIL_RC=1"
+    set "FAIL_MSG=--input requires an argument."
+    goto fail
+  )
+  set "INPUT_ARG=%~2"
+  shift
+  shift
+  goto parse
+)
+if /i "%~1"=="-i" (
+  if "%~2"=="" (
+    set "FAIL_RC=1"
+    set "FAIL_MSG=-i requires an argument."
+    goto fail
+  )
+  set "INPUT_ARG=%~2"
+  shift
+  shift
+  goto parse
+)
 
 REM Otherwise treat as file
 set "FILES=!FILES! "%~1""
@@ -53,13 +124,12 @@ goto parse
 
 :doneparse
 
-
 REM ============================================================
 REM Select build mode flags
 REM ============================================================
 if "%RELEASE%"=="1" (
-  set "CCHECK=/O2 /GL /Gy /MT /DNDEBUG"
-  set "CLINKS=/link /LTCG /OPT:REF /OPT:ICF"
+  set "CCHECK=/O2 /GL /Gy /MT /DNDEBUG /Zi"
+  set "CLINKS=/link /LTCG /OPT:REF /OPT:ICF /DEBUG"
 ) else (
   REM /RTC1 only works with /Od (debug-ish); using /MDd for debug CRT
   set "CCHECK=/FC /Zi /Od /MDd /DDEBUG /RTC1"
@@ -71,9 +141,12 @@ if "%RELEASE%"=="1" (
   @REM set "CCHECK=%CCHECK% /fsanitize=address"
 )
 
+if "%HELP%"=="1" goto usage
+
 if not defined FILES (
+  goto usage
   set "FAIL_RC=1"
-  set "FAIL_MSG=Usage: %~nx0 <file1.c> [file2.c ...] [--no-clean|-nc] [--build-only|-b] [--clean-only|-c] [--release|-r]"
+  set "FAIL_MSG=Usage: %~nx0 <file1.c> [file2.c ...] [--input^|-i ""program args""] [--no-clean^|-nc] [--build-only^|-b] [--clean-only^|-c] [--release^|-r]"
   goto fail
 )
 
@@ -232,7 +305,7 @@ endlocal & exit /b 0
 
 
 :run
-setlocal EnableExtensions
+setlocal EnableExtensions EnableDelayedExpansion
 
 if "%~1"=="" (
   endlocal
@@ -242,20 +315,77 @@ if "%~1"=="" (
 )
 
 set "NAME=%~n1"
-set "EXE=%BUILDDIR%\%NAME%.exe"
+set "EXE=%NAME%.exe"
 
-if not exist "%EXE%" (
+if not exist "%BUILDDIR%\%EXE%" (
   endlocal
   set "FAIL_RC=1"
-  set "FAIL_MSG=run: "%EXE%" not found. Build it first."
+  set "FAIL_MSG=run: ""%BUILDDIR%\%EXE%"" not found. Build it first."
   exit /b 1
 )
 
 echo [INFO] running "%EXE%"
 echo.
 
-"%EXE%"
-set "RC=%errorlevel%"
+pushd "%BUILDDIR%" || (
+  endlocal
+  set "FAIL_RC=1"
+  set "FAIL_MSG=run: failed to change directory to ""%BUILDDIR%""."
+  exit /b 1
+)
+
+set "RC=0"
+set "RUN_TIMES_CSV="
+
+for /L %%N in (1,1,%REPEAT%) do (
+  if "%REPEAT%" NEQ "1" echo [INFO] Run No. %%N of %REPEAT%
+
+  if "%TIMEIT%"=="1" (
+    for /f %%I in ('
+      powershell -NoProfile -Command ^
+        "[DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()"
+    ') do set "TSTART_MS=%%I"
+  )
+
+  call :invoke_exe "%EXE%"
+  set "RC=!errorlevel!"
+
+  if "%TIMEIT%"=="1" (
+    for /f %%I in ('
+      powershell -NoProfile -Command ^
+        "[DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds() - !TSTART_MS!"
+    ') do set "RUN_ELAPSED_MS=%%I"
+
+  powershell -NoProfile -Command ^
+    "$ms = [double]$env:RUN_ELAPSED_MS; " ^
+    "Write-Host ('[TIME] Run %%N: {0:N3} ms ({1:N6} s)' -f $ms, ($ms / 1000.0))"
+
+    if defined RUN_TIMES_CSV (
+      set "RUN_TIMES_CSV=!RUN_TIMES_CSV!,!RUN_ELAPSED_MS!"
+    ) else (
+      set "RUN_TIMES_CSV=!RUN_ELAPSED_MS!"
+    )
+  )
+
+  if not "!RC!"=="0" goto run_done
+)
+
+:run_done
+popd
+
+if "%TIMEIT%"=="1" if defined RUN_TIMES_CSV (
+  powershell -NoProfile -Command ^
+    "$times = @($env:RUN_TIMES_CSV -split ',' | " ^
+    "  Where-Object { $_ -ne '' } | " ^
+    "  ForEach-Object { [double]$_ }); " ^
+    "$avg = ($times | Measure-Object -Average).Average; " ^
+    "$min = ($times | Measure-Object -Minimum).Minimum; " ^
+    "$max = ($times | Measure-Object -Maximum).Maximum; " ^
+    "Write-Host ''; " ^
+    "Write-Host ('[TIME] Average: {0:N3} ms ({1:N6} s)' -f $avg, ($avg / 1000.0)); " ^
+    "Write-Host ('[TIME] Min:     {0:N3} ms ({1:N6} s)' -f $min, ($min / 1000.0)); " ^
+    "Write-Host ('[TIME] Max:     {0:N3} ms ({1:N6} s)' -f $max, ($max / 1000.0))"
+)
 
 if not "%RC%"=="0" (
   endlocal
@@ -267,6 +397,14 @@ if not "%RC%"=="0" (
 echo.
 endlocal & exit /b 0
 
+:invoke_exe
+if not defined INPUT_ARG goto invoke_no_arg
+"%~1" "%INPUT_ARG%"
+exit /b %errorlevel%
+
+:invoke_no_arg
+"%~1"
+exit /b %errorlevel%
 
 :clean
 setlocal EnableExtensions
@@ -298,3 +436,17 @@ if not defined FAIL_MSG set "FAIL_MSG=Unknown error."
 1>&2 echo.
 1>&2 echo [ERROR] %FAIL_MSG%
 exit /b %FAIL_RC%
+
+:usage
+echo Usage: %~nx0 ^<file1.c^> [file2.c ...] [options]
+echo.
+echo Options:
+echo   --help, -h           Show this help message
+echo   --input, -i "args"   Pass a single argument string to the program
+echo   --repeat, -rp N      Run the program N times ^(N must be a positive integer^)
+echo   --no-clean, -nc      Do not remove build artifacts after running
+echo   --build-only, -b     Build only, do not run
+echo   --clean-only, -c     Remove build artifacts only
+echo   --release, -r        Build in release mode
+echo   --time, -t           Time the program run
+exit /b 1
