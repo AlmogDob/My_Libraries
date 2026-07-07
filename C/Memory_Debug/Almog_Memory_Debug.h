@@ -270,6 +270,10 @@ AMD_DEF void amd_debug_mem_add(void *p, size_t size, char *file, size_t line)
     for (i = 0; i < AMD_MEM_OVER_ALLOC; i++) {
         ((uint8_t *)p)[size + i] = AMD_MEM_MAGIC_NUMBER;
     }
+    if (mem_alloc_lines_count >= AMD_MEM_ALLOC_LINES_MAX_NUM) {
+        amd_dprintERROR("MEM DEBUGGER ERROR: too many allocation sites, max is %d.", AMD_MEM_ALLOC_LINES_MAX_NUM);
+        AMD_EXIT(1);
+    }
     for (i = 0; i < mem_alloc_lines_count; i++) {
         if (line == mem_alloc_lines[i].line) {
             if (amd_strncmp(file, mem_alloc_lines[i].file, AMD_MAX_LEN)) {
@@ -297,6 +301,7 @@ AMD_DEF void amd_debug_mem_add(void *p, size_t size, char *file, size_t line)
             amd_strncpy(mem_alloc_lines[i].file, file, AMD_MAX_LEN);
             mem_alloc_lines[i].size = 0;
             mem_alloc_lines[i].allocations_over_all = 0;
+            mem_alloc_lines[i].bytes_allocated_over_all = 0;
             mem_alloc_lines[i].freed = 0;
 
             amd_ada_appand(struct Amd_Mem_Alloc_Buf, mem_alloc_lines[i], mem_alloc_buf);
@@ -351,7 +356,7 @@ AMD_DEF void amd_debug_mem_print(size_t min_allocs)
     amd_dprintINFO("%s", "Memory report:");
     printf("\33[A");
     for (size_t i = 0; i < mem_alloc_lines_count; i++) {
-        if (min_allocs < mem_alloc_lines[i].allocations_over_all) {
+        if (min_allocs <= mem_alloc_lines[i].allocations_over_all) {
             printf("%*.s%s:%zu\n", 7, "", mem_alloc_lines[i].file, mem_alloc_lines[i].line);
             printf("%*.s - Allocations: %zu\n", 7, "", mem_alloc_lines[i].allocations_over_all);
             printf("%*.s - Frees: %zu\n", 7, "", mem_alloc_lines[i].freed);
@@ -442,6 +447,15 @@ AMD_DEF void amd_debug_mem_reset(void)
 {
     for (size_t i = 0; i < mem_alloc_lines_count; i++) {
         AMD_FREE(mem_alloc_lines[i].elements);
+        mem_alloc_lines[i].elements = NULL;
+        mem_alloc_lines[i].capacity = 0;
+        mem_alloc_lines[i].length = 0;
+        mem_alloc_lines[i].line = 0;
+        mem_alloc_lines[i].file[0] = '\0';
+        mem_alloc_lines[i].size = 0;
+        mem_alloc_lines[i].allocations_over_all = 0;
+        mem_alloc_lines[i].bytes_allocated_over_all = 0;
+        mem_alloc_lines[i].freed = 0;
     }
     mem_alloc_lines_count = 0;
 }
