@@ -1075,7 +1075,7 @@ APL_DEF enum Apl_Return_Types apl_window_update(struct Apl_Window_State *ws)
 
     snprintf(temp_buf, APL_WINDOW_NAME_LEN, "%s | %s", ws->window_name, fps_count);
     // if (!(ws->elapsed_time_micro_sec % 20)) {
-        SetWindowTextA(ws->platform.window_handle, temp_buf);
+        if (ws->to_render) SetWindowTextA(ws->platform.window_handle, temp_buf);
     // }
 
     /*------------------------------------------------------------*/
