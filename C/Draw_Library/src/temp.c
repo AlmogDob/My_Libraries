@@ -49,23 +49,11 @@ enum Apl_Return_Types apl_render(struct Apl_Window_State *ws)
 {
     struct Adl_Pixel_Buffer pixels = apl_pixel_buffer_as_adl_pixel_buffer(ws->window_pixels_mat);
 
-    struct Adl_Points_Dynamic_Array points = {0};
-    ada_init_array(struct Adl_Point, points);
 
-    struct Adl_Point point = {0};
+    adl_rectangle_draw_min_max(pixels, 120, 150, 400, 459, ADL_COLOR_CYAN_hexARGB, offzoom);
+    if (ws->buttons.space_bar_is_pressed) adl_rectangle_fill_min_max(pixels, 120, 150, 400, 459, ADL_COLOR_WHITE_hexARGB, offzoom);
 
-    point.x = 50; point.y = 50;
-    ada_appand(struct Adl_Point, points, point);
-    point.x = 200; point.y = 100;
-    ada_appand(struct Adl_Point, points, point);
-    point.x = 200; point.y = 200;
-    ada_appand(struct Adl_Point, points, point);
-    point.x = 100; point.y = 200;
-    ada_appand(struct Adl_Point, points, point);
 
-    adl_arrows_draw_loop(pixels, points.elements, points.length, 0.2, 30, ADL_COLOR_WHITE_hexARGB, offzoom);
-
-    // if (ws->elapsed_time_micro_sec > 1) ws->to_render = false;
 
     return APL_SUCCESS;
 }

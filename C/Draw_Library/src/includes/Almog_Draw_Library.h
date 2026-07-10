@@ -26,8 +26,11 @@
     #define adl_floor floorf
     #define adl_ceil  ceilf
     #define adl_sqrt  sqrtf
+    #define adl_cbrt  cbrtf
     #define adl_cos   cosf
     #define adl_sin   sinf
+    #define adl_atan2 atan2f
+    #define adl_fmod  fmodf
 #else 
     typedef double adl_real_type;
     #define ADL_EPS   1e-10
@@ -35,8 +38,11 @@
     #define adl_floor floor
     #define adl_ceil  ceil
     #define adl_sqrt  sqrt
+    #define adl_cbrt  cbrt
     #define adl_cos   cos
     #define adl_sin   sin
+    #define adl_atan2 atan2
+    #define adl_fmod  fmod
 #endif
 #define adl_real adl_real_type
 
@@ -183,10 +189,17 @@ ADL_DEF void                adl_circle_fill(struct Adl_Pixel_Buffer screen, adl_
 
 ADL_DEF void                adl_hexargb_to_rgba(uint32_t color, uint8_t *r, uint8_t *g, uint8_t *b, uint8_t *a);
 
+ADL_DEF uint32_t            adl_interpolate_ARGBcolor_on_okLch(uint32_t color1, uint32_t color2, adl_real t, adl_real num_of_rotations);
+
 ADL_DEF void                adl_line_draw(struct Adl_Pixel_Buffer screen, adl_real x1_input, adl_real y1_input, adl_real x2_input, adl_real y2_input, uint32_t color, struct Adl_Offset_Zoom offzoom);
 ADL_DEF void                adl_line_draw_no_antialiasing(struct Adl_Pixel_Buffer screen, adl_real x1_input, adl_real y1_input, adl_real x2_input, adl_real y2_input, uint32_t color, struct Adl_Offset_Zoom offzoom);
 ADL_DEF void                adl_lines_draw(struct Adl_Pixel_Buffer screen, struct Adl_Point *points, size_t count, uint32_t color, struct Adl_Offset_Zoom offzoom);
 ADL_DEF void                adl_lines_draw_loop(struct Adl_Pixel_Buffer screen, struct Adl_Point *points, size_t count, uint32_t color, struct Adl_Offset_Zoom offzoom);
+ADL_DEF void                adl_linear_sRGB_to_okLab(uint32_t hex_ARGB, adl_real *L, adl_real *a, adl_real *b);
+ADL_DEF void                adl_linear_sRGB_to_okLch(uint32_t hex_ARGB, adl_real *L, adl_real *c, adl_real *h_deg);
+
+ADL_DEF uint32_t            adl_okLab_to_linear_sRGB(adl_real L, adl_real a, adl_real b);
+ADL_DEF uint32_t            adl_okLch_to_linear_sRGB(adl_real L, adl_real c, adl_real h_deg);
 
 ADL_DEF struct Adl_Point    adl_point_add_point(struct Adl_Point p1, struct Adl_Point p2);
 ADL_DEF void                adl_point_draw(struct Adl_Pixel_Buffer screen, adl_real x, adl_real y, uint32_t color, struct Adl_Offset_Zoom offzoom);
@@ -199,6 +212,8 @@ ADL_DEF void                adl_point_print_imp(struct Adl_Point point, char *na
 ADL_DEF struct Adl_Point    adl_point_rotate_around_point_XY(struct Adl_Point p, struct Adl_Point center, adl_real angle_deg);
 ADL_DEF struct Adl_Point    adl_point_sub_point(struct Adl_Point p1, struct Adl_Point p2);
 
+ADL_DEF void                adl_rectangle_draw_min_max(struct Adl_Pixel_Buffer screen, adl_real min_x, adl_real max_x, adl_real min_y, adl_real max_y, uint32_t color, struct Adl_Offset_Zoom offzoom);
+ADL_DEF void                adl_rectangle_fill_min_max(struct Adl_Pixel_Buffer screen, adl_real min_x, adl_real max_x, adl_real min_y, adl_real max_y, uint32_t color, struct Adl_Offset_Zoom offzoom);
 ADL_DEF uint32_t            adl_rgba_to_hexargb(int r, int g, int b, int a);
 
 ADL_DEF uint8_t             adl_u8_clamp_int(int x);
@@ -293,6 +308,35 @@ ADL_DEF void adl_hexargb_to_rgba(uint32_t color, uint8_t *r, uint8_t *g, uint8_t
     if (r) *r = (uint8_t)((color >> 16) & 0xFF);
     if (g) *g = (uint8_t)((color >> 8) & 0xFF);
     if (b) *b = (uint8_t)((color >> 0) & 0xFF);
+}
+
+/**
+ * @brief Interpolate between two ARGB colors in OkLch space.
+ *
+ * Lightness and chroma are interpolated linearly. Hue is interpolated in
+ * degrees after adding 360*num_of_rotations to the second hue, allowing
+ * control over the winding direction.
+ *
+ * @param color1 Start color (0xAARRGGBB).
+ * @param color2 End color (0xAARRGGBB).
+ * @param t Interpolation factor in [0,1].
+ * @param num_of_rotations Number of hue turns to add to color2 (can be
+ *        fractional/negative).
+ * @param color_out [out] Interpolated ARGB color (A=255).
+ */
+ADL_DEF uint32_t adl_interpolate_ARGBcolor_on_okLch(uint32_t color1, uint32_t color2, adl_real t, adl_real num_of_rotations)
+{
+    adl_real L_1, c_1, h_1;
+    adl_real L_2, c_2, h_2;
+    adl_linear_sRGB_to_okLch(color1, &L_1, &c_1, &h_1);
+    adl_linear_sRGB_to_okLch(color2, &L_2, &c_2, &h_2);
+    h_2 = h_2 + 360 * num_of_rotations;
+
+    adl_real L, c, h;
+    L = L_1 * (1 - t) + L_2 * (t);
+    c = c_1 * (1 - t) + c_2 * (t);
+    h = h_1 * (1 - t) + h_2 * (t);
+    return adl_okLch_to_linear_sRGB(L, c, h);
 }
 
 ADL_DEF void adl_line_draw(struct Adl_Pixel_Buffer screen, adl_real x1_input, adl_real y1_input, adl_real x2_input, adl_real y2_input, uint32_t color, struct Adl_Offset_Zoom offzoom)
@@ -461,6 +505,111 @@ ADL_DEF void adl_lines_draw_loop(struct Adl_Pixel_Buffer screen, struct Adl_Poin
     }
 }
 
+/**
+ * @brief Convert a linear sRGB color (ARGB) to Oklab components.
+ *
+ * Oklab components are returned in ranges: L in [0,1], a in [-0.5,0.5],
+ * b in [-0.5,0.5] (typical). Input is assumed to be linear sRGB.
+ *
+ * @param hex_ARGB Input color (0xAARRGGBB). Alpha is ignored.
+ * @param L [out] Perceptual lightness.
+ * @param a [out] First opponent axis.
+ * @param b [out] Second opponent axis.
+ */
+ADL_DEF void adl_linear_sRGB_to_okLab(uint32_t hex_ARGB, adl_real *L, adl_real *a, adl_real *b)
+{
+    /* https://bottosson.github.io/posts/oklab/
+       https://en.wikipedia.org/wiki/Oklab_color_space */
+    uint8_t R_255, G_255, B_255;
+    adl_hexargb_to_rgba(hex_ARGB, &R_255, &G_255, &B_255, NULL);
+
+    adl_real R = (float)R_255;
+    adl_real G = (float)G_255;
+    adl_real B = (float)B_255;
+
+    adl_real l = 0.4122214705f * R + 0.5363325363f * G + 0.0514459929f * B;
+    adl_real m = 0.2119034982f * R + 0.6806995451f * G + 0.1073969566f * B;
+    adl_real s = 0.0883024619f * R + 0.2817188376f * G + 0.6299787005f * B;
+
+    adl_real l_ = adl_cbrt(l);
+    adl_real m_ = adl_cbrt(m);
+    adl_real s_ = adl_cbrt(s);
+
+    *L = 0.2104542553f * l_ + 0.7936177850f * m_ - 0.0040720468f * s_;
+    *a = 1.9779984951f * l_ - 2.4285922050f * m_ + 0.4505937099f * s_;
+    *b = 0.0259040371f * l_ + 0.7827717662f * m_ - 0.8086757660f * s_;
+
+}
+
+/**
+ * @brief Convert a linear sRGB color (ARGB) to OkLch components.
+ *
+ * @param hex_ARGB Input color (0xAARRGGBB). Alpha is ignored.
+ * @param L [out] Lightness in [0,1].
+ * @param c [out] Chroma (non-negative).
+ * @param h_deg [out] Hue angle in degrees [-180,180] from atan2.
+ */
+ADL_DEF void adl_linear_sRGB_to_okLch(uint32_t hex_ARGB, adl_real *L, adl_real *c, adl_real *h_deg)
+{
+    adl_real a, b;
+    adl_linear_sRGB_to_okLab(hex_ARGB, L, &a, &b);
+
+    *c = adl_sqrt(a * a + b * b);
+    *h_deg = adl_atan2(b, a) * 180.0f / ADL_PI;
+}
+
+/**
+ * @brief Convert Oklab components to a linear sRGB ARGB color.
+ *
+ * Output RGB components are clamped to [0,255], alpha is set to 255.
+ *
+ * @param L Oklab lightness.
+ * @param a Oklab a component.
+ * @param b Oklab b component.
+ * @return hex_ARGB [out] Output color (0xAARRGGBB, A=255).
+ */
+ADL_DEF uint32_t adl_okLab_to_linear_sRGB(adl_real L, adl_real a, adl_real b)
+{
+    /* https://bottosson.github.io/posts/oklab/
+       https://en.wikipedia.org/wiki/Oklab_color_space */
+
+    adl_real l_ = L + 0.3963377774f * a + 0.2158037573f * b;
+    adl_real m_ = L - 0.1055613458f * a - 0.0638541728f * b;
+    adl_real s_ = L - 0.0894841775f * a - 1.2914855480f * b;
+
+    adl_real l = l_ * l_ * l_;
+    adl_real m = m_ * m_ * m_;
+    adl_real s = s_ * s_ * s_;
+
+    adl_real R = + 4.0767416621f * l - 3.3077115913f * m + 0.2309699292f * s;
+    adl_real G = - 1.2684380046f * l + 2.6097574011f * m - 0.3413193965f * s;
+    adl_real B = - 0.0041960863f * l - 0.7034186147f * m + 1.7076147010f * s;
+
+    R = adl_max(adl_min(R, 255), 0);
+    G = adl_max(adl_min(G, 255), 0);
+    B = adl_max(adl_min(B, 255), 0);
+
+    return adl_rgba_to_hexargb((int)R, (int)G, (int)B, 0xFF);
+}
+
+/**
+ * @brief Convert OkLch components to a linear sRGB ARGB color.
+ *
+ * Hue is wrapped to [0,360). Output RGB is clamped to [0,255], alpha=255.
+ *
+ * @param L Lightness.
+ * @param c Chroma.
+ * @param h_deg Hue angle in degrees.
+ * @param hex_ARGB [out] Output color (0xAARRGGBB, A=255).
+ */
+ADL_DEF uint32_t adl_okLch_to_linear_sRGB(adl_real L, adl_real c, adl_real h_deg)
+{
+    h_deg = adl_fmod((h_deg + 360), 360);
+    adl_real a = c * adl_cos(h_deg * ADL_PI / 180.0f);
+    adl_real b = c * adl_sin(h_deg * ADL_PI / 180.0f);
+    return adl_okLab_to_linear_sRGB(L, a, b);
+}
+
 ADL_DEF struct Adl_Point adl_point_add_point(struct Adl_Point p1, struct Adl_Point p2)
 {
     return (struct Adl_Point){
@@ -570,6 +719,23 @@ ADL_DEF struct Adl_Point adl_point_sub_point(struct Adl_Point p1, struct Adl_Poi
     };
 }
 
+ADL_DEF void adl_rectangle_draw_min_max(struct Adl_Pixel_Buffer screen, adl_real min_x, adl_real max_x, adl_real min_y, adl_real max_y, uint32_t color, struct Adl_Offset_Zoom offzoom)
+{
+    adl_line_draw_no_antialiasing(screen, min_x, min_y, max_x, min_y, color, offzoom);
+    adl_line_draw_no_antialiasing(screen, max_x, min_y, max_x, max_y, color, offzoom);
+    adl_line_draw_no_antialiasing(screen, max_x, max_y, min_x, max_y, color, offzoom);
+    adl_line_draw_no_antialiasing(screen, min_x, max_y, min_x, min_y, color, offzoom);
+}
+
+ADL_DEF void adl_rectangle_fill_min_max(struct Adl_Pixel_Buffer screen, adl_real min_x, adl_real max_x, adl_real min_y, adl_real max_y, uint32_t color, struct Adl_Offset_Zoom offzoom)
+{
+    for (adl_real x = min_x; x <= max_x; x++) {
+        for (adl_real y = min_y; y <= max_y; y++) {
+            adl_point_draw(screen, x, y, color, offzoom);
+        }
+    }
+}
+
 ADL_DEF uint32_t adl_rgba_to_hexargb(int r, int g, int b, int a)
 {
     uint32_t ru = adl_u8_clamp_int(r);
@@ -590,5 +756,6 @@ ADL_DEF uint8_t adl_u8_clamp_int(int x)
     }
     return (uint8_t)x;
 }
+
 
 #endif /*ALMOG_DRAW_LIBRARY_IMPLEMENTATION*/
