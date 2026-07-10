@@ -271,12 +271,12 @@ struct Apl_Window_State {
     bool to_clear_renderer;
     bool to_flip_y;
 
-    float delta_time_sec;
+    apl_real delta_time_sec;
     size_t delta_time_micro_sec;
     size_t elapsed_time_micro_sec;
     size_t previous_frame_time_micro_sec;
-    float fps;
-    float wanted_fps;
+    apl_real fps;
+    apl_real wanted_fps;
 
     struct {
         bool space_bar_is_pressed;
@@ -774,7 +774,7 @@ APL_DEF void apl_fix_framerate(struct Apl_Window_State *ws)
         (size_t)((elapsed_ticks * 1000000ULL) /
                  (ULONGLONG)qpc_freq.QuadPart);
 
-    ws->delta_time_sec = (float)ws->delta_time_micro_sec / 1000000.0f;
+    ws->delta_time_sec = (apl_real)ws->delta_time_micro_sec / 1000000.0f;
 
     ws->previous_frame_time_micro_sec =
         (size_t)(((ULONGLONG)now.QuadPart * 1000000ULL) /

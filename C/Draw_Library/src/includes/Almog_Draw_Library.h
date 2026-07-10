@@ -25,12 +25,18 @@
     #define adl_fabs  fabsf
     #define adl_floor floorf
     #define adl_ceil  ceilf
+    #define adl_sqrt  sqrtf
+    #define adl_cos   cosf
+    #define adl_sin   sinf
 #else 
     typedef double adl_real_type;
     #define ADL_EPS   1e-10
     #define adl_fabs  fabs
     #define adl_floor floor
     #define adl_ceil  ceil
+    #define adl_sqrt  sqrt
+    #define adl_cos   cos
+    #define adl_sin   sin
 #endif
 #define adl_real adl_real_type
 
@@ -43,16 +49,16 @@
 #endif
 
 struct Adl_Offset_Zoom {
-    float zoom_multiplier;
-    float offset_x;
-    float offset_y;
+    adl_real zoom_multiplier;
+    adl_real offset_x;
+    adl_real offset_y;
 };
 
 struct Adl_Point {
-    float x;
-    float y;
-    float z;
-    float w;
+    adl_real x;
+    adl_real y;
+    adl_real z;
+    adl_real w;
 };
 
 struct Adl_Points_Dynamic_Array {
@@ -78,7 +84,7 @@ struct Adl_Tri {
     struct Adl_Point normals[3];
     uint32_t colors[3];
     bool to_draw;
-    float light_intensity[3];
+    adl_real light_intensity[3];
 };
 
 struct Adl_Tris_Dynamic_Array {
@@ -92,7 +98,7 @@ struct Adl_Quad {
     struct Adl_Point normals[4];
     uint32_t colors[4];
     bool to_draw;
-    float light_intensity[4];
+    adl_real light_intensity[4];
 };
 
 struct Adl_Quads_Dynamic_Array {
@@ -115,79 +121,16 @@ struct Adl_Depth_Buffer {
     adl_real *elements;
 };
 
-/**
- * @name Debug-print helpers
- * @brief Convenience macros for diagnostic output.
- *
- * The typed variants print to stdout. The INFO/WARNING/ERROR variants print to
- * stderr and include file, line, and function information.
- */
 #define adl_dprintSTRING(expr) printf("[Info] %s:%d:\n%*s" #expr " = %s\n", __FILE__, __LINE__, 7, "", expr)
-/**
- * @name Debug-print helpers
- * @brief Convenience macros for diagnostic output.
- *
- * The typed variants print to stdout. The INFO/WARNING/ERROR variants print to
- * stderr and include file, line, and function information.
- */
 #define adl_dprintCHAR(expr) printf("[Info] %s:%d:\n%*s" #expr " = %c\n", __FILE__, __LINE__, 7, "", expr)
-/**
- * @name Debug-print helpers
- * @brief Convenience macros for diagnostic output.
- *
- * The typed variants print to stdout. The INFO/WARNING/ERROR variants print to
- * stderr and include file, line, and function information.
- */
 #define adl_dprintINT(expr) printf("[Info] %s:%d:\n%*s" #expr " = %d\n", __FILE__, __LINE__, 7, "", expr)
-/**
- * @name Debug-print helpers
- * @brief Convenience macros for diagnostic output.
- *
- * The typed variants print to stdout. The INFO/WARNING/ERROR variants print to
- * stderr and include file, line, and function information.
- */
 #define adl_dprintFLOAT(expr) printf("[Info] %s:%d:\n%*s" #expr " = %#f\n", __FILE__, __LINE__, 7, "", expr)
-/**
- * @name Debug-print helpers
- * @brief Convenience macros for diagnostic output.
- *
- * The typed variants print to stdout. The INFO/WARNING/ERROR variants print to
- * stderr and include file, line, and function information.
- */
 #define adl_dprintDOUBLE(expr) printf("[Info] %s:%d:\n%*s" #expr " = %#g\n", __FILE__, __LINE__, 7, "", expr)
-/**
- * @name Debug-print helpers
- * @brief Convenience macros for diagnostic output.
- *
- * The typed variants print to stdout. The INFO/WARNING/ERROR variants print to
- * stderr and include file, line, and function information.
- */
 #define adl_dprintSIZE_T(expr) printf("[Info] %s:%d:\n%*s" #expr " = %zu\n", __FILE__, __LINE__, 7, "", expr)
-/**
- * @name Debug-print helpers
- * @brief Convenience macros for diagnostic output.
- *
- * The typed variants print to stdout. The INFO/WARNING/ERROR variants print to
- * stderr and include file, line, and function information.
- */
 #define adl_dprintINFO(fmt, ...) \
     fprintf(stderr, "[Info] %s:%d:\n%*sIn function '%s':\n%*s" fmt "\n", __FILE__, __LINE__, 7, "", __func__, 7, "", __VA_ARGS__)
-/**
- * @name Debug-print helpers
- * @brief Convenience macros for diagnostic output.
- *
- * The typed variants print to stdout. The INFO/WARNING/ERROR variants print to
- * stderr and include file, line, and function information.
- */
 #define adl_dprintWARNING(fmt, ...) \
     fprintf(stderr, "[Warning] %s:%d:\n%*sIn function '%s':\n%*s" fmt "\n", __FILE__, __LINE__, 10, "", __func__, 10, "", __VA_ARGS__)
-/**
- * @name Debug-print helpers
- * @brief Convenience macros for diagnostic output.
- *
- * The typed variants print to stdout. The INFO/WARNING/ERROR variants print to
- * stderr and include file, line, and function information.
- */
 #define adl_dprintERROR(fmt, ...) \
     fprintf(stderr, "[Error] %s:%d:\n%*sIn function '%s':\n%*s" fmt "\n", __FILE__, __LINE__, 8, "", __func__, 8, "", __VA_ARGS__)
 
@@ -199,6 +142,8 @@ struct Adl_Depth_Buffer {
 
 #define ADL_HexARGB_EXPEND_TO_RGBA(x) ((x)>>(8*2)&0xFF), ((x)>>(8*1)&0xFF), ((x)>>(8*0)&0xFF), ((x)>>(8*3)&0xFF)
 #define ADL_HexARGB_EXPEND_TO_RGB(x) ((x)>>(8*2)&0xFF), ((x)>>(8*1)&0xFF), ((x)>>(8*0)&0xFF)
+#define ADL_POINT_EXPEND_TO_XY(p) (p).x, (p).y
+#define ADL_POINT_EXPEND_TO_XYZW(p) (p).x, (p).y, (p).z, (p).w
 
 #define ADL_COLOR_BLACK_hexARGB  0xFF000000
 #define ADL_COLOR_BLUE_hexARGB   0xFF0000FF
@@ -228,21 +173,35 @@ struct Adl_Depth_Buffer {
     #endif
 #endif
 
-ADL_DEF uint32_t    adl_alpha_blend(uint32_t dst, uint32_t src);
+ADL_DEF uint32_t            adl_alpha_blend(uint32_t dst, uint32_t src);
+ADL_DEF void                adl_arrow_draw(struct Adl_Pixel_Buffer screen, adl_real xs, adl_real ys, adl_real xe, adl_real ye, adl_real head_size, adl_real head_angle_deg, uint32_t color, struct Adl_Offset_Zoom offzoom);
+ADL_DEF void                adl_arrows_draw(struct Adl_Pixel_Buffer screen, struct Adl_Point *points, size_t count, adl_real head_size, adl_real head_angle_deg, uint32_t color, struct Adl_Offset_Zoom offzoom);
+ADL_DEF void                adl_arrows_draw_loop(struct Adl_Pixel_Buffer screen, struct Adl_Point *points, size_t count, adl_real head_size, adl_real head_angle_deg, uint32_t color, struct Adl_Offset_Zoom offzoom);
 
-ADL_DEF void        adl_circle_draw(struct Adl_Pixel_Buffer screen, adl_real center_x, adl_real center_y, adl_real r, uint32_t color, struct Adl_Offset_Zoom offzoom);
-ADL_DEF void        adl_circle_fill(struct Adl_Pixel_Buffer screen, adl_real center_x, adl_real center_y, adl_real r, uint32_t color, struct Adl_Offset_Zoom offzoom);
+ADL_DEF void                adl_circle_draw(struct Adl_Pixel_Buffer screen, adl_real center_x, adl_real center_y, adl_real r, uint32_t color, struct Adl_Offset_Zoom offzoom);
+ADL_DEF void                adl_circle_fill(struct Adl_Pixel_Buffer screen, adl_real center_x, adl_real center_y, adl_real r, uint32_t color, struct Adl_Offset_Zoom offzoom);
 
-ADL_DEF void        adl_hexargb_to_rgba(uint32_t color, uint8_t *r, uint8_t *g, uint8_t *b, uint8_t *a);
+ADL_DEF void                adl_hexargb_to_rgba(uint32_t color, uint8_t *r, uint8_t *g, uint8_t *b, uint8_t *a);
 
-ADL_DEF void        adl_line_draw(struct Adl_Pixel_Buffer screen, adl_real x1_input, adl_real y1_input, adl_real x2_input, adl_real y2_input, uint32_t color, struct Adl_Offset_Zoom offzoom);
-ADL_DEF void        adl_line_draw_no_antialiasing(struct Adl_Pixel_Buffer screen, adl_real x1_input, adl_real y1_input, adl_real x2_input, adl_real y2_input, uint32_t color, struct Adl_Offset_Zoom offzoom);
+ADL_DEF void                adl_line_draw(struct Adl_Pixel_Buffer screen, adl_real x1_input, adl_real y1_input, adl_real x2_input, adl_real y2_input, uint32_t color, struct Adl_Offset_Zoom offzoom);
+ADL_DEF void                adl_line_draw_no_antialiasing(struct Adl_Pixel_Buffer screen, adl_real x1_input, adl_real y1_input, adl_real x2_input, adl_real y2_input, uint32_t color, struct Adl_Offset_Zoom offzoom);
+ADL_DEF void                adl_lines_draw(struct Adl_Pixel_Buffer screen, struct Adl_Point *points, size_t count, uint32_t color, struct Adl_Offset_Zoom offzoom);
+ADL_DEF void                adl_lines_draw_loop(struct Adl_Pixel_Buffer screen, struct Adl_Point *points, size_t count, uint32_t color, struct Adl_Offset_Zoom offzoom);
 
-ADL_DEF void        adl_point_draw(struct Adl_Pixel_Buffer screen, adl_real x, adl_real y, uint32_t color, struct Adl_Offset_Zoom offzoom);
+ADL_DEF struct Adl_Point    adl_point_add_point(struct Adl_Point p1, struct Adl_Point p2);
+ADL_DEF void                adl_point_draw(struct Adl_Pixel_Buffer screen, adl_real x, adl_real y, uint32_t color, struct Adl_Offset_Zoom offzoom);
+ADL_DEF struct Adl_Point    adl_point_get_from_xy(adl_real x, adl_real y);
+ADL_DEF adl_real            adl_point_magnitude(struct Adl_Point point);
+ADL_DEF struct Adl_Point    adl_point_mult(struct Adl_Point point, adl_real x);
+ADL_DEF struct Adl_Point    adl_point_normalize(struct Adl_Point point);
+#define                     adl_point_print(point) do {adl_dprintINFO("%s", ""); adl_point_print_imp(point, #point, 7);} while (0)
+ADL_DEF void                adl_point_print_imp(struct Adl_Point point, char *name, size_t padding);
+ADL_DEF struct Adl_Point    adl_point_rotate_around_point_XY(struct Adl_Point p, struct Adl_Point center, adl_real angle_deg);
+ADL_DEF struct Adl_Point    adl_point_sub_point(struct Adl_Point p1, struct Adl_Point p2);
 
-ADL_DEF uint32_t    adl_rgba_to_hexargb(int r, int g, int b, int a);
+ADL_DEF uint32_t            adl_rgba_to_hexargb(int r, int g, int b, int a);
 
-ADL_DEF uint8_t     adl_u8_clamp_int(int x);
+ADL_DEF uint8_t             adl_u8_clamp_int(int x);
 
 #endif /*ALMOG_RENDER_SHAPES_H_*/
 
@@ -264,6 +223,44 @@ ADL_DEF uint32_t adl_alpha_blend(uint32_t dst, uint32_t src)
     int b = (int)((adl_real)db * (1.0f - a) + (adl_real)sb * a);
 
     return adl_rgba_to_hexargb(r, g, b, 255);
+}
+
+ADL_DEF void adl_arrow_draw(struct Adl_Pixel_Buffer screen, adl_real xs, adl_real ys, adl_real xe, adl_real ye, adl_real head_size, adl_real head_angle_deg, uint32_t color, struct Adl_Offset_Zoom offzoom)
+{
+    adl_line_draw(screen, xs, ys, xe, ye, color, offzoom);
+
+    struct Adl_Point start = adl_point_get_from_xy(xs, ys);
+    struct Adl_Point end = adl_point_get_from_xy(xe, ye);
+    struct Adl_Point diff = adl_point_sub_point(end, start);
+    adl_real line_len = adl_point_magnitude(diff);
+    if (ADL_IS_ZERO(line_len)) return;
+    struct Adl_Point rescaled_diff = adl_point_normalize(diff);
+    rescaled_diff = adl_point_mult(rescaled_diff, - head_size * line_len);
+
+    struct Adl_Point head_base = adl_point_add_point(rescaled_diff, end);
+    struct Adl_Point edge1 = adl_point_rotate_around_point_XY(head_base, end, head_angle_deg / 2);
+    struct Adl_Point edge2 = adl_point_rotate_around_point_XY(head_base, end, - head_angle_deg / 2);
+
+    adl_line_draw(screen, xe, ye, ADL_POINT_EXPEND_TO_XY(edge1), color, offzoom);
+    adl_line_draw(screen, xe, ye, ADL_POINT_EXPEND_TO_XY(edge2), color, offzoom);
+}
+
+ADL_DEF void adl_arrows_draw(struct Adl_Pixel_Buffer screen, struct Adl_Point *points, size_t count, adl_real head_size, adl_real head_angle_deg, uint32_t color, struct Adl_Offset_Zoom offzoom)
+{
+    for (size_t i = 0; i < count - 1; i++) {
+        size_t start = i;
+        size_t end   = i + 1;
+        adl_arrow_draw(screen, ADL_POINT_EXPEND_TO_XY(points[start]), ADL_POINT_EXPEND_TO_XY(points[end]), head_size, head_angle_deg, color, offzoom);
+    }
+}
+
+ADL_DEF void adl_arrows_draw_loop(struct Adl_Pixel_Buffer screen, struct Adl_Point *points, size_t count, adl_real head_size, adl_real head_angle_deg, uint32_t color, struct Adl_Offset_Zoom offzoom)
+{
+    for (size_t i = 0; i < count; i++) {
+        size_t start = i % count;
+        size_t end   = (i + 1) % count;
+        adl_arrow_draw(screen, ADL_POINT_EXPEND_TO_XY(points[start]), ADL_POINT_EXPEND_TO_XY(points[end]), head_size, head_angle_deg, color, offzoom);
+    }
 }
 
 ADL_DEF void adl_circle_draw(struct Adl_Pixel_Buffer screen, adl_real center_x, adl_real center_y, adl_real r, uint32_t color, struct Adl_Offset_Zoom offzoom)
@@ -446,6 +443,34 @@ ADL_DEF void adl_line_draw_no_antialiasing(struct Adl_Pixel_Buffer screen, adl_r
     }
 }
 
+ADL_DEF void adl_lines_draw(struct Adl_Pixel_Buffer screen, struct Adl_Point *points, size_t count, uint32_t color, struct Adl_Offset_Zoom offzoom)
+{
+    for (size_t i = 0; i < count - 1; i++) {
+        size_t start = i;
+        size_t end   = i + 1;
+        adl_line_draw(screen, ADL_POINT_EXPEND_TO_XY(points[start]), ADL_POINT_EXPEND_TO_XY(points[end]), color, offzoom);
+    }
+}
+
+ADL_DEF void adl_lines_draw_loop(struct Adl_Pixel_Buffer screen, struct Adl_Point *points, size_t count, uint32_t color, struct Adl_Offset_Zoom offzoom)
+{
+    for (size_t i = 0; i < count; i++) {
+        size_t start = i % count;
+        size_t end   = (i + 1) % count;
+        adl_line_draw(screen, ADL_POINT_EXPEND_TO_XY(points[start]), ADL_POINT_EXPEND_TO_XY(points[end]), color, offzoom);
+    }
+}
+
+ADL_DEF struct Adl_Point adl_point_add_point(struct Adl_Point p1, struct Adl_Point p2)
+{
+    return (struct Adl_Point){
+        .x = p1.x + p2.x,
+        .y = p1.y + p2.y,
+        .z = p1.z + p2.z,
+        .w = p1.w + p2.w,
+    };
+}
+
 ADL_DEF void adl_point_draw(struct Adl_Pixel_Buffer screen, adl_real x, adl_real y, uint32_t color, struct Adl_Offset_Zoom offzoom)
 {
     adl_real window_w = (adl_real)screen.cols;
@@ -482,6 +507,67 @@ ADL_DEF void adl_point_draw(struct Adl_Pixel_Buffer screen, adl_real x, adl_real
             }
         }
     }
+}
+
+ADL_DEF struct Adl_Point adl_point_get_from_xy(adl_real x, adl_real y)
+{
+    return (struct Adl_Point){
+        .x = x,
+        .y = y
+    };
+}
+
+ADL_DEF adl_real adl_point_magnitude(struct Adl_Point point)
+{
+    return adl_sqrt((point.x) * (point.x) + (point.y) * (point.y) + (point.z) * (point.z) + (point.w) * (point.w));
+}
+
+ADL_DEF struct Adl_Point adl_point_mult(struct Adl_Point point, adl_real x)
+{
+    return (struct Adl_Point){
+        .x = point.x * x,
+        .y = point.y * x,
+        .z = point.z * x,
+        .w = point.w * x,
+    };
+}
+
+ADL_DEF struct Adl_Point adl_point_normalize(struct Adl_Point point)
+{
+    adl_real mag = adl_point_magnitude(point);
+    return (struct Adl_Point){
+        .x = point.x / mag,
+        .y = point.y / mag,
+        .z = point.z / mag,
+        .w = point.w / mag,
+    };
+}
+
+ADL_DEF void adl_point_print_imp(struct Adl_Point point, char *name, size_t padding)
+{
+    printf("\33[A\33[2K\r");
+    printf("%*.s%s: {.x = %g, .y = %g, .z = %g, .w = %g}\n", (int)padding, "", name, ADL_POINT_EXPEND_TO_XYZW(point));
+}
+
+ADL_DEF struct Adl_Point adl_point_rotate_around_point_XY(struct Adl_Point p, struct Adl_Point center, adl_real angle_deg)
+{
+    adl_real angle_rad = ADL_PI * angle_deg / 180;
+    struct Adl_Point diff = adl_point_sub_point(p, center);
+    struct Adl_Point rot_diff = {
+        .x = diff.x * adl_cos(angle_rad) - diff.y * adl_sin(angle_rad), 
+        .y = diff.x * adl_sin(angle_rad) + diff.y * adl_cos(angle_rad), 
+    };
+    return adl_point_add_point(center, rot_diff);
+}
+
+ADL_DEF struct Adl_Point adl_point_sub_point(struct Adl_Point p1, struct Adl_Point p2)
+{
+    return (struct Adl_Point){
+        .x = p1.x - p2.x,
+        .y = p1.y - p2.y,
+        .z = p1.z - p2.z,
+        .w = p1.w - p2.w,
+    };
 }
 
 ADL_DEF uint32_t adl_rgba_to_hexargb(int r, int g, int b, int a)
