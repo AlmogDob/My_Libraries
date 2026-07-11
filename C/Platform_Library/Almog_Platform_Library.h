@@ -148,6 +148,7 @@
 #pragma comment(lib, "dbghelp.lib")
 #pragma comment(lib, "user32.lib")
 #pragma comment(lib, "Gdi32.lib")
+#pragma warning(disable : 4709)
 
 struct Platform_State {
     WNDCLASS window_class;
@@ -177,6 +178,8 @@ struct Platform_State {
 #include <stdbool.h>
 #include <string.h>
 #include <stdio.h>
+#include <float.h>
+#include <math.h>
 
 #ifndef APL_REALLOC
 #include <stdlib.h>
@@ -191,8 +194,12 @@ enum Apl_Return_Types {
 #ifndef apl_real
     #if defined(APL_SINGLE_PRECISION)
         typedef float apl_real_type;
+        #define APL_REAL_MAX FLT_MAX
+        #define apl_fmax fmaxf
     #else 
         typedef double apl_real_type;
+        #define APL_REAL_MAX DBL_MAX
+        #define apl_fmax fmax
     #endif
     #define apl_real apl_real_type
 #endif
@@ -271,12 +278,12 @@ struct Apl_Window_State {
     bool to_clear_renderer;
     bool to_flip_y;
 
-    float delta_time_sec;
+    apl_real delta_time_sec;
     size_t delta_time_micro_sec;
     size_t elapsed_time_micro_sec;
     size_t previous_frame_time_micro_sec;
-    float fps;
-    float wanted_fps;
+    apl_real fps;
+    apl_real wanted_fps;
 
     struct {
         bool space_bar_is_pressed;
@@ -357,9 +364,13 @@ struct Apl_Window_State {
 #define APL_BACKGROUND_COLOR_hexARGB APL_COLOR_GRAY_hexARGB
 
 /* shared implementation */
+APL_DEF void                    apl_depth_buffer_copy_to_screen(struct Apl_Pixel_Buffer screen_mat, struct Apl_Depth_Buffer inv_z_buffer);
+APL_DEF apl_real                apl_linear_map(apl_real s, apl_real min_in, apl_real max_in, apl_real min_out, apl_real max_out);
 APL_DEF const char *            apl_platform_name(void);
 APL_DEF struct Apl_Depth_Buffer apl_realloc_depth_buffer(struct Apl_Depth_Buffer m, size_t rows, size_t cols);
 APL_DEF struct Apl_Pixel_Buffer apl_realloc_pixel_buffer(struct Apl_Pixel_Buffer m, size_t rows, size_t cols);
+APL_DEF uint32_t                apl_rgba_to_hexargb(int r, int g, int b, int a);
+APL_DEF uint8_t                 apl_u8_clamp_int(int x);
 APL_DEF enum Apl_Return_Types   apl_window_destroy(struct Apl_Window_State *ws);
 APL_DEF enum Apl_Return_Types   apl_window_process_input(struct Apl_Window_State *ws);
 APL_DEF enum Apl_Return_Types   apl_window_render(struct Apl_Window_State *ws);
@@ -418,6 +429,36 @@ APL_DEF void                apl_print_stack_trace(void);
 /**
  * shared implementation
  */ 
+
+APL_DEF void apl_depth_buffer_copy_to_screen(struct Apl_Pixel_Buffer screen_mat, struct Apl_Depth_Buffer inv_z_buffer)
+{
+    apl_real max_inv_z = 0;
+    apl_real min_inv_z = APL_REAL_MAX;
+    for (size_t i = 0; i < inv_z_buffer.rows; i++) {
+        for (size_t j = 0; j < inv_z_buffer.cols; j++) {
+            if (APL_BUFFER_AT(inv_z_buffer, i, j) > max_inv_z) {
+                max_inv_z = APL_BUFFER_AT(inv_z_buffer, i, j);
+            }
+            if (APL_BUFFER_AT(inv_z_buffer, i, j) < min_inv_z && APL_BUFFER_AT(inv_z_buffer, i, j) > 0) {
+                min_inv_z = APL_BUFFER_AT(inv_z_buffer, i, j);
+            }
+        }
+    }
+    for (size_t i = 0; i < inv_z_buffer.rows; i++) {
+        for (size_t j = 0; j < inv_z_buffer.cols; j++) {
+            apl_real z_fraq = APL_BUFFER_AT(inv_z_buffer, i, j);
+            z_fraq = apl_fmax(z_fraq, min_inv_z);
+            z_fraq = apl_linear_map(z_fraq, min_inv_z, max_inv_z, 0.1, 1);
+            uint32_t color = apl_rgba_to_hexargb((int)(0xFF*z_fraq), (int)(0xFF*z_fraq), (int)(0xFF*z_fraq), (int)0xFF); 
+            APL_BUFFER_AT(screen_mat, i, j) = color;
+        }
+    }
+}
+
+APL_DEF apl_real apl_linear_map(apl_real s, apl_real min_in, apl_real max_in, apl_real min_out, apl_real max_out)
+{
+    return (min_out + ((s-min_in)*(max_out-min_out))/(max_in-min_in));
+}
 
 /**
  * @brief Returns the name of the active platform implementation.
@@ -500,6 +541,27 @@ APL_DEF struct Apl_Pixel_Buffer apl_realloc_pixel_buffer(struct Apl_Pixel_Buffer
     APL_ASSERT(m.elements != NULL);
     
     return m;
+}
+
+APL_DEF uint32_t apl_rgba_to_hexargb(int r, int g, int b, int a)
+{
+    uint32_t ru = apl_u8_clamp_int(r);
+    uint32_t gu = apl_u8_clamp_int(g);
+    uint32_t bu = apl_u8_clamp_int(b);
+    uint32_t au = apl_u8_clamp_int(a);
+
+    return (au << 24) | (ru << 16) | (gu << 8) | bu;
+}
+
+APL_DEF uint8_t apl_u8_clamp_int(int x)
+{
+    if (x < 0) {
+        return 0;
+    }
+    if (x > 255) {
+        return 255;
+    }
+    return (uint8_t)x;
 }
 
 /**
@@ -774,7 +836,7 @@ APL_DEF void apl_fix_framerate(struct Apl_Window_State *ws)
         (size_t)((elapsed_ticks * 1000000ULL) /
                  (ULONGLONG)qpc_freq.QuadPart);
 
-    ws->delta_time_sec = (float)ws->delta_time_micro_sec / 1000000.0f;
+    ws->delta_time_sec = (apl_real)ws->delta_time_micro_sec / 1000000.0f;
 
     ws->previous_frame_time_micro_sec =
         (size_t)(((ULONGLONG)now.QuadPart * 1000000ULL) /
@@ -1075,7 +1137,7 @@ APL_DEF enum Apl_Return_Types apl_window_update(struct Apl_Window_State *ws)
 
     snprintf(temp_buf, APL_WINDOW_NAME_LEN, "%s | %s", ws->window_name, fps_count);
     // if (!(ws->elapsed_time_micro_sec % 20)) {
-        SetWindowTextA(ws->platform.window_handle, temp_buf);
+        if (ws->to_render) SetWindowTextA(ws->platform.window_handle, temp_buf);
     // }
 
     /*------------------------------------------------------------*/
