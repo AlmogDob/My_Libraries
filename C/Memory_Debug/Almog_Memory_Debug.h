@@ -1,3 +1,9 @@
+/**
+ * This simple memory debugger is heavily inspired by Eskil Steenberg memory debugger.
+ * You can find his memory debugger here: https://github.com/valiet/quel_solaar/blob/main/Forge/f_mem_debug.c.
+ * He talked about his code in this video: https://youtu.be/sfrnU3-EpPI?t=1552.
+ */
+
 #ifndef ALMOG_MEMORY_DEBUG_H_
 #define ALMOG_MEMORY_DEBUG_H_
 
