@@ -9,7 +9,6 @@
 #define ALMOG_DRAW_LIBRARY_IMPLEMENTATION
 #include "includes/Almog_Draw_Library.h"
 
-#define apl_real adl_real
 #define ALMOG_PLATFORM_LIBRARY_IMPLEMENTATION
 #include "includes/Almog_Platform_Library.h"
 
@@ -63,6 +62,8 @@ enum Apl_Return_Types apl_render(struct Apl_Window_State *ws)
     if (!ws->buttons.space_bar_is_pressed) adl_tri_fill_flat_Pinedas_rasterizer(pixels, p1, p5, p2, ADL_COLOR_RED_hexARGB, offzoom);
 
     adl_tri_draw_fix_width(pixels, p0, p1, p2, ADL_COLOR_BLACK_hexARGB, offzoom);
+
+    apl_depth_buffer_copy_to_screen(ws->window_pixels_mat, ws->inv_z_buffer_mat);
 
     return APL_SUCCESS;
 }
