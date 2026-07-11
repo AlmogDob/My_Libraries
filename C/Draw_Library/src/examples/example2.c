@@ -7,11 +7,11 @@
 #define APL_RENDER
 
 #define ALMOG_DRAW_LIBRARY_IMPLEMENTATION
-#include "includes/Almog_Draw_Library.h"
+#include "../includes/Almog_Draw_Library.h"
 
 #define apl_real adl_real
 #define ALMOG_PLATFORM_LIBRARY_IMPLEMENTATION
-#include "includes/Almog_Platform_Library.h"
+#include "../includes/Almog_Platform_Library.h"
 
 
 struct Adl_Pixel_Buffer apl_pixel_buffer_as_adl_pixel_buffer(struct Apl_Pixel_Buffer apl_b) 
@@ -51,18 +51,15 @@ enum Apl_Return_Types apl_render(struct Apl_Window_State *ws)
 
 
     struct Adl_Point p0 = {.x = 200, .y = 100};
-    struct Adl_Point p4 = {.x = 400, .y = 150};
-    struct Adl_Point p1 = {.x = 500, .y = 250};
-    struct Adl_Point p5 = {.x = 400, .y = 320};
+    struct Adl_Point p1 = {.x = 200 + ((adl_real)ws->elapsed_time_micro_sec / 50 / 1000), .y = 250};
     struct Adl_Point p2 = {.x = 340, .y = 300};
-    struct Adl_Point p3 = {.x = 100, .y = 200};
-    adl_tri_fill_flat_Pinedas_rasterizer(pixels, p0, p1, p2, ADL_COLOR_WHITE_hexARGB, offzoom);
+    adl_tri_draw(pixels, p0, p1, p2, ADL_COLOR_WHITE_hexARGB, offzoom);
 
-    if (!ws->buttons.space_bar_is_pressed) adl_tri_fill_flat_Pinedas_rasterizer(pixels, p2, p3, p0, ADL_COLOR_RED_hexARGB, offzoom);
-    if (!ws->buttons.space_bar_is_pressed) adl_tri_fill_flat_Pinedas_rasterizer(pixels, p0, p4, p1, ADL_COLOR_RED_hexARGB, offzoom);
-    if (!ws->buttons.space_bar_is_pressed) adl_tri_fill_flat_Pinedas_rasterizer(pixels, p1, p5, p2, ADL_COLOR_RED_hexARGB, offzoom);
+    struct Adl_Point p0_ = {.x = 200, .y = 300};
+    struct Adl_Point p1_ = {.x = 200 + ((adl_real)ws->elapsed_time_micro_sec / 50 / 1000), .y = 450};
+    struct Adl_Point p2_ = {.x = 340, .y = 500};
+    adl_tri_draw_no_antialiasing(pixels, p0_, p1_, p2_, ADL_COLOR_WHITE_hexARGB, offzoom);
 
-    adl_tri_draw_fix_width(pixels, p0, p1, p2, ADL_COLOR_BLACK_hexARGB, offzoom);
 
     return APL_SUCCESS;
 }
