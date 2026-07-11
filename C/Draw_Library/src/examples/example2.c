@@ -9,7 +9,6 @@
 #define ALMOG_DRAW_LIBRARY_IMPLEMENTATION
 #include "../includes/Almog_Draw_Library.h"
 
-#define apl_real adl_real
 #define ALMOG_PLATFORM_LIBRARY_IMPLEMENTATION
 #include "../includes/Almog_Platform_Library.h"
 

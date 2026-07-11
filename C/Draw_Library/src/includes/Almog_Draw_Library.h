@@ -4,6 +4,13 @@
  * 
  */
 
+/** TODO:
+ *  - No more generic point:
+ *      -- Create Vec2d and Vec4d. 
+ *      -- adl_point_draw should be adl_pixel_draw
+ *      -- make point have a Vec4d for xyzw and Vec2d for uv and light intensity and ...
+ */
+
 #ifndef ALMOG_DRAW_LIBRARY_H_
 #define ALMOG_DRAW_LIBRARY_H_
 
