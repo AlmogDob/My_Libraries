@@ -49,21 +49,19 @@ enum Apl_Return_Types apl_render(struct Apl_Window_State *ws)
     struct Adl_Pixel_Buffer pixels = apl_pixel_buffer_as_adl_pixel_buffer(ws->window_pixels_mat);
 
 
-    struct Adl_Point p0 = {.x = 200, .y = 100};
-    struct Adl_Point p4 = {.x = 400, .y = 150};
-    struct Adl_Point p1 = {.x = 500, .y = 250};
-    struct Adl_Point p5 = {.x = 400, .y = 320};
-    struct Adl_Point p2 = {.x = 340, .y = 300};
-    struct Adl_Point p3 = {.x = 100, .y = 200};
-    adl_tri_fill_flat_Pinedas_rasterizer(pixels, p0, p1, p2, ADL_COLOR_WHITE_hexARGB, offzoom);
+    struct Adl_Vec2 vec20 = {.x = 200, .y = 100};
+    struct Adl_Vec2 vec24 = {.x = 400, .y = 150};
+    struct Adl_Vec2 vec21 = {.x = 500, .y = 250};
+    struct Adl_Vec2 vec25 = {.x = 400, .y = 320};
+    struct Adl_Vec2 vec22 = {.x = 340, .y = 300};
+    struct Adl_Vec2 vec23 = {.x = 100, .y = 200};
+    adl_tri_fill_flat_Pinedas_rasterizer(pixels, vec20, vec21, vec22, ADL_COLOR_WHITE_hexARGB, offzoom);
 
-    if (!ws->buttons.space_bar_is_pressed) adl_tri_fill_flat_Pinedas_rasterizer(pixels, p2, p3, p0, ADL_COLOR_RED_hexARGB, offzoom);
-    if (!ws->buttons.space_bar_is_pressed) adl_tri_fill_flat_Pinedas_rasterizer(pixels, p0, p4, p1, ADL_COLOR_RED_hexARGB, offzoom);
-    if (!ws->buttons.space_bar_is_pressed) adl_tri_fill_flat_Pinedas_rasterizer(pixels, p1, p5, p2, ADL_COLOR_RED_hexARGB, offzoom);
+    if (!ws->buttons.space_bar_is_pressed) adl_tri_fill_flat_Pinedas_rasterizer(pixels, vec22, vec23, vec20, ADL_COLOR_RED_hexARGB, offzoom);
+    if (!ws->buttons.space_bar_is_pressed) adl_tri_fill_flat_Pinedas_rasterizer(pixels, vec20, vec24, vec21, ADL_COLOR_RED_hexARGB, offzoom);
+    if (!ws->buttons.space_bar_is_pressed) adl_tri_fill_flat_Pinedas_rasterizer(pixels, vec21, vec25, vec22, ADL_COLOR_RED_hexARGB, offzoom);
 
-    adl_tri_draw_fix_width(pixels, p0, p1, p2, ADL_COLOR_BLACK_hexARGB, offzoom);
-
-    apl_depth_buffer_copy_to_screen(ws->window_pixels_mat, ws->inv_z_buffer_mat);
+    adl_tri_draw_fix_width(pixels, vec20, vec21, vec22, ADL_COLOR_BLACK_hexARGB, offzoom);
 
     return APL_SUCCESS;
 }

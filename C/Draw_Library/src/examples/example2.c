@@ -49,15 +49,15 @@ enum Apl_Return_Types apl_render(struct Apl_Window_State *ws)
     struct Adl_Pixel_Buffer pixels = apl_pixel_buffer_as_adl_pixel_buffer(ws->window_pixels_mat);
 
 
-    struct Adl_Point p0 = {.x = 200, .y = 100};
-    struct Adl_Point p1 = {.x = 200 + ((adl_real)ws->elapsed_time_micro_sec / 50 / 1000), .y = 250};
-    struct Adl_Point p2 = {.x = 340, .y = 300};
-    adl_tri_draw(pixels, p0, p1, p2, ADL_COLOR_WHITE_hexARGB, offzoom);
+    struct Adl_Vec2 vec20 = {.x = 200, .y = 100};
+    struct Adl_Vec2 vec21 = {.x = 200 + ((adl_real)ws->elapsed_time_micro_sec / 50 / 1000), .y = 250};
+    struct Adl_Vec2 vec22 = {.x = 340, .y = 300};
+    adl_tri_draw(pixels, vec20, vec21, vec22, ADL_COLOR_WHITE_hexARGB, offzoom);
 
-    struct Adl_Point p0_ = {.x = 200, .y = 300};
-    struct Adl_Point p1_ = {.x = 200 + ((adl_real)ws->elapsed_time_micro_sec / 50 / 1000), .y = 450};
-    struct Adl_Point p2_ = {.x = 340, .y = 500};
-    adl_tri_draw_no_antialiasing(pixels, p0_, p1_, p2_, ADL_COLOR_WHITE_hexARGB, offzoom);
+    struct Adl_Vec2 vec20_ = {.x = 200, .y = 300};
+    struct Adl_Vec2 vec21_ = {.x = 200 + ((adl_real)ws->elapsed_time_micro_sec / 50 / 1000), .y = 450};
+    struct Adl_Vec2 vec22_ = {.x = 340, .y = 500};
+    adl_tri_draw_no_antialiasing(pixels, vec20_, vec21_, vec22_, ADL_COLOR_WHITE_hexARGB, offzoom);
 
 
     return APL_SUCCESS;
