@@ -156,16 +156,13 @@ ADL_DEF void                adl_linear_sRGB_to_okLch(uint32_t hex_ARGB, adl_real
 ADL_DEF uint32_t            adl_okLab_to_linear_sRGB(adl_real L, adl_real a, adl_real b);
 ADL_DEF uint32_t            adl_okLch_to_linear_sRGB(adl_real L, adl_real c, adl_real h_deg);
 
-ADL_DEF struct Adl_Vec2     adl_vec2_add_vec2(struct Adl_Vec2 vec21, struct Adl_Vec2 vec22);
 ADL_DEF void                adl_pixel_draw(struct Adl_Pixel_Buffer screen, adl_real x, adl_real y, uint32_t color, struct Adl_Offset_Zoom offzoom);
-ADL_DEF struct Adl_Vec2     adl_vec2_get_from_xy(adl_real x, adl_real y);
-ADL_DEF adl_real            adl_vec2_magnitude(struct Adl_Vec2 vec2);
-ADL_DEF struct Adl_Vec2     adl_vec2_mult(struct Adl_Vec2 vec2, adl_real x);
-ADL_DEF struct Adl_Vec2     adl_vec2_normalize(struct Adl_Vec2 vec2);
-#define                     adl_vec2_print(vec2) do {adl_dprintINFO("%s", ""); adl_vec2_print_imp(vec2, #vec2, 7);} while (0)
-ADL_DEF void                adl_vec2_print_imp(struct Adl_Vec2 vec2, char *name, size_t padding);
-ADL_DEF struct Adl_Vec2     adl_vec2_rotate_around_vec2_XY(struct Adl_Vec2 vec2, struct Adl_Vec2 center, adl_real angle_deg);
-ADL_DEF struct Adl_Vec2     adl_vec2_sub_vec2(struct Adl_Vec2 vec21, struct Adl_Vec2 vec22);
+
+ADL_DEF void                adl_quad_draw(struct Adl_Pixel_Buffer screen, struct Adl_Vec2 vec20, struct Adl_Vec2 vec21, struct Adl_Vec2 vec22, struct Adl_Vec2 vec23, uint32_t color, struct Adl_Offset_Zoom offzoom);
+ADL_DEF void                adl_quad_draw_fix_width(struct Adl_Pixel_Buffer screen, struct Adl_Vec2 vec20, struct Adl_Vec2 vec21, struct Adl_Vec2 vec22, struct Adl_Vec2 vec23, uint32_t color, struct Adl_Offset_Zoom offzoom);
+ADL_DEF void                adl_quad_draw_no_antialiasing(struct Adl_Pixel_Buffer screen, struct Adl_Vec2 vec20, struct Adl_Vec2 vec21, struct Adl_Vec2 vec22, struct Adl_Vec2 vec23, uint32_t color, struct Adl_Offset_Zoom offzoom);
+ADL_DEF void                adl_quad_fill_flat_Pinedas_rasterizer(struct Adl_Pixel_Buffer screen, struct Adl_Vec2 vec20, struct Adl_Vec2 vec21, struct Adl_Vec2 vec22, struct Adl_Vec2 vec23, uint32_t color, struct Adl_Offset_Zoom offzoom);
+ADL_DEF void                adl_quad_fill_flat_Pinedas_rasterizer_antialiasing(struct Adl_Pixel_Buffer screen, struct Adl_Vec2 vec20, struct Adl_Vec2 vec21, struct Adl_Vec2 vec22, struct Adl_Vec2 vec23, uint32_t color, struct Adl_Offset_Zoom offzoom);
 
 ADL_DEF void                adl_rectangle_draw_min_max(struct Adl_Pixel_Buffer screen, adl_real min_x, adl_real max_x, adl_real min_y, adl_real max_y, uint32_t color, struct Adl_Offset_Zoom offzoom);
 ADL_DEF void                adl_rectangle_fill_min_max(struct Adl_Pixel_Buffer screen, adl_real min_x, adl_real max_x, adl_real min_y, adl_real max_y, uint32_t color, struct Adl_Offset_Zoom offzoom);
@@ -178,6 +175,16 @@ ADL_DEF void                adl_tri_fill_flat_Pinedas_rasterizer(struct Adl_Pixe
 ADL_DEF void                adl_tri_fill_flat_Pinedas_rasterizer_antialiasing(struct Adl_Pixel_Buffer screen, struct Adl_Vec2 vec20, struct Adl_Vec2 vec21, struct Adl_Vec2 vec22, uint32_t color, struct Adl_Offset_Zoom offzoom);
 
 ADL_DEF uint8_t             adl_u8_clamp_int(int x);
+
+ADL_DEF struct Adl_Vec2     adl_vec2_add_vec2(struct Adl_Vec2 vec21, struct Adl_Vec2 vec22);
+ADL_DEF struct Adl_Vec2     adl_vec2_get_from_xy(adl_real x, adl_real y);
+ADL_DEF adl_real            adl_vec2_magnitude(struct Adl_Vec2 vec2);
+ADL_DEF struct Adl_Vec2     adl_vec2_mult(struct Adl_Vec2 vec2, adl_real x);
+ADL_DEF struct Adl_Vec2     adl_vec2_normalize(struct Adl_Vec2 vec2);
+#define                     adl_vec2_print(vec2) do {adl_dprintINFO("%s", ""); adl_vec2_print_imp(vec2, #vec2, 7);} while (0)
+ADL_DEF void                adl_vec2_print_imp(struct Adl_Vec2 vec2, char *name, size_t padding);
+ADL_DEF struct Adl_Vec2     adl_vec2_rotate_around_vec2_XY(struct Adl_Vec2 vec2, struct Adl_Vec2 center, adl_real angle_deg);
+ADL_DEF struct Adl_Vec2     adl_vec2_sub_vec2(struct Adl_Vec2 vec21, struct Adl_Vec2 vec22);
 
 #endif /*ALMOG_RENDER_SHAPES_H_*/
 
@@ -607,14 +614,6 @@ ADL_DEF uint32_t adl_okLch_to_linear_sRGB(adl_real L, adl_real c, adl_real h_deg
     return adl_okLab_to_linear_sRGB(L, a, b);
 }
 
-ADL_DEF struct Adl_Vec2 adl_vec2_add_vec2(struct Adl_Vec2 vec21, struct Adl_Vec2 vec22)
-{
-    return (struct Adl_Vec2){
-        .x = vec21.x + vec22.x,
-        .y = vec21.y + vec22.y,
-    };
-}
-
 ADL_DEF void adl_pixel_draw(struct Adl_Pixel_Buffer screen, adl_real x, adl_real y, uint32_t color, struct Adl_Offset_Zoom offzoom)
 {
     adl_real window_w = (adl_real)screen.cols;
@@ -653,59 +652,98 @@ ADL_DEF void adl_pixel_draw(struct Adl_Pixel_Buffer screen, adl_real x, adl_real
     }
 }
 
-ADL_DEF struct Adl_Vec2 adl_vec2_get_from_xy(adl_real x, adl_real y)
+ADL_DEF void adl_quad_draw(struct Adl_Pixel_Buffer screen, struct Adl_Vec2 vec20, struct Adl_Vec2 vec21, struct Adl_Vec2 vec22, struct Adl_Vec2 vec23, uint32_t color, struct Adl_Offset_Zoom offzoom)
 {
-    return (struct Adl_Vec2){
-        .x = x,
-        .y = y
-    };
+    adl_line_draw(screen, vec20.x, vec20.y, vec21.x, vec21.y, color, offzoom);
+    adl_line_draw(screen, vec21.x, vec21.y, vec22.x, vec22.y, color, offzoom);
+    adl_line_draw(screen, vec22.x, vec22.y, vec23.x, vec23.y, color, offzoom);
+    adl_line_draw(screen, vec23.x, vec23.y, vec20.x, vec20.y, color, offzoom);
 }
 
-ADL_DEF adl_real adl_vec2_magnitude(struct Adl_Vec2 vec2)
+ADL_DEF void adl_quad_draw_fix_width(struct Adl_Pixel_Buffer screen, struct Adl_Vec2 vec20, struct Adl_Vec2 vec21, struct Adl_Vec2 vec22, struct Adl_Vec2 vec23, uint32_t color, struct Adl_Offset_Zoom offzoom)
 {
-    return adl_sqrt((vec2.x) * (vec2.x) + (vec2.y) * (vec2.y));
+    adl_line_draw_fix_width(screen, vec20.x, vec20.y, vec21.x, vec21.y, color, offzoom);
+    adl_line_draw_fix_width(screen, vec21.x, vec21.y, vec22.x, vec22.y, color, offzoom);
+    adl_line_draw_fix_width(screen, vec22.x, vec22.y, vec23.x, vec23.y, color, offzoom);
+    adl_line_draw_fix_width(screen, vec23.x, vec23.y, vec20.x, vec20.y, color, offzoom);
 }
 
-ADL_DEF struct Adl_Vec2 adl_vec2_mult(struct Adl_Vec2 vec2, adl_real x)
+ADL_DEF void adl_quad_draw_no_antialiasing(struct Adl_Pixel_Buffer screen, struct Adl_Vec2 vec20, struct Adl_Vec2 vec21, struct Adl_Vec2 vec22, struct Adl_Vec2 vec23, uint32_t color, struct Adl_Offset_Zoom offzoom)
 {
-    return (struct Adl_Vec2){
-        .x = vec2.x * x,
-        .y = vec2.y * x,
-    };
+    adl_line_draw_no_antialiasing(screen, vec20.x, vec20.y, vec21.x, vec21.y, color, offzoom);
+    adl_line_draw_no_antialiasing(screen, vec21.x, vec21.y, vec22.x, vec22.y, color, offzoom);
+    adl_line_draw_no_antialiasing(screen, vec22.x, vec22.y, vec23.x, vec23.y, color, offzoom);
+    adl_line_draw_no_antialiasing(screen, vec23.x, vec23.y, vec20.x, vec20.y, color, offzoom);
 }
 
-ADL_DEF struct Adl_Vec2 adl_vec2_normalize(struct Adl_Vec2 vec2)
+ADL_DEF void adl_quad_fill_flat_Pinedas_rasterizer(struct Adl_Pixel_Buffer screen, struct Adl_Vec2 vec20, struct Adl_Vec2 vec21, struct Adl_Vec2 vec22, struct Adl_Vec2 vec23, uint32_t color, struct Adl_Offset_Zoom offzoom)
 {
-    adl_real mag = adl_vec2_magnitude(vec2);
-    return (struct Adl_Vec2){
-        .x = vec2.x / mag,
-        .y = vec2.y / mag,
-    };
+    /* finding bounding box */
+    int x_min = (int)adl_min(vec20.x, adl_min(vec21.x, adl_min(vec22.x, vec23.x)));
+    int x_max = (int)adl_max(vec20.x, adl_max(vec21.x, adl_max(vec22.x, vec23.x)));
+    int y_min = (int)adl_min(vec20.y, adl_min(vec21.y, adl_min(vec22.y, vec23.y)));
+    int y_max = (int)adl_max(vec20.y, adl_max(vec21.y, adl_max(vec22.y, vec23.y)));
+
+    /* Clamp to screen bounds */
+    if (x_min < 0) x_min = 0;
+    if (y_min < 0) y_min = 0;
+    if (x_max >= (int)screen.cols) x_max = (int)screen.cols - 1;
+    if (y_max >= (int)screen.rows) y_max = (int)screen.rows - 1;
+
+    /* draw only outline of the tri if there is no area */
+    adl_real w = adl_edge_cross_vec2(vec20, vec21, vec21, vec22) + adl_edge_cross_vec2(vec22, vec23, vec23, vec20);
+    if (ADL_IS_ZERO(w)) {
+        return;
+    }
+
+    // adl_real size_vec23_to_vec20 = adl_sqrt((vec20.x - vec23.x)*(vec20.x - vec23.x) + (vec20.y - vec23.y)*(vec20.y - vec23.y));
+    // adl_real size_vec20_to_vec21 = adl_sqrt((vec21.x - vec20.x)*(vec21.x - vec20.x) + (vec21.y - vec20.y)*(vec21.y - vec20.y));
+    // adl_real size_vec21_to_vec22 = adl_sqrt((vec22.x - vec21.x)*(vec22.x - vec21.x) + (vec22.y - vec21.y)*(vec22.y - vec21.y));
+    // adl_real size_vec22_to_vec23 = adl_sqrt((vec23.x - vec22.x)*(vec23.x - vec22.x) + (vec23.y - vec22.y)*(vec23.y - vec22.y));
+
+    for (int y = y_min; y <= y_max; y++) {
+        for (int x = x_min; x <= x_max; x++) {
+            struct Adl_Vec2 vec2 = {.x = (adl_real)x, .y = (adl_real)y};
+            bool in_01, in_12, in_23, in_30;
+
+            in_01 = (adl_edge_cross_vec2(vec20, vec21, vec20, vec2) >= 0) != (w < 0);
+            in_12 = (adl_edge_cross_vec2(vec21, vec22, vec21, vec2) >= 0) != (w < 0);
+            in_23 = (adl_edge_cross_vec2(vec22, vec23, vec22, vec2) >= 0) != (w < 0);
+            in_30 = (adl_edge_cross_vec2(vec23, vec20, vec23, vec2) >= 0) != (w < 0);
+
+            // /* https://www.mn.uio.no/math/english/people/aca/michaelf/papers/mv3d.pdf. */
+            // adl_real size_vec2_to_vec20 = adl_sqrt((vec20.x - vec2.x)*(vec20.x - vec2.x) + (vec20.y - vec2.y)*(vec20.y - vec2.y));
+            // adl_real size_vec2_to_vec21 = adl_sqrt((vec21.x - vec2.x)*(vec21.x - vec2.x) + (vec21.y - vec2.y)*(vec21.y - vec2.y));
+            // adl_real size_vec2_to_vec22 = adl_sqrt((vec22.x - vec2.x)*(vec22.x - vec2.x) + (vec22.y - vec2.y)*(vec22.y - vec2.y));
+            // adl_real size_vec2_to_vec23 = adl_sqrt((vec23.x - vec2.x)*(vec23.x - vec2.x) + (vec23.y - vec2.y)*(vec23.y - vec2.y));
+
+            // /* tangent of half the angle directly using vector math */
+            // adl_real tan_theta_3_over_2 = size_vec23_to_vec20 / (size_vec2_to_vec23 + size_vec2_to_vec20);
+            // adl_real tan_theta_0_over_2 = size_vec20_to_vec21 / (size_vec2_to_vec20 + size_vec2_to_vec21);
+            // adl_real tan_theta_1_over_2 = size_vec21_to_vec22 / (size_vec2_to_vec21 + size_vec2_to_vec22);
+            // adl_real tan_theta_2_over_2 = size_vec22_to_vec23 / (size_vec2_to_vec22 + size_vec2_to_vec23);
+            // adl_real w0 = (tan_theta_3_over_2 + tan_theta_0_over_2) / size_vec2_to_vec20;
+            // adl_real w1 = (tan_theta_0_over_2 + tan_theta_1_over_2) / size_vec2_to_vec21;
+            // adl_real w2 = (tan_theta_1_over_2 + tan_theta_2_over_2) / size_vec2_to_vec22;
+            // adl_real w3 = (tan_theta_2_over_2 + tan_theta_3_over_2) / size_vec2_to_vec23;
+
+            // adl_real inv_w_tot = 1.0f / (w0 + w1 + w2 + w3);
+            // adl_real alpha = w0 * inv_w_tot;
+            // adl_real beta  = w1 * inv_w_tot;
+            // adl_real gamma = w2 * inv_w_tot;
+            // adl_real delta = w3 * inv_w_tot;
+
+            if (in_01 && in_12 && in_23 && in_30) {
+                adl_pixel_draw(screen, (adl_real)x, (adl_real)y, color, offzoom);
+            }
+        }
+    }
 }
 
-ADL_DEF void adl_vec2_print_imp(struct Adl_Vec2 vec2, char *name, size_t padding)
+ADL_DEF void adl_quad_fill_flat_Pinedas_rasterizer_antialiasing(struct Adl_Pixel_Buffer screen, struct Adl_Vec2 vec20, struct Adl_Vec2 vec21, struct Adl_Vec2 vec22, struct Adl_Vec2 vec23, uint32_t color, struct Adl_Offset_Zoom offzoom)
 {
-    printf("\33[A\33[2K\r");
-    printf("%*.s%s: {.x = %g, .y = %g}\n", (int)padding, "", name, ADL_VEC2_EXPEND_TO_XY(vec2));
-}
-
-ADL_DEF struct Adl_Vec2 adl_vec2_rotate_around_vec2_XY(struct Adl_Vec2 vec2, struct Adl_Vec2 center, adl_real angle_deg)
-{
-    adl_real angle_rad = ADL_PI * angle_deg / 180;
-    struct Adl_Vec2 diff = adl_vec2_sub_vec2(vec2, center);
-    struct Adl_Vec2 rot_diff = {
-        .x = diff.x * adl_cos(angle_rad) - diff.y * adl_sin(angle_rad), 
-        .y = diff.x * adl_sin(angle_rad) + diff.y * adl_cos(angle_rad), 
-    };
-    return adl_vec2_add_vec2(center, rot_diff);
-}
-
-ADL_DEF struct Adl_Vec2 adl_vec2_sub_vec2(struct Adl_Vec2 vec21, struct Adl_Vec2 vec22)
-{
-    return (struct Adl_Vec2){
-        .x = vec21.x - vec22.x,
-        .y = vec21.y - vec22.y,
-    };
+    adl_quad_fill_flat_Pinedas_rasterizer(screen, vec20, vec21, vec22, vec23, color, offzoom);
+    adl_quad_draw(screen, vec20, vec21, vec22, vec23, color, offzoom);
 }
 
 ADL_DEF void adl_rectangle_draw_min_max(struct Adl_Pixel_Buffer screen, adl_real min_x, adl_real max_x, adl_real min_y, adl_real max_y, uint32_t color, struct Adl_Offset_Zoom offzoom)
@@ -812,6 +850,69 @@ ADL_DEF uint8_t adl_u8_clamp_int(int x)
         return 255;
     }
     return (uint8_t)x;
+}
+
+ADL_DEF struct Adl_Vec2 adl_vec2_add_vec2(struct Adl_Vec2 vec21, struct Adl_Vec2 vec22)
+{
+    return (struct Adl_Vec2){
+        .x = vec21.x + vec22.x,
+        .y = vec21.y + vec22.y,
+    };
+}
+
+ADL_DEF struct Adl_Vec2 adl_vec2_get_from_xy(adl_real x, adl_real y)
+{
+    return (struct Adl_Vec2){
+        .x = x,
+        .y = y
+    };
+}
+
+ADL_DEF adl_real adl_vec2_magnitude(struct Adl_Vec2 vec2)
+{
+    return adl_sqrt((vec2.x) * (vec2.x) + (vec2.y) * (vec2.y));
+}
+
+ADL_DEF struct Adl_Vec2 adl_vec2_mult(struct Adl_Vec2 vec2, adl_real x)
+{
+    return (struct Adl_Vec2){
+        .x = vec2.x * x,
+        .y = vec2.y * x,
+    };
+}
+
+ADL_DEF struct Adl_Vec2 adl_vec2_normalize(struct Adl_Vec2 vec2)
+{
+    adl_real mag = adl_vec2_magnitude(vec2);
+    return (struct Adl_Vec2){
+        .x = vec2.x / mag,
+        .y = vec2.y / mag,
+    };
+}
+
+ADL_DEF void adl_vec2_print_imp(struct Adl_Vec2 vec2, char *name, size_t padding)
+{
+    printf("\33[A\33[2K\r");
+    printf("%*.s%s: {.x = %g, .y = %g}\n", (int)padding, "", name, ADL_VEC2_EXPEND_TO_XY(vec2));
+}
+
+ADL_DEF struct Adl_Vec2 adl_vec2_rotate_around_vec2_XY(struct Adl_Vec2 vec2, struct Adl_Vec2 center, adl_real angle_deg)
+{
+    adl_real angle_rad = ADL_PI * angle_deg / 180;
+    struct Adl_Vec2 diff = adl_vec2_sub_vec2(vec2, center);
+    struct Adl_Vec2 rot_diff = {
+        .x = diff.x * adl_cos(angle_rad) - diff.y * adl_sin(angle_rad), 
+        .y = diff.x * adl_sin(angle_rad) + diff.y * adl_cos(angle_rad), 
+    };
+    return adl_vec2_add_vec2(center, rot_diff);
+}
+
+ADL_DEF struct Adl_Vec2 adl_vec2_sub_vec2(struct Adl_Vec2 vec21, struct Adl_Vec2 vec22)
+{
+    return (struct Adl_Vec2){
+        .x = vec21.x - vec22.x,
+        .y = vec21.y - vec22.y,
+    };
 }
 
 

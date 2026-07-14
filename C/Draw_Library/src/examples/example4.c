@@ -7,10 +7,10 @@
 #define APL_RENDER
 
 #define ALMOG_DRAW_LIBRARY_IMPLEMENTATION
-#include "includes/Almog_Draw_Library.h"
+#include "../includes/Almog_Draw_Library.h"
 
 #define ALMOG_PLATFORM_LIBRARY_IMPLEMENTATION
-#include "includes/Almog_Platform_Library.h"
+#include "../includes/Almog_Platform_Library.h"
 
 
 struct Adl_Pixel_Buffer apl_pixel_buffer_as_adl_pixel_buffer(struct Apl_Pixel_Buffer apl_b) 
