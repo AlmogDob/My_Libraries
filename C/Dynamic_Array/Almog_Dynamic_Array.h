@@ -11,7 +11,7 @@
  * How to use:
  *   1) Define a header struct with length/capacity/elements fields.
  *   2) Initialize it with ada_init_array(T, header).
- *   3) Modify it with ada_appand (append), ada_insert, remove variants, etc.
+ *   3) Modify it with ada_append (append), ada_insert, remove variants, etc.
  *   4) When done, free(header.elements) (or your custom deallocator).
  *
  * Customization:
@@ -30,7 +30,7 @@
  *   - ada_resize exits the process (exit(1)) if reallocation fails.
  *   - ada_insert reads header.elements[header.length - 1] internally; inserting
  *     into an empty array via ada_insert is undefined behavior. Use
- *     ada_appand or ada_insert_unordered for that case.
+ *     ada_append or ada_insert_unordered for that case.
  *   - No automatic shrinking; you may call ada_resize manually.
  *
  * Example:
@@ -42,7 +42,7 @@
  *
  *   ada_int_array arr;
  *   ada_init_array(int, arr);
- *   ada_appand(int, arr, 42);
+ *   ada_append(int, arr, 42);
  *   ada_insert(int, arr, 7, 0); // requires arr.length > 0
  *   ada_remove(int, arr, 1);
  *   free(arr.elements);
@@ -160,7 +160,7 @@
     } while (0)
 
 /**
- * @def ada_appand(type, header, value)
+ * @def ada_append(type, header, value)
  * @brief Append a value to the end of the array, growing if necessary.
  *
  * @param type   Element type stored in the array.
@@ -175,7 +175,7 @@
  *       manually shrink capacity. Ensure growth always increases capacity by
  *       at least 1 if you customize this macro.
  */
-#define ada_appand(type, header, value) do {                                            \
+#define ada_append(type, header, value) do {                                            \
         if ((header).length >= (header).capacity) {                                         \
             ada_resize(type, (header), (int)((header).capacity + (header).capacity/2 + 1));   \
         }                                                                               \
@@ -195,23 +195,23 @@
  * @pre 0 <= index <= header.length.
  * @pre header.length > 0 if index == header.length (this macro reads the last
  *      element internally). For inserting into an empty array, use
- *      ada_appand or ada_insert_unordered.
+ *      ada_append or ada_insert_unordered.
  * @post Element is inserted at index; subsequent elements are shifted right;
  *       header.length is incremented by 1.
  *
  * @note This macro asserts index is non-negative and an integer value using
  *       ADA_ASSERT. No explicit upper-bound assert is performed.
  */
-#define ada_insert(type, header, value, index) do {                                                             \
-    ADA_ASSERT((int)(index) >= 0);                                                                              \
-    ADA_ASSERT((float)(index) - (int)(index) == 0);                                                             \
-    ADA_ASSERT((header).length > 0 && "You can not insert to an empty array.");                                 \
-    ADA_ASSERT(index <= (header).length);                                                                       \
-    ada_appand(type, (header), (header).elements[(header).length-1]);                                           \
-    for (int ada_for_loop_index = (header).length-2; ada_for_loop_index > (int)(index); ada_for_loop_index--) { \
-        (header).elements[ada_for_loop_index] = (header).elements [ada_for_loop_index-1];                       \
-    }                                                                                                           \
-    (header).elements[(index)] = value;                                                                         \
+#define ada_insert(type, header, value, index) do {                                                                     \
+    ADA_ASSERT((int)(index) >= 0);                                                                                      \
+    ADA_ASSERT((float)(index) - (int)(index) == 0);                                                                     \
+    ADA_ASSERT((header).length > 0 && "You can not insert to an empty array.");                                         \
+    ADA_ASSERT(index <= (header).length);                                                                               \
+    ada_append(type, (header), (header).elements[(header).length-1]);                                                   \
+    for (int ada_for_loop_index = (int)((header).length)-2; ada_for_loop_index > (int)(index); ada_for_loop_index--) {  \
+        (header).elements[ada_for_loop_index] = (header).elements [ada_for_loop_index-1];                               \
+    }                                                                                                                   \
+    (header).elements[(index)] = value;                                                                                 \
 } while (0)
 
 
@@ -235,9 +235,9 @@
     ADA_ASSERT((float)(index) - (int)(index) == 0);             \
     ADA_ASSERT(index <= (header).length);                       \
     if ((size_t)(index) == (header).length) {                   \
-        ada_appand(type, (header), value);                      \
+        ada_append(type, (header), value);                      \
     } else {                                                    \
-        ada_appand(type, (header), (header).elements[(index)]); \
+        ada_append(type, (header), (header).elements[(index)]); \
         (header).elements[(index)] = value;                     \
     }                                                           \
 } while (0)
