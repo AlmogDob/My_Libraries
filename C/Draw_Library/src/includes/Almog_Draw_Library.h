@@ -4,12 +4,6 @@
  * 
  */
 
-/** TODO:
- *  - No more generic point:
- *      -- Create Vec2d and Vec4d. 
- *      -- adl_point_draw should be adl_pixel_draw
- *      -- make point have a Vec4d for xyzw and Vec2d for uv and light intensity and ...
- */
 
 #ifndef ALMOG_DRAW_LIBRARY_H_
 #define ALMOG_DRAW_LIBRARY_H_
@@ -67,57 +61,15 @@ struct Adl_Offset_Zoom {
     adl_real offset_y;
 };
 
-struct Adl_Point {
+struct Adl_Vec2 {
     adl_real x;
     adl_real y;
-    adl_real z;
-    adl_real w;
 };
 
-struct Adl_Points_Dynamic_Array {
+struct Adl_Vec2_Dynamic_Array {
     size_t length;
     size_t capacity;
-    struct Adl_Point *elements;
-};
-
-struct Adl_Curve {
-    uint32_t color;
-    struct Adl_Points_Dynamic_Array points;
-};
-
-struct Adl_Curves_Dynamic_Array {
-    size_t length;
-    size_t capacity;
-    struct Adl_Curve *elements;
-};
-
-struct Adl_Tri {
-    struct Adl_Point points[3];
-    struct Adl_Point tex_points[3];
-    struct Adl_Point normals[3];
-    uint32_t colors[3];
-    bool to_draw;
-    adl_real light_intensity[3];
-};
-
-struct Adl_Tris_Dynamic_Array {
-    size_t length;
-    size_t capacity;
-    struct Adl_Tri *elements;
-};
-
-struct Adl_Quad {
-    struct Adl_Point points[4];
-    struct Adl_Point normals[4];
-    uint32_t colors[4];
-    bool to_draw;
-    adl_real light_intensity[4];
-};
-
-struct Adl_Quads_Dynamic_Array {
-    size_t length;
-    size_t capacity;
-    struct Adl_Quad *elements;
+    struct Adl_Vec2 *elements;
 };
 
 struct Adl_Pixel_Buffer {
@@ -155,8 +107,7 @@ struct Adl_Depth_Buffer {
 
 #define ADL_HexARGB_EXPEND_TO_RGBA(x) ((x)>>(8*2)&0xFF), ((x)>>(8*1)&0xFF), ((x)>>(8*0)&0xFF), ((x)>>(8*3)&0xFF)
 #define ADL_HexARGB_EXPEND_TO_RGB(x) ((x)>>(8*2)&0xFF), ((x)>>(8*1)&0xFF), ((x)>>(8*0)&0xFF)
-#define ADL_POINT_EXPEND_TO_XY(p) (p).x, (p).y
-#define ADL_POINT_EXPEND_TO_XYZW(p) (p).x, (p).y, (p).z, (p).w
+#define ADL_VEC2_EXPEND_TO_XY(p) (p).x, (p).y
 
 #define ADL_COLOR_BLACK_hexARGB  0xFF000000
 #define ADL_COLOR_BLUE_hexARGB   0xFF0000FF
@@ -166,15 +117,6 @@ struct Adl_Depth_Buffer {
 #define ADL_COLOR_RED_hexARGB    0xFFFF0000
 #define ADL_COLOR_YELLOW_hexARGB 0xFFFFFF00
 #define ADL_COLOR_WHITE_hexARGB  0xFFFFFFFF
-
-#define adl_assert_point_is_valid(p) ADL_ASSERT(isfinite(p.x) && isfinite(p.y) && isfinite(p.z) && isfinite(p.w))
-#define adl_assert_tri_is_valid(tri) adl_assert_point_is_valid(tri.points[0]); \
-        adl_assert_point_is_valid(tri.points[1]);                              \
-        adl_assert_point_is_valid(tri.points[2])
-#define adl_assert_quad_is_valid(quad) adl_assert_point_is_valid(quad.points[0]);   \
-        adl_assert_point_is_valid(quad.points[1]);                                  \
-        adl_assert_point_is_valid(quad.points[2]);                                  \
-        adl_assert_point_is_valid(quad.points[3])
 
 #define ADL_DEFAULT_OFFSET_ZOOM (struct Adl_Offset_Zoom){.zoom_multiplier = 1, .offset_x = 0, .offset_y = 0}
 
@@ -188,54 +130,61 @@ struct Adl_Depth_Buffer {
 
 ADL_DEF uint32_t            adl_alpha_blend(uint32_t dst, uint32_t src);
 ADL_DEF void                adl_arrow_draw(struct Adl_Pixel_Buffer screen, adl_real xs, adl_real ys, adl_real xe, adl_real ye, adl_real head_size, adl_real head_angle_deg, uint32_t color, struct Adl_Offset_Zoom offzoom);
-ADL_DEF void                adl_arrows_draw(struct Adl_Pixel_Buffer screen, struct Adl_Point *points, size_t count, adl_real head_size, adl_real head_angle_deg, uint32_t color, struct Adl_Offset_Zoom offzoom);
-ADL_DEF void                adl_arrows_draw_loop(struct Adl_Pixel_Buffer screen, struct Adl_Point *points, size_t count, adl_real head_size, adl_real head_angle_deg, uint32_t color, struct Adl_Offset_Zoom offzoom);
+ADL_DEF void                adl_arrows_draw(struct Adl_Pixel_Buffer screen, struct Adl_Vec2 *vec2s, size_t count, adl_real head_size, adl_real head_angle_deg, uint32_t color, struct Adl_Offset_Zoom offzoom);
+ADL_DEF void                adl_arrows_draw_loop(struct Adl_Pixel_Buffer screen, struct Adl_Vec2 *vec2s, size_t count, adl_real head_size, adl_real head_angle_deg, uint32_t color, struct Adl_Offset_Zoom offzoom);
 
 ADL_DEF void                adl_circle_draw(struct Adl_Pixel_Buffer screen, adl_real center_x, adl_real center_y, adl_real r, uint32_t color, struct Adl_Offset_Zoom offzoom);
 ADL_DEF void                adl_circle_fill(struct Adl_Pixel_Buffer screen, adl_real center_x, adl_real center_y, adl_real r, uint32_t color, struct Adl_Offset_Zoom offzoom);
 
-ADL_DEF adl_real            adl_edge_cross_point(struct Adl_Point a1, struct Adl_Point b, struct Adl_Point a2, struct Adl_Point p);
+ADL_DEF adl_real            adl_edge_cross_vec2(struct Adl_Vec2 a1, struct Adl_Vec2 b, struct Adl_Vec2 a2, struct Adl_Vec2 p);
 
 ADL_DEF void                adl_hexargb_to_rgba(uint32_t color, uint8_t *r, uint8_t *g, uint8_t *b, uint8_t *a);
 
 ADL_DEF uint32_t            adl_interpolate_ARGBcolor_on_okLch(uint32_t color1, uint32_t color2, adl_real t, adl_real num_of_rotations);
 ADL_DEF bool                adl_is_left_edge(adl_real x, adl_real y);
 ADL_DEF bool                adl_is_top_edge(adl_real x, adl_real y);
-ADL_DEF bool                adl_is_top_left(struct Adl_Point ps, struct Adl_Point pe);
+ADL_DEF bool                adl_is_top_left(struct Adl_Vec2 vec2_s, struct Adl_Vec2 vec2_e);
 
 ADL_DEF void                adl_line_draw(struct Adl_Pixel_Buffer screen, adl_real x1_input, adl_real y1_input, adl_real x2_input, adl_real y2_input, uint32_t color, struct Adl_Offset_Zoom offzoom);
 ADL_DEF void                adl_line_draw_fix_width(struct Adl_Pixel_Buffer screen, adl_real x1_input, adl_real y1_input, adl_real x2_input, adl_real y2_input, uint32_t color, struct Adl_Offset_Zoom offzoom);
 ADL_DEF void                adl_line_draw_no_antialiasing(struct Adl_Pixel_Buffer screen, adl_real x1_input, adl_real y1_input, adl_real x2_input, adl_real y2_input, uint32_t color, struct Adl_Offset_Zoom offzoom);
-ADL_DEF void                adl_lines_draw(struct Adl_Pixel_Buffer screen, struct Adl_Point *points, size_t count, uint32_t color, struct Adl_Offset_Zoom offzoom);
-ADL_DEF void                adl_lines_draw_loop(struct Adl_Pixel_Buffer screen, struct Adl_Point *points, size_t count, uint32_t color, struct Adl_Offset_Zoom offzoom);
+ADL_DEF void                adl_lines_draw(struct Adl_Pixel_Buffer screen, struct Adl_Vec2 *vec2s, size_t count, uint32_t color, struct Adl_Offset_Zoom offzoom);
+ADL_DEF void                adl_lines_draw_loop(struct Adl_Pixel_Buffer screen, struct Adl_Vec2 *vec2s, size_t count, uint32_t color, struct Adl_Offset_Zoom offzoom);
 ADL_DEF void                adl_linear_sRGB_to_okLab(uint32_t hex_ARGB, adl_real *L, adl_real *a, adl_real *b);
 ADL_DEF void                adl_linear_sRGB_to_okLch(uint32_t hex_ARGB, adl_real *L, adl_real *c, adl_real *h_deg);
 
 ADL_DEF uint32_t            adl_okLab_to_linear_sRGB(adl_real L, adl_real a, adl_real b);
 ADL_DEF uint32_t            adl_okLch_to_linear_sRGB(adl_real L, adl_real c, adl_real h_deg);
 
-ADL_DEF struct Adl_Point    adl_point_add_point(struct Adl_Point p1, struct Adl_Point p2);
-ADL_DEF void                adl_point_draw(struct Adl_Pixel_Buffer screen, adl_real x, adl_real y, uint32_t color, struct Adl_Offset_Zoom offzoom);
-ADL_DEF struct Adl_Point    adl_point_get_from_xy(adl_real x, adl_real y);
-ADL_DEF adl_real            adl_point_magnitude(struct Adl_Point point);
-ADL_DEF struct Adl_Point    adl_point_mult(struct Adl_Point point, adl_real x);
-ADL_DEF struct Adl_Point    adl_point_normalize(struct Adl_Point point);
-#define                     adl_point_print(point) do {adl_dprintINFO("%s", ""); adl_point_print_imp(point, #point, 7);} while (0)
-ADL_DEF void                adl_point_print_imp(struct Adl_Point point, char *name, size_t padding);
-ADL_DEF struct Adl_Point    adl_point_rotate_around_point_XY(struct Adl_Point p, struct Adl_Point center, adl_real angle_deg);
-ADL_DEF struct Adl_Point    adl_point_sub_point(struct Adl_Point p1, struct Adl_Point p2);
+ADL_DEF void                adl_pixel_draw(struct Adl_Pixel_Buffer screen, adl_real x, adl_real y, uint32_t color, struct Adl_Offset_Zoom offzoom);
+
+ADL_DEF void                adl_quad_draw(struct Adl_Pixel_Buffer screen, struct Adl_Vec2 vec20, struct Adl_Vec2 vec21, struct Adl_Vec2 vec22, struct Adl_Vec2 vec23, uint32_t color, struct Adl_Offset_Zoom offzoom);
+ADL_DEF void                adl_quad_draw_fix_width(struct Adl_Pixel_Buffer screen, struct Adl_Vec2 vec20, struct Adl_Vec2 vec21, struct Adl_Vec2 vec22, struct Adl_Vec2 vec23, uint32_t color, struct Adl_Offset_Zoom offzoom);
+ADL_DEF void                adl_quad_draw_no_antialiasing(struct Adl_Pixel_Buffer screen, struct Adl_Vec2 vec20, struct Adl_Vec2 vec21, struct Adl_Vec2 vec22, struct Adl_Vec2 vec23, uint32_t color, struct Adl_Offset_Zoom offzoom);
+ADL_DEF void                adl_quad_fill_flat_Pinedas_rasterizer(struct Adl_Pixel_Buffer screen, struct Adl_Vec2 vec20, struct Adl_Vec2 vec21, struct Adl_Vec2 vec22, struct Adl_Vec2 vec23, uint32_t color, struct Adl_Offset_Zoom offzoom);
+ADL_DEF void                adl_quad_fill_flat_Pinedas_rasterizer_antialiasing(struct Adl_Pixel_Buffer screen, struct Adl_Vec2 vec20, struct Adl_Vec2 vec21, struct Adl_Vec2 vec22, struct Adl_Vec2 vec23, uint32_t color, struct Adl_Offset_Zoom offzoom);
 
 ADL_DEF void                adl_rectangle_draw_min_max(struct Adl_Pixel_Buffer screen, adl_real min_x, adl_real max_x, adl_real min_y, adl_real max_y, uint32_t color, struct Adl_Offset_Zoom offzoom);
 ADL_DEF void                adl_rectangle_fill_min_max(struct Adl_Pixel_Buffer screen, adl_real min_x, adl_real max_x, adl_real min_y, adl_real max_y, uint32_t color, struct Adl_Offset_Zoom offzoom);
 ADL_DEF uint32_t            adl_rgba_to_hexargb(int r, int g, int b, int a);
 
-ADL_DEF void                adl_tri_draw(struct Adl_Pixel_Buffer screen, struct Adl_Point p0, struct Adl_Point p1, struct Adl_Point p2, uint32_t color, struct Adl_Offset_Zoom offzoom);
-ADL_DEF void                adl_tri_draw_fix_width(struct Adl_Pixel_Buffer screen, struct Adl_Point p0, struct Adl_Point p1, struct Adl_Point p2, uint32_t color, struct Adl_Offset_Zoom offzoom);
-ADL_DEF void                adl_tri_draw_no_antialiasing(struct Adl_Pixel_Buffer screen, struct Adl_Point p0, struct Adl_Point p1, struct Adl_Point p2, uint32_t color, struct Adl_Offset_Zoom offzoom);
-ADL_DEF void                adl_tri_fill_flat_Pinedas_rasterizer(struct Adl_Pixel_Buffer screen, struct Adl_Point p0, struct Adl_Point p1, struct Adl_Point p2, uint32_t color, struct Adl_Offset_Zoom offzoom);
-ADL_DEF void                adl_tri_fill_flat_Pinedas_rasterizer_antialiasing(struct Adl_Pixel_Buffer screen, struct Adl_Point p0, struct Adl_Point p1, struct Adl_Point p2, uint32_t color, struct Adl_Offset_Zoom offzoom);
+ADL_DEF void                adl_tri_draw(struct Adl_Pixel_Buffer screen, struct Adl_Vec2 vec20, struct Adl_Vec2 vec21, struct Adl_Vec2 vec22, uint32_t color, struct Adl_Offset_Zoom offzoom);
+ADL_DEF void                adl_tri_draw_fix_width(struct Adl_Pixel_Buffer screen, struct Adl_Vec2 vec20, struct Adl_Vec2 vec21, struct Adl_Vec2 vec22, uint32_t color, struct Adl_Offset_Zoom offzoom);
+ADL_DEF void                adl_tri_draw_no_antialiasing(struct Adl_Pixel_Buffer screen, struct Adl_Vec2 vec20, struct Adl_Vec2 vec21, struct Adl_Vec2 vec22, uint32_t color, struct Adl_Offset_Zoom offzoom);
+ADL_DEF void                adl_tri_fill_flat_Pinedas_rasterizer(struct Adl_Pixel_Buffer screen, struct Adl_Vec2 vec20, struct Adl_Vec2 vec21, struct Adl_Vec2 vec22, uint32_t color, struct Adl_Offset_Zoom offzoom);
+ADL_DEF void                adl_tri_fill_flat_Pinedas_rasterizer_antialiasing(struct Adl_Pixel_Buffer screen, struct Adl_Vec2 vec20, struct Adl_Vec2 vec21, struct Adl_Vec2 vec22, uint32_t color, struct Adl_Offset_Zoom offzoom);
 
 ADL_DEF uint8_t             adl_u8_clamp_int(int x);
+
+ADL_DEF struct Adl_Vec2     adl_vec2_add_vec2(struct Adl_Vec2 vec21, struct Adl_Vec2 vec22);
+ADL_DEF struct Adl_Vec2     adl_vec2_get_from_xy(adl_real x, adl_real y);
+ADL_DEF adl_real            adl_vec2_magnitude(struct Adl_Vec2 vec2);
+ADL_DEF struct Adl_Vec2     adl_vec2_mult(struct Adl_Vec2 vec2, adl_real x);
+ADL_DEF struct Adl_Vec2     adl_vec2_normalize(struct Adl_Vec2 vec2);
+#define                     adl_vec2_print(vec2) do {adl_dprintINFO("%s", ""); adl_vec2_print_imp(vec2, #vec2, 7);} while (0)
+ADL_DEF void                adl_vec2_print_imp(struct Adl_Vec2 vec2, char *name, size_t padding);
+ADL_DEF struct Adl_Vec2     adl_vec2_rotate_around_vec2_XY(struct Adl_Vec2 vec2, struct Adl_Vec2 center, adl_real angle_deg);
+ADL_DEF struct Adl_Vec2     adl_vec2_sub_vec2(struct Adl_Vec2 vec21, struct Adl_Vec2 vec22);
 
 #endif /*ALMOG_RENDER_SHAPES_H_*/
 
@@ -263,37 +212,37 @@ ADL_DEF void adl_arrow_draw(struct Adl_Pixel_Buffer screen, adl_real xs, adl_rea
 {
     adl_line_draw(screen, xs, ys, xe, ye, color, offzoom);
 
-    struct Adl_Point start = adl_point_get_from_xy(xs, ys);
-    struct Adl_Point end = adl_point_get_from_xy(xe, ye);
-    struct Adl_Point diff = adl_point_sub_point(end, start);
-    adl_real line_len = adl_point_magnitude(diff);
+    struct Adl_Vec2 start = adl_vec2_get_from_xy(xs, ys);
+    struct Adl_Vec2 end = adl_vec2_get_from_xy(xe, ye);
+    struct Adl_Vec2 diff = adl_vec2_sub_vec2(end, start);
+    adl_real line_len = adl_vec2_magnitude(diff);
     if (ADL_IS_ZERO(line_len)) return;
-    struct Adl_Point rescaled_diff = adl_point_normalize(diff);
-    rescaled_diff = adl_point_mult(rescaled_diff, - head_size * line_len);
+    struct Adl_Vec2 rescaled_diff = adl_vec2_normalize(diff);
+    rescaled_diff = adl_vec2_mult(rescaled_diff, - head_size * line_len);
 
-    struct Adl_Point head_base = adl_point_add_point(rescaled_diff, end);
-    struct Adl_Point edge1 = adl_point_rotate_around_point_XY(head_base, end, head_angle_deg / 2);
-    struct Adl_Point edge2 = adl_point_rotate_around_point_XY(head_base, end, - head_angle_deg / 2);
+    struct Adl_Vec2 head_base = adl_vec2_add_vec2(rescaled_diff, end);
+    struct Adl_Vec2 edge1 = adl_vec2_rotate_around_vec2_XY(head_base, end, head_angle_deg / 2);
+    struct Adl_Vec2 edge2 = adl_vec2_rotate_around_vec2_XY(head_base, end, - head_angle_deg / 2);
 
-    adl_line_draw(screen, xe, ye, ADL_POINT_EXPEND_TO_XY(edge1), color, offzoom);
-    adl_line_draw(screen, xe, ye, ADL_POINT_EXPEND_TO_XY(edge2), color, offzoom);
+    adl_line_draw(screen, xe, ye, ADL_VEC2_EXPEND_TO_XY(edge1), color, offzoom);
+    adl_line_draw(screen, xe, ye, ADL_VEC2_EXPEND_TO_XY(edge2), color, offzoom);
 }
 
-ADL_DEF void adl_arrows_draw(struct Adl_Pixel_Buffer screen, struct Adl_Point *points, size_t count, adl_real head_size, adl_real head_angle_deg, uint32_t color, struct Adl_Offset_Zoom offzoom)
+ADL_DEF void adl_arrows_draw(struct Adl_Pixel_Buffer screen, struct Adl_Vec2 *vec2s, size_t count, adl_real head_size, adl_real head_angle_deg, uint32_t color, struct Adl_Offset_Zoom offzoom)
 {
     for (size_t i = 0; i < count - 1; i++) {
         size_t start = i;
         size_t end   = i + 1;
-        adl_arrow_draw(screen, ADL_POINT_EXPEND_TO_XY(points[start]), ADL_POINT_EXPEND_TO_XY(points[end]), head_size, head_angle_deg, color, offzoom);
+        adl_arrow_draw(screen, ADL_VEC2_EXPEND_TO_XY(vec2s[start]), ADL_VEC2_EXPEND_TO_XY(vec2s[end]), head_size, head_angle_deg, color, offzoom);
     }
 }
 
-ADL_DEF void adl_arrows_draw_loop(struct Adl_Pixel_Buffer screen, struct Adl_Point *points, size_t count, adl_real head_size, adl_real head_angle_deg, uint32_t color, struct Adl_Offset_Zoom offzoom)
+ADL_DEF void adl_arrows_draw_loop(struct Adl_Pixel_Buffer screen, struct Adl_Vec2 *vec2s, size_t count, adl_real head_size, adl_real head_angle_deg, uint32_t color, struct Adl_Offset_Zoom offzoom)
 {
     for (size_t i = 0; i < count; i++) {
         size_t start = i % count;
         size_t end   = (i + 1) % count;
-        adl_arrow_draw(screen, ADL_POINT_EXPEND_TO_XY(points[start]), ADL_POINT_EXPEND_TO_XY(points[end]), head_size, head_angle_deg, color, offzoom);
+        adl_arrow_draw(screen, ADL_VEC2_EXPEND_TO_XY(vec2s[start]), ADL_VEC2_EXPEND_TO_XY(vec2s[end]), head_size, head_angle_deg, color, offzoom);
     }
 }
 
@@ -303,7 +252,7 @@ ADL_DEF void adl_circle_draw(struct Adl_Pixel_Buffer screen, adl_real center_x, 
         for (adl_real dx = -r; dx <= r; dx+=1) {
             adl_real diff = dx * dx + dy * dy - r * r;
             if (diff < 0 && diff > -r*2) {
-                adl_point_draw(screen, center_x + dx, center_y + dy, color, offzoom);
+                adl_pixel_draw(screen, center_x + dx, center_y + dy, color, offzoom);
             }
         }
     }
@@ -315,13 +264,13 @@ ADL_DEF void adl_circle_fill(struct Adl_Pixel_Buffer screen, adl_real center_x, 
         for (adl_real dx = -r; dx <= r; dx+=1) {
             adl_real diff = dx * dx + dy * dy - r * r;
             if (diff < 0) {
-                adl_point_draw(screen, center_x + dx, center_y + dy, color, offzoom);
+                adl_pixel_draw(screen, center_x + dx, center_y + dy, color, offzoom);
             }
         }
     }
 }
 
-ADL_DEF adl_real adl_edge_cross_point(struct Adl_Point a1, struct Adl_Point b, struct Adl_Point a2, struct Adl_Point p)
+ADL_DEF adl_real adl_edge_cross_vec2(struct Adl_Vec2 a1, struct Adl_Vec2 b, struct Adl_Vec2 a2, struct Adl_Vec2 p)
 {
     return (b.x-a1.x)*(p.y-a2.y)-(b.y-a1.y)*(p.x-a2.x);
 }
@@ -374,9 +323,9 @@ ADL_DEF bool adl_is_top_edge(adl_real x, adl_real y)
     return (y == 0 && x > 0);
 }
 
-ADL_DEF bool adl_is_top_left(struct Adl_Point ps, struct Adl_Point pe)
+ADL_DEF bool adl_is_top_left(struct Adl_Vec2 vec2_s, struct Adl_Vec2 vec2_e)
 {
-    return (adl_is_top_edge(pe.x-ps.x, pe.y-ps.y) || adl_is_left_edge(pe.x-ps.x, pe.y-ps.y));
+    return (adl_is_top_edge(vec2_e.x-vec2_s.x, vec2_e.y-vec2_s.y) || adl_is_left_edge(vec2_e.x-vec2_s.x, vec2_e.y-vec2_s.y));
 }
 
 ADL_DEF void adl_line_draw(struct Adl_Pixel_Buffer screen, adl_real x1_input, adl_real y1_input, adl_real x2_input, adl_real y2_input, uint32_t color, struct Adl_Offset_Zoom offzoom)
@@ -401,12 +350,12 @@ ADL_DEF void adl_line_draw(struct Adl_Pixel_Buffer screen, adl_real x1_input, ad
 
         adl_real overlap = 1 - ((x1_input + 0.5) - (int)(x1_input + 0.5));
         adl_real dis_start = y1_input - (int)y1_input;
-        adl_point_draw(screen, (adl_real)((int)(x1_input + 0.5)), (adl_real)((int)(y1_input)), adl_rgba_to_hexargb(r, g, b, (int)(a * ((adl_real)1 - dis_start) * overlap)), offzoom);
-        adl_point_draw(screen, (adl_real)((int)(x1_input + 0.5)), (adl_real)((int)(y1_input) + (adl_real)1), adl_rgba_to_hexargb(r, g, b, (int)(a * (dis_start) * overlap)), offzoom);
+        adl_pixel_draw(screen, (adl_real)((int)(x1_input + 0.5)), (adl_real)((int)(y1_input)), adl_rgba_to_hexargb(r, g, b, (int)(a * ((adl_real)1 - dis_start) * overlap)), offzoom);
+        adl_pixel_draw(screen, (adl_real)((int)(x1_input + 0.5)), (adl_real)((int)(y1_input) + (adl_real)1), adl_rgba_to_hexargb(r, g, b, (int)(a * (dis_start) * overlap)), offzoom);
         overlap = ((x2_input + 0.5) - (int)(x2_input + 0.5));
         adl_real dis_end = y2_input - (int)y2_input;
-        adl_point_draw(screen, (adl_real)((int)(x2_input + 0.5)), (adl_real)((int)(y2_input)), adl_rgba_to_hexargb(r, g, b, (int)(a * ((adl_real)1 - dis_end) * overlap)), offzoom);
-        adl_point_draw(screen, (adl_real)((int)(x2_input + 0.5)), (adl_real)((int)(y2_input) + (adl_real)1), adl_rgba_to_hexargb(r, g, b, (int)(a * (dis_end) * overlap)), offzoom);
+        adl_pixel_draw(screen, (adl_real)((int)(x2_input + 0.5)), (adl_real)((int)(y2_input)), adl_rgba_to_hexargb(r, g, b, (int)(a * ((adl_real)1 - dis_end) * overlap)), offzoom);
+        adl_pixel_draw(screen, (adl_real)((int)(x2_input + 0.5)), (adl_real)((int)(y2_input) + (adl_real)1), adl_rgba_to_hexargb(r, g, b, (int)(a * (dis_end) * overlap)), offzoom);
 
         for (size_t i = 1; i < dx; i++) {
             adl_real x = x1_input + (adl_real)i;
@@ -415,8 +364,8 @@ ADL_DEF void adl_line_draw(struct Adl_Pixel_Buffer screen, adl_real x1_input, ad
             int iy = (int)y;
             adl_real down_dis = y - iy;
             adl_real up_dis   = 1 - down_dis;
-            adl_point_draw(screen, (adl_real)ix, (adl_real)iy, adl_rgba_to_hexargb(r, g, b, (int)(a * up_dis)), offzoom);
-            adl_point_draw(screen, (adl_real)ix, (adl_real)iy + (adl_real)1, adl_rgba_to_hexargb(r, g, b, (int)(a * down_dis)), offzoom);
+            adl_pixel_draw(screen, (adl_real)ix, (adl_real)iy, adl_rgba_to_hexargb(r, g, b, (int)(a * up_dis)), offzoom);
+            adl_pixel_draw(screen, (adl_real)ix, (adl_real)iy + (adl_real)1, adl_rgba_to_hexargb(r, g, b, (int)(a * down_dis)), offzoom);
         }
     } else {
         if (y2_input < y1_input) {
@@ -435,12 +384,12 @@ ADL_DEF void adl_line_draw(struct Adl_Pixel_Buffer screen, adl_real x1_input, ad
 
         adl_real overlap = 1 - ((y1_input + 0.5) - (int)(y1_input + 0.5));
         adl_real dis_start = y1_input - (int)y1_input;
-        adl_point_draw(screen, (adl_real)((int)(x1_input)), (adl_real)((int)(y1_input + 0.5)), adl_rgba_to_hexargb(r, g, b, (int)(a * ((adl_real)1 - dis_start) * overlap)), offzoom);
-        adl_point_draw(screen, (adl_real)((int)(x1_input) + (adl_real)1), (adl_real)((int)(y1_input + 0.5)), adl_rgba_to_hexargb(r, g, b, (int)(a * (dis_start) * overlap)), offzoom);
+        adl_pixel_draw(screen, (adl_real)((int)(x1_input)), (adl_real)((int)(y1_input + 0.5)), adl_rgba_to_hexargb(r, g, b, (int)(a * ((adl_real)1 - dis_start) * overlap)), offzoom);
+        adl_pixel_draw(screen, (adl_real)((int)(x1_input) + (adl_real)1), (adl_real)((int)(y1_input + 0.5)), adl_rgba_to_hexargb(r, g, b, (int)(a * (dis_start) * overlap)), offzoom);
         overlap = ((y2_input + 0.5) - (int)(y2_input + 0.5));
         adl_real dis_end = y2_input - (int)y2_input;
-        adl_point_draw(screen, (adl_real)((int)(x2_input)), (adl_real)((int)(y2_input + 0.5)), adl_rgba_to_hexargb(r, g, b, (int)(a * ((adl_real)1 - dis_end) * overlap)), offzoom);
-        adl_point_draw(screen, (adl_real)((int)(x2_input) + (adl_real)1), (adl_real)((int)(y2_input + 0.5)), adl_rgba_to_hexargb(r, g, b, (int)(a * (dis_end) * overlap)), offzoom);
+        adl_pixel_draw(screen, (adl_real)((int)(x2_input)), (adl_real)((int)(y2_input + 0.5)), adl_rgba_to_hexargb(r, g, b, (int)(a * ((adl_real)1 - dis_end) * overlap)), offzoom);
+        adl_pixel_draw(screen, (adl_real)((int)(x2_input) + (adl_real)1), (adl_real)((int)(y2_input + 0.5)), adl_rgba_to_hexargb(r, g, b, (int)(a * (dis_end) * overlap)), offzoom);
 
         for (size_t i = 1; i < dy; i++) {
             adl_real y = y1_input + (adl_real)i;
@@ -449,8 +398,8 @@ ADL_DEF void adl_line_draw(struct Adl_Pixel_Buffer screen, adl_real x1_input, ad
             int iy = (int)y;
             adl_real down_dis = x - ix;
             adl_real up_dis   = 1 - down_dis;
-            adl_point_draw(screen, (adl_real)ix, (adl_real)iy, adl_rgba_to_hexargb(r, g, b, (int)(a * up_dis)), offzoom);
-            adl_point_draw(screen, (adl_real)ix + (adl_real)1, (adl_real)iy, adl_rgba_to_hexargb(r, g, b, (int)(a * down_dis)), offzoom);
+            adl_pixel_draw(screen, (adl_real)ix, (adl_real)iy, adl_rgba_to_hexargb(r, g, b, (int)(a * up_dis)), offzoom);
+            adl_pixel_draw(screen, (adl_real)ix + (adl_real)1, (adl_real)iy, adl_rgba_to_hexargb(r, g, b, (int)(a * down_dis)), offzoom);
         }
     }
 }
@@ -486,7 +435,7 @@ ADL_DEF void adl_line_draw_no_antialiasing(struct Adl_Pixel_Buffer screen, adl_r
     int y = y1;
     int dx, dy;
 
-    adl_point_draw(screen, (adl_real)x, (adl_real)y, color, offzoom);
+    adl_pixel_draw(screen, (adl_real)x, (adl_real)y, color, offzoom);
 
     dx = x2 - x1;
     dy = y2 - y1;
@@ -503,7 +452,7 @@ ADL_DEF void adl_line_draw_no_antialiasing(struct Adl_Pixel_Buffer screen, adl_r
             if (dy < 0) {
                 y--;
             }
-            adl_point_draw(screen, (adl_real)x, (adl_real)y, color, offzoom);
+            adl_pixel_draw(screen, (adl_real)x, (adl_real)y, color, offzoom);
         }
         return;
     }
@@ -515,7 +464,7 @@ ADL_DEF void adl_line_draw_no_antialiasing(struct Adl_Pixel_Buffer screen, adl_r
             if (dx < 0) {
                 x--;
             }
-            adl_point_draw(screen, (adl_real)x, (adl_real)y, color, offzoom);
+            adl_pixel_draw(screen, (adl_real)x, (adl_real)y, color, offzoom);
         }
         return;
     }
@@ -537,26 +486,26 @@ ADL_DEF void adl_line_draw_no_antialiasing(struct Adl_Pixel_Buffer screen, adl_r
             sy2 = temp_y;
         }
         for (y = sy1; y <= sy2; y++) {
-            adl_point_draw(screen, (adl_real)x, (adl_real)y, color, offzoom);
+            adl_pixel_draw(screen, (adl_real)x, (adl_real)y, color, offzoom);
         }
     }
 }
 
-ADL_DEF void adl_lines_draw(struct Adl_Pixel_Buffer screen, struct Adl_Point *points, size_t count, uint32_t color, struct Adl_Offset_Zoom offzoom)
+ADL_DEF void adl_lines_draw(struct Adl_Pixel_Buffer screen, struct Adl_Vec2 *vec2s, size_t count, uint32_t color, struct Adl_Offset_Zoom offzoom)
 {
     for (size_t i = 0; i < count - 1; i++) {
         size_t start = i;
         size_t end   = i + 1;
-        adl_line_draw(screen, ADL_POINT_EXPEND_TO_XY(points[start]), ADL_POINT_EXPEND_TO_XY(points[end]), color, offzoom);
+        adl_line_draw(screen, ADL_VEC2_EXPEND_TO_XY(vec2s[start]), ADL_VEC2_EXPEND_TO_XY(vec2s[end]), color, offzoom);
     }
 }
 
-ADL_DEF void adl_lines_draw_loop(struct Adl_Pixel_Buffer screen, struct Adl_Point *points, size_t count, uint32_t color, struct Adl_Offset_Zoom offzoom)
+ADL_DEF void adl_lines_draw_loop(struct Adl_Pixel_Buffer screen, struct Adl_Vec2 *vec2s, size_t count, uint32_t color, struct Adl_Offset_Zoom offzoom)
 {
     for (size_t i = 0; i < count; i++) {
         size_t start = i % count;
         size_t end   = (i + 1) % count;
-        adl_line_draw(screen, ADL_POINT_EXPEND_TO_XY(points[start]), ADL_POINT_EXPEND_TO_XY(points[end]), color, offzoom);
+        adl_line_draw(screen, ADL_VEC2_EXPEND_TO_XY(vec2s[start]), ADL_VEC2_EXPEND_TO_XY(vec2s[end]), color, offzoom);
     }
 }
 
@@ -665,17 +614,7 @@ ADL_DEF uint32_t adl_okLch_to_linear_sRGB(adl_real L, adl_real c, adl_real h_deg
     return adl_okLab_to_linear_sRGB(L, a, b);
 }
 
-ADL_DEF struct Adl_Point adl_point_add_point(struct Adl_Point p1, struct Adl_Point p2)
-{
-    return (struct Adl_Point){
-        .x = p1.x + p2.x,
-        .y = p1.y + p2.y,
-        .z = p1.z + p2.z,
-        .w = p1.w + p2.w,
-    };
-}
-
-ADL_DEF void adl_point_draw(struct Adl_Pixel_Buffer screen, adl_real x, adl_real y, uint32_t color, struct Adl_Offset_Zoom offzoom)
+ADL_DEF void adl_pixel_draw(struct Adl_Pixel_Buffer screen, adl_real x, adl_real y, uint32_t color, struct Adl_Offset_Zoom offzoom)
 {
     adl_real window_w = (adl_real)screen.cols;
     adl_real window_h = (adl_real)screen.rows;
@@ -684,7 +623,7 @@ ADL_DEF void adl_point_draw(struct Adl_Pixel_Buffer screen, adl_real x, adl_real
     if (ADL_IS_ZERO(zoom - (adl_real)1)) {
         int ix = (int)(x + offzoom.offset_x);
         int iy = (int)(y + offzoom.offset_y);
-        if ((ix >= 0 && iy >= 0) && ((size_t)ix < screen.cols && (size_t)iy < screen.rows)) { /* point is in screen */
+        if ((ix >= 0 && iy >= 0) && ((size_t)ix < screen.cols && (size_t)iy < screen.rows)) { /* vec2 is in screen */
             ADL_BUFFER_AT(screen, iy, ix) = adl_alpha_blend(ADL_BUFFER_AT(screen, iy, ix), color);
         }
         return;
@@ -706,72 +645,105 @@ ADL_DEF void adl_point_draw(struct Adl_Pixel_Buffer screen, adl_real x, adl_real
 
     for (int ix = ix0; ix < ix1; ix++) {
         for (int iy = iy0; iy < iy1; iy++) {
-            if ((ix >= 0 && iy >= 0) && ((size_t)ix < screen.cols && (size_t)iy < screen.rows)) { /* point is in screen */
+            if ((ix >= 0 && iy >= 0) && ((size_t)ix < screen.cols && (size_t)iy < screen.rows)) { /* vec2 is in screen */
                 ADL_BUFFER_AT(screen, iy, ix) = adl_alpha_blend(ADL_BUFFER_AT(screen, iy, ix), color);
             }
         }
     }
 }
 
-ADL_DEF struct Adl_Point adl_point_get_from_xy(adl_real x, adl_real y)
+ADL_DEF void adl_quad_draw(struct Adl_Pixel_Buffer screen, struct Adl_Vec2 vec20, struct Adl_Vec2 vec21, struct Adl_Vec2 vec22, struct Adl_Vec2 vec23, uint32_t color, struct Adl_Offset_Zoom offzoom)
 {
-    return (struct Adl_Point){
-        .x = x,
-        .y = y
-    };
+    adl_line_draw(screen, vec20.x, vec20.y, vec21.x, vec21.y, color, offzoom);
+    adl_line_draw(screen, vec21.x, vec21.y, vec22.x, vec22.y, color, offzoom);
+    adl_line_draw(screen, vec22.x, vec22.y, vec23.x, vec23.y, color, offzoom);
+    adl_line_draw(screen, vec23.x, vec23.y, vec20.x, vec20.y, color, offzoom);
 }
 
-ADL_DEF adl_real adl_point_magnitude(struct Adl_Point point)
+ADL_DEF void adl_quad_draw_fix_width(struct Adl_Pixel_Buffer screen, struct Adl_Vec2 vec20, struct Adl_Vec2 vec21, struct Adl_Vec2 vec22, struct Adl_Vec2 vec23, uint32_t color, struct Adl_Offset_Zoom offzoom)
 {
-    return adl_sqrt((point.x) * (point.x) + (point.y) * (point.y) + (point.z) * (point.z) + (point.w) * (point.w));
+    adl_line_draw_fix_width(screen, vec20.x, vec20.y, vec21.x, vec21.y, color, offzoom);
+    adl_line_draw_fix_width(screen, vec21.x, vec21.y, vec22.x, vec22.y, color, offzoom);
+    adl_line_draw_fix_width(screen, vec22.x, vec22.y, vec23.x, vec23.y, color, offzoom);
+    adl_line_draw_fix_width(screen, vec23.x, vec23.y, vec20.x, vec20.y, color, offzoom);
 }
 
-ADL_DEF struct Adl_Point adl_point_mult(struct Adl_Point point, adl_real x)
+ADL_DEF void adl_quad_draw_no_antialiasing(struct Adl_Pixel_Buffer screen, struct Adl_Vec2 vec20, struct Adl_Vec2 vec21, struct Adl_Vec2 vec22, struct Adl_Vec2 vec23, uint32_t color, struct Adl_Offset_Zoom offzoom)
 {
-    return (struct Adl_Point){
-        .x = point.x * x,
-        .y = point.y * x,
-        .z = point.z * x,
-        .w = point.w * x,
-    };
+    adl_line_draw_no_antialiasing(screen, vec20.x, vec20.y, vec21.x, vec21.y, color, offzoom);
+    adl_line_draw_no_antialiasing(screen, vec21.x, vec21.y, vec22.x, vec22.y, color, offzoom);
+    adl_line_draw_no_antialiasing(screen, vec22.x, vec22.y, vec23.x, vec23.y, color, offzoom);
+    adl_line_draw_no_antialiasing(screen, vec23.x, vec23.y, vec20.x, vec20.y, color, offzoom);
 }
 
-ADL_DEF struct Adl_Point adl_point_normalize(struct Adl_Point point)
+ADL_DEF void adl_quad_fill_flat_Pinedas_rasterizer(struct Adl_Pixel_Buffer screen, struct Adl_Vec2 vec20, struct Adl_Vec2 vec21, struct Adl_Vec2 vec22, struct Adl_Vec2 vec23, uint32_t color, struct Adl_Offset_Zoom offzoom)
 {
-    adl_real mag = adl_point_magnitude(point);
-    return (struct Adl_Point){
-        .x = point.x / mag,
-        .y = point.y / mag,
-        .z = point.z / mag,
-        .w = point.w / mag,
-    };
+    /* finding bounding box */
+    int x_min = (int)adl_min(vec20.x, adl_min(vec21.x, adl_min(vec22.x, vec23.x)));
+    int x_max = (int)adl_max(vec20.x, adl_max(vec21.x, adl_max(vec22.x, vec23.x)));
+    int y_min = (int)adl_min(vec20.y, adl_min(vec21.y, adl_min(vec22.y, vec23.y)));
+    int y_max = (int)adl_max(vec20.y, adl_max(vec21.y, adl_max(vec22.y, vec23.y)));
+
+    /* Clamp to screen bounds */
+    if (x_min < 0) x_min = 0;
+    if (y_min < 0) y_min = 0;
+    if (x_max >= (int)screen.cols) x_max = (int)screen.cols - 1;
+    if (y_max >= (int)screen.rows) y_max = (int)screen.rows - 1;
+
+    /* draw only outline of the tri if there is no area */
+    adl_real w = adl_edge_cross_vec2(vec20, vec21, vec21, vec22) + adl_edge_cross_vec2(vec22, vec23, vec23, vec20);
+    if (ADL_IS_ZERO(w)) {
+        return;
+    }
+
+    // adl_real size_vec23_to_vec20 = adl_sqrt((vec20.x - vec23.x)*(vec20.x - vec23.x) + (vec20.y - vec23.y)*(vec20.y - vec23.y));
+    // adl_real size_vec20_to_vec21 = adl_sqrt((vec21.x - vec20.x)*(vec21.x - vec20.x) + (vec21.y - vec20.y)*(vec21.y - vec20.y));
+    // adl_real size_vec21_to_vec22 = adl_sqrt((vec22.x - vec21.x)*(vec22.x - vec21.x) + (vec22.y - vec21.y)*(vec22.y - vec21.y));
+    // adl_real size_vec22_to_vec23 = adl_sqrt((vec23.x - vec22.x)*(vec23.x - vec22.x) + (vec23.y - vec22.y)*(vec23.y - vec22.y));
+
+    for (int y = y_min; y <= y_max; y++) {
+        for (int x = x_min; x <= x_max; x++) {
+            struct Adl_Vec2 vec2 = {.x = (adl_real)x, .y = (adl_real)y};
+            bool in_01, in_12, in_23, in_30;
+
+            in_01 = (adl_edge_cross_vec2(vec20, vec21, vec20, vec2) >= 0) != (w < 0);
+            in_12 = (adl_edge_cross_vec2(vec21, vec22, vec21, vec2) >= 0) != (w < 0);
+            in_23 = (adl_edge_cross_vec2(vec22, vec23, vec22, vec2) >= 0) != (w < 0);
+            in_30 = (adl_edge_cross_vec2(vec23, vec20, vec23, vec2) >= 0) != (w < 0);
+
+            // /* https://www.mn.uio.no/math/english/people/aca/michaelf/papers/mv3d.pdf. */
+            // adl_real size_vec2_to_vec20 = adl_sqrt((vec20.x - vec2.x)*(vec20.x - vec2.x) + (vec20.y - vec2.y)*(vec20.y - vec2.y));
+            // adl_real size_vec2_to_vec21 = adl_sqrt((vec21.x - vec2.x)*(vec21.x - vec2.x) + (vec21.y - vec2.y)*(vec21.y - vec2.y));
+            // adl_real size_vec2_to_vec22 = adl_sqrt((vec22.x - vec2.x)*(vec22.x - vec2.x) + (vec22.y - vec2.y)*(vec22.y - vec2.y));
+            // adl_real size_vec2_to_vec23 = adl_sqrt((vec23.x - vec2.x)*(vec23.x - vec2.x) + (vec23.y - vec2.y)*(vec23.y - vec2.y));
+
+            // /* tangent of half the angle directly using vector math */
+            // adl_real tan_theta_3_over_2 = size_vec23_to_vec20 / (size_vec2_to_vec23 + size_vec2_to_vec20);
+            // adl_real tan_theta_0_over_2 = size_vec20_to_vec21 / (size_vec2_to_vec20 + size_vec2_to_vec21);
+            // adl_real tan_theta_1_over_2 = size_vec21_to_vec22 / (size_vec2_to_vec21 + size_vec2_to_vec22);
+            // adl_real tan_theta_2_over_2 = size_vec22_to_vec23 / (size_vec2_to_vec22 + size_vec2_to_vec23);
+            // adl_real w0 = (tan_theta_3_over_2 + tan_theta_0_over_2) / size_vec2_to_vec20;
+            // adl_real w1 = (tan_theta_0_over_2 + tan_theta_1_over_2) / size_vec2_to_vec21;
+            // adl_real w2 = (tan_theta_1_over_2 + tan_theta_2_over_2) / size_vec2_to_vec22;
+            // adl_real w3 = (tan_theta_2_over_2 + tan_theta_3_over_2) / size_vec2_to_vec23;
+
+            // adl_real inv_w_tot = 1.0f / (w0 + w1 + w2 + w3);
+            // adl_real alpha = w0 * inv_w_tot;
+            // adl_real beta  = w1 * inv_w_tot;
+            // adl_real gamma = w2 * inv_w_tot;
+            // adl_real delta = w3 * inv_w_tot;
+
+            if (in_01 && in_12 && in_23 && in_30) {
+                adl_pixel_draw(screen, (adl_real)x, (adl_real)y, color, offzoom);
+            }
+        }
+    }
 }
 
-ADL_DEF void adl_point_print_imp(struct Adl_Point point, char *name, size_t padding)
+ADL_DEF void adl_quad_fill_flat_Pinedas_rasterizer_antialiasing(struct Adl_Pixel_Buffer screen, struct Adl_Vec2 vec20, struct Adl_Vec2 vec21, struct Adl_Vec2 vec22, struct Adl_Vec2 vec23, uint32_t color, struct Adl_Offset_Zoom offzoom)
 {
-    printf("\33[A\33[2K\r");
-    printf("%*.s%s: {.x = %g, .y = %g, .z = %g, .w = %g}\n", (int)padding, "", name, ADL_POINT_EXPEND_TO_XYZW(point));
-}
-
-ADL_DEF struct Adl_Point adl_point_rotate_around_point_XY(struct Adl_Point p, struct Adl_Point center, adl_real angle_deg)
-{
-    adl_real angle_rad = ADL_PI * angle_deg / 180;
-    struct Adl_Point diff = adl_point_sub_point(p, center);
-    struct Adl_Point rot_diff = {
-        .x = diff.x * adl_cos(angle_rad) - diff.y * adl_sin(angle_rad), 
-        .y = diff.x * adl_sin(angle_rad) + diff.y * adl_cos(angle_rad), 
-    };
-    return adl_point_add_point(center, rot_diff);
-}
-
-ADL_DEF struct Adl_Point adl_point_sub_point(struct Adl_Point p1, struct Adl_Point p2)
-{
-    return (struct Adl_Point){
-        .x = p1.x - p2.x,
-        .y = p1.y - p2.y,
-        .z = p1.z - p2.z,
-        .w = p1.w - p2.w,
-    };
+    adl_quad_fill_flat_Pinedas_rasterizer(screen, vec20, vec21, vec22, vec23, color, offzoom);
+    adl_quad_draw(screen, vec20, vec21, vec22, vec23, color, offzoom);
 }
 
 ADL_DEF void adl_rectangle_draw_min_max(struct Adl_Pixel_Buffer screen, adl_real min_x, adl_real max_x, adl_real min_y, adl_real max_y, uint32_t color, struct Adl_Offset_Zoom offzoom)
@@ -786,7 +758,7 @@ ADL_DEF void adl_rectangle_fill_min_max(struct Adl_Pixel_Buffer screen, adl_real
 {
     for (adl_real x = min_x; x <= max_x; x++) {
         for (adl_real y = min_y; y <= max_y; y++) {
-            adl_point_draw(screen, x, y, color, offzoom);
+            adl_pixel_draw(screen, x, y, color, offzoom);
         }
     }
 }
@@ -801,36 +773,36 @@ ADL_DEF uint32_t adl_rgba_to_hexargb(int r, int g, int b, int a)
     return (au << 24) | (ru << 16) | (gu << 8) | bu;
 }
 
-ADL_DEF void adl_tri_draw(struct Adl_Pixel_Buffer screen, struct Adl_Point p0, struct Adl_Point p1, struct Adl_Point p2, uint32_t color, struct Adl_Offset_Zoom offzoom)
+ADL_DEF void adl_tri_draw(struct Adl_Pixel_Buffer screen, struct Adl_Vec2 vec20, struct Adl_Vec2 vec21, struct Adl_Vec2 vec22, uint32_t color, struct Adl_Offset_Zoom offzoom)
 {
-    adl_line_draw(screen, p0.x, p0.y, p1.x, p1.y, color, offzoom);
-    adl_line_draw(screen, p1.x, p1.y, p2.x, p2.y, color, offzoom);
-    adl_line_draw(screen, p2.x, p2.y, p0.x, p0.y, color, offzoom);
+    adl_line_draw(screen, vec20.x, vec20.y, vec21.x, vec21.y, color, offzoom);
+    adl_line_draw(screen, vec21.x, vec21.y, vec22.x, vec22.y, color, offzoom);
+    adl_line_draw(screen, vec22.x, vec22.y, vec20.x, vec20.y, color, offzoom);
 }
 
-ADL_DEF void adl_tri_draw_fix_width(struct Adl_Pixel_Buffer screen, struct Adl_Point p0, struct Adl_Point p1, struct Adl_Point p2, uint32_t color, struct Adl_Offset_Zoom offzoom)
+ADL_DEF void adl_tri_draw_fix_width(struct Adl_Pixel_Buffer screen, struct Adl_Vec2 vec20, struct Adl_Vec2 vec21, struct Adl_Vec2 vec22, uint32_t color, struct Adl_Offset_Zoom offzoom)
 {
-    adl_line_draw_fix_width(screen, p0.x, p0.y, p1.x, p1.y, color, offzoom);
-    adl_line_draw_fix_width(screen, p1.x, p1.y, p2.x, p2.y, color, offzoom);
-    adl_line_draw_fix_width(screen, p2.x, p2.y, p0.x, p0.y, color, offzoom);
+    adl_line_draw_fix_width(screen, vec20.x, vec20.y, vec21.x, vec21.y, color, offzoom);
+    adl_line_draw_fix_width(screen, vec21.x, vec21.y, vec22.x, vec22.y, color, offzoom);
+    adl_line_draw_fix_width(screen, vec22.x, vec22.y, vec20.x, vec20.y, color, offzoom);
 }
 
-ADL_DEF void adl_tri_draw_no_antialiasing(struct Adl_Pixel_Buffer screen, struct Adl_Point p0, struct Adl_Point p1, struct Adl_Point p2, uint32_t color, struct Adl_Offset_Zoom offzoom)
+ADL_DEF void adl_tri_draw_no_antialiasing(struct Adl_Pixel_Buffer screen, struct Adl_Vec2 vec20, struct Adl_Vec2 vec21, struct Adl_Vec2 vec22, uint32_t color, struct Adl_Offset_Zoom offzoom)
 {
-    adl_line_draw_no_antialiasing(screen, p0.x, p0.y, p1.x, p1.y, color, offzoom);
-    adl_line_draw_no_antialiasing(screen, p1.x, p1.y, p2.x, p2.y, color, offzoom);
-    adl_line_draw_no_antialiasing(screen, p2.x, p2.y, p0.x, p0.y, color, offzoom);
+    adl_line_draw_no_antialiasing(screen, vec20.x, vec20.y, vec21.x, vec21.y, color, offzoom);
+    adl_line_draw_no_antialiasing(screen, vec21.x, vec21.y, vec22.x, vec22.y, color, offzoom);
+    adl_line_draw_no_antialiasing(screen, vec22.x, vec22.y, vec20.x, vec20.y, color, offzoom);
 }
 
-ADL_DEF void adl_tri_fill_flat_Pinedas_rasterizer(struct Adl_Pixel_Buffer screen, struct Adl_Point p0, struct Adl_Point p1, struct Adl_Point p2, uint32_t color, struct Adl_Offset_Zoom offzoom)
+ADL_DEF void adl_tri_fill_flat_Pinedas_rasterizer(struct Adl_Pixel_Buffer screen, struct Adl_Vec2 vec20, struct Adl_Vec2 vec21, struct Adl_Vec2 vec22, uint32_t color, struct Adl_Offset_Zoom offzoom)
 {
     /* This function follows the rasterizer of 'Pikuma' shown in his YouTube video. You can fine the video in this link: https://youtu.be/k5wtuKWmV48. */
 
     /* finding bounding box */
-    int x_min = (int)adl_min(p0.x, adl_min(p1.x, p2.x));
-    int x_max = (int)adl_max(p0.x, adl_max(p1.x, p2.x));
-    int y_min = (int)adl_min(p0.y, adl_min(p1.y, p2.y));
-    int y_max = (int)adl_max(p0.y, adl_max(p1.y, p2.y));
+    int x_min = (int)adl_min(vec20.x, adl_min(vec21.x, vec22.x));
+    int x_max = (int)adl_max(vec20.x, adl_max(vec21.x, vec22.x));
+    int y_min = (int)adl_min(vec20.y, adl_min(vec21.y, vec22.y));
+    int y_max = (int)adl_max(vec20.y, adl_max(vec21.y, vec22.y));
 
     /* Clamp to screen bounds */
     if (x_min < 0) x_min = 0;
@@ -839,34 +811,34 @@ ADL_DEF void adl_tri_fill_flat_Pinedas_rasterizer(struct Adl_Pixel_Buffer screen
     if (y_max >= (int)screen.rows) y_max = (int)screen.rows - 1;
 
     /* draw only outline of the tri if there is no area */
-    adl_real w = adl_edge_cross_point(p0, p1, p1, p2);
+    adl_real w = adl_edge_cross_vec2(vec20, vec21, vec21, vec22);
     if (ADL_IS_ZERO(w)) {
         return;
     }
 
     /* fill conventions */
-    int bias0 = adl_is_top_left(p0, p1) ? 0 : -1;
-    int bias1 = adl_is_top_left(p1, p2) ? 0 : -1;
-    int bias2 = adl_is_top_left(p2, p0) ? 0 : -1;
+    int bias0 = adl_is_top_left(vec20, vec21) ? 0 : -1;
+    int bias1 = adl_is_top_left(vec21, vec22) ? 0 : -1;
+    int bias2 = adl_is_top_left(vec22, vec20) ? 0 : -1;
 
     for (int y = y_min; y <= y_max; y++) {
         for (int x = x_min; x <= x_max; x++) {
-            struct Adl_Point p = {.x = (adl_real)x, .y = (adl_real)y};
-            adl_real w0 = adl_edge_cross_point(p0, p1, p0, p) + bias0;
-            adl_real w1 = adl_edge_cross_point(p1, p2, p1, p) + bias1;
-            adl_real w2 = adl_edge_cross_point(p2, p0, p2, p) + bias2;
+            struct Adl_Vec2 vec2 = {.x = (adl_real)x, .y = (adl_real)y};
+            adl_real w0 = adl_edge_cross_vec2(vec20, vec21, vec20, vec2) + bias0;
+            adl_real w1 = adl_edge_cross_vec2(vec21, vec22, vec21, vec2) + bias1;
+            adl_real w2 = adl_edge_cross_vec2(vec22, vec20, vec22, vec2) + bias2;
 
             if (w0 * w >= 0 && w1 * w >= 0 &&  w2 * w >= 0) {
-                adl_point_draw(screen, (adl_real)x, (adl_real)y, color, offzoom);
+                adl_pixel_draw(screen, (adl_real)x, (adl_real)y, color, offzoom);
             }
         }
     }
 }
 
-ADL_DEF void adl_tri_fill_flat_Pinedas_rasterizer_antialiasing(struct Adl_Pixel_Buffer screen, struct Adl_Point p0, struct Adl_Point p1, struct Adl_Point p2, uint32_t color, struct Adl_Offset_Zoom offzoom)
+ADL_DEF void adl_tri_fill_flat_Pinedas_rasterizer_antialiasing(struct Adl_Pixel_Buffer screen, struct Adl_Vec2 vec20, struct Adl_Vec2 vec21, struct Adl_Vec2 vec22, uint32_t color, struct Adl_Offset_Zoom offzoom)
 {
-    adl_tri_fill_flat_Pinedas_rasterizer(screen, p0, p1, p2, color, offzoom);
-    adl_tri_draw(screen, p0, p1, p2, color, offzoom);
+    adl_tri_fill_flat_Pinedas_rasterizer(screen, vec20, vec21, vec22, color, offzoom);
+    adl_tri_draw(screen, vec20, vec21, vec22, color, offzoom);
 }
 
 ADL_DEF uint8_t adl_u8_clamp_int(int x)
@@ -878,6 +850,69 @@ ADL_DEF uint8_t adl_u8_clamp_int(int x)
         return 255;
     }
     return (uint8_t)x;
+}
+
+ADL_DEF struct Adl_Vec2 adl_vec2_add_vec2(struct Adl_Vec2 vec21, struct Adl_Vec2 vec22)
+{
+    return (struct Adl_Vec2){
+        .x = vec21.x + vec22.x,
+        .y = vec21.y + vec22.y,
+    };
+}
+
+ADL_DEF struct Adl_Vec2 adl_vec2_get_from_xy(adl_real x, adl_real y)
+{
+    return (struct Adl_Vec2){
+        .x = x,
+        .y = y
+    };
+}
+
+ADL_DEF adl_real adl_vec2_magnitude(struct Adl_Vec2 vec2)
+{
+    return adl_sqrt((vec2.x) * (vec2.x) + (vec2.y) * (vec2.y));
+}
+
+ADL_DEF struct Adl_Vec2 adl_vec2_mult(struct Adl_Vec2 vec2, adl_real x)
+{
+    return (struct Adl_Vec2){
+        .x = vec2.x * x,
+        .y = vec2.y * x,
+    };
+}
+
+ADL_DEF struct Adl_Vec2 adl_vec2_normalize(struct Adl_Vec2 vec2)
+{
+    adl_real mag = adl_vec2_magnitude(vec2);
+    return (struct Adl_Vec2){
+        .x = vec2.x / mag,
+        .y = vec2.y / mag,
+    };
+}
+
+ADL_DEF void adl_vec2_print_imp(struct Adl_Vec2 vec2, char *name, size_t padding)
+{
+    printf("\33[A\33[2K\r");
+    printf("%*.s%s: {.x = %g, .y = %g}\n", (int)padding, "", name, ADL_VEC2_EXPEND_TO_XY(vec2));
+}
+
+ADL_DEF struct Adl_Vec2 adl_vec2_rotate_around_vec2_XY(struct Adl_Vec2 vec2, struct Adl_Vec2 center, adl_real angle_deg)
+{
+    adl_real angle_rad = ADL_PI * angle_deg / 180;
+    struct Adl_Vec2 diff = adl_vec2_sub_vec2(vec2, center);
+    struct Adl_Vec2 rot_diff = {
+        .x = diff.x * adl_cos(angle_rad) - diff.y * adl_sin(angle_rad), 
+        .y = diff.x * adl_sin(angle_rad) + diff.y * adl_cos(angle_rad), 
+    };
+    return adl_vec2_add_vec2(center, rot_diff);
+}
+
+ADL_DEF struct Adl_Vec2 adl_vec2_sub_vec2(struct Adl_Vec2 vec21, struct Adl_Vec2 vec22)
+{
+    return (struct Adl_Vec2){
+        .x = vec21.x - vec22.x,
+        .y = vec21.y - vec22.y,
+    };
 }
 
 
