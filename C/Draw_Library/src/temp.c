@@ -48,23 +48,14 @@ enum Apl_Return_Types apl_render(struct Apl_Window_State *ws)
 {
     struct Adl_Pixel_Buffer pixels = apl_pixel_buffer_as_adl_pixel_buffer(ws->window_pixels_mat);
 
+    adl_real x = 200, y = 200, r = 150;
 
-    struct Adl_Vec2 vec20 = {.x = 200, .y = 100};
-    struct Adl_Vec2 vec24 = {.x = 300, .y = 110};
-    struct Adl_Vec2 vec25 = {.x = 460, .y = 140};
-    struct Adl_Vec2 vec21 = {.x = 500, .y = 250};
-    struct Adl_Vec2 vec26 = {.x = 460, .y = 360};
-    struct Adl_Vec2 vec27 = {.x = 400, .y = 380};
-    struct Adl_Vec2 vec22 = {.x = 340, .y = 300};
-    struct Adl_Vec2 vec23 = {.x = 100, .y = 200};
+    for (size_t i = 0; i < 500; i++) {
+        // adl_circle_fill(pixels, x, y, r, ADL_COLOR_WHITE_hexARGB, offzoom);
+        adl_circle_fill_v2(pixels, x + 3 * r, y, r, ADL_COLOR_WHITE_hexARGB, offzoom);
+    }
 
-    adl_quad_fill_flat_Pinedas_rasterizer(pixels, vec20, vec21, vec22, vec23, ADL_COLOR_WHITE_hexARGB, offzoom);
-
-    if (!ws->buttons.space_bar_is_pressed) adl_quad_fill_flat_Pinedas_rasterizer(pixels, vec20, vec24, vec25, vec21, ADL_COLOR_RED_hexARGB, offzoom);
-    if (!ws->buttons.space_bar_is_pressed) adl_quad_fill_flat_Pinedas_rasterizer(pixels, vec21, vec26, vec27, vec22, ADL_COLOR_RED_hexARGB, offzoom);
-
-    adl_quad_draw_fix_width(pixels, vec20, vec21, vec22, vec23, ADL_COLOR_BLACK_hexARGB, offzoom);
-
+    ws->running = false;
     return APL_SUCCESS;
 }
 
