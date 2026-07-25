@@ -100,13 +100,6 @@ struct Aml_Mat2d_uint32 {
     uint32_t *elements;
 };
 
-#define AML_MAT2D_AT(m, i, j) (m).elements[(AML_ASSERT((i) < (m).rows && (j) < (m).cols), (i) * (m).stride_r + (j))]
-#define AML_PI 3.14159265358979323846
-#define aml_min(a, b) ((a) < (b) ? (a) : (b))
-#define aml_max(a, b) ((a) > (b) ? (a) : (b))
-#define AML_IS_ZERO(x) (aml_fabs(x) < AML_EPS)
-#define AML_MINOR_AT(mm, i, j) AML_MAT2D_AT((mm).ref_mat, (mm).rows_list[i], (mm).cols_list[j])
-#define AML_UNUSED(x) (void)x
 /**
  * @name Debug-print helpers
  * @brief Convenience macros for diagnostic output.
@@ -182,13 +175,29 @@ struct Aml_Mat2d_uint32 {
  */
 #define aml_dprintERROR(fmt, ...) \
     fprintf(stderr, "[Error] %s:%d:\n%*sIn function '%s':\n%*s" fmt "\n", __FILE__, __LINE__, 8, "", __func__, 8, "", __VA_ARGS__)
+
 #define AML_PRINT(m) aml_dprintINFO("%s", ""); printf("\33[A\33[2K\r"); aml_print(m, #m, 7)
 
-    // 
+#define AML_MAT2D_AT(m, i, j) (m).elements[(AML_ASSERT((i) < (m).rows && (j) < (m).cols), (i) * (m).stride_r + (j))]
+#define AML_PI 3.14159265358979323846
+#define aml_min(a, b) ((a) < (b) ? (a) : (b))
+#define aml_max(a, b) ((a) > (b) ? (a) : (b))
+#define AML_IS_ZERO(x) (aml_fabs(x) < AML_EPS)
+#define AML_MINOR_AT(mm, i, j) AML_MAT2D_AT((mm).ref_mat, (mm).rows_list[i], (mm).cols_list[j])
+#define AML_UNUSED(x) (void)x
+
 #define AML_PRINT_UINT32(m) aml_print_uint32(m, #m, 0)
 #define AML_PRINT_AS_COL(m) aml_print_as_col(m, #m, 0)
 #define AML_MINOR_PRINT(mm) aml_minor_print(mm, #mm, 0)
 
+#define AML_MAT2D_DECLARE_LOCAL(name, rows_, cols_) \
+    aml_real name##_storage[(rows_) * (cols_)];     \
+    struct Aml_Mat2d name = {                       \
+        .rows = (rows_),                            \
+        .cols = (cols_),                            \
+        .stride_r = (cols_),                        \
+        .elements = &((name##_storage)[0])          \
+    }
 
 #ifndef AML_DEF
     #ifdef AML_DEF_STATIC
@@ -247,6 +256,7 @@ AML_DEF void                    aml_make_tridiagonal(struct Aml_Mat2d m);
 AML_DEF void                    aml_make_upper_hessenberg_range(struct Aml_Mat2d m, size_t start, size_t end);
 AML_DEF struct Aml_Mat2d        aml_mat2d_alloc(size_t rows, size_t cols);
 AML_DEF void                    aml_mat2d_free(struct Aml_Mat2d m);
+AML_DEF struct Aml_Mat2d        aml_mat2d_get_from_array(aml_real array[], size_t rows, size_t cols);
 AML_DEF struct Aml_Mat2d_uint32 aml_mat2d_uint32_alloc(size_t rows, size_t cols);
 AML_DEF void                    aml_mat2d_uint32_free(struct Aml_Mat2d_uint32 m);
 AML_DEF bool                    aml_mat2d_is_all_the_same(struct Aml_Mat2d m, aml_real number);
@@ -1281,6 +1291,18 @@ AML_DEF struct Aml_Mat2d aml_mat2d_alloc(size_t rows, size_t cols)
 AML_DEF void aml_mat2d_free(struct Aml_Mat2d m)
 {
     AML_FREE(m.elements);
+}
+
+AML_DEF struct Aml_Mat2d aml_mat2d_get_from_array(aml_real array[], size_t rows, size_t cols)
+{
+    struct Aml_Mat2d m = {
+        .rows = (rows),
+        .cols = (cols),
+        .stride_r = (cols),
+        .elements = &(array[0])
+    };
+    
+    return m;
 }
 
 /**
