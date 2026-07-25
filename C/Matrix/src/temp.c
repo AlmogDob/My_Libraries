@@ -5,10 +5,13 @@
 
 int main(void)
 {
-    size_t n = 1000;
-    struct Aml_Mat2d A = aml_mat2d_alloc(n, n);
-    struct Aml_Mat2d B = aml_mat2d_alloc(n, n);
-    struct Aml_Mat2d C = aml_mat2d_alloc(n, n);
+    #define n  100
+    // struct Aml_Mat2d A = aml_mat2d_alloc(n, n);
+    // struct Aml_Mat2d B = aml_mat2d_alloc(n, n);
+    // struct Aml_Mat2d C = aml_mat2d_alloc(n, n);
+    AML_MAT2D_DECLARE_LOCAL(A, n, n);
+    AML_MAT2D_DECLARE_LOCAL(B, n, n);
+    AML_MAT2D_DECLARE_LOCAL(C, n, n);
 
     aml_fill(A, 1);
     aml_fill(B, 1);
