@@ -248,25 +248,53 @@ ADL_DEF void adl_arrows_draw_loop(struct Adl_Pixel_Buffer screen, struct Adl_Vec
 
 ADL_DEF void adl_circle_draw(struct Adl_Pixel_Buffer screen, adl_real center_x, adl_real center_y, adl_real r, uint32_t color, struct Adl_Offset_Zoom offzoom)
 {
-    for (adl_real dy = -r; dy <= r; dy+=1) {
-        for (adl_real dx = -r; dx <= r; dx+=1) {
-            adl_real diff = dx * dx + dy * dy - r * r;
-            if (diff < 0 && diff > -r*2) {
-                adl_pixel_draw(screen, center_x + dx, center_y + dy, color, offzoom);
-            }
+    adl_real x = 0, y = -r, p = -r;
+    while (x < -y) {
+        if (p > 0) {
+            y += 1;
+            p += 2 * (x + y) + 1;
+        } else {
+            p += 2 * x + 1;
         }
+
+        adl_pixel_draw(screen, center_x + x, center_y + y, color, offzoom);
+        adl_pixel_draw(screen, center_x - x, center_y + y, color, offzoom);
+        adl_pixel_draw(screen, center_x + x, center_y - y, color, offzoom);
+        adl_pixel_draw(screen, center_x - x, center_y - y, color, offzoom);
+        adl_pixel_draw(screen, center_x + y, center_y + x, color, offzoom);
+        adl_pixel_draw(screen, center_x - y, center_y + x, color, offzoom);
+        adl_pixel_draw(screen, center_x + y, center_y - x, color, offzoom);
+        adl_pixel_draw(screen, center_x - y, center_y - x, color, offzoom);
+
+        x += 1;
     }
 }
 
 ADL_DEF void adl_circle_fill(struct Adl_Pixel_Buffer screen, adl_real center_x, adl_real center_y, adl_real r, uint32_t color, struct Adl_Offset_Zoom offzoom)
 {
-    for (adl_real dy = -r; dy <= r; dy+=1) {
-        for (adl_real dx = -r; dx <= r; dx+=1) {
-            adl_real diff = dx * dx + dy * dy - r * r;
-            if (diff < 0) {
-                adl_pixel_draw(screen, center_x + dx, center_y + dy, color, offzoom);
-            }
+    adl_real x = 0, y = -r, p = -r;
+    while (x < -y) {
+        if (p > 0) {
+            y += 1;
+            p += 2 * (x + y) + 1;
+            // adl_pixel_draw(screen, center_x + x, center_y + y, color, offzoom);
+            // adl_pixel_draw(screen, center_x - x, center_y + y, color, offzoom);
+            adl_line_draw_no_antialiasing(screen, center_x + x, center_y + y, center_x - x, center_y + y, color, offzoom);
+            // adl_pixel_draw(screen, center_x + x, center_y - y, color, offzoom);
+            // adl_pixel_draw(screen, center_x - x, center_y - y, color, offzoom);
+            adl_line_draw_no_antialiasing(screen, center_x + x, center_y - y, center_x - x, center_y - y, color, offzoom);
+        } else {
+            p += 2 * x + 1;
         }
+
+        // adl_pixel_draw(screen, center_x + y, center_y + x, color, offzoom);
+        // adl_pixel_draw(screen, center_x - y, center_y + x, color, offzoom);
+        adl_line_draw_no_antialiasing(screen, center_x + y, center_y + x, center_x - y, center_y + x, color, offzoom);
+        // adl_pixel_draw(screen, center_x + y, center_y - x, color, offzoom);
+        // adl_pixel_draw(screen, center_x - y, center_y - x, color, offzoom);
+        adl_line_draw_no_antialiasing(screen, center_x + y, center_y - x, center_x - y, center_y - x, color, offzoom);
+
+        x += 1;
     }
 }
 
