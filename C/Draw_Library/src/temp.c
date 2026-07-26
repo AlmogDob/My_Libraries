@@ -50,12 +50,8 @@ enum Apl_Return_Types apl_render(struct Apl_Window_State *ws)
 
     adl_real x = 200, y = 200, r = 150;
 
-    for (size_t i = 0; i < 500; i++) {
-        // adl_circle_fill(pixels, x, y, r, ADL_COLOR_WHITE_hexARGB, offzoom);
-        adl_circle_fill_v2(pixels, x + 3 * r, y, r, ADL_COLOR_WHITE_hexARGB, offzoom);
-    }
+    adl_circle_fill(pixels, x, y, r, ADL_COLOR_WHITE_hexARGB, offzoom);
 
-    ws->running = false;
     return APL_SUCCESS;
 }
 

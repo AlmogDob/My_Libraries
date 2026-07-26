@@ -18,8 +18,6 @@
 #include <limits.h>
 #include <math.h>
 
-#include "./Almog_Dynamic_Array.h"
-
 #if defined(ADL_SINGLE_PRECISION)
     typedef float adl_real_type;
     #define ADL_EPS   1e-5f
