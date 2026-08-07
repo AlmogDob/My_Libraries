@@ -19,3 +19,4 @@ I looked at a lot of YouTube videos and books, and I tried to give recognition.
 | Path                | Almog_Path_Manipulation.h   | APM     |
 | PNG                 | Almog_PNG.h                 | APNG    |
 | String_Manipulation | Almog_String_Manipulation.h | ASM     |
+| Text_Rendering      | Almog_Text_Rendering.h      | ATR     |
