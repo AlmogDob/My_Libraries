@@ -1633,8 +1633,6 @@ int main(void)
     if (rt == APL_FAIL) {
         apl_dprintERROR("%s", "failed to preform window setup");
         window_state.running = false;
-    } else {
-        window_state.running = true;
     }
 
     MSG message;

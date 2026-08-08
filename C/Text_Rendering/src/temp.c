@@ -56,6 +56,17 @@ enum Apl_Return_Types apl_setup(struct Apl_Window_State *ws)
     offzoom = ADL_DEFAULT_OFFSET_ZOOM;
 
 
+    struct Atr_Font font = {0};
+    char font_file_name[] = "../src/fonts/Inconsolata-Regular.ttf";
+    if (ATR_FAIL == atr_font_load_from_file_name(&font, font_file_name)) {
+        atr_dprintERROR("Failed to load font from file '%s'.", font_file_name);
+    }
+
+
+
+
+    ws->running = false;
+
     return APL_SUCCESS;
 }
 
