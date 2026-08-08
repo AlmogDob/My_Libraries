@@ -77,13 +77,6 @@ struct Adl_Pixel_Buffer {
     uint32_t *elements;
 };
 
-struct Adl_Depth_Buffer {
-    size_t rows;
-    size_t cols;
-    size_t stride_r;
-    adl_real *elements;
-};
-
 #define adl_dprintSTRING(expr) printf("[Info] %s:%d:\n%*s" #expr " = %s\n", __FILE__, __LINE__, 7, "", expr)
 #define adl_dprintCHAR(expr) printf("[Info] %s:%d:\n%*s" #expr " = %c\n", __FILE__, __LINE__, 7, "", expr)
 #define adl_dprintINT(expr) printf("[Info] %s:%d:\n%*s" #expr " = %d\n", __FILE__, __LINE__, 7, "", expr)
@@ -184,7 +177,7 @@ ADL_DEF void                adl_vec2_print_imp(struct Adl_Vec2 vec2, char *name,
 ADL_DEF struct Adl_Vec2     adl_vec2_rotate_around_vec2_XY(struct Adl_Vec2 vec2, struct Adl_Vec2 center, adl_real angle_deg);
 ADL_DEF struct Adl_Vec2     adl_vec2_sub_vec2(struct Adl_Vec2 vec21, struct Adl_Vec2 vec22);
 
-#endif /*ALMOG_RENDER_SHAPES_H_*/
+#endif /*ALMOG_DRAW_LIBRARY_H_*/
 
 #ifdef ALMOG_DRAW_LIBRARY_IMPLEMENTATION
 #undef ALMOG_DRAW_LIBRARY_IMPLEMENTATION
