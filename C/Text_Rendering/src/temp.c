@@ -6,12 +6,35 @@
 #define APL_UPDATE
 #define APL_RENDER
 
+#define ALMOG_TEXT_RENDERING_IMPLEMENTATION
+#include "includes/Almog_Text_Rendering.h"
+
 #define ALMOG_DRAW_LIBRARY_IMPLEMENTATION
 #include "includes/Almog_Draw_Library.h"
 
 #define ALMOG_PLATFORM_LIBRARY_IMPLEMENTATION
 #include "includes/Almog_Platform_Library.h"
 
+struct Atr_Pixel_Buffer adl_pixel_buffer_as_atr_pixel_buffer(struct Adl_Pixel_Buffer adl_b) 
+{
+    struct Atr_Pixel_Buffer atr_b = {
+        .cols = adl_b.cols,
+        .rows = adl_b.rows,
+        .stride_r = adl_b.stride_r,
+        .elements = adl_b.elements,
+    };
+
+    return atr_b;
+}
+
+struct Atr_Offset_Zoom adl_offset_zoom_to_atr_offset_zoom(struct Adl_Offset_Zoom adl_offzoom)
+{
+    return (struct Atr_Offset_Zoom){
+        .offset_x = adl_offzoom.offset_x,
+        .offset_y = adl_offzoom.offset_y,
+        .zoom_multiplier = adl_offzoom.zoom_multiplier,
+    };
+}
 
 struct Adl_Pixel_Buffer apl_pixel_buffer_as_adl_pixel_buffer(struct Apl_Pixel_Buffer apl_b) 
 {
