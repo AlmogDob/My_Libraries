@@ -27,7 +27,6 @@
  *   - These are macros; arguments may be evaluated multiple times. Pass only
  *     simple lvalues (no side effects).
  *   - Index checks rely on ADA_ASSERT; with NDEBUG they may be compiled out.
- *   - ada_resize exits the process (exit(1)) if reallocation fails.
  *   - ada_insert reads header.elements[header.length - 1] internally; inserting
  *     into an empty array via ada_insert is undefined behavior. Use
  *     ada_append or ada_insert_unordered for that case.
@@ -73,11 +72,6 @@
 #include <stdlib.h>
 #define ADA_MALLOC malloc
 #endif /*ADA_MALLOC*/
-
-#ifndef ADA_EXIT
-#include <stdlib.h>
-#define ADA_EXIT exit
-#endif /*ADA_EXIT*/
 
 /**
  * @def ADA_REALLOC
@@ -128,9 +122,7 @@
         (header).capacity = ADA_INIT_CAPACITY;                                      \
         (header).length = 0;                                                        \
         (header).elements = (type *)ADA_MALLOC(sizeof(type) * (header).capacity);   \
-        if ((header).elements == NULL) {                                            \
-            ADA_EXIT(1);                                                            \
-        }                                                                           \
+        ADA_ASSERT((header).elements != NULL);                                      \
     } while (0)
 
     /**
@@ -146,17 +138,14 @@
  * @post header.capacity == new_capacity and header.elements points to a block
  *       large enough for new_capacity elements.
  *
- * @warning On allocation failure, this macro calls ADA_EXIT(1).
  * @note Reallocation uses ADA_REALLOC and is also checked via ADA_ASSERT.
  */
-#define ada_resize(type, header, new_capacity) do {                                                         \
-        type *ada_temp_pointer = (type *)ADA_REALLOC((void *)((header).elements), new_capacity*sizeof(type)); \
-        if (ada_temp_pointer == NULL) {                                                                     \
-            ADA_EXIT(1);                                                                                        \
-        }                                                                                                   \
-        (header).elements = ada_temp_pointer;                                                                 \
-        ADA_ASSERT((header).elements != NULL);                                                                \
-        (header).capacity = new_capacity;                                                                     \
+#define ada_resize(type, header, new_capacity) do {                                                             \
+        type *ada_temp_pointer = (type *)ADA_REALLOC((void *)((header).elements), new_capacity*sizeof(type));   \
+        ADA_ASSERT(ada_temp_pointer != NULL);                                                                   \
+        (header).elements = ada_temp_pointer;                                                                   \
+        ADA_ASSERT((header).elements != NULL);                                                                  \
+        (header).capacity = new_capacity;                                                                       \
     } while (0)
 
 /**
@@ -175,12 +164,12 @@
  *       manually shrink capacity. Ensure growth always increases capacity by
  *       at least 1 if you customize this macro.
  */
-#define ada_append(type, header, value) do {                                            \
+#define ada_append(type, header, value) do {                                                \
         if ((header).length >= (header).capacity) {                                         \
-            ada_resize(type, (header), (int)((header).capacity + (header).capacity/2 + 1));   \
-        }                                                                               \
+            ada_resize(type, (header), (int)((header).capacity + (header).capacity/2 + 1)); \
+        }                                                                                   \
         (header).elements[(header).length] = value;                                         \
-        (header).length++;                                                                \
+        (header).length++;                                                                  \
     } while (0)
 
 /**
