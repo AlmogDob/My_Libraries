@@ -6,14 +6,16 @@
 #define APL_UPDATE
 #define APL_RENDER
 
-#define ALMOG_TEXT_RENDERING_IMPLEMENTATION
-#include "includes/Almog_Text_Rendering.h"
+#define ALMOG_PLATFORM_LIBRARY_IMPLEMENTATION
+#include "includes/Almog_Platform_Library.h"
 
+#define ADL_ASSERT APL_ASSERT
 #define ALMOG_DRAW_LIBRARY_IMPLEMENTATION
 #include "includes/Almog_Draw_Library.h"
 
-#define ALMOG_PLATFORM_LIBRARY_IMPLEMENTATION
-#include "includes/Almog_Platform_Library.h"
+#define ATR_ASSERT APL_ASSERT
+#define ALMOG_TEXT_RENDERING_IMPLEMENTATION
+#include "includes/Almog_Text_Rendering.h"
 
 struct Atr_Pixel_Buffer adl_pixel_buffer_as_atr_pixel_buffer(struct Adl_Pixel_Buffer adl_b) 
 {

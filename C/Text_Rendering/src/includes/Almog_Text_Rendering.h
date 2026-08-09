@@ -14,6 +14,116 @@
 #include <stdbool.h>
 #include <math.h>
 
+#ifndef ATR_ASSERT
+    #include <assert.h>
+    #define ATR_ASSERT assert
+#endif
+#ifndef ATR_MALLOC
+    #include <stdlib.h>
+    #define ATR_MALLOC malloc
+#endif
+#ifndef ATR_FREE
+    #include <stdlib.h>
+    #define ATR_FREE free
+#endif
+#ifndef ATR_REALLOC
+    #include <stdlib.h>
+    #define ATR_REALLOC realloc
+#endif
+
+/*{*/
+    /* For explanation see https://github.com/AlmogDob/My_Libraries/tree/master/C/Dynamic_Array*/
+
+    #ifndef ATR_ADA_INIT_CAPACITY
+    #define ATR_ADA_INIT_CAPACITY 10
+    #endif /*ATR_ADA_INIT_CAPACITY*/
+
+    #ifndef ATR_ADA_MALLOC
+    #define ATR_ADA_MALLOC ATR_MALLOC
+    #endif /*ATR_ADA_MALLOC*/
+
+    #ifndef ATR_ADA_REALLOC
+    #define ATR_ADA_REALLOC ATR_REALLOC
+    #endif /*ATR_ADA_REALLOC*/
+
+    #ifndef ATR_ADA_ASSERT
+    #define ATR_ADA_ASSERT ATR_ASSERT
+    #endif /*ATR_ADA_ASSERT*/
+
+    /* typedef struct {
+        size_t length;
+        size_t capacity;
+        int* elements;
+    } atr_ada_int_array; */
+
+    #define atr_ada_init_array(type, header) do {                                               \
+            (header).capacity = ATR_ADA_INIT_CAPACITY;                                          \
+            (header).length = 0;                                                                \
+            (header).elements = (type *)ATR_ADA_MALLOC(sizeof(type) * (header).capacity);       \
+            ATR_ADA_ASSERT((header).elements != NULL);                                          \
+        } while (0)
+
+    #define atr_ada_resize(type, header, new_capacity) do {                                                                 \
+            type *atr_ada_temp_pointer = (type *)ATR_ADA_REALLOC((void *)((header).elements), new_capacity*sizeof(type));   \
+            ATR_ADA_ASSERT(atr_ada_temp_pointer != NULL);                                                                   \
+            (header).elements = atr_ada_temp_pointer;                                                                       \
+            ATR_ADA_ASSERT((header).elements != NULL);                                                                      \
+            (header).capacity = new_capacity;                                                                               \
+        } while (0)
+
+    #define atr_ada_append(type, header, value) do {                                                \
+            if ((header).length >= (header).capacity) {                                             \
+                atr_ada_resize(type, (header), (int)((header).capacity + (header).capacity/2 + 1)); \
+            }                                                                                       \
+            (header).elements[(header).length] = value;                                             \
+            (header).length++;                                                                      \
+        } while (0)
+
+    #define atr_ada_insert(type, header, value, index) do {                                                                             \
+        ATR_ADA_ASSERT((int)(index) >= 0);                                                                                              \
+        ATR_ADA_ASSERT((float)(index) - (int)(index) == 0);                                                                             \
+        ATR_ADA_ASSERT((header).length > 0 && "You can not insert to an empty array.");                                                 \
+        ATR_ADA_ASSERT(index <= (header).length);                                                                                       \
+        atr_ada_append(type, (header), (header).elements[(header).length-1]);                                                           \
+        for (int atr_ada_for_loop_index = (int)((header).length)-2; atr_ada_for_loop_index > (int)(index); atr_ada_for_loop_index--) {  \
+            (header).elements[atr_ada_for_loop_index] = (header).elements [atr_ada_for_loop_index-1];                                   \
+        }                                                                                                                               \
+        (header).elements[(index)] = value;                                                                                             \
+    } while (0)
+
+    #define atr_ada_insert_unordered(type, header, value, index) do {   \
+        ATR_ADA_ASSERT((int)(index) >= 0);                              \
+        ATR_ADA_ASSERT((float)(index) - (int)(index) == 0);             \
+        ATR_ADA_ASSERT(index <= (header).length);                       \
+        if ((size_t)(index) == (header).length) {                       \
+            atr_ada_append(type, (header), value);                      \
+        } else {                                                        \
+            atr_ada_append(type, (header), (header).elements[(index)]); \
+            (header).elements[(index)] = value;                         \
+        }                                                               \
+    } while (0)
+
+    #define atr_ada_remove(type, header, index) do {                                                                            \
+        ATR_ADA_ASSERT((int)(index) >= 0);                                                                                      \
+        ATR_ADA_ASSERT((header).length > 0 && "You can not remove from an empty array.");                                       \
+        ATR_ADA_ASSERT((float)(index) - (int)(index) == 0);                                                                     \
+        ATR_ADA_ASSERT(index < (header).length);                                                                                \
+        for (size_t atr_ada_for_loop_index = (index); atr_ada_for_loop_index < (header).length-1; atr_ada_for_loop_index++) {   \
+            (header).elements[atr_ada_for_loop_index] = (header).elements[atr_ada_for_loop_index+1];                            \
+        }                                                                                                                       \
+        (header).length--;                                                                                                      \
+    } while (0)
+
+    #define atr_ada_remove_unordered(type, header, index) do {                              \
+        ATR_ADA_ASSERT((int)(index) >= 0);                                                  \
+        ATR_ADA_ASSERT((header).length > 0 && "You can not remove from an empty array.");   \
+        ATR_ADA_ASSERT(index < (header).length);                                            \
+        ATR_ADA_ASSERT((float)(index) - (int)(index) == 0);                                 \
+        (header).elements[index] = (header).elements[(header).length-1];                    \
+        (header).length--;                                                                  \
+    } while (0)
+/*}*/
+
 #ifndef atr_real
     #if defined(ATR_SINGLE_PRECISION)
         typedef float atr_real_type;
@@ -45,18 +155,6 @@
 
 #ifndef ATR_PI
     #define ATR_PI (atr_real)3.14159265358979323846
-#endif
-#ifndef ATR_ASSERT
-    #include <assert.h>
-    #define ATR_ASSERT assert
-#endif
-#ifndef ATR_MALLOC
-    #include <stdlib.h>
-    #define ATR_MALLOC malloc
-#endif
-#ifndef ATR_FREE
-    #include <stdlib.h>
-    #define ATR_FREE free
 #endif
 
 enum Atr_Return_Types {
@@ -110,9 +208,56 @@ struct Atr_Table_Header {
     uint32_t length;
 };
 
+struct Atr_Table_cmap {
+    struct Atr_Table_Header header;
+};
+
+struct Atr_Table_glyf {
+    struct Atr_Table_Header header;
+};
+
+struct Atr_Table_head {
+    struct Atr_Table_Header header;
+};
+
+struct Atr_Table_hhea {
+    struct Atr_Table_Header header;
+};
+
+struct Atr_Table_hmtx {
+    struct Atr_Table_Header header;
+};
+
+struct Atr_Table_loca {
+    struct Atr_Table_Header header;
+};
+
+struct Atr_Table_maxp {
+    struct Atr_Table_Header header;
+};
+
+struct Atr_Table_name {
+    struct Atr_Table_Header header;
+};
+
+struct Atr_Table_post {
+    struct Atr_Table_Header header;
+};
+
 struct Atr_Font {
     struct Atr_Byte_String file;
     struct Atr_Offset_Subtable offset_subtable;
+    struct {
+        struct Atr_Table_cmap cmap;
+        struct Atr_Table_glyf glyf;
+        struct Atr_Table_head head;
+        struct Atr_Table_hhea hhea;
+        struct Atr_Table_hmtx hmtx;
+        struct Atr_Table_loca loca;
+        struct Atr_Table_maxp maxp;
+        struct Atr_Table_name name;
+        struct Atr_Table_post post;
+    } tables;
 };
 
 #define atr_dprintSTRING(expr) printf("[Info] %s:%d:\n%*s" #expr " = %s\n", __FILE__, __LINE__, 7, "", expr)
@@ -307,7 +452,6 @@ ATR_DEF struct Atr_Byte_String atr_byte_string_get_from_binary_file_name(char *f
     }
 
     return atr_byte_string_get_from_binary_file_pointer(fp, file_name);
-
 }
 
 ATR_DEF struct Atr_Byte_String atr_byte_string_get_from_binary_file_pointer(FILE *fp, char *file_name)
@@ -463,7 +607,11 @@ ATR_DEF enum Atr_Return_Types atr_offset_subtable_parse(struct Atr_Font *font)
                 atr_dprintERROR("%s", "Font type recognized as an OpenType font with PostScript outlines. This type is not supported.");
                 return ATR_FAIL;
             }
-            atr_dprintERROR("%s", "Font type not recognized. Only supports TrueType fonts.");
+            {
+                atr_dprintERROR("Font type not recognized. Only supports TrueType fonts.\n%*.sGot:", 8, "");
+                printf("%*.s", 8, ""); atr_uint32_print_hex_imp(font->offset_subtable.scaler_type, 32);
+                printf("%*.sExpected\n%*.s0xtrue or 0x00010000.\n", 8, "", 8, "");
+            }
             return ATR_FAIL;
     }
 
