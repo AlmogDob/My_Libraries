@@ -218,6 +218,25 @@ struct Atr_Table_glyf {
 
 struct Atr_Table_head {
     struct Atr_Table_Header header;
+    uint16_t version_hole_part;
+    uint16_t version_frac_part;
+    uint16_t fontRevision_hole_part;
+    uint16_t fontRevision_frac_part;
+    uint32_t checkSumAdjustment;
+    uint32_t magicNumber;
+    uint16_t flags;
+    uint16_t unitsPerEm;
+    uint64_t created;
+    uint64_t modified;
+    int16_t  xMin;
+    int16_t  yMin;
+    int16_t  xMax;
+    int16_t  yMax;
+    uint16_t macStyle;
+    uint16_t lowestRecPPEM;
+    int16_t  fontDirectionHint;
+    int16_t  indexToLocFormat;
+    int16_t  glyphDataFormat;
 };
 
 struct Atr_Table_hhea {
@@ -310,8 +329,10 @@ ATR_DEF enum Atr_Return_Types   atr_font_load_from_file_name(struct Atr_Font *fo
 
 ATR_DEF enum Atr_Return_Types   atr_offset_subtable_parse(struct Atr_Font *font);
 
-ATR_DEF uint32_t                atr_table_checksum_calc(uint32_t *table, uint32_t length_bytes);
+ATR_DEF uint32_t                atr_table_checkSum_calc(const uint8_t *bytes, size_t length, size_t zero_begin, size_t zero_end);
 ATR_DEF struct Atr_Table_Header atr_table_header_parse(struct Atr_Font *font, size_t offset);
+ATR_DEF enum Atr_Return_Types   atr_table_header_verify_checksum(struct Atr_Font *font, struct Atr_Table_Header header, uint8_t checkSumAdjustment_offset);
+ATR_DEF enum Atr_Return_Types   atr_table_head_parse(struct Atr_Font *font, struct Atr_Table_Header head_header);
 ATR_DEF atr_real                atr_text_line_draw(struct Atr_Pixel_Buffer screen, struct Atr_Font *font, char *text, atr_real top_left_x, atr_real top_left_y, atr_real letter_width, atr_real letter_hight, atr_real letter_spacing, uint32_t color, size_t length);
 
                                 #define atr_uint16_print_binary(value, bit_count) atr_dprintINFO("%s = ", #value); printf("%*.s", 7, ""); atr_uint16_print_binary_imp((value), (bit_count))
@@ -579,7 +600,13 @@ ATR_DEF enum Atr_Return_Types atr_font_load_from_file_name(struct Atr_Font *font
     }
     for (size_t table_index = 0; table_index < font->offset_subtable.numTables; table_index++) {
         struct Atr_Table_Header th = atr_table_header_parse(font, ATR_OFFSET_SUBTABLE_SIZE + table_index * ATR_TABLE_HEADER_SIZE);
-        atr_dprintINFO("%.4s", th.tag_str);
+        // atr_dprintINFO("%.4s: length = %u", th.tag_str, th.length);
+        if (atr_4chars_to_uint32_t("head") == th.tag_raw) {
+            atr_table_header_verify_checksum(font, th, 8);
+            if (ATR_FAIL == atr_table_head_parse(font, th)) {
+                atr_dprintERROR("Failed to parse head table of font at '%s' at offset %u", file_name, th.offset);
+            }
+        }
     }
 
     return ATR_SUCCESS;
@@ -619,13 +646,30 @@ ATR_DEF enum Atr_Return_Types atr_offset_subtable_parse(struct Atr_Font *font)
     return ATR_SUCCESS;
 }
 
-ATR_DEF uint32_t atr_table_checksum_calc(uint32_t *table, uint32_t length_bytes)
+ATR_DEF uint32_t atr_table_checkSum_calc(const uint8_t *bytes, size_t length, size_t zero_begin, size_t zero_end)
 {
+    /* By AI */
     uint32_t sum = 0;
-    uint32_t nlongs = (length_bytes + 3 ) / 4;
-    while (nlongs-- > 0) {
-        sum += *table++;
+
+    for (size_t i = 0; i < length; i += 4) {
+        uint32_t word = 0;
+        for (size_t j = 0; j < 4; j++) {
+            size_t index = i + j;
+            uint8_t byte = 0;
+            if (index < length &&
+                !(index >= zero_begin && index < zero_end)) {
+                byte = bytes[index];
+            }
+            /*
+             * TrueType/OpenType checksums use big-endian words.
+             * Missing bytes at the end are zero-padding.
+             */
+            word |= (uint32_t)byte << (24 - j * 8);
+        }
+
+        sum += word;
     }
+
     return sum;
 }
 
@@ -642,6 +686,124 @@ ATR_DEF struct Atr_Table_Header atr_table_header_parse(struct Atr_Font *font, si
     th.length   = atr_endian_swap_uint32(atr_bit_reader_read_bytes(&br, 4));
 
     return th;
+}
+
+ATR_DEF enum Atr_Return_Types atr_table_header_verify_checksum(struct Atr_Font *font, struct Atr_Table_Header header, uint8_t checkSumAdjustment_offset)
+{
+    /* By AI */
+    if (header.offset > font->file.length ||
+        header.length > font->file.length - header.offset) {
+        atr_dprintERROR("%s", "table lies outside the font file.");
+        return ATR_FAIL;
+    }
+
+    if (header.length < checkSumAdjustment_offset) {
+        atr_dprintERROR("%s", "table is too short.");
+        return ATR_FAIL;
+    }
+
+    const uint8_t *table = font->file.elements + header.offset;
+
+    uint32_t calculated = atr_table_checkSum_calc(table, header.length, checkSumAdjustment_offset, checkSumAdjustment_offset + 4);
+
+    if (calculated != header.checkSum) {
+        atr_dprintERROR("Invalid table checksum. Got %X, expected %X.", calculated, header.checkSum);
+        return ATR_FAIL;
+    }
+
+    return ATR_SUCCESS;
+}
+
+ATR_DEF enum Atr_Return_Types atr_table_head_parse(struct Atr_Font *font, struct Atr_Table_Header head_header)
+{
+    struct Atr_Bit_Reader br = {0};
+    atr_bit_reader_init(&br, font->file);
+    br.file.cursor = head_header.offset;
+
+    font->tables.head.header = head_header;
+    font->tables.head.version_hole_part      = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    font->tables.head.version_frac_part      = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    font->tables.head.fontRevision_hole_part = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    font->tables.head.fontRevision_frac_part = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    font->tables.head.checkSumAdjustment     = atr_endian_swap_uint32(atr_bit_reader_read_bytes(&br, 4));
+    font->tables.head.magicNumber            = atr_endian_swap_uint32(atr_bit_reader_read_bytes(&br, 4));
+    font->tables.head.flags                  = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    font->tables.head.unitsPerEm             = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    /* skipping datetime fildes */
+    atr_bit_reader_read_bytes(&br, 4);
+    atr_bit_reader_read_bytes(&br, 4);
+    atr_bit_reader_read_bytes(&br, 4);
+    atr_bit_reader_read_bytes(&br, 4);
+    /* done skipping */
+    font->tables.head.xMin                   = (int16_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    font->tables.head.yMin                   = (int16_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    font->tables.head.xMax                   = (int16_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    font->tables.head.yMax                   = (int16_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    font->tables.head.macStyle               = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    font->tables.head.lowestRecPPEM          = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    font->tables.head.fontDirectionHint      = (int16_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    font->tables.head.indexToLocFormat       = (int16_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    font->tables.head.glyphDataFormat        = (int16_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+
+    /* Checks */
+    if (0x5f0f3cf5 != font->tables.head.magicNumber) {
+        atr_dprintERROR("Magic number is incorrect. Got %u but expected 0x5F0F3CF5.", font->tables.head.magicNumber);
+        return ATR_FAIL;
+    }
+    if (!(((font->tables.head.flags) << 5) | 1)) {
+        atr_dprintERROR("%s", "Corrupted flags. The sixth bit is not zero.");
+        return ATR_FAIL;
+    }
+    if (font->tables.head.unitsPerEm < 64 || font->tables.head.unitsPerEm > 16384) {
+        atr_dprintERROR("Unacceptable unitsPerEm. Got %u and expected a value in the range [64, 16384].", font->tables.head.unitsPerEm);
+        return ATR_FAIL;
+    }
+    if (font->tables.head.xMin > font->tables.head.xMax) {
+        atr_dprintERROR("%s", "Unacceptable x range. Got xMin > xMax");
+        return ATR_FAIL;
+    }
+    if (font->tables.head.yMin > font->tables.head.yMax) {
+        atr_dprintERROR("%s", "Unacceptable y range. Got yMin > yMax");
+        return ATR_FAIL;
+    }
+    if (font->tables.head.macStyle & 0xFF80u) {
+        atr_dprintERROR("Reserved macStyle bits are set: 0x%04X.", font->tables.head.macStyle);
+        return ATR_FAIL;
+    }
+    int d = font->tables.head.fontDirectionHint;
+    if (d != -2 && d != -1 && d != 0 && d != 1 && d != 2) {
+        atr_dprintERROR("fontDirectionHint value is incorrect. Got %d, expected -2/-1/0/1/2.", d);
+        return ATR_FAIL;
+    }
+    if (font->tables.head.glyphDataFormat != 0) {
+        atr_dprintERROR("Incorrect glyphDataFormat. Got %d, expected 0.", font->tables.head.glyphDataFormat);
+        return ATR_FAIL;
+    }
+    if (br.file.cursor != head_header.offset + head_header.length) {
+        atr_dprintERROR("%s", "Something went wrong will parsing the head table.");
+        return ATR_FAIL;
+    }
+
+    /*
+    atr_dprintINT(font->tables.head.version_hole_part);
+    atr_dprintINT(font->tables.head.version_frac_part);
+    atr_dprintINT(font->tables.head.fontRevision_hole_part);
+    atr_dprintINT(font->tables.head.fontRevision_frac_part);
+    atr_dprintINT(font->tables.head.checkSumAdjustment);
+    atr_uint32_print_hex(font->tables.head.magicNumber, 32);
+    atr_dprintINT(font->tables.head.unitsPerEm);
+    atr_dprintINT(font->tables.head.xMin);
+    atr_dprintINT(font->tables.head.yMin);
+    atr_dprintINT(font->tables.head.xMax);
+    atr_dprintINT(font->tables.head.yMax);
+    atr_dprintINT(font->tables.head.macStyle);
+    atr_dprintINT(font->tables.head.lowestRecPPEM);
+    atr_dprintINT(font->tables.head.fontDirectionHint);
+    atr_dprintINT(font->tables.head.indexToLocFormat);
+    atr_dprintINT(font->tables.head.glyphDataFormat);
+    */
+
+    return ATR_SUCCESS;
 }
 
 ATR_DEF atr_real atr_text_line_draw(struct Atr_Pixel_Buffer screen, struct Atr_Font *font, char *text, atr_real top_left_x, atr_real top_left_y, atr_real letter_width, atr_real letter_hight, atr_real letter_spacing, uint32_t color, size_t length)
