@@ -1,3 +1,6 @@
+/**
+ * Apple's reference manual is at: https://developer.apple.com/fonts/TrueType-Reference-Manual/.
+ */
 #ifndef ALMOG_TEXT_RENDERING_H_
 #define ALMOG_TEXT_RENDERING_H_
 
@@ -88,8 +91,28 @@ struct Atr_Pixel_Buffer {
     uint32_t *elements;
 };
 
+struct Atr_Offset_Subtable {
+    uint32_t scaler_type;
+    uint16_t numTables;
+    uint16_t searchRange;
+    uint16_t entrySelector;
+    uint16_t rangeShift;
+};
+
+struct Atr_Table_Header {
+    union {
+        uint32_t tag_raw;
+        char tag_str[4];
+        uint8_t tag_array[4];
+    };  
+    uint32_t checkSum;
+    uint32_t offset;
+    uint32_t length;
+};
+
 struct Atr_Font {
     struct Atr_Byte_String file;
+    struct Atr_Offset_Subtable offset_subtable;
 };
 
 #define atr_dprintSTRING(expr) printf("[Info] %s:%d:\n%*s" #expr " = %s\n", __FILE__, __LINE__, 7, "", expr)
@@ -112,6 +135,8 @@ struct Atr_Font {
 #define ATR_UNUSED(x) ((void)x)
 
 #define ATR_DEFAULT_OFFSET_ZOOM (struct Atr_Offset_Zoom){.zoom_multiplier = 1, .offset_x = 0, .offset_y = 0}
+#define ATR_TABLE_HEADER_SIZE 16
+#define ATR_OFFSET_SUBTABLE_SIZE 12
 
 #ifndef ATR_DEF
     #ifdef ATR_DEF_STATIC
@@ -138,7 +163,20 @@ ATR_DEF uint32_t                atr_endian_swap_uint32(uint32_t x);
 
 ATR_DEF enum Atr_Return_Types   atr_font_load_from_file_name(struct Atr_Font *font, char *file_name);
 
+ATR_DEF enum Atr_Return_Types   atr_offset_subtable_parse(struct Atr_Font *font);
+
+ATR_DEF uint32_t                atr_table_checksum_calc(uint32_t *table, uint32_t length_bytes);
+ATR_DEF struct Atr_Table_Header atr_table_header_parse(struct Atr_Font *font, size_t offset);
 ATR_DEF atr_real                atr_text_line_draw(struct Atr_Pixel_Buffer screen, struct Atr_Font *font, char *text, atr_real top_left_x, atr_real top_left_y, atr_real letter_width, atr_real letter_hight, atr_real letter_spacing, uint32_t color, size_t length);
+
+                                #define atr_uint16_print_binary(value, bit_count) atr_dprintINFO("%s = ", #value); printf("%*.s", 7, ""); atr_uint16_print_binary_imp((value), (bit_count))
+ATR_DEF void                    atr_uint16_print_binary_imp(uint16_t value, uint8_t bit_count);
+                                #define atr_uint16_print_hex(value, bit_count) atr_dprintINFO("%s = ", #value); printf("%*.s", 7, ""); atr_uint16_print_hex_imp((value), (bit_count))
+ATR_DEF void                    atr_uint16_print_hex_imp(uint16_t value, uint8_t bit_count);
+                                #define atr_uint32_print_binary(value, bit_count) atr_dprintINFO("%s = ", #value); printf("%*.s", 7, ""); atr_uint32_print_binary_imp((value), (bit_count))
+ATR_DEF void                    atr_uint32_print_binary_imp(uint32_t value, uint8_t bit_count);
+                                #define atr_uint32_print_hex(value, bit_count) atr_dprintINFO("%s = ", #value); printf("%*.s", 7, ""); atr_uint32_print_hex_imp((value), (bit_count))
+ATR_DEF void                    atr_uint32_print_hex_imp(uint32_t value, uint8_t bit_count);
 
 
 #endif /*ALMOG_TEXT_RENDERING_H_*/
@@ -392,13 +430,70 @@ ATR_DEF enum Atr_Return_Types atr_font_load_from_file_name(struct Atr_Font *font
 {
     font->file = atr_byte_string_get_from_binary_file_name(file_name);
     
-    atr_dprintSTRING(font->file.name);
-    atr_dprintSIZE_T(font->file.capacity);
-    atr_dprintSIZE_T(font->file.length);
-    atr_dprintSIZE_T(font->file.cursor);
-    atr_dprintSTRING((char *)(font->file.elements));
+    if (ATR_FAIL == atr_offset_subtable_parse(font)) {
+        atr_dprintERROR("Failed to parse offset subtable of font at '%s'", file_name);
+    }
+    for (size_t table_index = 0; table_index < font->offset_subtable.numTables; table_index++) {
+        struct Atr_Table_Header th = atr_table_header_parse(font, ATR_OFFSET_SUBTABLE_SIZE + table_index * ATR_TABLE_HEADER_SIZE);
+        atr_dprintINFO("%.4s", th.tag_str);
+    }
 
     return ATR_SUCCESS;
+}
+
+ATR_DEF enum Atr_Return_Types atr_offset_subtable_parse(struct Atr_Font *font)
+{
+    struct Atr_Bit_Reader br = {0};
+    atr_bit_reader_init(&br, font->file);
+
+    font->offset_subtable.scaler_type   = atr_endian_swap_uint32(atr_bit_reader_read_bytes(&br, 4));
+    font->offset_subtable.numTables     = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    font->offset_subtable.searchRange   = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    font->offset_subtable.entrySelector = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    font->offset_subtable.rangeShift    = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+
+    /* Checks */
+    if (!(atr_4chars_to_uint32_t("true") == font->offset_subtable.scaler_type ||
+        0x00010000 == font->offset_subtable.scaler_type)) {
+            if (atr_4chars_to_uint32_t("typ1") == font->offset_subtable.scaler_type) {
+                atr_dprintERROR("%s", "Font type recognized as the old style of PostScript font housed in a sfnt wrapper. This type is not supported.");
+                return ATR_FAIL;
+            }
+            if (atr_4chars_to_uint32_t("OTTO") == font->offset_subtable.scaler_type) {
+                atr_dprintERROR("%s", "Font type recognized as an OpenType font with PostScript outlines. This type is not supported.");
+                return ATR_FAIL;
+            }
+            atr_dprintERROR("%s", "Font type not recognized. Only supports TrueType fonts.");
+            return ATR_FAIL;
+    }
+
+    
+    return ATR_SUCCESS;
+}
+
+ATR_DEF uint32_t atr_table_checksum_calc(uint32_t *table, uint32_t length_bytes)
+{
+    uint32_t sum = 0;
+    uint32_t nlongs = (length_bytes + 3 ) / 4;
+    while (nlongs-- > 0) {
+        sum += *table++;
+    }
+    return sum;
+}
+
+ATR_DEF struct Atr_Table_Header atr_table_header_parse(struct Atr_Font *font, size_t offset_byte)
+{
+    struct Atr_Bit_Reader br = {0};
+    atr_bit_reader_init(&br, font->file);
+    br.file.cursor = offset_byte;
+
+    struct Atr_Table_Header th = {0};
+    th.tag_raw  = atr_bit_reader_read_bytes(&br, 4);
+    th.checkSum = atr_endian_swap_uint32(atr_bit_reader_read_bytes(&br, 4));
+    th.offset   = atr_endian_swap_uint32(atr_bit_reader_read_bytes(&br, 4));
+    th.length   = atr_endian_swap_uint32(atr_bit_reader_read_bytes(&br, 4));
+
+    return th;
 }
 
 ATR_DEF atr_real atr_text_line_draw(struct Atr_Pixel_Buffer screen, struct Atr_Font *font, char *text, atr_real top_left_x, atr_real top_left_y, atr_real letter_width, atr_real letter_hight, atr_real letter_spacing, uint32_t color, size_t length)
@@ -417,6 +512,73 @@ ATR_DEF atr_real atr_text_line_draw(struct Atr_Pixel_Buffer screen, struct Atr_F
     return 0;
 }
 
+/**
+ * @brief Print the lowest bit_count bits of a uint16_t in binary.
+ * @param value Value to print.
+ * @param bit_count Number of bits to print.
+ */
+ATR_DEF void atr_uint16_print_binary_imp(uint16_t value, uint8_t bit_count)
+{
+    ATR_ASSERT(bit_count <= 16);
+    printf("b");
+    for (int i = (int)bit_count - 1; i >= 0; i--) {
+        printf("%c", (value & (1u << i)) ? '1' : '0');
+    }
+    printf("\n");
+}
+
+ATR_DEF void atr_uint16_print_hex_imp(uint16_t value, uint8_t bit_count)
+{
+    ATR_ASSERT(bit_count <= 16);
+
+    /* Ignore bits above bit_count, including for partial nibbles. */
+    if (bit_count < 16) {
+        value &= (1u << bit_count) - 1u;
+    }
+
+    const uint8_t hex_digit_count = (uint8_t)((bit_count + 3u) / 4u);
+
+    printf("0x");
+    for (int i = (int)hex_digit_count - 1; i >= 0; i--) {
+        unsigned int digit = (unsigned int)((value >> (i * 4)) & 0xFu);
+        printf("%X", digit);
+    }
+    printf("\n");
+}
+
+/**
+ * @brief Print the lowest bit_count bits of a uint32_t in binary.
+ * @param value Value to print.
+ * @param bit_count Number of bits to print.
+ */
+ATR_DEF void atr_uint32_print_binary_imp(uint32_t value, uint8_t bit_count)
+{
+    ATR_ASSERT(bit_count <= 32);
+    printf("b");
+    for (int i = (int)bit_count - 1; i >= 0; i--) {
+        printf("%c", (value & (1u << i)) ? '1' : '0');
+    }
+    printf("\n");
+}
+
+ATR_DEF void atr_uint32_print_hex_imp(uint32_t value, uint8_t bit_count)
+{
+    ATR_ASSERT(bit_count <= 32);
+
+    /* Ignore bits above bit_count, including for partial nibbles. */
+    if (bit_count < 32) {
+        value &= (1u << bit_count) - 1u;
+    }
+
+    const uint8_t hex_digit_count = (uint8_t)((bit_count + 3u) / 4u);
+
+    printf("0x");
+    for (int i = (int)hex_digit_count - 1; i >= 0; i--) {
+        unsigned int digit = (unsigned int)((value >> (i * 4)) & 0xFu);
+        printf("%X", digit);
+    }
+    printf("\n");
+}
 
 
 #endif /*ALMOG_TEXT_RENDERING_IMPLEMENTATION*/
