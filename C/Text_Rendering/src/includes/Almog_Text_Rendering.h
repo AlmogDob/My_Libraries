@@ -209,11 +209,60 @@ struct Atr_Table_Header {
     uint32_t length;
 };
 
+struct Atr_Table_cmap_Group {
+    uint32_t startCharCode;
+    uint32_t endCharCode;
+    uint32_t startGlyphCode;
+};
+
 struct Atr_Table_cmap_Subtable {
     uint16_t platformID;
     uint16_t platformSpecificID;
     uint32_t relative_offset;
     uint32_t absolute_offset;
+    uint16_t format;
+    union {
+        struct {
+            uint16_t length;
+            uint16_t language;
+            uint8_t  glyphIndexArray[256];
+        } format_0;
+        struct {
+            uint16_t length;
+            uint16_t language;
+            uint16_t segCountx2;
+            uint16_t searchRange;
+            uint16_t entrySelector;
+            uint16_t rangeShift;
+
+            uint16_t *endCode;
+            uint16_t *startCode;
+            uint16_t *idDelta;
+            uint16_t *idRangeOffset;
+
+            size_t    glyph_id_count;
+            uint16_t *glyph_id_array;
+        } format_4;
+        struct {
+            uint16_t length;
+            uint16_t language;
+            uint16_t first_code;
+            uint16_t entry_count;
+            uint16_t *glyph_id_array;
+        } format_6;
+        struct {
+            uint32_t length;
+            uint32_t language;
+            uint32_t nGroups;
+            struct Atr_Table_cmap_Group *groups;
+        } format_12;
+        struct {
+            uint32_t length;
+            uint32_t language;
+            uint32_t nGroups;
+            struct Atr_Table_cmap_Group *groups;
+        } format_13;
+    } data; /* 0 4 6 12 13 ?*/
 };
 
 struct Atr_Table_cmap {
@@ -347,6 +396,7 @@ ATR_DEF enum Atr_Return_Types   atr_font_load_from_file_name(struct Atr_Font *fo
 ATR_DEF enum Atr_Return_Types   atr_offset_subtable_parse(struct Atr_Font *font);
 
 ATR_DEF uint32_t                atr_table_checkSum_calc(const uint8_t *bytes, size_t length, int zero_begin, int zero_end);
+ATR_DEF void                    atr_table_cmap_free(struct Atr_Font *font);
 ATR_DEF enum Atr_Return_Types   atr_table_cmap_parse(struct Atr_Font *font, struct Atr_Table_Header head_header);
 ATR_DEF struct Atr_Table_Header atr_table_header_parse(struct Atr_Font *font, size_t offset);
 ATR_DEF enum Atr_Return_Types   atr_table_header_verify_checksum(struct Atr_Font *font, struct Atr_Table_Header header, int checkSumAdjustment_offset);
@@ -535,7 +585,7 @@ ATR_DEF struct Atr_Byte_String atr_byte_string_get_from_binary_file_pointer(FILE
     res.capacity = (size_t)size;
     res.elements = ATR_MALLOC(res.length);
     if (res.elements == NULL) {
-        atr_dprintERROR( "Memory allocation failed for file %s (%zu bytes).", file_name, res.length);
+        atr_dprintERROR("Memory allocation failed for file %s (%zu bytes).", file_name, res.length);
         fclose(fp);
         res.length = 0;
         ATR_FREE(res.name);
@@ -617,9 +667,8 @@ ATR_DEF void atr_font_free(struct Atr_Font *font)
     font->offset_subtable = (struct Atr_Offset_Subtable){0};
 
     font->tables.head = (struct Atr_Table_head){0};
+    atr_table_cmap_free(font);
 
-    ATR_FREE(font->tables.cmap.subtables.elements);
-    font->tables.cmap = (struct Atr_Table_cmap){0};
 
 
     *font = (struct Atr_Font){0};
@@ -724,16 +773,36 @@ ATR_DEF uint32_t atr_table_checkSum_calc(const uint8_t *bytes, size_t length, in
     return sum;
 }
 
+ATR_DEF void atr_table_cmap_free(struct Atr_Font *font)
+{
+    ATR_ASSERT(font);
+    struct Atr_Table_cmap *cmap = &font->tables.cmap;
+    for (size_t i = 0; i < cmap->subtables.length; i++) {
+        struct Atr_Table_cmap_Subtable *st = &cmap->subtables.elements[i];
+        if (st->format == 12) {
+            ATR_FREE(st->data.format_12.groups);
+        }
+    }
+
+    ATR_FREE(cmap->subtables.elements);
+    *cmap = (struct Atr_Table_cmap){0};
+}
+
 ATR_DEF enum Atr_Return_Types atr_table_cmap_parse(struct Atr_Font *font, struct Atr_Table_Header head_header)
 {
     struct Atr_Bit_Reader br = {0};
     atr_bit_reader_init(&br, font->file);
     br.file.cursor = head_header.offset;
 
+    struct Atr_Bit_Reader br_st = {0};
+    atr_bit_reader_init(&br_st, font->file);
+
     atr_ada_init_array(struct Atr_Table_cmap_Subtable, font->tables.cmap.subtables);
     font->tables.cmap.header          = head_header;
     font->tables.cmap.version         = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
     font->tables.cmap.numberSubtables = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+
+    bool found_subtable = false;
     for (size_t i = 0; i < font->tables.cmap.numberSubtables; i++) {
         struct Atr_Table_cmap_Subtable st = {
             .platformID         = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2)),
@@ -741,7 +810,39 @@ ATR_DEF enum Atr_Return_Types atr_table_cmap_parse(struct Atr_Font *font, struct
             .relative_offset    = atr_endian_swap_uint32(atr_bit_reader_read_bytes(&br, 4)),
             .absolute_offset    = head_header.offset + st.relative_offset,
         };
+        br_st.file.cursor = st.absolute_offset;
+        st.format = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br_st, 2));
+        /* Parse different cmap subtable formats */
+        if (st.format == 0) {
+            st.data.format_0.length   = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br_st, 2));
+            st.data.format_0.language = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br_st, 2));
+            for (size_t gi = 0; gi < 256; gi++) {
+                st.data.format_0.glyphIndexArray[gi] = atr_bit_reader_read_byte(&br_st);
+            }
+        } else if (st.format == 12) {
+            atr_bit_reader_read_bytes(&br_st, 2); /* reserved */
+            st.data.format_12.length   = atr_endian_swap_uint32(atr_bit_reader_read_bytes(&br_st, 4));
+            st.data.format_12.language = atr_endian_swap_uint32(atr_bit_reader_read_bytes(&br_st, 4));
+            st.data.format_12.nGroups  = atr_endian_swap_uint32(atr_bit_reader_read_bytes(&br_st, 4));
+            st.data.format_12.groups   = ATR_MALLOC(sizeof(struct Atr_Table_cmap_Group) * st.data.format_12.nGroups);
+            ATR_ASSERT(st.data.format_12.groups);
+            for (size_t gi = 0; gi < st.data.format_12.nGroups; gi++) {
+                st.data.format_12.groups[gi].startCharCode  = atr_endian_swap_uint32(atr_bit_reader_read_bytes(&br_st, 4));
+                st.data.format_12.groups[gi].endCharCode    = atr_endian_swap_uint32(atr_bit_reader_read_bytes(&br_st, 4));
+                st.data.format_12.groups[gi].startGlyphCode = atr_endian_swap_uint32(atr_bit_reader_read_bytes(&br_st, 4));
+            }
+        } else {
+            ; /* Unsupported format */
+        }
+
         atr_ada_append(struct Atr_Table_cmap_Subtable, font->tables.cmap.subtables, st);
+
+        if (st.platformID == 0) { /* Unicode */
+            if (st.platformSpecificID == 3) { /* Unicode 2.0 or later semantics (BMP only) */
+                font->tables.cmap.chosen_subtable_index = (uint8_t)i;
+                found_subtable = true;
+            }
+        }
     }
 
     /* Checks */
@@ -757,7 +858,10 @@ ATR_DEF enum Atr_Return_Types atr_table_cmap_parse(struct Atr_Font *font, struct
         atr_dprintINT(font->tables.cmap.subtables.elements[i].platformID);
         atr_dprintINT(font->tables.cmap.subtables.elements[i].platformSpecificID);
         atr_dprintINT(font->tables.cmap.subtables.elements[i].relative_offset);
-        atr_dprintINT(font->tables.cmap.subtables.elements[i].absolute_offset);
+        atr_dprintINT(font->tables.cmap.subtables.elements[i].format);
+        if (font->tables.cmap.subtables.elements[i].format == 12) {
+            atr_dprintINT(font->tables.cmap.subtables.elements[i].data.format_12.nGroups);
+        }
     }
 
     return ATR_SUCCESS;
