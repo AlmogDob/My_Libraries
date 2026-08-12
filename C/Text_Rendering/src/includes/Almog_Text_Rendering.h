@@ -248,15 +248,15 @@ struct Atr_Table_cmap_Subtable {
             uint16_t *idDelta;
             uint16_t *idRangeOffset;
 
-            size_t    glyph_id_count;
-            uint16_t *glyph_id_array;
+            size_t    glyphIdexCount;
+            uint16_t *glyphIdexArray;
         } format_4;
         struct {
             uint16_t length;
             uint16_t language;
-            uint16_t first_code;
-            uint16_t entry_count;
-            uint16_t *glyph_id_array;
+            uint16_t firstCode;
+            uint16_t entryCount;
+            uint16_t *glyphIdexArray;
         } format_6;
         struct {
             uint32_t length;
@@ -834,6 +834,47 @@ ATR_DEF enum Atr_Return_Types atr_table_cmap_parse(struct Atr_Font *font, struct
             for (size_t gi = 0; gi < 256; gi++) {
                 st.data.format_0.glyphIndexArray[gi] = atr_bit_reader_read_byte(&br_st);
             }
+        } else if (st.format == 4) {
+            st.data.format_4.length                 = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br_st, 2));
+            st.data.format_4.language               = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br_st, 2));
+             
+            st.data.format_4.segCountx2             = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br_st, 2));
+            st.data.format_4.searchRange            = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br_st, 2));
+            st.data.format_4.entrySelector          = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br_st, 2));
+            st.data.format_4.rangeShift             = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br_st, 2));
+
+            st.data.format_4.endCode                = ATR_MALLOC(sizeof(uint16_t) * st.data.format_4.segCountx2 / 2);
+            ATR_ASSERT(st.data.format_4.endCode);
+            for (size_t gi = 0; gi < st.data.format_4.segCountx2 / 2; gi++) {
+                st.data.format_4.endCode[gi]        = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br_st, 2));
+            }
+            atr_bit_reader_read_bytes(&br_st, 2); /* reserved */
+            st.data.format_4.startCode              = ATR_MALLOC(sizeof(uint16_t) * st.data.format_4.segCountx2 / 2);
+            ATR_ASSERT(st.data.format_4.startCode);
+            for (size_t gi = 0; gi < st.data.format_4.segCountx2 / 2; gi++) {
+                st.data.format_4.startCode[gi]      = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br_st, 2));
+            }
+            st.data.format_4.idDelta                = ATR_MALLOC(sizeof(uint16_t) * st.data.format_4.segCountx2 / 2);
+            ATR_ASSERT(st.data.format_4.idDelta);
+            for (size_t gi = 0; gi < st.data.format_4.segCountx2 / 2; gi++) {
+                st.data.format_4.idDelta[gi]        = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br_st, 2));
+            }
+            st.data.format_4.idRangeOffset          = ATR_MALLOC(sizeof(uint16_t) * st.data.format_4.segCountx2 / 2);
+            ATR_ASSERT(st.data.format_4.idRangeOffset);
+            for (size_t gi = 0; gi < st.data.format_4.segCountx2 / 2; gi++) {
+                st.data.format_4.idRangeOffset[gi]  = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br_st, 2));
+            }
+            size_t fixed_size = 16 + 4 * st.data.format_4.segCountx2;
+            if (fixed_size >= st.data.format_4.length) {
+                atr_dprintERROR("%s", "Error while parsing cmap subtable with format 4.");
+                return ATR_FAIL;
+            }
+            st.data.format_4.glyphIdexCount = st.data.format_4.length - fixed_size;
+            st.data.format_4.glyphIdexArray         = ATR_MALLOC(sizeof(uint16_t) * st.data.format_4.glyphIdexCount);
+            ATR_ASSERT(st.data.format_4.glyphIdexArray);
+            for (size_t gi = 0; gi < st.data.format_4.glyphIdexCount; gi++) {
+                st.data.format_4.glyphIdexArray[gi] = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br_st, 2));
+            }
         } else if (st.format == 12) {
             atr_bit_reader_read_bytes(&br_st, 2); /* reserved */
             st.data.format_12.length   = atr_endian_swap_uint32(atr_bit_reader_read_bytes(&br_st, 4));
@@ -865,7 +906,7 @@ ATR_DEF enum Atr_Return_Types atr_table_cmap_parse(struct Atr_Font *font, struct
     }
 
     if (ATR_FAIL == atr_table_cmap_subtable_choose(font)) {
-        atr_dprintERROR("%s", "Could not find a supported cmap subtable. Unable to continue to parse the font.");
+        atr_dprintERROR("%s", "Could not find a supported cmap subtable. Unable to continue to parse the font. Only supports formats: 0/12/13.");
         return ATR_FAIL;
     }
 

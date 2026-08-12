@@ -261,7 +261,7 @@ AMD_DEF bool amd_debug_mem(void)
                 }
             }
             if (k < AMD_MEM_OVER_ALLOC) {
-                amd_dprintERROR("MEM ERROR: overshoot at line %zu in file '%s'.", mem_alloc_lines[i].line, mem_alloc_lines[i].file);
+                amd_dprintERROR("MEM ERROR: overshoot at %s:%zu.", mem_alloc_lines[i].file, mem_alloc_lines[i].line);
                 output = AMD_FAIL;
             }
         }
