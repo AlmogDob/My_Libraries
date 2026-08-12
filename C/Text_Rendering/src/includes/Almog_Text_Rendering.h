@@ -215,6 +215,14 @@ struct Atr_Table_cmap_Group {
     uint32_t startGlyphCode;
 };
 
+enum Atr_cmap_Priority {
+    ATR_cmap_PRIORITY_NONE = 0,
+    ATR_cmap_PRIORITY_SYMBOL = 1,
+    ATR_cmap_PRIORITY_LAST_RESORT = 2,
+    ATR_cmap_PRIORITY_UNICODE_BMP = 3,
+    ATR_cmap_PRIORITY_UNICODE_FULL = 4,
+};
+
 struct Atr_Table_cmap_Subtable {
     uint16_t platformID;
     uint16_t platformSpecificID;
@@ -274,7 +282,9 @@ struct Atr_Table_cmap {
         size_t capacity;
         struct Atr_Table_cmap_Subtable *elements;
     } subtables;
-    uint8_t chosen_subtable_index;
+    uint16_t chosen_subtable_index;
+    uint16_t variation_subtable_index;
+    bool has_variation_subtable;
 };
 
 struct Atr_Table_glyf {
@@ -398,6 +408,8 @@ ATR_DEF enum Atr_Return_Types   atr_offset_subtable_parse(struct Atr_Font *font)
 ATR_DEF uint32_t                atr_table_checkSum_calc(const uint8_t *bytes, size_t length, int zero_begin, int zero_end);
 ATR_DEF void                    atr_table_cmap_free(struct Atr_Font *font);
 ATR_DEF enum Atr_Return_Types   atr_table_cmap_parse(struct Atr_Font *font, struct Atr_Table_Header head_header);
+ATR_DEF enum Atr_Return_Types   atr_table_cmap_subtable_choose(struct Atr_Font *font);
+ATR_DEF enum Atr_cmap_Priority  atr_table_cmap_subtable_priority_score(struct Atr_Table_cmap_Subtable *subtable);
 ATR_DEF struct Atr_Table_Header atr_table_header_parse(struct Atr_Font *font, size_t offset);
 ATR_DEF enum Atr_Return_Types   atr_table_header_verify_checksum(struct Atr_Font *font, struct Atr_Table_Header header, int checkSumAdjustment_offset);
 ATR_DEF enum Atr_Return_Types   atr_table_head_parse(struct Atr_Font *font, struct Atr_Table_Header head_header);
@@ -428,7 +440,7 @@ ATR_DEF uint32_t atr_4chars_to_uint32_t(const char *chars)
  * @brief Discard any unread bits cached in the bit reader.
  * @param br Bit reader to reset to the next byte boundary.
  */
-ATR_DEF void atr_bit_reader_flash(struct Atr_Bit_Reader *br)
+ATR_DEF void atr_bit_reader_flush(struct Atr_Bit_Reader *br)
 {
     br->current_byte = 0;
     br->bits_left = 0;
@@ -782,6 +794,9 @@ ATR_DEF void atr_table_cmap_free(struct Atr_Font *font)
         if (st->format == 12) {
             ATR_FREE(st->data.format_12.groups);
         }
+        if (st->format == 13) {
+            ATR_FREE(st->data.format_13.groups);
+        }
     }
 
     ATR_FREE(cmap->subtables.elements);
@@ -802,7 +817,6 @@ ATR_DEF enum Atr_Return_Types atr_table_cmap_parse(struct Atr_Font *font, struct
     font->tables.cmap.version         = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
     font->tables.cmap.numberSubtables = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
 
-    bool found_subtable = false;
     for (size_t i = 0; i < font->tables.cmap.numberSubtables; i++) {
         struct Atr_Table_cmap_Subtable st = {
             .platformID         = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2)),
@@ -812,6 +826,7 @@ ATR_DEF enum Atr_Return_Types atr_table_cmap_parse(struct Atr_Font *font, struct
         };
         br_st.file.cursor = st.absolute_offset;
         st.format = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br_st, 2));
+
         /* Parse different cmap subtable formats */
         if (st.format == 0) {
             st.data.format_0.length   = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br_st, 2));
@@ -831,18 +846,27 @@ ATR_DEF enum Atr_Return_Types atr_table_cmap_parse(struct Atr_Font *font, struct
                 st.data.format_12.groups[gi].endCharCode    = atr_endian_swap_uint32(atr_bit_reader_read_bytes(&br_st, 4));
                 st.data.format_12.groups[gi].startGlyphCode = atr_endian_swap_uint32(atr_bit_reader_read_bytes(&br_st, 4));
             }
+        } else if (st.format == 13) {
+            atr_bit_reader_read_bytes(&br_st, 2); /* reserved */
+            st.data.format_13.length   = atr_endian_swap_uint32(atr_bit_reader_read_bytes(&br_st, 4));
+            st.data.format_13.language = atr_endian_swap_uint32(atr_bit_reader_read_bytes(&br_st, 4));
+            st.data.format_13.nGroups  = atr_endian_swap_uint32(atr_bit_reader_read_bytes(&br_st, 4));
+            st.data.format_13.groups   = ATR_MALLOC(sizeof(struct Atr_Table_cmap_Group) * st.data.format_13.nGroups);
+            ATR_ASSERT(st.data.format_13.groups);
+            for (size_t gi = 0; gi < st.data.format_13.nGroups; gi++) {
+                st.data.format_13.groups[gi].startCharCode  = atr_endian_swap_uint32(atr_bit_reader_read_bytes(&br_st, 4));
+                st.data.format_13.groups[gi].endCharCode    = atr_endian_swap_uint32(atr_bit_reader_read_bytes(&br_st, 4));
+                st.data.format_13.groups[gi].startGlyphCode = atr_endian_swap_uint32(atr_bit_reader_read_bytes(&br_st, 4));
+            }
         } else {
             ; /* Unsupported format */
         }
-
         atr_ada_append(struct Atr_Table_cmap_Subtable, font->tables.cmap.subtables, st);
+    }
 
-        if (st.platformID == 0) { /* Unicode */
-            if (st.platformSpecificID == 3) { /* Unicode 2.0 or later semantics (BMP only) */
-                font->tables.cmap.chosen_subtable_index = (uint8_t)i;
-                found_subtable = true;
-            }
-        }
+    if (ATR_FAIL == atr_table_cmap_subtable_choose(font)) {
+        atr_dprintERROR("%s", "Could not find a supported cmap subtable. Unable to continue to parse the font.");
+        return ATR_FAIL;
     }
 
     /* Checks */
@@ -862,9 +886,119 @@ ATR_DEF enum Atr_Return_Types atr_table_cmap_parse(struct Atr_Font *font, struct
         if (font->tables.cmap.subtables.elements[i].format == 12) {
             atr_dprintINT(font->tables.cmap.subtables.elements[i].data.format_12.nGroups);
         }
+        if (font->tables.cmap.subtables.elements[i].format == 13) {
+            atr_dprintINT(font->tables.cmap.subtables.elements[i].data.format_13.nGroups);
+        }
     }
 
     return ATR_SUCCESS;
+}
+
+ATR_DEF enum Atr_Return_Types atr_table_cmap_subtable_choose(struct Atr_Font *font)
+{
+    struct Atr_Table_cmap *cmap = &font->tables.cmap;
+    uint16_t best_index = 0;
+    int best_score = 0;
+    bool primary_found = false;
+    bool variation_found = false;
+
+    for (uint16_t i = 0; i < cmap->subtables.length; ++i) {
+        struct Atr_Table_cmap_Subtable *subtable = &cmap->subtables.elements[i];
+
+        /** 
+         * Format 14 is supplemental. Do not consider it as the
+         * primary character-to-glyph mapping.
+         */
+        if (subtable->platformID == 0 && subtable->platformSpecificID == 5 && subtable->format == 14) {
+            cmap->variation_subtable_index = i;
+            variation_found = true;
+            continue;
+        }
+
+        enum Atr_cmap_Priority score = atr_table_cmap_subtable_priority_score(subtable);
+
+        /**
+         * Using '>' means the first equally ranked encoding wins.
+         * This is deterministic because cmap records have a required sorting order.
+         */
+        if (score > best_score) {
+            best_score = score;
+            best_index = i;
+            primary_found = true;
+        }
+    }
+
+    if (!primary_found) {
+        return ATR_FAIL;
+    }
+    cmap->chosen_subtable_index = best_index;
+
+    /**
+     * Format 14 can supplement only a Unicode format 4 or 12 cmap.
+     */
+    const struct Atr_Table_cmap_Subtable *primary = &cmap->subtables.elements[best_index];
+    bool primary_supports_variations = primary->format == 4 || primary->format == 12;
+    cmap->has_variation_subtable = variation_found && primary_supports_variations;
+
+    return ATR_SUCCESS;
+}
+
+ATR_DEF enum Atr_cmap_Priority atr_table_cmap_subtable_priority_score(struct Atr_Table_cmap_Subtable *subtable)
+{
+    uint16_t platform = subtable->platformID;
+    uint16_t encoding = subtable->platformSpecificID;
+    uint16_t format = subtable->format;
+
+    /**
+     * Full-repertoire Unicode.
+     *
+     * Apple does not define an order between 0/4 and 3/10, so they
+     * receive the same score. The first one encountered wins.
+     */
+    if (format == 12) {
+        if (platform == 0 && encoding == 4) {
+            return ATR_cmap_PRIORITY_UNICODE_FULL;
+        }
+
+        if (platform == 3 && encoding == 10) {
+            return ATR_cmap_PRIORITY_UNICODE_FULL;
+        }
+    }
+
+    /**
+     * BMP-only Unicode.
+     *
+     * Apple does not define an order between 0/3 and 3/1.
+     */
+    if (format == 4) {
+        /* Currently not supported */
+        return ATR_cmap_PRIORITY_NONE;
+        // if (platform == 0 && encoding == 3) {
+        //     return ATR_cmap_PRIORITY_UNICODE_BMP;
+        // }
+
+        // if (platform == 3 && encoding == 1) {
+        //     return ATR_cmap_PRIORITY_UNICODE_BMP;
+        // }
+    }
+
+    /**
+     * Format 13 is a specialized last-resort mapping.
+     */
+    if (platform == 0 && encoding == 6 && format == 13) {
+        return ATR_cmap_PRIORITY_LAST_RESORT;
+    }
+
+    /**
+     * Windows Symbol is non-Unicode and is only a fallback.
+     */
+    if (platform == 3 && encoding == 0 && format == 4) {
+        /* Currently not supported */
+        return ATR_cmap_PRIORITY_NONE;
+        // return ATR_cmap_PRIORITY_SYMBOL;
+    }
+
+    return ATR_cmap_PRIORITY_NONE;
 }
 
 ATR_DEF struct Atr_Table_Header atr_table_header_parse(struct Atr_Font *font, size_t offset_byte)
