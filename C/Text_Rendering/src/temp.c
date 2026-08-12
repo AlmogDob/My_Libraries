@@ -2,9 +2,14 @@
 #include <stdbool.h>
 
 #define APL_SETUP
-#define APL_INPUT
 #define APL_UPDATE
 #define APL_RENDER
+#define APL_INPUT
+#define APL_DESTROY
+
+#define AMD_MEMORY_DEBUG
+#define ALMOG_MEMORY_DEBUG_IMPLEMENTATION
+#include "includes/Almog_Memory_Debug.h"
 
 #define ALMOG_PLATFORM_LIBRARY_IMPLEMENTATION
 #include "includes/Almog_Platform_Library.h"
@@ -51,6 +56,7 @@ struct Adl_Pixel_Buffer apl_pixel_buffer_as_adl_pixel_buffer(struct Apl_Pixel_Bu
 }
 
 struct Adl_Offset_Zoom offzoom = {0};
+struct Atr_Font font = {0};
 
 enum Apl_Return_Types apl_setup(struct Apl_Window_State *ws)
 {
@@ -58,10 +64,11 @@ enum Apl_Return_Types apl_setup(struct Apl_Window_State *ws)
     offzoom = ADL_DEFAULT_OFFSET_ZOOM;
 
 
-    struct Atr_Font font = {0};
-    char font_file_name[] = "../src/fonts/Inconsolata-Regular.ttf";
+    // char font_file_name[] = "../src/fonts/Inconsolata-Regular.ttf";
+    char font_file_name[] = "../src/fonts/Symbola.ttf";
     if (ATR_FAIL == atr_font_load_from_file_name(&font, font_file_name)) {
         atr_dprintERROR("Failed to load font from file '%s'.", font_file_name);
+        return APL_FAIL;
     }
 
 
@@ -125,6 +132,23 @@ enum Apl_Return_Types apl_input(struct Apl_Window_State *ws)
         ws->to_update = !ws->to_update;
         apl_sleep(time_delay * 2000);
     }
+
+
+    return APL_SUCCESS;
+}
+
+enum Apl_Return_Types apl_destroy(struct Apl_Window_State *ws)
+{
+    atr_font_free(&font);
+    free(ws->window_pixels_mat.elements);
+    free(ws->inv_z_buffer_mat.elements);
+
+    if (AMD_FAIL == amd_debug_mem()) {
+        amd_dprintERROR("%s", "Corrupted memory detected.");
+        return APL_FAIL;
+    }
+    // amd_debug_mem_print(0);
+    amd_debug_mem_reset();
 
 
     return APL_SUCCESS;
