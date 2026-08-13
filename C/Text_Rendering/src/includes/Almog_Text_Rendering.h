@@ -328,6 +328,22 @@ struct Atr_Table_loca {
 
 struct Atr_Table_maxp {
     struct Atr_Table_Header header;
+    uint16_t version_hole_part;
+    uint16_t version_frac_part;
+    uint16_t numGlyphs;
+    uint16_t maxPoints;
+    uint16_t maxContours;
+    uint16_t maxComponentPoints;
+    uint16_t maxComponentContours;
+    uint16_t maxZones;
+    uint16_t maxTwilightPoints;
+    uint16_t maxStorage;
+    uint16_t maxFunctionDefs;
+    uint16_t maxInstructionDefs;
+    uint16_t maxStackElements;
+    uint16_t maxSizeOfInstructions;
+    uint16_t maxComponentElements;
+    uint16_t maxComponentDepth;
 };
 
 struct Atr_Table_name {
@@ -342,13 +358,13 @@ struct Atr_Font {
     struct Atr_Byte_String file;
     struct Atr_Offset_Subtable offset_subtable;
     struct {
-        struct Atr_Table_cmap cmap;
-        struct Atr_Table_glyf glyf;
         struct Atr_Table_head head;
+        struct Atr_Table_cmap cmap;
+        struct Atr_Table_maxp maxp;
+        struct Atr_Table_glyf glyf;
         struct Atr_Table_hhea hhea;
         struct Atr_Table_hmtx hmtx;
         struct Atr_Table_loca loca;
-        struct Atr_Table_maxp maxp;
         struct Atr_Table_name name;
         struct Atr_Table_post post;
     } tables;
@@ -415,6 +431,7 @@ ATR_DEF enum Atr_cmap_Priority  atr_table_cmap_subtable_priority_score(struct At
 ATR_DEF struct Atr_Table_Header atr_table_header_parse(struct Atr_Font *font, size_t offset);
 ATR_DEF enum Atr_Return_Types   atr_table_header_verify_checksum(struct Atr_Font *font, struct Atr_Table_Header header, int checkSumAdjustment_offset);
 ATR_DEF enum Atr_Return_Types   atr_table_head_parse(struct Atr_Font *font, struct Atr_Table_Header head_header);
+ATR_DEF enum Atr_Return_Types   atr_table_maxp_parse(struct Atr_Font *font, struct Atr_Table_Header head_header);
 ATR_DEF atr_real                atr_text_line_draw(struct Atr_Pixel_Buffer screen, struct Atr_Font *font, char *text, atr_real top_left_x, atr_real top_left_y, atr_real letter_width, atr_real letter_hight, atr_real letter_spacing, uint32_t color, size_t length);
 
                                 #define atr_uint16_print_binary(value, bit_count) atr_dprintINFO("%s = ", #value); printf("%*.s", 7, ""); atr_uint16_print_binary_imp((value), (bit_count))
@@ -711,6 +728,7 @@ ATR_DEF enum Atr_Return_Types atr_font_load_from_file_name(struct Atr_Font *font
                 atr_dprintERROR("Failed to parse head table of font at '%s' at offset %u", file_name, th.offset);
                 return ATR_FAIL;
             }
+            atr_dprintINFO("%s", "Successfully parsed head table.");
         } else if (atr_4chars_to_uint32_t("cmap") == th.tag_raw) {
             if (ATR_FAIL == atr_table_header_verify_checksum(font, th, -1)) {
                 atr_dprintERROR("%s", "cmap table failed the checksum test");
@@ -720,10 +738,19 @@ ATR_DEF enum Atr_Return_Types atr_font_load_from_file_name(struct Atr_Font *font
                 atr_dprintERROR("Failed to parse cmap table of font at '%s' at offset %u", file_name, th.offset);
                 return ATR_FAIL;
             }
+            atr_dprintINFO("%s", "Successfully parsed cmap table.");
+        } else if (atr_4chars_to_uint32_t("maxp") == th.tag_raw) {
+            if (ATR_FAIL == atr_table_header_verify_checksum(font, th, -1)) {
+                atr_dprintERROR("%s", "maxp table failed the checksum test");
+                return ATR_FAIL;
+            }
+            if (ATR_FAIL == atr_table_maxp_parse(font, th)) {
+                atr_dprintERROR("Failed to parse maxp table of font at '%s' at offset %u", file_name, th.offset);
+                return ATR_FAIL;
+            }
+            atr_dprintINFO("%s", "Successfully parsed maxp table.");
         }
     }
-
-    atr_dprintINT(font->tables.head.indexToLocFormat);
 
     return ATR_SUCCESS;
 }
@@ -1224,6 +1251,39 @@ ATR_DEF enum Atr_Return_Types atr_table_head_parse(struct Atr_Font *font, struct
     atr_dprintINT(font->tables.head.indexToLocFormat);
     atr_dprintINT(font->tables.head.glyphDataFormat);
     */
+
+    return ATR_SUCCESS;
+}
+
+ATR_DEF enum Atr_Return_Types atr_table_maxp_parse(struct Atr_Font *font, struct Atr_Table_Header head_header)
+{
+    struct Atr_Bit_Reader br = {0};
+    atr_bit_reader_init(&br, font->file);
+    br.file.cursor = head_header.offset;
+
+    font->tables.maxp.header                = head_header;
+    font->tables.maxp.version_hole_part     = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    font->tables.maxp.version_frac_part     = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    font->tables.maxp.numGlyphs             = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    font->tables.maxp.maxPoints             = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    font->tables.maxp.maxContours           = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    font->tables.maxp.maxComponentPoints    = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    font->tables.maxp.maxComponentContours  = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    font->tables.maxp.maxZones              = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    font->tables.maxp.maxTwilightPoints     = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    font->tables.maxp.maxStorage            = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    font->tables.maxp.maxFunctionDefs       = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    font->tables.maxp.maxInstructionDefs    = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    font->tables.maxp.maxStackElements      = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    font->tables.maxp.maxSizeOfInstructions = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    font->tables.maxp.maxComponentElements  = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    font->tables.maxp.maxComponentDepth     = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+
+    /* Checks */
+    if (font->tables.maxp.maxZones != 2) {
+        atr_dprintERROR("Error while parsing the maxp table. Got maxZones of %u, but expected maxZones of 2.", font->tables.maxp.maxZones);
+        return ATR_FAIL;
+    }
 
     return ATR_SUCCESS;
 }
