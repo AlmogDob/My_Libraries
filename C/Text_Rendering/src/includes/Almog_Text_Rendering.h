@@ -358,6 +358,10 @@ struct Atr_Font {
     struct Atr_Byte_String file;
     struct Atr_Offset_Subtable offset_subtable;
     struct {
+        size_t length;
+        struct Atr_Table_Header *elements;
+    } table_directory;
+    struct {
         struct Atr_Table_head head;
         struct Atr_Table_cmap cmap;
         struct Atr_Table_maxp maxp;
@@ -401,47 +405,49 @@ struct Atr_Font {
     #endif
 #endif
 
-ATR_DEF uint32_t                atr_4chars_to_uint32_t(const char *chars);
-ATR_DEF void                    atr_bit_reader_flush(struct Atr_Bit_Reader *br);
-ATR_DEF void                    atr_bit_reader_init(struct Atr_Bit_Reader *br, struct Atr_Byte_String file);
-ATR_DEF uint8_t                 atr_bit_reader_read_bit(struct Atr_Bit_Reader *br);
-ATR_DEF uint32_t                atr_bit_reader_read_bits(struct Atr_Bit_Reader *br, size_t count);
-ATR_DEF uint8_t                 atr_bit_reader_read_byte(struct Atr_Bit_Reader *br);
-ATR_DEF uint32_t                atr_bit_reader_read_bytes(struct Atr_Bit_Reader *br, size_t count);
+ATR_DEF uint32_t                    atr_4chars_to_uint32_t(const char *chars);
+ATR_DEF void                        atr_bit_reader_flush(struct Atr_Bit_Reader *br);
+ATR_DEF void                        atr_bit_reader_init(struct Atr_Bit_Reader *br, struct Atr_Byte_String file);
+ATR_DEF uint8_t                     atr_bit_reader_read_bit(struct Atr_Bit_Reader *br);
+ATR_DEF uint32_t                    atr_bit_reader_read_bits(struct Atr_Bit_Reader *br, size_t count);
+ATR_DEF uint8_t                     atr_bit_reader_read_byte(struct Atr_Bit_Reader *br);
+ATR_DEF uint32_t                    atr_bit_reader_read_bytes(struct Atr_Bit_Reader *br, size_t count);
 
-ATR_DEF struct Atr_Byte_String  atr_byte_string_get_from_binary_file_name(char *file_name);
-ATR_DEF struct Atr_Byte_String  atr_byte_string_get_from_binary_file_pointer(FILE *fp, char *file_name);
-ATR_DEF void                    atr_byte_string_free(struct Atr_Byte_String *bs);
+ATR_DEF struct Atr_Byte_String      atr_byte_string_get_from_binary_file_name(char *file_name);
+ATR_DEF struct Atr_Byte_String      atr_byte_string_get_from_binary_file_pointer(FILE *fp, char *file_name);
+ATR_DEF void                        atr_byte_string_free(struct Atr_Byte_String *bs);
 
-ATR_DEF uint16_t                atr_endian_swap_uint16(uint16_t x);
-ATR_DEF uint32_t                atr_endian_swap_uint32(uint32_t x);
+ATR_DEF uint16_t                    atr_endian_swap_uint16(uint16_t x);
+ATR_DEF uint32_t                    atr_endian_swap_uint32(uint32_t x);
 
-ATR_DEF void                    atr_font_free(struct Atr_Font *font);
-ATR_DEF enum Atr_Return_Types   atr_font_load_from_file_name(struct Atr_Font *font, char *file_name);
+ATR_DEF void                        atr_font_free(struct Atr_Font *font);
+ATR_DEF enum Atr_Return_Types       atr_font_load_from_file_name(struct Atr_Font *font, char *file_name);
 
-ATR_DEF uint32_t                atr_glyphIndex_get(struct Atr_Font *font, uint32_t code_point);
+ATR_DEF uint32_t                    atr_glyphIndex_get(struct Atr_Font *font, uint32_t code_point);
 
-ATR_DEF enum Atr_Return_Types   atr_offset_subtable_parse(struct Atr_Font *font);
+ATR_DEF enum Atr_Return_Types       atr_offset_subtable_parse(struct Atr_Font *font);
 
-ATR_DEF uint32_t                atr_table_checkSum_calc(const uint8_t *bytes, size_t length, int zero_begin, int zero_end);
-ATR_DEF void                    atr_table_cmap_free(struct Atr_Font *font);
-ATR_DEF enum Atr_Return_Types   atr_table_cmap_parse(struct Atr_Font *font, struct Atr_Table_Header head_header);
-ATR_DEF enum Atr_Return_Types   atr_table_cmap_subtable_choose(struct Atr_Font *font);
-ATR_DEF enum Atr_cmap_Priority  atr_table_cmap_subtable_priority_score(struct Atr_Table_cmap_Subtable *subtable);
-ATR_DEF struct Atr_Table_Header atr_table_header_parse(struct Atr_Font *font, size_t offset);
-ATR_DEF enum Atr_Return_Types   atr_table_header_verify_checksum(struct Atr_Font *font, struct Atr_Table_Header header, int checkSumAdjustment_offset);
-ATR_DEF enum Atr_Return_Types   atr_table_head_parse(struct Atr_Font *font, struct Atr_Table_Header head_header);
-ATR_DEF enum Atr_Return_Types   atr_table_maxp_parse(struct Atr_Font *font, struct Atr_Table_Header head_header);
-ATR_DEF atr_real                atr_text_line_draw(struct Atr_Pixel_Buffer screen, struct Atr_Font *font, char *text, atr_real top_left_x, atr_real top_left_y, atr_real letter_width, atr_real letter_hight, atr_real letter_spacing, uint32_t color, size_t length);
+ATR_DEF uint32_t                    atr_table_checkSum_calc(const uint8_t *bytes, size_t length, int zero_begin, int zero_end);
+ATR_DEF void                        atr_table_cmap_free(struct Atr_Font *font);
+ATR_DEF enum Atr_Return_Types       atr_table_cmap_parse(struct Atr_Font *font, struct Atr_Table_Header head_header);
+ATR_DEF enum Atr_Return_Types       atr_table_cmap_subtable_choose(struct Atr_Font *font);
+ATR_DEF enum Atr_cmap_Priority      atr_table_cmap_subtable_priority_score(struct Atr_Table_cmap_Subtable *subtable);
+ATR_DEF enum Atr_Return_Types       atr_table_directory_parse(struct Atr_Font *font);
+ATR_DEF struct Atr_Table_Header *   atr_table_header_find_by_tag_raw(struct Atr_Font *font, uint32_t tag_raw);
+ATR_DEF struct Atr_Table_Header     atr_table_header_parse(struct Atr_Font *font, size_t offset);
+ATR_DEF enum Atr_Return_Types       atr_table_header_verify_checksum(struct Atr_Font *font, struct Atr_Table_Header header, int checkSumAdjustment_offset);
+ATR_DEF enum Atr_Return_Types       atr_table_head_parse(struct Atr_Font *font, struct Atr_Table_Header head_header);
+ATR_DEF enum Atr_Return_Types       atr_table_maxp_parse(struct Atr_Font *font, struct Atr_Table_Header head_header);
+ATR_DEF atr_real                    atr_text_line_draw(struct Atr_Pixel_Buffer screen, struct Atr_Font *font, char *text, atr_real top_left_x, atr_real top_left_y, atr_real letter_width, atr_real letter_hight, atr_real letter_spacing, uint32_t color, size_t length);
 
-                                #define atr_uint16_print_binary(value, bit_count) atr_dprintINFO("%s = ", #value); printf("%*.s", 7, ""); atr_uint16_print_binary_imp((value), (bit_count))
-ATR_DEF void                    atr_uint16_print_binary_imp(uint16_t value, uint8_t bit_count);
-                                #define atr_uint16_print_hex(value, bit_count) atr_dprintINFO("%s = ", #value); printf("%*.s", 7, ""); atr_uint16_print_hex_imp((value), (bit_count))
-ATR_DEF void                    atr_uint16_print_hex_imp(uint16_t value, uint8_t bit_count);
-                                #define atr_uint32_print_binary(value, bit_count) atr_dprintINFO("%s = ", #value); printf("%*.s", 7, ""); atr_uint32_print_binary_imp((value), (bit_count))
-ATR_DEF void                    atr_uint32_print_binary_imp(uint32_t value, uint8_t bit_count);
-                                #define atr_uint32_print_hex(value, bit_count) atr_dprintINFO("%s = ", #value); printf("%*.s", 7, ""); atr_uint32_print_hex_imp((value), (bit_count))
-ATR_DEF void                    atr_uint32_print_hex_imp(uint32_t value, uint8_t bit_count);
+                                    #define atr_uint16_print_binary(value, bit_count) atr_dprintINFO("%s = ", #value); printf("%*.s", 7, ""); atr_uint16_print_binary_imp((value), (bit_count))
+ATR_DEF void                        atr_uint16_print_binary_imp(uint16_t value, uint8_t bit_count);
+                                    #define atr_uint16_print_hex(value, bit_count) atr_dprintINFO("%s = ", #value); printf("%*.s", 7, ""); atr_uint16_print_hex_imp((value), (bit_count))
+ATR_DEF void                        atr_uint16_print_hex_imp(uint16_t value, uint8_t bit_count);
+                                    #define atr_uint32_print_binary(value, bit_count) atr_dprintINFO("%s = ", #value); printf("%*.s", 7, ""); atr_uint32_print_binary_imp((value), (bit_count))
+ATR_DEF void                        atr_uint32_print_binary_imp(uint32_t value, uint8_t bit_count);
+                                    #define atr_uint32_print_hex(value, bit_count) atr_dprintINFO("%s = ", #value); printf("%*.s", 7, ""); atr_uint32_print_hex_imp((value), (bit_count))
+ATR_DEF void                        atr_uint32_print_hex_imp(uint32_t value, uint8_t bit_count);
 
 
 #endif /*ALMOG_TEXT_RENDERING_H_*/
@@ -694,65 +700,102 @@ ATR_DEF uint32_t atr_endian_swap_uint32(uint32_t x)
 
 ATR_DEF void atr_font_free(struct Atr_Font *font)
 {
+    ATR_ASSERT(font);
+
     atr_byte_string_free(&(font->file));
-    font->offset_subtable = (struct Atr_Offset_Subtable){0};
 
-    font->tables.head = (struct Atr_Table_head){0};
+    ATR_FREE(font->table_directory.elements);
+    font->table_directory.elements = NULL;
+    font->table_directory.length = 0;
+
     atr_table_cmap_free(font);
-
-
 
     *font = (struct Atr_Font){0};
 }
 
 ATR_DEF enum Atr_Return_Types atr_font_load_from_file_name(struct Atr_Font *font, char *file_name)
 {
-    font->file = atr_byte_string_get_from_binary_file_name(file_name);
-    if (font->file.elements == NULL) {
+    struct Atr_Font loaded = {0};
+    if (font == NULL) {
         return ATR_FAIL;
     }
-    
-    if (ATR_FAIL == atr_offset_subtable_parse(font)) {
-        atr_dprintERROR("Failed to parse offset subtable of font at '%s'", file_name);
+    loaded.file = atr_byte_string_get_from_binary_file_name(file_name);
+    if (loaded.file.elements == NULL) {
         return ATR_FAIL;
     }
-    for (size_t table_index = 0; table_index < font->offset_subtable.numTables; table_index++) {
-        struct Atr_Table_Header th = atr_table_header_parse(font, ATR_OFFSET_SUBTABLE_SIZE + table_index * ATR_TABLE_HEADER_SIZE);
-        // atr_dprintINFO("%.4s: length = %u", th.tag_str, th.length);
-        if (atr_4chars_to_uint32_t("head") == th.tag_raw) {
-            if (ATR_FAIL == atr_table_header_verify_checksum(font, th, 8)) {
-                atr_dprintERROR("%s", "head table failed the checksum test");
-                return ATR_FAIL;
-            }
-            if (ATR_FAIL == atr_table_head_parse(font, th)) {
-                atr_dprintERROR("Failed to parse head table of font at '%s' at offset %u", file_name, th.offset);
-                return ATR_FAIL;
-            }
-            atr_dprintINFO("%s", "Successfully parsed head table.");
-        } else if (atr_4chars_to_uint32_t("cmap") == th.tag_raw) {
-            if (ATR_FAIL == atr_table_header_verify_checksum(font, th, -1)) {
-                atr_dprintERROR("%s", "cmap table failed the checksum test");
-                return ATR_FAIL;
-            }
-            if (ATR_FAIL == atr_table_cmap_parse(font, th)) {
-                atr_dprintERROR("Failed to parse cmap table of font at '%s' at offset %u", file_name, th.offset);
-                return ATR_FAIL;
-            }
-            atr_dprintINFO("%s", "Successfully parsed cmap table.");
-        } else if (atr_4chars_to_uint32_t("maxp") == th.tag_raw) {
-            if (ATR_FAIL == atr_table_header_verify_checksum(font, th, -1)) {
-                atr_dprintERROR("%s", "maxp table failed the checksum test");
-                return ATR_FAIL;
-            }
-            if (ATR_FAIL == atr_table_maxp_parse(font, th)) {
-                atr_dprintERROR("Failed to parse maxp table of font at '%s' at offset %u", file_name, th.offset);
-                return ATR_FAIL;
-            }
-            atr_dprintINFO("%s", "Successfully parsed maxp table.");
-        }
+    if (loaded.file.length < ATR_OFFSET_SUBTABLE_SIZE) {
+        atr_dprintERROR("%s", "File is too small to contain an sfnt header.");
+        goto fail;
     }
+    if (atr_offset_subtable_parse(&loaded) == ATR_FAIL) {
+        goto fail;
+    }
+    if (atr_table_directory_parse(&loaded) == ATR_FAIL) {
+        goto fail;
+    }
+    const struct Atr_Table_Header *head_header = atr_table_header_find_by_tag_raw(&loaded, atr_4chars_to_uint32_t("head"));
+    const struct Atr_Table_Header *maxp_header = atr_table_header_find_by_tag_raw(&loaded, atr_4chars_to_uint32_t("maxp"));
+    const struct Atr_Table_Header *loca_header = atr_table_header_find_by_tag_raw(&loaded, atr_4chars_to_uint32_t("loca"));
+    const struct Atr_Table_Header *glyf_header = atr_table_header_find_by_tag_raw(&loaded, atr_4chars_to_uint32_t("glyf"));
+    const struct Atr_Table_Header *cmap_header = atr_table_header_find_by_tag_raw(&loaded, atr_4chars_to_uint32_t("cmap"));
+    if (head_header == NULL || maxp_header == NULL ||
+        loca_header == NULL || glyf_header == NULL ||
+        cmap_header == NULL) {
+        atr_dprintERROR("%s", "Font is missing one or more required TrueType tables.");
+        goto fail;
+    }
+    /*
+     * cmap does not depend on loca, head, or maxp. It can be
+     * parsed after the required metadata tables.
+     */
+    if (atr_table_header_verify_checksum(&loaded, *cmap_header, -1) == ATR_FAIL) {
+        goto fail;
+    }
+    if (atr_table_cmap_parse(&loaded, *cmap_header) == ATR_FAIL) {
+        goto fail;
+    }
+    /*
+     * Parse head. loca depends on indexToLocFormat.
+     */
+    if (atr_table_header_verify_checksum(&loaded, *head_header, 8) == ATR_FAIL) {
+        goto fail;
+    }
+    if (atr_table_head_parse(&loaded, *head_header) == ATR_FAIL) {
+        goto fail;
+    }
+    /*
+     * Parse maxp. loca depends on numGlyphs.
+     */
+    if (atr_table_header_verify_checksum(&loaded, *maxp_header, -1) == ATR_FAIL) {
+        goto fail;
+    }
+    if (atr_table_maxp_parse(&loaded, *maxp_header) == ATR_FAIL) {
+        goto fail;
+    }
+    /*
+     * loca is parsed only after head and maxp are available.
+     */
+    if (atr_table_header_verify_checksum(&loaded, *loca_header, -1) == ATR_FAIL) {
+        goto fail;
+    }
+    // if (atr_table_loca_parse(&loaded, *loca_header) == ATR_FAIL) {
+    //     goto fail;
+    // }
+
+    /*
+     * Commit the successfully parsed font.
+     *
+     * The caller must have initialized *font to {0}, or have loaded
+     * it previously using this API.
+     */
+    atr_font_free(font);
+    *font = loaded;
 
     return ATR_SUCCESS;
+
+    fail:
+        atr_font_free(&loaded);
+        return ATR_FAIL;
 }
 
 ATR_DEF uint32_t atr_glyphIndex_get(struct Atr_Font *font, uint32_t code_point)
@@ -893,8 +936,12 @@ ATR_DEF enum Atr_Return_Types atr_table_cmap_parse(struct Atr_Font *font, struct
             .platformID         = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2)),
             .platformSpecificID = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2)),
             .relative_offset    = atr_endian_swap_uint32(atr_bit_reader_read_bytes(&br, 4)),
-            .absolute_offset    = head_header.offset + st.relative_offset,
         };
+        if (st.relative_offset >= head_header.length) {
+            atr_dprintERROR("%s", "cmap subtable offset is invalid.");
+            return ATR_FAIL;
+        }
+        st.absolute_offset    = head_header.offset + st.relative_offset,
         br_st.file.cursor = st.absolute_offset;
         st.format = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br_st, 2));
 
@@ -940,7 +987,11 @@ ATR_DEF enum Atr_Return_Types atr_table_cmap_parse(struct Atr_Font *font, struct
                 atr_dprintERROR("%s", "Error while parsing cmap subtable with format 4.");
                 return ATR_FAIL;
             }
-            st.data.format_4.glyphIdexCount = st.data.format_4.length - fixed_size;
+            size_t glyph_id_bytes = st.data.format_4.length - fixed_size;
+            if (glyph_id_bytes % 2 != 0) {
+                return ATR_FAIL;
+            }
+            st.data.format_4.glyphIdexCount = glyph_id_bytes / sizeof(uint16_t);
             st.data.format_4.glyphIdexArray         = ATR_MALLOC(sizeof(uint16_t) * st.data.format_4.glyphIdexCount);
             ATR_ASSERT(st.data.format_4.glyphIdexArray);
             for (size_t gi = 0; gi < st.data.format_4.glyphIdexCount; gi++) {
@@ -1110,6 +1161,58 @@ ATR_DEF enum Atr_cmap_Priority atr_table_cmap_subtable_priority_score(struct Atr
     }
 
     return ATR_cmap_PRIORITY_NONE;
+}
+
+ATR_DEF enum Atr_Return_Types atr_table_directory_parse(struct Atr_Font *font)
+{
+    /* By AI */
+    size_t count = font->offset_subtable.numTables;
+    size_t directory_size = ATR_OFFSET_SUBTABLE_SIZE + count * ATR_TABLE_HEADER_SIZE;
+
+    if (directory_size > font->file.length) {
+        atr_dprintERROR("%s", "Table directory lies outside the file.");
+        return ATR_FAIL;
+    }
+
+    font->table_directory.elements = ATR_MALLOC(sizeof(struct Atr_Table_Header) * count);
+    if (font->table_directory.elements == NULL && count != 0) {
+        atr_dprintERROR("%s", "Failed to allocate table directory.");
+        return ATR_FAIL;
+    }
+    font->table_directory.length = count;
+
+    for (size_t i = 0; i < count; i++) {
+        size_t offset = ATR_OFFSET_SUBTABLE_SIZE + i * ATR_TABLE_HEADER_SIZE;
+        struct Atr_Table_Header header = atr_table_header_parse(font, offset);
+
+        if (header.offset > font->file.length || header.length > font->file.length - header.offset) {
+            atr_dprintERROR("Table %.4s lies outside the font file.", header.tag_str);
+            return ATR_FAIL;
+        }
+
+        for (size_t previous = 0; previous < i; previous++) {
+            if (font->table_directory.elements[previous].tag_raw == header.tag_raw) {
+                atr_dprintERROR("Duplicate table tag %.4s.", header.tag_str);
+                return ATR_FAIL;
+            }
+        }
+
+        font->table_directory.elements[i] = header;
+    }
+
+    return ATR_SUCCESS;
+}
+
+ATR_DEF struct Atr_Table_Header * atr_table_header_find_by_tag_raw(struct Atr_Font *font, uint32_t tag_raw)
+{
+    for (size_t i = 0; i < font->table_directory.length; i++) {
+        struct Atr_Table_Header *header = &font->table_directory.elements[i];
+        if (header->tag_raw == tag_raw) {
+            return header;
+        }
+    }
+
+    return NULL;
 }
 
 ATR_DEF struct Atr_Table_Header atr_table_header_parse(struct Atr_Font *font, size_t offset_byte)
@@ -1284,6 +1387,25 @@ ATR_DEF enum Atr_Return_Types atr_table_maxp_parse(struct Atr_Font *font, struct
         atr_dprintERROR("Error while parsing the maxp table. Got maxZones of %u, but expected maxZones of 2.", font->tables.maxp.maxZones);
         return ATR_FAIL;
     }
+
+    /*
+    atr_dprintINT(font->tables.maxp.version_hole_part    );
+    atr_dprintINT(font->tables.maxp.version_frac_part    );
+    atr_dprintINT(font->tables.maxp.numGlyphs            );
+    atr_dprintINT(font->tables.maxp.maxPoints            );
+    atr_dprintINT(font->tables.maxp.maxContours          );
+    atr_dprintINT(font->tables.maxp.maxComponentPoints   );
+    atr_dprintINT(font->tables.maxp.maxComponentContours );
+    atr_dprintINT(font->tables.maxp.maxZones             );
+    atr_dprintINT(font->tables.maxp.maxTwilightPoints    );
+    atr_dprintINT(font->tables.maxp.maxStorage           );
+    atr_dprintINT(font->tables.maxp.maxFunctionDefs      );
+    atr_dprintINT(font->tables.maxp.maxInstructionDefs   );
+    atr_dprintINT(font->tables.maxp.maxStackElements     );
+    atr_dprintINT(font->tables.maxp.maxSizeOfInstructions);
+    atr_dprintINT(font->tables.maxp.maxComponentElements );
+    atr_dprintINT(font->tables.maxp.maxComponentDepth    );
+    */
 
     return ATR_SUCCESS;
 }
