@@ -324,6 +324,10 @@ struct Atr_Table_hmtx {
 
 struct Atr_Table_loca {
     struct Atr_Table_Header header;
+    int16_t indexToLocFormat;
+    uint16_t numGlyphs;
+    size_t length;
+    uint32_t *offsets;
 };
 
 struct Atr_Table_maxp {
@@ -366,9 +370,9 @@ struct Atr_Font {
         struct Atr_Table_cmap cmap;
         struct Atr_Table_maxp maxp;
         struct Atr_Table_glyf glyf;
+        struct Atr_Table_loca loca;
         struct Atr_Table_hhea hhea;
         struct Atr_Table_hmtx hmtx;
-        struct Atr_Table_loca loca;
         struct Atr_Table_name name;
         struct Atr_Table_post post;
     } tables;
@@ -429,7 +433,7 @@ ATR_DEF enum Atr_Return_Types       atr_offset_subtable_parse(struct Atr_Font *f
 
 ATR_DEF uint32_t                    atr_table_checkSum_calc(const uint8_t *bytes, size_t length, int zero_begin, int zero_end);
 ATR_DEF void                        atr_table_cmap_free(struct Atr_Font *font);
-ATR_DEF enum Atr_Return_Types       atr_table_cmap_parse(struct Atr_Font *font, struct Atr_Table_Header head_header);
+ATR_DEF enum Atr_Return_Types       atr_table_cmap_parse(struct Atr_Font *font, struct Atr_Table_Header cmap_header);
 ATR_DEF enum Atr_Return_Types       atr_table_cmap_subtable_choose(struct Atr_Font *font);
 ATR_DEF enum Atr_cmap_Priority      atr_table_cmap_subtable_priority_score(struct Atr_Table_cmap_Subtable *subtable);
 ATR_DEF enum Atr_Return_Types       atr_table_directory_parse(struct Atr_Font *font);
@@ -437,7 +441,8 @@ ATR_DEF struct Atr_Table_Header *   atr_table_header_find_by_tag_raw(struct Atr_
 ATR_DEF struct Atr_Table_Header     atr_table_header_parse(struct Atr_Font *font, size_t offset);
 ATR_DEF enum Atr_Return_Types       atr_table_header_verify_checksum(struct Atr_Font *font, struct Atr_Table_Header header, int checkSumAdjustment_offset);
 ATR_DEF enum Atr_Return_Types       atr_table_head_parse(struct Atr_Font *font, struct Atr_Table_Header head_header);
-ATR_DEF enum Atr_Return_Types       atr_table_maxp_parse(struct Atr_Font *font, struct Atr_Table_Header head_header);
+ATR_DEF enum Atr_Return_Types       atr_table_loca_parse(struct Atr_Font *font, struct Atr_Table_Header loca_header);
+ATR_DEF enum Atr_Return_Types       atr_table_maxp_parse(struct Atr_Font *font, struct Atr_Table_Header maxp_header);
 ATR_DEF atr_real                    atr_text_line_draw(struct Atr_Pixel_Buffer screen, struct Atr_Font *font, char *text, atr_real top_left_x, atr_real top_left_y, atr_real letter_width, atr_real letter_hight, atr_real letter_spacing, uint32_t color, size_t length);
 
                                     #define atr_uint16_print_binary(value, bit_count) atr_dprintINFO("%s = ", #value); printf("%*.s", 7, ""); atr_uint16_print_binary_imp((value), (bit_count))
@@ -773,14 +778,22 @@ ATR_DEF enum Atr_Return_Types atr_font_load_from_file_name(struct Atr_Font *font
         goto fail;
     }
     /*
-     * loca is parsed only after head and maxp are available.
+     * glyf has no fields to parse yet, but save its directory record.
+     * loca offsets are relative to the beginning of glyf.
+     */
+    if (atr_table_header_verify_checksum(&loaded, *glyf_header, -1) == ATR_FAIL) {
+        goto fail;
+    }
+    loaded.tables.glyf.header = *glyf_header;
+    /*
+     * loca is parsed only after head and maxp and glyf-header are available.
      */
     if (atr_table_header_verify_checksum(&loaded, *loca_header, -1) == ATR_FAIL) {
         goto fail;
     }
-    // if (atr_table_loca_parse(&loaded, *loca_header) == ATR_FAIL) {
-    //     goto fail;
-    // }
+    if (atr_table_loca_parse(&loaded, *loca_header) == ATR_FAIL) {
+        goto fail;
+    }
 
     /*
      * Commit the successfully parsed font.
@@ -917,17 +930,17 @@ ATR_DEF void atr_table_cmap_free(struct Atr_Font *font)
     *cmap = (struct Atr_Table_cmap){0};
 }
 
-ATR_DEF enum Atr_Return_Types atr_table_cmap_parse(struct Atr_Font *font, struct Atr_Table_Header head_header)
+ATR_DEF enum Atr_Return_Types atr_table_cmap_parse(struct Atr_Font *font, struct Atr_Table_Header cmap_header)
 {
     struct Atr_Bit_Reader br = {0};
     atr_bit_reader_init(&br, font->file);
-    br.file.cursor = head_header.offset;
+    br.file.cursor = cmap_header.offset;
 
     struct Atr_Bit_Reader br_st = {0};
     atr_bit_reader_init(&br_st, font->file);
 
     atr_ada_init_array(struct Atr_Table_cmap_Subtable, font->tables.cmap.subtables);
-    font->tables.cmap.header          = head_header;
+    font->tables.cmap.header          = cmap_header;
     font->tables.cmap.version         = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
     font->tables.cmap.numberSubtables = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
 
@@ -937,11 +950,11 @@ ATR_DEF enum Atr_Return_Types atr_table_cmap_parse(struct Atr_Font *font, struct
             .platformSpecificID = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2)),
             .relative_offset    = atr_endian_swap_uint32(atr_bit_reader_read_bytes(&br, 4)),
         };
-        if (st.relative_offset >= head_header.length) {
+        if (st.relative_offset >= cmap_header.length) {
             atr_dprintERROR("%s", "cmap subtable offset is invalid.");
             return ATR_FAIL;
         }
-        st.absolute_offset    = head_header.offset + st.relative_offset,
+        st.absolute_offset    = cmap_header.offset + st.relative_offset,
         br_st.file.cursor = st.absolute_offset;
         st.format = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br_st, 2));
 
@@ -1358,13 +1371,97 @@ ATR_DEF enum Atr_Return_Types atr_table_head_parse(struct Atr_Font *font, struct
     return ATR_SUCCESS;
 }
 
-ATR_DEF enum Atr_Return_Types atr_table_maxp_parse(struct Atr_Font *font, struct Atr_Table_Header head_header)
+ATR_DEF enum Atr_Return_Types atr_table_loca_parse(struct Atr_Font *font, struct Atr_Table_Header loca_header)
+{
+    /* By AI */
+    struct Atr_Table_loca *loca = &font->tables.loca;
+    size_t num_glyphs = (size_t)font->tables.maxp.numGlyphs;
+    int16_t format = font->tables.head.indexToLocFormat;
+    size_t entry_size;
+
+    if (format == 0) {
+        entry_size = sizeof(uint16_t);
+    } else if (format == 1) {
+        entry_size = sizeof(uint32_t);
+    } else {
+        atr_dprintERROR("Unexpected indexToLocFormat. Got %d, expected 0 or 1.", format);
+        return ATR_FAIL;
+    }
+
+    /*
+     * loca contains numGlyphs + 1 offsets, including the final
+     * offset marking the end of the last glyph.
+     */
+    size_t offset_count = num_glyphs + 1;
+    size_t expected_length = offset_count * entry_size;
+    if ((size_t)loca_header.length != expected_length) {
+        atr_dprintERROR("Invalid loca length. Got %u, expected %zu.", loca_header.length, expected_length);
+        return ATR_FAIL;
+    }
+
+    /*
+     * This requires glyf.header to have been set before loca is parsed.
+     */
+    uint32_t glyf_length = font->tables.glyf.header.length;
+
+    uint32_t *offsets = ATR_MALLOC(sizeof(*offsets) * offset_count);
+    if (offsets == NULL) {
+        atr_dprintERROR("%s", "Failed to allocate loca offsets.");
+        return ATR_FAIL;
+    }
+
+    struct Atr_Bit_Reader br = {0};
+    atr_bit_reader_init(&br, font->file);
+    br.file.cursor = loca_header.offset;
+
+    for (size_t i = 0; i < offset_count; i++) {
+        uint32_t offset;
+        if (format == 0) {
+            uint16_t short_offset = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+            /*
+             * Short loca offsets are stored divided by two.
+             */
+            offset = (uint32_t)short_offset * 2u;
+        } else {
+            offset = atr_endian_swap_uint32(atr_bit_reader_read_bytes(&br, 4));
+        }
+
+        if (i > 0 && offset < offsets[i - 1]) {
+            atr_dprintERROR("loca offset at index %zu is less than the previous offset.", i);
+            ATR_FREE(offsets);
+            return ATR_FAIL;
+        }
+
+        if (offset > glyf_length) {
+            atr_dprintERROR("loca offset %u exceeds glyf length %u.", offset, glyf_length);
+            ATR_FREE(offsets);
+            return ATR_FAIL;
+        }
+
+        offsets[i] = offset;
+    }
+
+    /*
+     * Replace any previously parsed loca data only after successful
+     * parsing.
+     */
+    ATR_FREE(loca->offsets);
+
+    loca->header = loca_header;
+    loca->numGlyphs = font->tables.maxp.numGlyphs;
+    loca->indexToLocFormat = format;
+    loca->offsets = offsets;
+
+    return ATR_SUCCESS;
+}
+
+ATR_DEF enum Atr_Return_Types atr_table_maxp_parse(struct Atr_Font *font, struct Atr_Table_Header maxp_header)
 {
     struct Atr_Bit_Reader br = {0};
     atr_bit_reader_init(&br, font->file);
-    br.file.cursor = head_header.offset;
+    br.file.cursor = maxp_header.offset;
 
-    font->tables.maxp.header                = head_header;
+    font->tables.maxp.header                = maxp_header;
     font->tables.maxp.version_hole_part     = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
     font->tables.maxp.version_frac_part     = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
     font->tables.maxp.numGlyphs             = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
