@@ -412,6 +412,7 @@ struct Atr_Font {
 ATR_DEF uint32_t                    atr_4chars_to_uint32_t(const char *chars);
 ATR_DEF void                        atr_bit_reader_flush(struct Atr_Bit_Reader *br);
 ATR_DEF void                        atr_bit_reader_init(struct Atr_Bit_Reader *br, struct Atr_Byte_String file);
+ATR_DEF void                        atr_bit_reader_init_bounded(struct Atr_Bit_Reader *br, struct Atr_Byte_String file, size_t start_offset, size_t end_offset);
 ATR_DEF uint8_t                     atr_bit_reader_read_bit(struct Atr_Bit_Reader *br);
 ATR_DEF uint32_t                    atr_bit_reader_read_bits(struct Atr_Bit_Reader *br, size_t count);
 ATR_DEF uint8_t                     atr_bit_reader_read_byte(struct Atr_Bit_Reader *br);
@@ -486,6 +487,22 @@ ATR_DEF void atr_bit_reader_init(struct Atr_Bit_Reader *br, struct Atr_Byte_Stri
     br->file = file;
     br->current_byte = 0;
     br->bits_left = 0;
+}
+
+ATR_DEF void atr_bit_reader_init_bounded(struct Atr_Bit_Reader *br, struct Atr_Byte_String file, size_t start_offset, size_t end_offset)
+{
+    ATR_ASSERT(br != NULL);
+    ATR_ASSERT(start_offset <= end_offset);
+    ATR_ASSERT(start_offset <= file.length);
+    ATR_ASSERT(end_offset <= file.length);
+
+    atr_bit_reader_init(br, file);
+
+    uint8_t *base = br->file.elements;
+    br->file.elements = base + start_offset;
+    br->file.length = end_offset - start_offset;
+    br->file.capacity = br->file.length;
+    br->file.cursor = 0;
 }
 
 /**
