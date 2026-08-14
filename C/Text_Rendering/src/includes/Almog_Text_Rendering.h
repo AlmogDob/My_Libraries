@@ -248,15 +248,15 @@ struct Atr_Table_cmap_Subtable {
             uint16_t *idDelta;
             uint16_t *idRangeOffset;
 
-            size_t    glyphIdexCount;
-            uint16_t *glyphIdexArray;
+            size_t    glyphIndexCount;
+            uint16_t *glyphIndexArray;
         } format_4;
         struct {
             uint16_t length;
             uint16_t language;
             uint16_t firstCode;
             uint16_t entryCount;
-            uint16_t *glyphIdexArray;
+            uint16_t *glyphIndexArray;
         } format_6;
         struct {
             uint32_t length;
@@ -287,8 +287,34 @@ struct Atr_Table_cmap {
     bool has_variation_subtable;
 };
 
+struct Atr_Glyph {
+    struct {
+        int16_t numberOfContours;
+        int16_t xMin;
+        int16_t yMin;
+        int16_t xMax;
+        int16_t yMax;
+    } metadata;
+    union {
+        struct {
+            uint16_t *endPtsOfContours;
+
+            uint16_t  instructionLength;
+            uint8_t  *instructions;
+
+            size_t num_of_points;
+            uint8_t  *flags;
+            uint16_t *xCoordinates;
+            uint16_t *yCoordinates;
+        } simple;
+    };
+};
+
 struct Atr_Table_glyf {
     struct Atr_Table_Header header;
+
+    size_t num_of_glyphs;
+    struct Atr_Glyph *glyphs;
 };
 
 struct Atr_Table_head {
@@ -366,11 +392,11 @@ struct Atr_Font {
         struct Atr_Table_Header *elements;
     } table_directory;
     struct {
-        struct Atr_Table_head head;
         struct Atr_Table_cmap cmap;
+        struct Atr_Table_head head;
         struct Atr_Table_maxp maxp;
-        struct Atr_Table_glyf glyf;
         struct Atr_Table_loca loca;
+        struct Atr_Table_glyf glyf;
         struct Atr_Table_hhea hhea;
         struct Atr_Table_hmtx hmtx;
         struct Atr_Table_name name;
@@ -429,6 +455,8 @@ ATR_DEF void                        atr_font_free(struct Atr_Font *font);
 ATR_DEF enum Atr_Return_Types       atr_font_load_from_file_name(struct Atr_Font *font, char *file_name);
 
 ATR_DEF uint32_t                    atr_glyphIndex_get(struct Atr_Font *font, uint32_t code_point);
+ATR_DEF void                        atr_glyph_free(struct Atr_Glyph *g);
+ATR_DEF enum Atr_Return_Types       atr_glyph_parse(struct Atr_Glyph *glyph, struct Atr_Bit_Reader br);
 
 ATR_DEF enum Atr_Return_Types       atr_offset_subtable_parse(struct Atr_Font *font);
 
@@ -438,6 +466,8 @@ ATR_DEF enum Atr_Return_Types       atr_table_cmap_parse(struct Atr_Font *font, 
 ATR_DEF enum Atr_Return_Types       atr_table_cmap_subtable_choose(struct Atr_Font *font);
 ATR_DEF enum Atr_cmap_Priority      atr_table_cmap_subtable_priority_score(struct Atr_Table_cmap_Subtable *subtable);
 ATR_DEF enum Atr_Return_Types       atr_table_directory_parse(struct Atr_Font *font);
+ATR_DEF void                        atr_table_glyf_free(struct Atr_Font *font);
+ATR_DEF enum Atr_Return_Types       atr_table_glyf_parse(struct Atr_Font *font, struct Atr_Table_Header glyf_header);
 ATR_DEF struct Atr_Table_Header *   atr_table_header_find_by_tag_raw(struct Atr_Font *font, uint32_t tag_raw);
 ATR_DEF struct Atr_Table_Header     atr_table_header_parse(struct Atr_Font *font, size_t offset);
 ATR_DEF enum Atr_Return_Types       atr_table_header_verify_checksum(struct Atr_Font *font, struct Atr_Table_Header header, int checkSumAdjustment_offset);
@@ -736,6 +766,8 @@ ATR_DEF void atr_font_free(struct Atr_Font *font)
     font->tables.loca.offsets = NULL;
     font->tables.loca.length = 0;
 
+    atr_table_glyf_free(font);
+
     *font = (struct Atr_Font){0};
 }
 
@@ -759,11 +791,11 @@ ATR_DEF enum Atr_Return_Types atr_font_load_from_file_name(struct Atr_Font *font
     if (atr_table_directory_parse(&loaded) == ATR_FAIL) {
         goto fail;
     }
+    const struct Atr_Table_Header *cmap_header = atr_table_header_find_by_tag_raw(&loaded, atr_4chars_to_uint32_t("cmap"));
     const struct Atr_Table_Header *head_header = atr_table_header_find_by_tag_raw(&loaded, atr_4chars_to_uint32_t("head"));
     const struct Atr_Table_Header *maxp_header = atr_table_header_find_by_tag_raw(&loaded, atr_4chars_to_uint32_t("maxp"));
     const struct Atr_Table_Header *loca_header = atr_table_header_find_by_tag_raw(&loaded, atr_4chars_to_uint32_t("loca"));
     const struct Atr_Table_Header *glyf_header = atr_table_header_find_by_tag_raw(&loaded, atr_4chars_to_uint32_t("glyf"));
-    const struct Atr_Table_Header *cmap_header = atr_table_header_find_by_tag_raw(&loaded, atr_4chars_to_uint32_t("cmap"));
     if (head_header == NULL || maxp_header == NULL ||
         loca_header == NULL || glyf_header == NULL ||
         cmap_header == NULL) {
@@ -813,6 +845,11 @@ ATR_DEF enum Atr_Return_Types atr_font_load_from_file_name(struct Atr_Font *font
         goto fail;
     }
     if (atr_table_loca_parse(&loaded, *loca_header) == ATR_FAIL) {
+        goto fail;
+    }
+    /*
+     * parse all the glyphs according to the loca table. */
+    if (atr_table_glyf_parse(&loaded, *glyf_header) == ATR_FAIL) {
         goto fail;
     }
 
@@ -868,6 +905,28 @@ ATR_DEF uint32_t atr_glyphIndex_get(struct Atr_Font *font, uint32_t code_point)
     } else {
         return 0;
     }
+}
+
+ATR_DEF void atr_glyph_free(struct Atr_Glyph *g)
+{
+    ATR_ASSERT(g);
+    if (g->metadata.numberOfContours >= 0) {
+        ATR_FREE(g->simple.endPtsOfContours);
+        g->simple.endPtsOfContours = NULL;
+        ATR_FREE(g->simple.instructions);
+        g->simple.instructions = NULL;
+        ATR_FREE(g->simple.flags);
+        g->simple.flags = NULL;
+        ATR_FREE(g->simple.xCoordinates);
+        g->simple.xCoordinates = NULL;
+        ATR_FREE(g->simple.yCoordinates);
+        g->simple.yCoordinates = NULL;
+    }
+}
+
+ATR_DEF enum Atr_Return_Types atr_glyph_parse(struct Atr_Glyph *glyph, struct Atr_Bit_Reader br)
+{
+
 }
 
 ATR_DEF enum Atr_Return_Types atr_offset_subtable_parse(struct Atr_Font *font)
@@ -939,7 +998,7 @@ ATR_DEF void atr_table_cmap_free(struct Atr_Font *font)
         struct Atr_Table_cmap_Subtable *st = &cmap->subtables.elements[i];
         if (st->format == 4) {
             ATR_FREE(st->data.format_4.endCode);
-            ATR_FREE(st->data.format_4.glyphIdexArray);
+            ATR_FREE(st->data.format_4.glyphIndexArray);
             ATR_FREE(st->data.format_4.idDelta);
             ATR_FREE(st->data.format_4.idRangeOffset);
             ATR_FREE(st->data.format_4.startCode);
@@ -1035,11 +1094,11 @@ ATR_DEF enum Atr_Return_Types atr_table_cmap_parse(struct Atr_Font *font, struct
             if (glyph_id_bytes % 2 != 0) {
                 return ATR_FAIL;
             }
-            st.data.format_4.glyphIdexCount = glyph_id_bytes / sizeof(uint16_t);
-            st.data.format_4.glyphIdexArray         = ATR_MALLOC(sizeof(uint16_t) * st.data.format_4.glyphIdexCount);
-            ATR_ASSERT(st.data.format_4.glyphIdexArray);
-            for (size_t gi = 0; gi < st.data.format_4.glyphIdexCount; gi++) {
-                st.data.format_4.glyphIdexArray[gi] = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br_st, 2));
+            st.data.format_4.glyphIndexCount = glyph_id_bytes / sizeof(uint16_t);
+            st.data.format_4.glyphIndexArray         = ATR_MALLOC(sizeof(uint16_t) * st.data.format_4.glyphIndexCount);
+            ATR_ASSERT(st.data.format_4.glyphIndexArray);
+            for (size_t gi = 0; gi < st.data.format_4.glyphIndexCount; gi++) {
+                st.data.format_4.glyphIndexArray[gi] = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br_st, 2));
             }
         } else if (st.format == 12) {
             atr_bit_reader_read_bytes(&br_st, 2); /* reserved */
@@ -1245,6 +1304,68 @@ ATR_DEF enum Atr_Return_Types atr_table_directory_parse(struct Atr_Font *font)
     }
 
     return ATR_SUCCESS;
+}
+
+ATR_DEF void atr_table_glyf_free(struct Atr_Font *font)
+{
+    ATR_ASSERT(font);
+    struct Atr_Table_glyf *g = &font->tables.glyf;
+    for (size_t i = 0; i < g->num_of_glyphs; i ++) {
+        atr_glyph_free(&g->glyphs[i]);
+    }
+    ATR_FREE(g->glyphs);
+    g->glyphs = NULL;
+}
+
+ATR_DEF enum Atr_Return_Types atr_table_glyf_parse(struct Atr_Font *font, struct Atr_Table_Header glyf_header)
+{
+    struct Atr_Table_glyf parsed = {0};
+    size_t glyph_count = font->tables.maxp.numGlyphs;
+
+    parsed.header = glyf_header;
+    parsed.num_of_glyphs = glyph_count;
+
+    if (glyph_count != 0) {
+        parsed.glyphs = ATR_MALLOC(sizeof(*parsed.glyphs) * glyph_count);
+        if (parsed.glyphs == NULL) {
+            atr_dprintERROR("%s", "Failed to allocate glyph array.");
+            return ATR_FAIL;
+        }
+        for (size_t i = 0; i < glyph_count; ++i) {
+            parsed.glyphs[i] = (struct Atr_Glyph){0};
+        }
+    }
+
+    const uint8_t *glyf_bytes = font->file.elements + glyf_header.offset;
+
+    struct Atr_Bit_Reader gbr = {0};
+    for (size_t i = 0; i < glyph_count; ++i) {
+        uint32_t start = font->tables.loca.offsets[i];
+        uint32_t end = font->tables.loca.offsets[i + 1];
+        if (start > end || end > glyf_header.length) {
+            atr_dprintERROR("Invalid loca range for glyph %zu: [%u, %u).", i, start, end);
+            goto fail;
+        }
+        if (start == end) {
+            continue;
+        }
+        atr_bit_reader_init_bounded(&gbr, font->file, start, end);
+        if (ATR_FAIL == atr_glyph_parse(&parsed.glyphs[i], gbr)) {
+            atr_dprintERROR("Failed to parse glyph %zu.", i);
+            goto fail;
+        }
+    }
+
+    atr_table_glyf_free(font);
+    font->tables.glyf = parsed;
+    return ATR_SUCCESS;
+
+    fail:
+        for (size_t i = 0; i < glyph_count; ++i) {
+            atr_glyph_free(&parsed.glyphs[i]);
+        }
+        ATR_FREE(parsed.glyphs);
+        return ATR_FAIL;
 }
 
 ATR_DEF struct Atr_Table_Header * atr_table_header_find_by_tag_raw(struct Atr_Font *font, uint32_t tag_raw)

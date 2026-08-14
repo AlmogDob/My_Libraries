@@ -147,7 +147,7 @@ enum Apl_Return_Types apl_destroy(struct Apl_Window_State *ws)
         amd_dprintERROR("%s", "Corrupted memory detected.");
         return APL_FAIL;
     }
-    // amd_debug_mem_print(0);
+    amd_debug_mem_print(0);
     amd_debug_mem_reset();
 
 
