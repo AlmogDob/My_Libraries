@@ -282,6 +282,7 @@ struct Apl_Window_State {
     size_t delta_time_micro_sec;
     size_t elapsed_time_micro_sec;
     size_t previous_frame_time_micro_sec;
+    size_t frames_count;
     apl_real fps;
     apl_real wanted_fps;
 
@@ -641,9 +642,11 @@ APL_DEF enum Apl_Return_Types apl_window_render(struct Apl_Window_State *ws)
     }
     /*------------------------------------------------------------*/
 
-    if (apl_render(ws) != APL_SUCCESS) {
-        apl_dprintERROR("%s", "apl_render failed");
-        return APL_FAIL;
+    if (ws->frames_count > 0) {
+        if (apl_render(ws) != APL_SUCCESS) {
+            apl_dprintERROR("%s", "apl_render failed");
+            return APL_FAIL;
+        }
     }
             
     /*------------------------------------------------------------*/
@@ -1672,11 +1675,7 @@ int main(void)
             }
         }
         apl_fix_framerate(&window_state);
-        /*
-        if (game_state->elapsed_time*10-(int)(game_state->elapsed_time*10) < 0.1) {
-            SDL_SetWindowTitle(game_state->window, fps_count);
-        }
-        */
+        window_state.frames_count++;
     }
 
     rt = apl_window_destroy(&window_state);

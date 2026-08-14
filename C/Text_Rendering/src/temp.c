@@ -93,6 +93,8 @@ enum Apl_Return_Types apl_render(struct Apl_Window_State *ws)
     adl_real x = 200, y = 200, r = 150;
 
     adl_circle_fill(pixels, x, y, r, ADL_COLOR_WHITE_hexARGB, offzoom);
+    struct Atr_Glyph g = font.tables.glyf.glyphs[atr_glyphIndex_get(&font, 'L')];
+    adl_rectangle_draw_min_max(pixels, g.metadata.xMin, g.metadata.xMax, g.metadata.yMin, g.metadata.yMax, ADL_COLOR_WHITE_hexARGB, offzoom);
 
     return APL_SUCCESS;
 }
