@@ -715,6 +715,10 @@ ATR_DEF void atr_font_free(struct Atr_Font *font)
 
     atr_table_cmap_free(font);
 
+    ATR_FREE(font->tables.loca.offsets);
+    font->tables.loca.offsets = NULL;
+    font->tables.loca.length = 0;
+
     *font = (struct Atr_Font){0};
 }
 
@@ -817,6 +821,11 @@ ATR_DEF uint32_t atr_glyphIndex_get(struct Atr_Font *font, uint32_t code_point)
     ATR_ASSERT(st.format != 14);
 
     if (st.format == 0) {
+        for (size_t i = 0; i < st.data.format_0.length; i++) {
+            if (st.data.format_0.glyphIndexArray[i] == (uint8_t)code_point) {
+                return (uint32_t)i;
+            }
+        }
         return 0;
     } else if (st.format == 4) {
         return 0;
@@ -961,10 +970,15 @@ ATR_DEF enum Atr_Return_Types atr_table_cmap_parse(struct Atr_Font *font, struct
         /* Parse different cmap subtable formats */
         if (st.format == 0) {
             st.data.format_0.length   = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br_st, 2));
+            if (st.data.format_0.length != 262) {
+                atr_dprintERROR("Error while parsing cmap subtable with format 0. Got length of %u, but expected length of 262", st.data.format_0.length);
+                return ATR_FAIL;
+            }
             st.data.format_0.language = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br_st, 2));
             for (size_t gi = 0; gi < 256; gi++) {
                 st.data.format_0.glyphIndexArray[gi] = atr_bit_reader_read_byte(&br_st);
             }
+            st.data.format_0.length = 256;
         } else if (st.format == 4) {
             st.data.format_4.length                 = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br_st, 2));
             st.data.format_4.language               = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br_st, 2));
@@ -1451,6 +1465,7 @@ ATR_DEF enum Atr_Return_Types atr_table_loca_parse(struct Atr_Font *font, struct
     loca->numGlyphs = font->tables.maxp.numGlyphs;
     loca->indexToLocFormat = format;
     loca->offsets = offsets;
+    loca->length = offset_count;
 
     return ATR_SUCCESS;
 }
