@@ -875,12 +875,10 @@ ATR_DEF uint32_t atr_glyphIndex_get(struct Atr_Font *font, uint32_t code_point)
     ATR_ASSERT(st.format != 14);
 
     if (st.format == 0) {
-        for (size_t i = 0; i < st.data.format_0.length; i++) {
-            if (st.data.format_0.glyphIndexArray[i] == (uint8_t)code_point) {
-                return (uint32_t)i;
-            }
+        if (code_point >= 256) {
+            return 0;
         }
-        return 0;
+        return st.data.format_0.glyphIndexArray[code_point];
     } else if (st.format == 4) {
         return 0;
     } else if (st.format == 12) {
@@ -926,7 +924,36 @@ ATR_DEF void atr_glyph_free(struct Atr_Glyph *g)
 
 ATR_DEF enum Atr_Return_Types atr_glyph_parse(struct Atr_Glyph *glyph, struct Atr_Bit_Reader br)
 {
+    ATR_ASSERT(glyph);
 
+    glyph->metadata.numberOfContours          = (int16_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    glyph->metadata.xMin                      = (int16_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    glyph->metadata.yMin                      = (int16_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    glyph->metadata.xMax                      = (int16_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    glyph->metadata.yMax                      = (int16_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+
+    if (glyph->metadata.numberOfContours > 0) {
+        glyph->simple.endPtsOfContours = ATR_MALLOC(sizeof(uint16_t) * glyph->metadata.numberOfContours);
+        if (glyph->simple.endPtsOfContours == NULL) {
+            atr_dprintERROR("%s", "Failed to allocate endPtsOfContours array.");
+            return ATR_FAIL;
+        }
+        for (size_t i = 0; i < glyph->metadata.numberOfContours; i++) {
+            glyph->simple.endPtsOfContours[i] = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+        }
+        glyph->simple.num_of_points = glyph->simple.endPtsOfContours[glyph->metadata.numberOfContours - 1] + 1;
+        glyph->simple.instructionLength       = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+        glyph->simple.instructions = ATR_MALLOC(sizeof(uint8_t) * glyph->simple.instructionLength);
+        if (glyph->simple.instructions == NULL && glyph->simple.instructionLength > 0) {
+            atr_dprintERROR("%s", "Failed to allocate instructions array.");
+            return ATR_FAIL;
+        }
+        for (size_t i = 0; i < glyph->simple.instructionLength; i++) {
+            glyph->simple.instructions[i]     = (uint8_t)atr_bit_reader_read_bytes(&br, 1);
+        }
+    }
+
+    return ATR_SUCCESS;
 }
 
 ATR_DEF enum Atr_Return_Types atr_offset_subtable_parse(struct Atr_Font *font)
@@ -1065,23 +1092,35 @@ ATR_DEF enum Atr_Return_Types atr_table_cmap_parse(struct Atr_Font *font, struct
             st.data.format_4.rangeShift             = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br_st, 2));
 
             st.data.format_4.endCode                = ATR_MALLOC(sizeof(uint16_t) * st.data.format_4.segCountx2 / 2);
-            ATR_ASSERT(st.data.format_4.endCode);
+            if (st.data.format_4.endCode == NULL && (st.data.format_4.segCountx2 / 2) > 0) {
+                atr_dprintERROR("%s", "Failed to allocate endCode array.");
+                return ATR_FAIL;
+            }
             for (size_t gi = 0; gi < st.data.format_4.segCountx2 / 2; gi++) {
                 st.data.format_4.endCode[gi]        = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br_st, 2));
             }
             atr_bit_reader_read_bytes(&br_st, 2); /* reserved */
             st.data.format_4.startCode              = ATR_MALLOC(sizeof(uint16_t) * st.data.format_4.segCountx2 / 2);
-            ATR_ASSERT(st.data.format_4.startCode);
+            if (st.data.format_4.startCode == NULL && (st.data.format_4.segCountx2 / 2)) {
+                atr_dprintERROR("%s", "Failed to allocate startCode array.");
+                return ATR_FAIL;
+            }
             for (size_t gi = 0; gi < st.data.format_4.segCountx2 / 2; gi++) {
                 st.data.format_4.startCode[gi]      = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br_st, 2));
             }
             st.data.format_4.idDelta                = ATR_MALLOC(sizeof(uint16_t) * st.data.format_4.segCountx2 / 2);
-            ATR_ASSERT(st.data.format_4.idDelta);
+            if (st.data.format_4.idDelta == NULL && (st.data.format_4.segCountx2 / 2)) {
+                atr_dprintERROR("%s", "Failed to allocate idDelta array.");
+                return ATR_FAIL;
+            }
             for (size_t gi = 0; gi < st.data.format_4.segCountx2 / 2; gi++) {
                 st.data.format_4.idDelta[gi]        = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br_st, 2));
             }
             st.data.format_4.idRangeOffset          = ATR_MALLOC(sizeof(uint16_t) * st.data.format_4.segCountx2 / 2);
-            ATR_ASSERT(st.data.format_4.idRangeOffset);
+            if (st.data.format_4.idRangeOffset == NULL && (st.data.format_4.segCountx2 / 2)) {
+                atr_dprintERROR("%s", "Failed to allocate idRangeOffset array.");
+                return ATR_FAIL;
+            }
             for (size_t gi = 0; gi < st.data.format_4.segCountx2 / 2; gi++) {
                 st.data.format_4.idRangeOffset[gi]  = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br_st, 2));
             }
@@ -1096,7 +1135,10 @@ ATR_DEF enum Atr_Return_Types atr_table_cmap_parse(struct Atr_Font *font, struct
             }
             st.data.format_4.glyphIndexCount = glyph_id_bytes / sizeof(uint16_t);
             st.data.format_4.glyphIndexArray         = ATR_MALLOC(sizeof(uint16_t) * st.data.format_4.glyphIndexCount);
-            ATR_ASSERT(st.data.format_4.glyphIndexArray);
+            if (st.data.format_4.glyphIndexArray == NULL && st.data.format_4.glyphIndexCount > 0) {
+                atr_dprintERROR("%s", "Failed to allocate glyphIndexArray array.");
+                return ATR_FAIL;
+            }
             for (size_t gi = 0; gi < st.data.format_4.glyphIndexCount; gi++) {
                 st.data.format_4.glyphIndexArray[gi] = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br_st, 2));
             }
@@ -1106,7 +1148,10 @@ ATR_DEF enum Atr_Return_Types atr_table_cmap_parse(struct Atr_Font *font, struct
             st.data.format_12.language = atr_endian_swap_uint32(atr_bit_reader_read_bytes(&br_st, 4));
             st.data.format_12.nGroups  = atr_endian_swap_uint32(atr_bit_reader_read_bytes(&br_st, 4));
             st.data.format_12.groups   = ATR_MALLOC(sizeof(struct Atr_Table_cmap_Group) * st.data.format_12.nGroups);
-            ATR_ASSERT(st.data.format_12.groups);
+            if (st.data.format_12.groups == NULL && st.data.format_12.nGroups > 0) {
+                atr_dprintERROR("%s", "Failed to allocate groups array.");
+                return ATR_FAIL;
+            }
             for (size_t gi = 0; gi < st.data.format_12.nGroups; gi++) {
                 st.data.format_12.groups[gi].startCharCode  = atr_endian_swap_uint32(atr_bit_reader_read_bytes(&br_st, 4));
                 st.data.format_12.groups[gi].endCharCode    = atr_endian_swap_uint32(atr_bit_reader_read_bytes(&br_st, 4));
@@ -1118,7 +1163,10 @@ ATR_DEF enum Atr_Return_Types atr_table_cmap_parse(struct Atr_Font *font, struct
             st.data.format_13.language = atr_endian_swap_uint32(atr_bit_reader_read_bytes(&br_st, 4));
             st.data.format_13.nGroups  = atr_endian_swap_uint32(atr_bit_reader_read_bytes(&br_st, 4));
             st.data.format_13.groups   = ATR_MALLOC(sizeof(struct Atr_Table_cmap_Group) * st.data.format_13.nGroups);
-            ATR_ASSERT(st.data.format_13.groups);
+            if (st.data.format_13.groups == NULL && st.data.format_13.nGroups > 0) {
+                atr_dprintERROR("%s", "Failed to allocate groups array.");
+                return ATR_FAIL;
+            }
             for (size_t gi = 0; gi < st.data.format_13.nGroups; gi++) {
                 st.data.format_13.groups[gi].startCharCode  = atr_endian_swap_uint32(atr_bit_reader_read_bytes(&br_st, 4));
                 st.data.format_13.groups[gi].endCharCode    = atr_endian_swap_uint32(atr_bit_reader_read_bytes(&br_st, 4));
@@ -1278,7 +1326,7 @@ ATR_DEF enum Atr_Return_Types atr_table_directory_parse(struct Atr_Font *font)
     }
 
     font->table_directory.elements = ATR_MALLOC(sizeof(struct Atr_Table_Header) * count);
-    if (font->table_directory.elements == NULL && count != 0) {
+    if (font->table_directory.elements == NULL && count > 0) {
         atr_dprintERROR("%s", "Failed to allocate table directory.");
         return ATR_FAIL;
     }
@@ -1336,8 +1384,6 @@ ATR_DEF enum Atr_Return_Types atr_table_glyf_parse(struct Atr_Font *font, struct
         }
     }
 
-    const uint8_t *glyf_bytes = font->file.elements + glyf_header.offset;
-
     struct Atr_Bit_Reader gbr = {0};
     for (size_t i = 0; i < glyph_count; ++i) {
         uint32_t start = font->tables.loca.offsets[i];
@@ -1349,7 +1395,7 @@ ATR_DEF enum Atr_Return_Types atr_table_glyf_parse(struct Atr_Font *font, struct
         if (start == end) {
             continue;
         }
-        atr_bit_reader_init_bounded(&gbr, font->file, start, end);
+        atr_bit_reader_init_bounded(&gbr, font->file, start + glyf_header.offset, end + glyf_header.offset);
         if (ATR_FAIL == atr_glyph_parse(&parsed.glyphs[i], gbr)) {
             atr_dprintERROR("Failed to parse glyph %zu.", i);
             goto fail;
