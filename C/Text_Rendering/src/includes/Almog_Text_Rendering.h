@@ -287,6 +287,37 @@ struct Atr_Table_cmap {
     bool has_variation_subtable;
 };
 
+enum Atr_Outline_Flag {
+    ATR_OUTLINE_FLAG_ON_CURVE       = 0b000001,
+    ATR_OUTLINE_FLAG_X_SHORT_VECTOR = 0b000010,
+    ATR_OUTLINE_FLAG_Y_SHORT_VECTOR = 0b000100,
+    ATR_OUTLINE_FLAG_REPEAT         = 0b001000,
+    ATR_OUTLINE_FLAG_THIS_X_IS_SAME = 0b010000,
+    ATR_OUTLINE_FLAG_THIS_Y_IS_SAME = 0b100000,
+};
+
+struct Atr_Vec2 {
+    atr_real x;
+    atr_real y;
+};
+
+enum Atr_Glyph_Point_Flag {
+    ATR_GPF_ON_CURVE    = 0b001,
+    ATR_GPF_CONTOUR_END = 0b010,
+    ATR_GPF_GENERATED   = 0b100,
+};
+
+struct Atr_Glyph_Point {
+    struct Atr_Vec2 pos;
+    enum Atr_Glyph_Point_Flag flag;
+};
+
+struct Atr_Glyph_Point_Dynamic_Array {
+    size_t capacity;
+    size_t length;
+    struct Atr_Glyph_Point *elements;
+};
+
 struct Atr_Glyph {
     struct {
         int16_t numberOfContours;
@@ -302,10 +333,11 @@ struct Atr_Glyph {
             uint16_t  instructionLength;
             uint8_t  *instructions;
 
-            size_t num_of_points;
+            size_t    num_of_raw_points;
             uint8_t  *flags;
-            uint16_t *xCoordinates;
-            uint16_t *yCoordinates;
+            int16_t  *xCoordinates;
+            int16_t  *yCoordinates;
+            struct Atr_Glyph_Point_Dynamic_Array points;
         } simple;
     };
 };
@@ -454,9 +486,15 @@ ATR_DEF uint32_t                    atr_endian_swap_uint32(uint32_t x);
 ATR_DEF void                        atr_font_free(struct Atr_Font *font);
 ATR_DEF enum Atr_Return_Types       atr_font_load_from_file_name(struct Atr_Font *font, char *file_name);
 
-ATR_DEF uint32_t                    atr_glyphIndex_get(struct Atr_Font *font, uint32_t code_point);
+ATR_DEF void                        atr_glyph_append_line(struct Atr_Glyph *glyph, struct Atr_Glyph_Point start, struct Atr_Glyph_Point end);
+ATR_DEF void                        atr_glyph_append_quadratic_bezier(struct Atr_Glyph *glyph, struct Atr_Glyph_Point start, struct Atr_Glyph_Point control, struct Atr_Glyph_Point end);
 ATR_DEF void                        atr_glyph_free(struct Atr_Glyph *g);
 ATR_DEF enum Atr_Return_Types       atr_glyph_parse(struct Atr_Glyph *glyph, struct Atr_Bit_Reader br);
+ATR_DEF enum Atr_Return_Types       atr_glyph_parse_simple(struct Atr_Glyph *glyph, struct Atr_Bit_Reader br);
+ATR_DEF struct Atr_Glyph_Point      atr_glyph_point_from_raw(const struct Atr_Glyph *glyph, size_t index);
+ATR_DEF bool                        atr_glyph_point_is_on_curve(const struct Atr_Glyph_Point *point);
+ATR_DEF struct Atr_Glyph_Point      atr_glyph_point_midpoint(struct Atr_Glyph_Point a, struct Atr_Glyph_Point b);
+ATR_DEF uint32_t                    atr_glyphIndex_get(struct Atr_Font *font, uint32_t code_point);
 
 ATR_DEF enum Atr_Return_Types       atr_offset_subtable_parse(struct Atr_Font *font);
 
@@ -869,6 +907,413 @@ ATR_DEF enum Atr_Return_Types atr_font_load_from_file_name(struct Atr_Font *font
         return ATR_FAIL;
 }
 
+ATR_DEF void atr_glyph_append_line(struct Atr_Glyph *glyph, struct Atr_Glyph_Point start, struct Atr_Glyph_Point end)
+{
+    struct Atr_Glyph_Point control = atr_glyph_point_midpoint(start, end);
+
+    /*
+     * This is a line represented as a degenerate quadratic Bézier:
+     *
+     * start -> midpoint(start, end) -> end
+     */
+    control.flag = ATR_GPF_GENERATED;
+
+    atr_glyph_append_quadratic_bezier(glyph, start, control, end);
+}
+
+ATR_DEF void atr_glyph_append_quadratic_bezier(struct Atr_Glyph *glyph, struct Atr_Glyph_Point start, struct Atr_Glyph_Point control, struct Atr_Glyph_Point end)
+{
+    atr_ada_append(struct Atr_Glyph_Point, glyph->simple.points, start);
+    atr_ada_append(struct Atr_Glyph_Point, glyph->simple.points, control);
+    atr_ada_append(struct Atr_Glyph_Point, glyph->simple.points, end);
+}
+
+ATR_DEF void atr_glyph_free(struct Atr_Glyph *g)
+{
+    ATR_ASSERT(g);
+    if (g->metadata.numberOfContours >= 0) {
+        ATR_FREE(g->simple.endPtsOfContours);
+        g->simple.endPtsOfContours = NULL;
+        ATR_FREE(g->simple.instructions);
+        g->simple.instructions = NULL;
+        ATR_FREE(g->simple.flags);
+        g->simple.flags = NULL;
+        ATR_FREE(g->simple.xCoordinates);
+        g->simple.xCoordinates = NULL;
+        ATR_FREE(g->simple.yCoordinates);
+        g->simple.yCoordinates = NULL;
+        ATR_FREE(g->simple.points.elements);
+        g->simple.points.elements = NULL;
+        g->simple.points.length = 0;
+        g->simple.points.capacity = 0;
+    }
+}
+
+ATR_DEF enum Atr_Return_Types atr_glyph_parse(struct Atr_Glyph *glyph, struct Atr_Bit_Reader br)
+{
+    ATR_ASSERT(glyph);
+
+    glyph->metadata.numberOfContours          = (int16_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    glyph->metadata.xMin                      = (int16_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    glyph->metadata.yMin                      = (int16_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    glyph->metadata.xMax                      = (int16_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    glyph->metadata.yMax                      = (int16_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+
+    if (glyph->metadata.numberOfContours > 0) {
+        if (ATR_FAIL == atr_glyph_parse_simple(glyph, br)) {
+            atr_dprintERROR("%s", "Failed to parse a simple glyph.");
+            return ATR_FAIL;
+        }
+    }
+
+    return ATR_SUCCESS;
+}
+
+ATR_DEF enum Atr_Return_Types atr_glyph_parse_simple(struct Atr_Glyph *glyph, struct Atr_Bit_Reader br)
+{
+    glyph->simple.endPtsOfContours = ATR_MALLOC(sizeof(uint16_t) * glyph->metadata.numberOfContours);
+    if (glyph->simple.endPtsOfContours == NULL) {
+        atr_dprintERROR("%s", "Failed to allocate endPtsOfContours array.");
+        return ATR_FAIL;
+    }
+    for (size_t i = 0; i < glyph->metadata.numberOfContours; i++) {
+        glyph->simple.endPtsOfContours[i] = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    }
+    glyph->simple.num_of_raw_points = glyph->simple.endPtsOfContours[glyph->metadata.numberOfContours - 1] + 1;
+
+    glyph->simple.instructionLength       = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    glyph->simple.instructions = ATR_MALLOC(sizeof(uint8_t) * glyph->simple.instructionLength);
+    if (glyph->simple.instructions == NULL && glyph->simple.instructionLength > 0) {
+        atr_dprintERROR("%s", "Failed to allocate instructions array.");
+        return ATR_FAIL;
+    }
+    for (size_t i = 0; i < glyph->simple.instructionLength; i++) {
+        glyph->simple.instructions[i]     = (uint8_t)atr_bit_reader_read_bytes(&br, 1);
+    }
+
+    glyph->simple.flags = ATR_MALLOC(sizeof(uint8_t) * glyph->simple.num_of_raw_points);
+    if (glyph->simple.flags == NULL && glyph->simple.num_of_raw_points > 0) {
+        atr_dprintERROR("%s", "Failed to allocate flags array.");
+        return ATR_FAIL;
+    }
+
+    for (size_t i = 0; i < glyph->simple.num_of_raw_points;) {
+        uint8_t flag = (uint8_t)atr_bit_reader_read_bytes(&br, 1);
+        glyph->simple.flags[i++] = flag;
+
+        if ((flag & ATR_OUTLINE_FLAG_REPEAT) != 0) {
+            uint8_t repeat_count = (uint8_t)atr_bit_reader_read_bytes(&br, 1);
+            if ((size_t)repeat_count > glyph->simple.num_of_raw_points - i) {
+                atr_dprintERROR("Invalid flag repeat count: %u.", repeat_count);
+                return ATR_FAIL;
+            }
+            for (size_t j = 0; j < repeat_count; ++j) {
+                glyph->simple.flags[i++] = flag;
+            }
+        }
+    }
+    glyph->simple.xCoordinates = ATR_MALLOC(sizeof(*glyph->simple.xCoordinates) * glyph->simple.num_of_raw_points);
+    if (glyph->simple.xCoordinates == NULL && glyph->simple.num_of_raw_points > 0) {
+        atr_dprintERROR("%s", "Failed to allocate xCoordinates array.");
+        return ATR_FAIL;
+    }
+    int16_t x = 0;
+
+    for (size_t i = 0; i < glyph->simple.num_of_raw_points; ++i) {
+        uint8_t flag = glyph->simple.flags[i];
+
+        if ((flag & ATR_OUTLINE_FLAG_X_SHORT_VECTOR) != 0) {
+            uint8_t diff = (uint8_t)atr_bit_reader_read_bytes(&br, 1);
+            if ((flag & ATR_OUTLINE_FLAG_THIS_X_IS_SAME) != 0) {
+                x += (int16_t)diff;
+            } else {
+                x -= (int16_t)diff;
+            }
+        } else if ((flag & ATR_OUTLINE_FLAG_THIS_X_IS_SAME) == 0) {
+            int16_t diff = (int16_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+            x += diff;
+        }
+
+        glyph->simple.xCoordinates[i] = x;
+    }
+    glyph->simple.yCoordinates = ATR_MALLOC(sizeof(*glyph->simple.yCoordinates) * glyph->simple.num_of_raw_points);
+    if (glyph->simple.yCoordinates == NULL && glyph->simple.num_of_raw_points > 0) {
+        atr_dprintERROR("%s", "Failed to allocate yCoordinates array.");
+        return ATR_FAIL;
+    }
+    int16_t y = 0;
+
+    for (size_t i = 0; i < glyph->simple.num_of_raw_points; ++i) {
+        uint8_t flag = glyph->simple.flags[i];
+
+        if ((flag & ATR_OUTLINE_FLAG_Y_SHORT_VECTOR) != 0) {
+            uint8_t diff = (uint8_t)atr_bit_reader_read_bytes(&br, 1);
+            if ((flag & ATR_OUTLINE_FLAG_THIS_Y_IS_SAME) != 0) {
+                y += (int16_t)diff;
+            } else {
+                y -= (int16_t)diff;
+            }
+        } else if ((flag & ATR_OUTLINE_FLAG_THIS_Y_IS_SAME) == 0) {
+            int16_t diff = (int16_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+            y += diff;
+        }
+
+        glyph->simple.yCoordinates[i] = y;
+    }
+
+    #if 1
+    atr_ada_init_array(struct Atr_Glyph_Point, glyph->simple.points);
+    for (size_t contour_index = 0; contour_index < (size_t)glyph->metadata.numberOfContours; ++contour_index) {
+        size_t start_point_index = contour_index == 0 ? 0 : (size_t)glyph->simple.endPtsOfContours[contour_index - 1] + 1;
+        size_t end_point_index = (size_t)glyph->simple.endPtsOfContours[contour_index];
+        size_t point_count = end_point_index - start_point_index + 1;
+
+        if (point_count == 0) {
+            atr_dprintERROR("%s", "Glyph contour has no points.");
+            return ATR_FAIL;
+        }
+
+        struct Atr_Glyph_Point first = atr_glyph_point_from_raw(glyph, start_point_index);
+        struct Atr_Glyph_Point last = atr_glyph_point_from_raw(glyph, end_point_index);
+
+        struct Atr_Glyph_Point current;
+        size_t start_walk_index;
+
+        /*
+        * A TrueType contour must begin at an on-curve point. If its first
+        * raw point is off-curve:
+        *
+        * - Use the last point if that point is on-curve.
+        * - Otherwise, create an implied on-curve point halfway between the
+        *   first and last off-curve points.
+        */
+        if (atr_glyph_point_is_on_curve(&first)) {
+            current = first;
+            start_walk_index = 1;
+        } else if (atr_glyph_point_is_on_curve(&last)) {
+            current = last;
+            start_walk_index = 0;
+        } else {
+            current = atr_glyph_point_midpoint(last, first);
+            start_walk_index = 0;
+        }
+
+        bool has_control = false;
+        struct Atr_Glyph_Point control = {0};
+        size_t contour_output_start = glyph->simple.points.length;
+
+        /*
+        * Walk all raw points circularly, starting immediately after the
+        * selected starting point.
+        */
+        for (size_t step = 0; step < point_count; ++step) {
+            size_t local_index = (start_walk_index + step) % point_count;
+            size_t raw_index = start_point_index + local_index;
+
+            struct Atr_Glyph_Point point = atr_glyph_point_from_raw(glyph, raw_index);
+
+            if (atr_glyph_point_is_on_curve(&point)) {
+                if (has_control) {
+                    /*
+                    * current -- control -- point
+                    */
+                    atr_glyph_append_quadratic_bezier(glyph, current, control, point);
+                    has_control = false;
+                } else {
+                    /*
+                    * Consecutive on-curve points define a line.
+                    */
+                    atr_glyph_append_line(glyph, current, point);
+                }
+
+                current = point;
+                continue;
+            }
+
+            /*
+            * An off-curve point is a quadratic control point.
+            */
+            if (!has_control) {
+                control = point;
+                has_control = true;
+                continue;
+            }
+
+            /*
+            * Two consecutive off-curve points imply an on-curve endpoint
+            * halfway between them.
+            */
+            struct Atr_Glyph_Point implied_end = atr_glyph_point_midpoint(control, point);
+
+            atr_glyph_append_quadratic_bezier(glyph, current, control, implied_end);
+
+            current = implied_end;
+            control = point;
+            has_control = true;
+        }
+
+        /*
+        * This occurs when the contour started with an implied midpoint and
+        * ended on an off-curve point. Close the final quadratic segment.
+        */
+        if (has_control) {
+            atr_glyph_append_quadratic_bezier(glyph, current, control,
+                atr_glyph_point_is_on_curve(&first) ? first : atr_glyph_point_midpoint(last, first)
+            );
+        }
+
+        /*
+        * Mark the final endpoint of this contour. Each emitted segment
+        * occupies three points, so the last item is always its endpoint.
+        */
+        if (glyph->simple.points.length > contour_output_start) {
+            glyph->simple.points.elements[glyph->simple.points.length - 1].flag |= ATR_GPF_CONTOUR_END;
+        }
+
+    }
+
+    return ATR_SUCCESS;
+    #else
+    atr_ada_init_array(struct Atr_Glyph_Point, glyph->simple.points);
+    for (size_t contour_index = 0; contour_index < glyph->metadata.numberOfContours; contour_index++) {
+        size_t start_point_index = contour_index == 0 ? 0 : glyph->simple.endPtsOfContours[contour_index - 1] + 1;
+        size_t end_point_index = glyph->simple.endPtsOfContours[contour_index];
+        size_t num_points_in_contour = end_point_index - start_point_index + 1;
+
+        for (int i = 0, point_offset = 0; i + point_offset < num_points_in_contour; i++) {
+            size_t p0_i = ((i + point_offset + 0) % num_points_in_contour) + start_point_index;
+            size_t p1_i = ((i + point_offset + 1) % num_points_in_contour) + start_point_index;
+            size_t p2_i = ((i + point_offset + 2) % num_points_in_contour) + start_point_index;
+
+            struct Atr_Glyph_Point p0 = {
+                .flag = glyph->simple.flags[p0_i],
+                .pos.x = glyph->simple.xCoordinates[p0_i],
+                .pos.y = glyph->simple.yCoordinates[p0_i],
+            };
+            struct Atr_Glyph_Point p1 = {
+                .flag = glyph->simple.flags[p1_i],
+                .pos.x = glyph->simple.xCoordinates[p1_i],
+                .pos.y = glyph->simple.yCoordinates[p1_i],
+            };
+            struct Atr_Glyph_Point p2 = {
+                .flag = glyph->simple.flags[p2_i],
+                .pos.x = glyph->simple.xCoordinates[p2_i],
+                .pos.y = glyph->simple.yCoordinates[p2_i],
+            };
+
+            uint8_t on_curve = (
+                ((p0.flag & 0x1) << 2) |
+                ((p1.flag & 0x1) << 1) |
+                ((p2.flag & 0x1) << 0)
+            );
+
+            switch (on_curve) {
+            case 0b110:
+                /* fallthrough */
+            case 0b111:
+            {
+                /* line segment */
+                p2 = p1;
+                p1 = (struct Atr_Glyph_Point){
+                    .flag = ATR_GPF_GENERATED,
+                    .pos.x = (p2.pos.x + p0.pos.x) / 2,
+                    .pos.y = (p2.pos.y + p0.pos.y) / 2,
+                };
+            } break;
+            case 0b101:
+            {
+                /* explicit explicit explicit */
+                i++; /* skip off curve point */
+            } break;
+            case 0b100:
+            {
+                /* explicit explicit implicit */
+                p2 = (struct Atr_Glyph_Point){
+                    .flag = ATR_GPF_ON_CURVE | ATR_GPF_GENERATED,
+                    .pos.x = (p2.pos.x + p1.pos.x) / 2,
+                    .pos.y = (p2.pos.y + p1.pos.y) / 2,
+                };
+            } break;
+            case 0b001:
+            {
+                /* implicit explicit explicit */
+                p0 = (struct Atr_Glyph_Point){
+                    .flag = ATR_GPF_ON_CURVE | ATR_GPF_GENERATED,
+                    .pos.x = (p0.pos.x + p1.pos.x) / 2,
+                    .pos.y = (p0.pos.y + p1.pos.y) / 2,
+                };
+                i++; /* skip off curve point */
+            } break;
+            case 0b000:
+            {
+                /* implicit explicit implicit */
+                p0 = (struct Atr_Glyph_Point){
+                    .flag = ATR_GPF_ON_CURVE | ATR_GPF_GENERATED,
+                    .pos.x = (p0.pos.x + p1.pos.x) / 2,
+                    .pos.y = (p0.pos.y + p1.pos.y) / 2,
+                };
+                p2 = (struct Atr_Glyph_Point){
+                    .flag = ATR_GPF_ON_CURVE | ATR_GPF_GENERATED,
+                    .pos.x = (p2.pos.x + p1.pos.x) / 2,
+                    .pos.y = (p2.pos.y + p1.pos.y) / 2,
+                };
+            } break;
+            case 0b010:
+                /* fallthrough */
+            case 0b011:
+            {
+                /* line segment */
+                point_offset++;
+                i--;
+                continue;
+            } break;
+            default: 
+            {
+                atr_dprintERROR("%s", "Unknown 'on curve' case.");
+                return ATR_FAIL;
+            }
+            }
+
+            atr_ada_append(struct Atr_Glyph_Point, glyph->simple.points, p0);
+            atr_ada_append(struct Atr_Glyph_Point, glyph->simple.points, p1);
+            if (i == num_points_in_contour - 1) {
+                p2.flag |= ATR_GPF_CONTOUR_END;
+                atr_ada_append(struct Atr_Glyph_Point, glyph->simple.points, p2);
+            }
+        }
+    }
+
+    return ATR_SUCCESS;
+    #endif
+}
+
+ATR_DEF struct Atr_Glyph_Point atr_glyph_point_from_raw(const struct Atr_Glyph *glyph, size_t index)
+{
+    return (struct Atr_Glyph_Point){
+        .flag = glyph->simple.flags[index],
+        .pos = {
+            .x = glyph->simple.xCoordinates[index],
+            .y = glyph->simple.yCoordinates[index],
+        },
+    };
+}
+
+ATR_DEF bool atr_glyph_point_is_on_curve(const struct Atr_Glyph_Point *point)
+{
+    return (point->flag & ATR_GPF_ON_CURVE) != 0;
+}
+
+ATR_DEF struct Atr_Glyph_Point atr_glyph_point_midpoint(struct Atr_Glyph_Point a, struct Atr_Glyph_Point b)
+{
+    return (struct Atr_Glyph_Point){
+        .flag = ATR_GPF_ON_CURVE | ATR_GPF_GENERATED,
+        .pos = {
+            .x = (int16_t)(((int32_t)a.pos.x + (int32_t)b.pos.x) / 2),
+            .y = (int16_t)(((int32_t)a.pos.y + (int32_t)b.pos.y) / 2),
+        },
+    };
+}
+
 ATR_DEF uint32_t atr_glyphIndex_get(struct Atr_Font *font, uint32_t code_point)
 {
     struct Atr_Table_cmap_Subtable st = font->tables.cmap.subtables.elements[font->tables.cmap.chosen_subtable_index];
@@ -903,57 +1348,6 @@ ATR_DEF uint32_t atr_glyphIndex_get(struct Atr_Font *font, uint32_t code_point)
     } else {
         return 0;
     }
-}
-
-ATR_DEF void atr_glyph_free(struct Atr_Glyph *g)
-{
-    ATR_ASSERT(g);
-    if (g->metadata.numberOfContours >= 0) {
-        ATR_FREE(g->simple.endPtsOfContours);
-        g->simple.endPtsOfContours = NULL;
-        ATR_FREE(g->simple.instructions);
-        g->simple.instructions = NULL;
-        ATR_FREE(g->simple.flags);
-        g->simple.flags = NULL;
-        ATR_FREE(g->simple.xCoordinates);
-        g->simple.xCoordinates = NULL;
-        ATR_FREE(g->simple.yCoordinates);
-        g->simple.yCoordinates = NULL;
-    }
-}
-
-ATR_DEF enum Atr_Return_Types atr_glyph_parse(struct Atr_Glyph *glyph, struct Atr_Bit_Reader br)
-{
-    ATR_ASSERT(glyph);
-
-    glyph->metadata.numberOfContours          = (int16_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
-    glyph->metadata.xMin                      = (int16_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
-    glyph->metadata.yMin                      = (int16_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
-    glyph->metadata.xMax                      = (int16_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
-    glyph->metadata.yMax                      = (int16_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
-
-    if (glyph->metadata.numberOfContours > 0) {
-        glyph->simple.endPtsOfContours = ATR_MALLOC(sizeof(uint16_t) * glyph->metadata.numberOfContours);
-        if (glyph->simple.endPtsOfContours == NULL) {
-            atr_dprintERROR("%s", "Failed to allocate endPtsOfContours array.");
-            return ATR_FAIL;
-        }
-        for (size_t i = 0; i < glyph->metadata.numberOfContours; i++) {
-            glyph->simple.endPtsOfContours[i] = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
-        }
-        glyph->simple.num_of_points = glyph->simple.endPtsOfContours[glyph->metadata.numberOfContours - 1] + 1;
-        glyph->simple.instructionLength       = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
-        glyph->simple.instructions = ATR_MALLOC(sizeof(uint8_t) * glyph->simple.instructionLength);
-        if (glyph->simple.instructions == NULL && glyph->simple.instructionLength > 0) {
-            atr_dprintERROR("%s", "Failed to allocate instructions array.");
-            return ATR_FAIL;
-        }
-        for (size_t i = 0; i < glyph->simple.instructionLength; i++) {
-            glyph->simple.instructions[i]     = (uint8_t)atr_bit_reader_read_bytes(&br, 1);
-        }
-    }
-
-    return ATR_SUCCESS;
 }
 
 ATR_DEF enum Atr_Return_Types atr_offset_subtable_parse(struct Atr_Font *font)
