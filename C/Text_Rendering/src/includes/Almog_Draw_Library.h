@@ -125,7 +125,9 @@ ADL_DEF void                adl_arrows_draw(struct Adl_Pixel_Buffer screen, stru
 ADL_DEF void                adl_arrows_draw_loop(struct Adl_Pixel_Buffer screen, struct Adl_Vec2 *vec2s, size_t count, adl_real head_size, adl_real head_angle_deg, uint32_t color, struct Adl_Offset_Zoom offzoom);
 
 ADL_DEF void                adl_circle_draw(struct Adl_Pixel_Buffer screen, adl_real center_x, adl_real center_y, adl_real r, uint32_t color, struct Adl_Offset_Zoom offzoom);
+ADL_DEF void                adl_circle_draw_high_quality(struct Adl_Pixel_Buffer screen, adl_real center_x, adl_real center_y, adl_real r, uint32_t color, struct Adl_Offset_Zoom offzoom);
 ADL_DEF void                adl_circle_fill(struct Adl_Pixel_Buffer screen, adl_real center_x, adl_real center_y, adl_real r, uint32_t color, struct Adl_Offset_Zoom offzoom);
+ADL_DEF void                adl_circle_fill_high_quality(struct Adl_Pixel_Buffer screen, adl_real center_x, adl_real center_y, adl_real r, uint32_t color, struct Adl_Offset_Zoom offzoom);
 
 ADL_DEF adl_real            adl_edge_cross_vec2(struct Adl_Vec2 a1, struct Adl_Vec2 b, struct Adl_Vec2 a2, struct Adl_Vec2 p);
 

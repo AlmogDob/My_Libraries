@@ -468,6 +468,9 @@ struct Atr_Font {
 #endif
 
 ATR_DEF uint32_t                    atr_4chars_to_uint32_t(const char *chars);
+
+ATR_DEF uint32_t                    atr_alpha_blend(uint32_t dst, uint32_t src);
+
 ATR_DEF void                        atr_bit_reader_flush(struct Atr_Bit_Reader *br);
 ATR_DEF void                        atr_bit_reader_init(struct Atr_Bit_Reader *br, struct Atr_Byte_String file);
 ATR_DEF void                        atr_bit_reader_init_bounded(struct Atr_Bit_Reader *br, struct Atr_Byte_String file, size_t start_offset, size_t end_offset);
@@ -479,6 +482,9 @@ ATR_DEF uint32_t                    atr_bit_reader_read_bytes(struct Atr_Bit_Rea
 ATR_DEF struct Atr_Byte_String      atr_byte_string_get_from_binary_file_name(char *file_name);
 ATR_DEF struct Atr_Byte_String      atr_byte_string_get_from_binary_file_pointer(FILE *fp, char *file_name);
 ATR_DEF void                        atr_byte_string_free(struct Atr_Byte_String *bs);
+
+ATR_DEF void                        atr_circle_fill(struct Atr_Pixel_Buffer screen, atr_real center_x, atr_real center_y, atr_real r, uint32_t color, struct Atr_Offset_Zoom offzoom);
+ATR_DEF void                        atr_circle_fill_high_quality(struct Atr_Pixel_Buffer screen, atr_real center_x, atr_real center_y, atr_real r, uint32_t color, struct Atr_Offset_Zoom offzoom);
 
 ATR_DEF uint16_t                    atr_endian_swap_uint16(uint16_t x);
 ATR_DEF uint32_t                    atr_endian_swap_uint32(uint32_t x);
@@ -496,7 +502,22 @@ ATR_DEF bool                        atr_glyph_point_is_on_curve(const struct Atr
 ATR_DEF struct Atr_Glyph_Point      atr_glyph_point_midpoint(struct Atr_Glyph_Point a, struct Atr_Glyph_Point b);
 ATR_DEF uint32_t                    atr_glyphIndex_get(struct Atr_Font *font, uint32_t code_point);
 
+ATR_DEF void                        atr_hexargb_to_rgba(uint32_t color, uint8_t *r, uint8_t *g, uint8_t *b, uint8_t *a);
+
+ATR_DEF void                        atr_line_draw(struct Atr_Pixel_Buffer screen, atr_real x1_input, atr_real y1_input, atr_real x2_input, atr_real y2_input, uint32_t color, struct Atr_Offset_Zoom offzoom);
+ATR_DEF void                        atr_line_draw_fix_width(struct Atr_Pixel_Buffer screen, atr_real x1_input, atr_real y1_input, atr_real x2_input, atr_real y2_input, uint32_t color, struct Atr_Offset_Zoom offzoom);
+ATR_DEF void                        atr_line_draw_no_antialiasing(struct Atr_Pixel_Buffer screen, atr_real x1_input, atr_real y1_input, atr_real x2_input, atr_real y2_input, uint32_t color, struct Atr_Offset_Zoom offzoom);
+
 ATR_DEF enum Atr_Return_Types       atr_offset_subtable_parse(struct Atr_Font *font);
+
+ATR_DEF void                        atr_pixel_draw(struct Atr_Pixel_Buffer screen, atr_real x, atr_real y, uint32_t color, struct Atr_Offset_Zoom offzoom);
+
+ATR_DEF void                        atr_quadratic_bezier_draw(struct Atr_Pixel_Buffer pixels, struct Atr_Glyph_Point start, struct Atr_Glyph_Point control, struct Atr_Glyph_Point end, atr_real x_origin, atr_real y_origin, atr_real x_offset, atr_real y_offset, atr_real scale, uint32_t color, struct Atr_Offset_Zoom offzoom);
+
+ATR_DEF void                        atr_rectangle_draw_min_max(struct Atr_Pixel_Buffer screen, atr_real min_x, atr_real max_x, atr_real min_y, atr_real max_y, uint32_t color, struct Atr_Offset_Zoom offzoom);
+ATR_DEF uint32_t                    atr_rgba_to_hexargb(int r, int g, int b, int a);
+
+ATR_DEF atr_real                    atr_scale_get_for_em(struct Atr_Font *font, atr_real pixels_per_em);
 
 ATR_DEF uint32_t                    atr_table_checkSum_calc(const uint8_t *bytes, size_t length, int zero_begin, int zero_end);
 ATR_DEF void                        atr_table_cmap_free(struct Atr_Font *font);
@@ -512,8 +533,10 @@ ATR_DEF enum Atr_Return_Types       atr_table_header_verify_checksum(struct Atr_
 ATR_DEF enum Atr_Return_Types       atr_table_head_parse(struct Atr_Font *font, struct Atr_Table_Header head_header);
 ATR_DEF enum Atr_Return_Types       atr_table_loca_parse(struct Atr_Font *font, struct Atr_Table_Header loca_header);
 ATR_DEF enum Atr_Return_Types       atr_table_maxp_parse(struct Atr_Font *font, struct Atr_Table_Header maxp_header);
-ATR_DEF atr_real                    atr_text_line_draw(struct Atr_Pixel_Buffer screen, struct Atr_Font *font, char *text, atr_real top_left_x, atr_real top_left_y, atr_real letter_width, atr_real letter_hight, atr_real letter_spacing, uint32_t color, size_t length);
+ATR_DEF atr_real                    atr_text_line_draw(struct Atr_Pixel_Buffer screen, struct Atr_Font *font, char *text, atr_real top_left_x, atr_real top_left_y, atr_real letter_hight, atr_real letter_spacing, uint32_t color, int length, struct Atr_Offset_Zoom offzoom);
+ATR_DEF atr_real                    atr_text_line_draw_outline(struct Atr_Pixel_Buffer screen, struct Atr_Font *font, uint8_t *text, atr_real top_left_x, atr_real top_left_y, atr_real letter_hight, atr_real letter_spacing, uint32_t color, int length, struct Atr_Offset_Zoom offzoom);
 
+ATR_DEF uint8_t                     atr_u8_clamp_int(int x);
                                     #define atr_uint16_print_binary(value, bit_count) atr_dprintINFO("%s = ", #value); printf("%*.s", 7, ""); atr_uint16_print_binary_imp((value), (bit_count))
 ATR_DEF void                        atr_uint16_print_binary_imp(uint16_t value, uint8_t bit_count);
                                     #define atr_uint16_print_hex(value, bit_count) atr_dprintINFO("%s = ", #value); printf("%*.s", 7, ""); atr_uint16_print_hex_imp((value), (bit_count))
@@ -535,6 +558,23 @@ ATR_DEF uint32_t atr_4chars_to_uint32_t(const char *chars)
     return ((uint32_t)(((uint32_t)((chars)[0]) << 0) | ((uint32_t)((chars)[1]) << 8) | ((uint32_t)((chars)[2]) << 16) | ((uint32_t)((chars)[3]) << 24)));
 }
  
+ATR_DEF uint32_t atr_alpha_blend(uint32_t dst, uint32_t src)
+{
+    uint8_t sr, sg, sb, sa;
+    uint8_t dr, dg, db;
+
+    atr_hexargb_to_rgba(src, &sr, &sg, &sb, &sa);
+    atr_hexargb_to_rgba(dst, &dr, &dg, &db, NULL);
+
+    atr_real a = (atr_real)sa / 255.0f;
+
+    int r = (int)((atr_real)dr * (1.0f - a) + (atr_real)sr * a);
+    int g = (int)((atr_real)dg * (1.0f - a) + (atr_real)sg * a);
+    int b = (int)((atr_real)db * (1.0f - a) + (atr_real)sb * a);
+
+    return atr_rgba_to_hexargb(r, g, b, 255);
+}
+
 /**
  * @brief Discard any unread bits cached in the bit reader.
  * @param br Bit reader to reset to the next byte boundary.
@@ -763,6 +803,40 @@ ATR_DEF void atr_byte_string_free(struct Atr_Byte_String *bs)
     bs->capacity = 0;
     bs->length = 0;
     bs->cursor = 0;
+}
+
+ATR_DEF void atr_circle_fill(struct Atr_Pixel_Buffer screen, atr_real center_x, atr_real center_y, atr_real r, uint32_t color, struct Atr_Offset_Zoom offzoom)
+{
+    // if (center_x + r < 0 || center_x - r > screen.cols || center_y + r < 0 || center_y - r > screen.rows) {
+    //     return;
+    // } 
+    atr_real x = 0, y = -r, p = -r;
+    while (x < -y) {
+        if (p > 0) {
+            y += 1;
+            p += 2 * (x + y) + 1;
+            atr_line_draw_no_antialiasing(screen, center_x + x, center_y + y, center_x - x, center_y + y, color, offzoom);
+            atr_line_draw_no_antialiasing(screen, center_x + x, center_y - y, center_x - x, center_y - y, color, offzoom);
+        } else {
+            p += 2 * x + 1;
+        }
+        atr_line_draw_no_antialiasing(screen, center_x + y, center_y + x, center_x - y, center_y + x, color, offzoom);
+        atr_line_draw_no_antialiasing(screen, center_x + y, center_y - x, center_x - y, center_y - x, color, offzoom);
+        x += 1;
+    }
+}
+
+ATR_DEF void atr_circle_fill_high_quality(struct Atr_Pixel_Buffer screen, atr_real center_x, atr_real center_y, atr_real r, uint32_t color, struct Atr_Offset_Zoom offzoom)
+{
+    atr_real window_w = (atr_real)screen.cols;
+    atr_real window_h = (atr_real)screen.rows;
+    atr_real zoom = offzoom.zoom_multiplier;
+
+    atr_real center_x1 = (center_x - window_w/2.0f + offzoom.offset_x) * zoom + window_w/2.0f;
+    atr_real center_y1 = (center_y - window_h/2.0f + offzoom.offset_y) * zoom + window_h/2.0f;
+    atr_real r1        = r * zoom;
+
+    atr_circle_fill(screen, center_x1, center_y1, r1, color, ATR_DEFAULT_OFFSET_ZOOM);
 }
 
 /**
@@ -1325,6 +1399,7 @@ ATR_DEF uint32_t atr_glyphIndex_get(struct Atr_Font *font, uint32_t code_point)
         }
         return st.data.format_0.glyphIndexArray[code_point];
     } else if (st.format == 4) {
+        atr_dprintWARNING("%s", "Using unsupported format 4 of cmap table.");
         return 0;
     } else if (st.format == 12) {
         /** TODO:
@@ -1347,6 +1422,177 @@ ATR_DEF uint32_t atr_glyphIndex_get(struct Atr_Font *font, uint32_t code_point)
         return 0;
     } else {
         return 0;
+    }
+}
+
+ATR_DEF void atr_hexargb_to_rgba(uint32_t color, uint8_t *r, uint8_t *g, uint8_t *b, uint8_t *a)
+{
+    if (a) *a = (uint8_t)((color >> 24) & 0xFF);
+    if (r) *r = (uint8_t)((color >> 16) & 0xFF);
+    if (g) *g = (uint8_t)((color >> 8) & 0xFF);
+    if (b) *b = (uint8_t)((color >> 0) & 0xFF);
+}
+
+ATR_DEF void atr_line_draw(struct Atr_Pixel_Buffer screen, atr_real x1_input, atr_real y1_input, atr_real x2_input, atr_real y2_input, uint32_t color, struct Atr_Offset_Zoom offzoom)
+{
+    uint8_t r, g, b, a;
+    atr_hexargb_to_rgba(color, &r, &g, &b, &a);
+
+    if (atr_fabs(y2_input - y1_input) < atr_fabs(x2_input - x1_input)) {
+        if (x2_input < x1_input) {
+            atr_real temp = x2_input;
+            x2_input = x1_input;
+            x1_input = temp;
+
+            temp = y2_input;
+            y2_input = y1_input;
+            y1_input = temp;
+        }
+
+        atr_real dx = x2_input - x1_input;
+        atr_real dy = y2_input - y1_input;
+        atr_real m = dy / dx;
+
+        atr_real overlap = 1 - ((x1_input + 0.5) - (int)(x1_input + 0.5));
+        atr_real dis_start = y1_input - (int)y1_input;
+        atr_pixel_draw(screen, (atr_real)((int)(x1_input + 0.5)), (atr_real)((int)(y1_input)), atr_rgba_to_hexargb(r, g, b, (int)(a * ((atr_real)1 - dis_start) * overlap)), offzoom);
+        atr_pixel_draw(screen, (atr_real)((int)(x1_input + 0.5)), (atr_real)((int)(y1_input) + (atr_real)1), atr_rgba_to_hexargb(r, g, b, (int)(a * (dis_start) * overlap)), offzoom);
+        overlap = ((x2_input + 0.5) - (int)(x2_input + 0.5));
+        atr_real dis_end = y2_input - (int)y2_input;
+        atr_pixel_draw(screen, (atr_real)((int)(x2_input + 0.5)), (atr_real)((int)(y2_input)), atr_rgba_to_hexargb(r, g, b, (int)(a * ((atr_real)1 - dis_end) * overlap)), offzoom);
+        atr_pixel_draw(screen, (atr_real)((int)(x2_input + 0.5)), (atr_real)((int)(y2_input) + (atr_real)1), atr_rgba_to_hexargb(r, g, b, (int)(a * (dis_end) * overlap)), offzoom);
+
+        for (size_t i = 1; i < dx; i++) {
+            atr_real x = x1_input + (atr_real)i;
+            atr_real y = y1_input + (atr_real)i * m;
+            int ix = (int)x;
+            int iy = (int)y;
+            atr_real down_dis = y - iy;
+            atr_real up_dis   = 1 - down_dis;
+            atr_pixel_draw(screen, (atr_real)ix, (atr_real)iy, atr_rgba_to_hexargb(r, g, b, (int)(a * up_dis)), offzoom);
+            atr_pixel_draw(screen, (atr_real)ix, (atr_real)iy + (atr_real)1, atr_rgba_to_hexargb(r, g, b, (int)(a * down_dis)), offzoom);
+        }
+    } else {
+        if (y2_input < y1_input) {
+            atr_real temp = x2_input;
+            x2_input = x1_input;
+            x1_input = temp;
+
+            temp = y2_input;
+            y2_input = y1_input;
+            y1_input = temp;
+        }
+
+        atr_real dx = x2_input - x1_input;
+        atr_real dy = y2_input - y1_input;
+        atr_real m = dx / dy;
+
+        atr_real overlap = 1 - ((y1_input + 0.5) - (int)(y1_input + 0.5));
+        atr_real dis_start = y1_input - (int)y1_input;
+        atr_pixel_draw(screen, (atr_real)((int)(x1_input)), (atr_real)((int)(y1_input + 0.5)), atr_rgba_to_hexargb(r, g, b, (int)(a * ((atr_real)1 - dis_start) * overlap)), offzoom);
+        atr_pixel_draw(screen, (atr_real)((int)(x1_input) + (atr_real)1), (atr_real)((int)(y1_input + 0.5)), atr_rgba_to_hexargb(r, g, b, (int)(a * (dis_start) * overlap)), offzoom);
+        overlap = ((y2_input + 0.5) - (int)(y2_input + 0.5));
+        atr_real dis_end = y2_input - (int)y2_input;
+        atr_pixel_draw(screen, (atr_real)((int)(x2_input)), (atr_real)((int)(y2_input + 0.5)), atr_rgba_to_hexargb(r, g, b, (int)(a * ((atr_real)1 - dis_end) * overlap)), offzoom);
+        atr_pixel_draw(screen, (atr_real)((int)(x2_input) + (atr_real)1), (atr_real)((int)(y2_input + 0.5)), atr_rgba_to_hexargb(r, g, b, (int)(a * (dis_end) * overlap)), offzoom);
+
+        for (size_t i = 1; i < dy; i++) {
+            atr_real y = y1_input + (atr_real)i;
+            atr_real x = x1_input + (atr_real)i * m;
+            int ix = (int)x;
+            int iy = (int)y;
+            atr_real down_dis = x - ix;
+            atr_real up_dis   = 1 - down_dis;
+            atr_pixel_draw(screen, (atr_real)ix, (atr_real)iy, atr_rgba_to_hexargb(r, g, b, (int)(a * up_dis)), offzoom);
+            atr_pixel_draw(screen, (atr_real)ix + (atr_real)1, (atr_real)iy, atr_rgba_to_hexargb(r, g, b, (int)(a * down_dis)), offzoom);
+        }
+    }
+}
+
+ATR_DEF void atr_line_draw_fix_width(struct Atr_Pixel_Buffer screen, atr_real x1_input, atr_real y1_input, atr_real x2_input, atr_real y2_input, uint32_t color, struct Atr_Offset_Zoom offzoom)
+{
+    atr_real window_w = (atr_real)screen.cols;
+    atr_real window_h = (atr_real)screen.rows;
+    atr_real zoom = offzoom.zoom_multiplier;
+
+    atr_real x1 = (x1_input - window_w/2.0f + offzoom.offset_x) * zoom + window_w/2.0f;
+    atr_real y1 = (y1_input - window_h/2.0f + offzoom.offset_y) * zoom + window_h/2.0f;
+
+    atr_real x2 = (x2_input - window_w/2.0f + offzoom.offset_x) * zoom + window_w/2.0f;
+    atr_real y2 = (y2_input - window_h/2.0f + offzoom.offset_y) * zoom + window_h/2.0f;
+
+    atr_line_draw(screen, x1, y1, x2, y2, color, ATR_DEFAULT_OFFSET_ZOOM);
+}
+
+ATR_DEF void atr_line_draw_no_antialiasing(struct Atr_Pixel_Buffer screen, atr_real x1_input, atr_real y1_input, atr_real x2_input, atr_real y2_input, uint32_t color, struct Atr_Offset_Zoom offzoom)
+{
+    /** 
+     * This function is inspired by the Olive.c function developed by 'Tsoding' on his YouTube channel.
+     * You can fined the video in this link: https://youtu.be/LmQKZmQh1ZQ?list=PLpM-Dvs8t0Va-Gb0Dp4d9t8yvNFHaKH6N&t=4683.
+     */
+
+    int x1 = (int)x1_input;
+    int x2 = (int)x2_input;
+    int y1 = (int)y1_input;
+    int y2 = (int)y2_input;
+
+    int x = x1;
+    int y = y1;
+    int dx, dy;
+
+    atr_pixel_draw(screen, (atr_real)x, (atr_real)y, color, offzoom);
+
+    dx = x2 - x1;
+    dy = y2 - y1;
+
+    ATR_ASSERT(dy > INT_MIN && dy < INT_MAX);
+    ATR_ASSERT(dx > INT_MIN && dx < INT_MAX);
+
+    if (0 == dx && 0 == dy) return;
+    if (0 == dx) {
+        while (x != x2 || y != y2) {
+            if (dy > 0) {
+                y++;
+            }
+            if (dy < 0) {
+                y--;
+            }
+            atr_pixel_draw(screen, (atr_real)x, (atr_real)y, color, offzoom);
+        }
+        return;
+    }
+    if (0 == dy) {
+        while (x != x2 || y != y2) {
+            if (dx > 0) {
+                x++;
+            }
+            if (dx < 0) {
+                x--;
+            }
+            atr_pixel_draw(screen, (atr_real)x, (atr_real)y, color, offzoom);
+        }
+        return;
+    }
+
+    /* atr_real m = (atr_real)dy / dx */
+    int b = y1 - dy * x1 / dx;
+
+    if (x1 > x2) {
+        int temp_x = x1;
+        x1 = x2;
+        x2 = temp_x;
+    }
+    for (x = x1; x < x2; x++) {
+        int sy1 = dy * x / dx + b;
+        int sy2 = dy * (x + 1) / dx + b;
+        if (sy1 > sy2) {
+            int temp_y = sy1;
+            sy1 = sy2;
+            sy2 = temp_y;
+        }
+        for (y = sy1; y <= sy2; y++) {
+            atr_pixel_draw(screen, (atr_real)x, (atr_real)y, color, offzoom);
+        }
     }
 }
 
@@ -1382,6 +1628,110 @@ ATR_DEF enum Atr_Return_Types atr_offset_subtable_parse(struct Atr_Font *font)
 
     
     return ATR_SUCCESS;
+}
+
+ATR_DEF void atr_pixel_draw(struct Atr_Pixel_Buffer screen, atr_real x, atr_real y, uint32_t color, struct Atr_Offset_Zoom offzoom)
+{
+    atr_real window_w = (atr_real)screen.cols;
+    atr_real window_h = (atr_real)screen.rows;
+    atr_real zoom = offzoom.zoom_multiplier;
+    
+    if (ATR_IS_ZERO(zoom - (atr_real)1)) {
+        int ix = (int)(x + offzoom.offset_x);
+        int iy = (int)(y + offzoom.offset_y);
+        if ((ix >= 0 && iy >= 0) && ((size_t)ix < screen.cols && (size_t)iy < screen.rows)) { /* vec2 is in screen */
+            ATR_BUFFER_AT(screen, iy, ix) = atr_alpha_blend(ATR_BUFFER_AT(screen, iy, ix), color);
+        }
+        return;
+    }
+
+    atr_real start_x0 = (x - window_w/2.0f + offzoom.offset_x) * zoom + window_w/2.0f;
+    atr_real start_y0 = (y - window_h/2.0f + offzoom.offset_y) * zoom + window_h/2.0f;
+    atr_real start_x1 = (x + 1 - window_w/2.0f + offzoom.offset_x) * zoom + window_w/2.0f;
+    atr_real start_y1 = (y + 1 - window_h/2.0f + offzoom.offset_y) * zoom + window_h/2.0f;
+
+    int ix0 = (int)atr_floor(atr_min(start_x0, start_x1));
+    int iy0 = (int)atr_floor(atr_min(start_y0, start_y1));
+    int ix1 = (int)atr_ceil(atr_max(start_x0, start_x1));
+    int iy1 = (int)atr_ceil(atr_max(start_y0, start_y1));
+
+    if (offzoom.zoom_multiplier <= 0) return;
+    int block = (int)(zoom + (atr_real)0.5);
+    if (block < 1) block = 1;
+
+    for (int ix = ix0; ix < ix1; ix++) {
+        for (int iy = iy0; iy < iy1; iy++) {
+            if ((ix >= 0 && iy >= 0) && ((size_t)ix < screen.cols && (size_t)iy < screen.rows)) { /* vec2 is in screen */
+                ATR_BUFFER_AT(screen, iy, ix) = atr_alpha_blend(ATR_BUFFER_AT(screen, iy, ix), color);
+            }
+        }
+    }
+}
+
+
+ATR_DEF void atr_quadratic_bezier_draw(struct Atr_Pixel_Buffer pixels, struct Atr_Glyph_Point start, struct Atr_Glyph_Point control, struct Atr_Glyph_Point end, atr_real x_origin, atr_real y_origin, atr_real x_offset, atr_real y_offset, atr_real scale, uint32_t color, struct Atr_Offset_Zoom offzoom)
+{
+    /*
+     * Increase this if curves look visibly segmented at high zoom.
+     * A more advanced renderer would adapt this based on curve length.
+     */
+    const size_t steps = 50;
+
+    for (size_t i = 0; i < steps; ++i) {
+        atr_real t_i = (atr_real)i / (atr_real)steps;
+        atr_real t_ip1 = (atr_real)(i + 1) / (atr_real)steps;
+
+        atr_real inverse_t_i = (atr_real)1 - t_i;
+        atr_real inverse_t_ip1 = (atr_real)1 - t_ip1;
+
+        atr_real x_i = inverse_t_i * inverse_t_i * start.pos.x +
+            (atr_real)2 * inverse_t_i * t_i * control.pos.x +
+            t_i * t_i * end.pos.x;
+        atr_real x_ip1 = inverse_t_ip1 * inverse_t_ip1 * start.pos.x +
+            (atr_real)2 * inverse_t_ip1 * t_ip1 * control.pos.x +
+            t_ip1 * t_ip1 * end.pos.x;
+
+        atr_real y_i = inverse_t_i * inverse_t_i * start.pos.y +
+            (atr_real)2 * inverse_t_i * t_i * control.pos.y +
+            t_i * t_i * end.pos.y;
+        atr_real y_ip1 = inverse_t_ip1 * inverse_t_ip1 * start.pos.y +
+            (atr_real)2 * inverse_t_ip1 * t_ip1 * control.pos.y +
+            t_ip1 * t_ip1 * end.pos.y;
+
+        atr_line_draw_fix_width(pixels, x_origin + x_offset + x_i * scale,
+                                        y_origin + y_offset - y_i * scale,
+                                        x_origin + x_offset + x_ip1 * scale,
+                                        y_origin + y_offset - y_ip1 * scale,
+                                        color, offzoom);
+    }
+
+    // atr_circle_fill_high_quality(pixels, -x_origin + start.pos.x + x_offset, y_origin + y_offset - start.pos.y, 4, 0xFF00FFFF, offzoom);
+    // atr_circle_fill_high_quality(pixels, -x_origin + end.pos.x + x_offset, y_origin + y_offset - end.pos.y, 4, 0xFF00FFFF, offzoom);
+    // atr_circle_fill_high_quality(pixels, -x_origin + control.pos.x + x_offset, y_origin + y_offset - control.pos.y, 4, 0xFFFF0000, offzoom);
+}
+
+ATR_DEF void atr_rectangle_draw_min_max(struct Atr_Pixel_Buffer screen, atr_real min_x, atr_real max_x, atr_real min_y, atr_real max_y, uint32_t color, struct Atr_Offset_Zoom offzoom)
+{
+    atr_line_draw_no_antialiasing(screen, min_x, min_y, max_x, min_y, color, offzoom);
+    atr_line_draw_no_antialiasing(screen, max_x, min_y, max_x, max_y, color, offzoom);
+    atr_line_draw_no_antialiasing(screen, max_x, max_y, min_x, max_y, color, offzoom);
+    atr_line_draw_no_antialiasing(screen, min_x, max_y, min_x, min_y, color, offzoom);
+}
+
+ATR_DEF uint32_t atr_rgba_to_hexargb(int r, int g, int b, int a)
+{
+    uint32_t ru = atr_u8_clamp_int(r);
+    uint32_t gu = atr_u8_clamp_int(g);
+    uint32_t bu = atr_u8_clamp_int(b);
+    uint32_t au = atr_u8_clamp_int(a);
+
+    return (au << 24) | (ru << 16) | (gu << 8) | bu;
+}
+
+ATR_DEF atr_real atr_scale_get_for_em(struct Atr_Font *font, atr_real pixels_per_em)
+{
+    atr_real units_per_em = font->tables.head.unitsPerEm;
+    return pixels_per_em / units_per_em;
 }
 
 ATR_DEF uint32_t atr_table_checkSum_calc(const uint8_t *bytes, size_t length, int zero_begin, int zero_end)
@@ -2100,20 +2450,71 @@ ATR_DEF enum Atr_Return_Types atr_table_maxp_parse(struct Atr_Font *font, struct
     return ATR_SUCCESS;
 }
 
-ATR_DEF atr_real atr_text_line_draw(struct Atr_Pixel_Buffer screen, struct Atr_Font *font, char *text, atr_real top_left_x, atr_real top_left_y, atr_real letter_width, atr_real letter_hight, atr_real letter_spacing, uint32_t color, size_t length)
+ATR_DEF atr_real atr_text_line_draw(struct Atr_Pixel_Buffer screen, struct Atr_Font *font, char *text, atr_real top_left_x, atr_real top_left_y, atr_real letter_hight, atr_real letter_spacing, uint32_t color, int length, struct Atr_Offset_Zoom offzoom)
 {
     ATR_UNUSED(screen);
     ATR_UNUSED(font);
     ATR_UNUSED(text);
     ATR_UNUSED(top_left_x);
     ATR_UNUSED(top_left_y);
-    ATR_UNUSED(letter_width);
     ATR_UNUSED(letter_hight);
     ATR_UNUSED(letter_spacing);
     ATR_UNUSED(color);
     ATR_UNUSED(length);
+    ATR_UNUSED(offzoom);
 
     return 0;
+}
+
+ATR_DEF atr_real atr_text_line_draw_outline(struct Atr_Pixel_Buffer screen, struct Atr_Font *font, uint8_t *text, atr_real top_left_x, atr_real top_left_y, atr_real letter_hight, atr_real letter_spacing, uint32_t color, int length, struct Atr_Offset_Zoom offzoom)
+{
+    if (length == -1) {
+        length = (int)strlen((const char *)text);
+    }
+
+    atr_real y_max = 0;
+    for (size_t text_index = 0; text_index < length; text_index++) {
+        size_t c = (size_t)text[text_index];
+        struct Atr_Glyph g = font->tables.glyf.glyphs[atr_glyphIndex_get(font, (uint32_t)c)];
+        if (g.metadata.yMax > y_max) {
+            y_max = g.metadata.yMax;
+        }
+    }
+
+    atr_real scale = atr_scale_get_for_em(font, letter_hight);
+    atr_real x = top_left_x;
+    y_max *= scale;
+    for (size_t text_index = 0; text_index < length; text_index++) {
+        size_t c = (size_t)text[text_index];
+        if (c == ' ') {
+            x += 300 * scale;
+            continue;
+        }
+        struct Atr_Glyph g = font->tables.glyf.glyphs[atr_glyphIndex_get(font, (uint32_t)c)];
+        // atr_rectangle_draw_min_max(screen, top_left_x + x, top_left_x + x + (g.metadata.xMax - g.metadata.xMin) * scale, top_left_y + y_max - (g.metadata.yMin) * scale, top_left_y + y_max - (g.metadata.yMax) * scale, 0xFFFFFFFF, offzoom);
+        for (size_t i = 0; i + 2 < g.simple.points.length; i += 3) {
+            struct Atr_Glyph_Point start = g.simple.points.elements[i + 0];
+            struct Atr_Glyph_Point control = g.simple.points.elements[i + 1];
+            struct Atr_Glyph_Point end = g.simple.points.elements[i + 2];
+
+            atr_quadratic_bezier_draw(screen, start, control, end, top_left_x + x, top_left_y, -g.metadata.xMin * scale, y_max, scale, color, offzoom);
+        }
+        
+        x += letter_spacing + (g.metadata.xMax - g.metadata.xMin) * scale;
+    }
+
+    return x;
+}
+
+ATR_DEF uint8_t atr_u8_clamp_int(int x)
+{
+    if (x < 0) {
+        return 0;
+    }
+    if (x > 255) {
+        return 255;
+    }
+    return (uint8_t)x;
 }
 
 /**
