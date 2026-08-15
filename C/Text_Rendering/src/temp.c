@@ -74,7 +74,7 @@ enum Apl_Return_Types apl_setup(struct Apl_Window_State *ws)
 
 
 
-    ws->running = false;
+    // ws->running = false;
 
     return APL_SUCCESS;
 }
@@ -90,11 +90,16 @@ enum Apl_Return_Types apl_render(struct Apl_Window_State *ws)
 {
     struct Adl_Pixel_Buffer pixels = apl_pixel_buffer_as_adl_pixel_buffer(ws->window_pixels_mat);
 
-    adl_real x = 200, y = 200, r = 150;
-
-    adl_circle_fill(pixels, x, y, r, ADL_COLOR_WHITE_hexARGB, offzoom);
-    struct Atr_Glyph g = font.tables.glyf.glyphs[atr_glyphIndex_get(&font, 'L')];
+    struct Atr_Glyph g = font.tables.glyf.glyphs[atr_glyphIndex_get(&font, 'A')];
     adl_rectangle_draw_min_max(pixels, g.metadata.xMin, g.metadata.xMax, g.metadata.yMin, g.metadata.yMax, ADL_COLOR_WHITE_hexARGB, offzoom);
+
+    for (size_t i = 0; i < g.simple.points.length; i++) {
+        atr_real x = g.simple.points.elements[i].pos.x;
+        atr_real y = g.simple.points.elements[i].pos.y;
+        uint32_t color = g.simple.points.elements[i].flag & ATR_GPF_ON_CURVE ? ADL_COLOR_CYAN_hexARGB : ADL_COLOR_RED_hexARGB;
+        
+        adl_circle_fill_high_quality(pixels, x, g.metadata.yMax-y, 20, color, offzoom);
+    }
 
     return APL_SUCCESS;
 }
