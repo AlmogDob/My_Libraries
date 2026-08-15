@@ -125,7 +125,9 @@ ADL_DEF void                adl_arrows_draw(struct Adl_Pixel_Buffer screen, stru
 ADL_DEF void                adl_arrows_draw_loop(struct Adl_Pixel_Buffer screen, struct Adl_Vec2 *vec2s, size_t count, adl_real head_size, adl_real head_angle_deg, uint32_t color, struct Adl_Offset_Zoom offzoom);
 
 ADL_DEF void                adl_circle_draw(struct Adl_Pixel_Buffer screen, adl_real center_x, adl_real center_y, adl_real r, uint32_t color, struct Adl_Offset_Zoom offzoom);
+ADL_DEF void                adl_circle_draw_high_quality(struct Adl_Pixel_Buffer screen, adl_real center_x, adl_real center_y, adl_real r, uint32_t color, struct Adl_Offset_Zoom offzoom);
 ADL_DEF void                adl_circle_fill(struct Adl_Pixel_Buffer screen, adl_real center_x, adl_real center_y, adl_real r, uint32_t color, struct Adl_Offset_Zoom offzoom);
+ADL_DEF void                adl_circle_fill_high_quality(struct Adl_Pixel_Buffer screen, adl_real center_x, adl_real center_y, adl_real r, uint32_t color, struct Adl_Offset_Zoom offzoom);
 
 ADL_DEF adl_real            adl_edge_cross_vec2(struct Adl_Vec2 a1, struct Adl_Vec2 b, struct Adl_Vec2 a2, struct Adl_Vec2 p);
 
@@ -261,8 +263,24 @@ ADL_DEF void adl_circle_draw(struct Adl_Pixel_Buffer screen, adl_real center_x, 
     }
 }
 
+ADL_DEF void adl_circle_draw_high_quality(struct Adl_Pixel_Buffer screen, adl_real center_x, adl_real center_y, adl_real r, uint32_t color, struct Adl_Offset_Zoom offzoom)
+{
+    adl_real window_w = (adl_real)screen.cols;
+    adl_real window_h = (adl_real)screen.rows;
+    adl_real zoom = offzoom.zoom_multiplier;
+
+    adl_real center_x1 = (center_x - window_w/2.0f + offzoom.offset_x) * zoom + window_w/2.0f;
+    adl_real center_y1 = (center_y - window_h/2.0f + offzoom.offset_y) * zoom + window_h/2.0f;
+    adl_real r1        = r * zoom;
+
+    adl_circle_draw(screen, center_x1, center_y1, r1, color, ADL_DEFAULT_OFFSET_ZOOM);
+}
+
 ADL_DEF void adl_circle_fill(struct Adl_Pixel_Buffer screen, adl_real center_x, adl_real center_y, adl_real r, uint32_t color, struct Adl_Offset_Zoom offzoom)
 {
+    if (center_x + r < 0 || center_x - r > screen.cols || center_y + r < 0 || center_y - r > screen.rows) {
+        return;
+    } 
     adl_real x = 0, y = -r, p = -r;
     while (x < -y) {
         if (p > 0) {
@@ -288,6 +306,20 @@ ADL_DEF void adl_circle_fill(struct Adl_Pixel_Buffer screen, adl_real center_x, 
         x += 1;
     }
 }
+
+ADL_DEF void adl_circle_fill_high_quality(struct Adl_Pixel_Buffer screen, adl_real center_x, adl_real center_y, adl_real r, uint32_t color, struct Adl_Offset_Zoom offzoom)
+{
+    adl_real window_w = (adl_real)screen.cols;
+    adl_real window_h = (adl_real)screen.rows;
+    adl_real zoom = offzoom.zoom_multiplier;
+
+    adl_real center_x1 = (center_x - window_w/2.0f + offzoom.offset_x) * zoom + window_w/2.0f;
+    adl_real center_y1 = (center_y - window_h/2.0f + offzoom.offset_y) * zoom + window_h/2.0f;
+    adl_real r1        = r * zoom;
+
+    adl_circle_fill(screen, center_x1, center_y1, r1, color, ADL_DEFAULT_OFFSET_ZOOM);
+}
+
 
 ADL_DEF adl_real adl_edge_cross_vec2(struct Adl_Vec2 a1, struct Adl_Vec2 b, struct Adl_Vec2 a2, struct Adl_Vec2 p)
 {
