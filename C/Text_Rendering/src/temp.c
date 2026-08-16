@@ -7,7 +7,7 @@
 #define APL_INPUT
 #define APL_DESTROY
 
-// #define AMD_MEMORY_DEBUG
+#define AMD_MEMORY_DEBUG
 #define ALMOG_MEMORY_DEBUG_IMPLEMENTATION
 #include "includes/Almog_Memory_Debug.h"
 
@@ -64,10 +64,17 @@ enum Apl_Return_Types apl_setup(struct Apl_Window_State *ws)
     offzoom = ADL_DEFAULT_OFFSET_ZOOM;
 
 
+    char font_file_name[] = "../src/fonts/BLKCHCRY.ttf";
+    // char font_file_name[] = "../src/fonts/Canterbury.ttf";
+    // char font_file_name[] = "../src/fonts/ChopinScript.ttf";
     // char font_file_name[] = "../src/fonts/Inconsolata-Regular.ttf";
-    // char font_file_name[] = "../src/fonts/waltographUI.ttf";
-    char font_file_name[] = "../src/fonts/Symbola.ttf";
+    // char font_file_name[] = "../src/fonts/Montague.ttf";
+    // char font_file_name[] = "../src/fonts/MotionPicture_PersonalUseOnly.ttf";
+    // char font_file_name[] = "../src/fonts/Motterdam-K74zp.ttf";
+    // char font_file_name[] = "../src/fonts/PlayfairDisplay-Regular.ttf";
     // char font_file_name[] = "../src/fonts/Scabber-q2Mn0.ttf";
+    // char font_file_name[] = "../src/fonts/Symbola.ttf";
+    // char font_file_name[] = "../src/fonts/waltographUI.ttf";
     if (ATR_FAIL == atr_font_load_from_file_name(&font, font_file_name)) {
         atr_dprintERROR("Failed to load font from file '%s'.", font_file_name);
         return APL_FAIL;
@@ -93,12 +100,14 @@ enum Apl_Return_Types apl_render(struct Apl_Window_State *ws)
     struct Adl_Pixel_Buffer pixels = apl_pixel_buffer_as_adl_pixel_buffer(ws->window_pixels_mat);
     struct Atr_Pixel_Buffer font_pixels = adl_pixel_buffer_as_atr_pixel_buffer(pixels);
 
-    // char str[] = "Almog Dobrescu!";
-    char str[] = "fonts the way terry davis intended";
+    char str1[] = "THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG";
+    char str2[] = "the quick brown fox jumps over the lazy dog! @#$%^&*:\"{}[]?><\\/';.()_+-";
 
     atr_real top_left_x = 10, top_left_y = 10, letter_hight = 100, spacing = 10;
-    atr_real length_pixels = atr_text_line_draw_outline(font_pixels, &font, (uint8_t *)str, top_left_x, top_left_y, letter_hight, spacing, ADL_COLOR_WHITE_hexARGB, -1, adl_offset_zoom_to_atr_offset_zoom(offzoom));
-    adl_rectangle_draw_min_max(pixels, top_left_x, top_left_x + length_pixels, top_left_y, top_left_y + letter_hight, ADL_COLOR_WHITE_hexARGB, offzoom);
+    struct Atr_Vec2 bounding_box1 = atr_text_line_draw_outline(font_pixels, &font, (uint8_t *)str1, top_left_x, top_left_y, letter_hight, spacing, ADL_COLOR_WHITE_hexARGB, -1, adl_offset_zoom_to_atr_offset_zoom(offzoom));
+    adl_rectangle_draw_min_max(pixels, top_left_x, top_left_x + bounding_box1.x, top_left_y, top_left_y + bounding_box1.y, ADL_COLOR_WHITE_hexARGB, offzoom);
+    struct Atr_Vec2 bounding_box2 = atr_text_line_draw_outline(font_pixels, &font, (uint8_t *)str2, top_left_x, top_left_y + bounding_box1.y + top_left_y, letter_hight, spacing, ADL_COLOR_WHITE_hexARGB, -1, adl_offset_zoom_to_atr_offset_zoom(offzoom));
+    adl_rectangle_draw_min_max(pixels, top_left_x, top_left_x + bounding_box2.x, top_left_y + bounding_box1.y + top_left_y, top_left_y + bounding_box2.y + bounding_box1.y + top_left_y, ADL_COLOR_WHITE_hexARGB, offzoom);
 
     return APL_SUCCESS;
 }

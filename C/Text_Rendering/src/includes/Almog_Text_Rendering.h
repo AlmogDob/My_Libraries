@@ -14,6 +14,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include <math.h>
+#include <float.h>
 
 #ifndef ATR_ASSERT
     #include <assert.h>
@@ -128,6 +129,7 @@
 #ifndef atr_real
     #if defined(ATR_SINGLE_PRECISION)
         typedef float atr_real_type;
+        #define ATR_INFINITY FLT_MAX
         #define ATR_EPS   1e-5f
         #define atr_fabs  fabsf
         #define atr_floor floorf
@@ -140,6 +142,7 @@
         #define atr_fmod  fmodf
     #else 
         typedef double atr_real_type;
+        #define ATR_INFINITY DBL_MAX
         #define ATR_EPS   1e-10
         #define atr_fabs  fabs
         #define atr_floor floor
@@ -501,6 +504,7 @@ ATR_DEF struct Atr_Glyph_Point      atr_glyph_point_from_raw(const struct Atr_Gl
 ATR_DEF bool                        atr_glyph_point_is_on_curve(const struct Atr_Glyph_Point *point);
 ATR_DEF struct Atr_Glyph_Point      atr_glyph_point_midpoint(struct Atr_Glyph_Point a, struct Atr_Glyph_Point b);
 ATR_DEF uint32_t                    atr_glyphIndex_get(struct Atr_Font *font, uint32_t code_point);
+ATR_DEF uint32_t                    atr_glyphIndex_get_cmap4(struct Atr_Table_cmap_Subtable *st, uint32_t code_point);
 
 ATR_DEF void                        atr_hexargb_to_rgba(uint32_t color, uint8_t *r, uint8_t *g, uint8_t *b, uint8_t *a);
 
@@ -533,8 +537,8 @@ ATR_DEF enum Atr_Return_Types       atr_table_header_verify_checksum(struct Atr_
 ATR_DEF enum Atr_Return_Types       atr_table_head_parse(struct Atr_Font *font, struct Atr_Table_Header head_header);
 ATR_DEF enum Atr_Return_Types       atr_table_loca_parse(struct Atr_Font *font, struct Atr_Table_Header loca_header);
 ATR_DEF enum Atr_Return_Types       atr_table_maxp_parse(struct Atr_Font *font, struct Atr_Table_Header maxp_header);
-ATR_DEF atr_real                    atr_text_line_draw(struct Atr_Pixel_Buffer screen, struct Atr_Font *font, char *text, atr_real top_left_x, atr_real top_left_y, atr_real letter_hight, atr_real letter_spacing, uint32_t color, int length, struct Atr_Offset_Zoom offzoom);
-ATR_DEF atr_real                    atr_text_line_draw_outline(struct Atr_Pixel_Buffer screen, struct Atr_Font *font, uint8_t *text, atr_real top_left_x, atr_real top_left_y, atr_real letter_hight, atr_real letter_spacing, uint32_t color, int length, struct Atr_Offset_Zoom offzoom);
+ATR_DEF struct Atr_Vec2             atr_text_line_draw(struct Atr_Pixel_Buffer screen, struct Atr_Font *font, char *text, atr_real top_left_x, atr_real top_left_y, atr_real letter_hight, atr_real letter_spacing, uint32_t color, int length, struct Atr_Offset_Zoom offzoom);
+ATR_DEF struct Atr_Vec2             atr_text_line_draw_outline(struct Atr_Pixel_Buffer screen, struct Atr_Font *font, uint8_t *text, atr_real top_left_x, atr_real top_left_y, atr_real letter_hight, atr_real letter_spacing, uint32_t color, int length, struct Atr_Offset_Zoom offzoom);
 
 ATR_DEF uint8_t                     atr_u8_clamp_int(int x);
                                     #define atr_uint16_print_binary(value, bit_count) atr_dprintINFO("%s = ", #value); printf("%*.s", 7, ""); atr_uint16_print_binary_imp((value), (bit_count))
@@ -1399,8 +1403,7 @@ ATR_DEF uint32_t atr_glyphIndex_get(struct Atr_Font *font, uint32_t code_point)
         }
         return st.data.format_0.glyphIndexArray[code_point];
     } else if (st.format == 4) {
-        atr_dprintWARNING("%s", "Using unsupported format 4 of cmap table.");
-        return 0;
+        return atr_glyphIndex_get_cmap4(&st, code_point);
     } else if (st.format == 12) {
         /** TODO:
          * Implement binary search for improved performance. The charCodes should be sorted.
@@ -1423,6 +1426,96 @@ ATR_DEF uint32_t atr_glyphIndex_get(struct Atr_Font *font, uint32_t code_point)
     } else {
         return 0;
     }
+}
+
+ATR_DEF uint32_t atr_glyphIndex_get_cmap4(struct Atr_Table_cmap_Subtable *st, uint32_t code_point)
+{
+    if (code_point > UINT16_MAX) {
+        return 0;
+    }
+
+    const uint16_t character_code = (uint16_t)code_point;
+    const size_t seg_count = st->data.format_4.segCountx2 / 2;
+
+    if (seg_count == 0) {
+        return 0;
+    }
+
+    size_t low = 0;
+    size_t high = seg_count;
+    while (low < high) {
+        const size_t middle = low + (high - low) / 2;
+        if (st->data.format_4.endCode[middle] < character_code) {
+            low = middle + 1;
+        } else {
+            high = middle;
+        }
+    }
+    if (low == seg_count) {
+        return 0;
+    }
+
+    const size_t i = low;
+    if (character_code < st->data.format_4.startCode[i]) {
+        return 0;
+    }
+
+    const uint16_t range_offset = st->data.format_4.idRangeOffset[i];
+    const int16_t delta = st->data.format_4.idDelta[i];
+    /*
+     * idRangeOffset == 0:
+     *
+     * glyphIndex = (character_code + idDelta) mod 65536
+     */
+    if (range_offset == 0) {
+        return (uint16_t)(character_code + delta);
+    }
+
+    /*
+     * idRangeOffset is measured in bytes relative to the address of
+     * idRangeOffset[i].
+     *
+     * In the serialized cmap:
+     *
+     *   idRangeOffset[0 ... seg_count - 1]
+     *   glyphIndexArray[0 ...]
+     *
+     * Therefore, convert the pointer-relative location to an index relative
+     * to glyphIndexArray.
+     */
+    if ((range_offset & 1) != 0) {
+        /* A UInt16 offset must be aligned to two bytes. */
+        return 0;
+    }
+
+    const size_t character_offset = (size_t)character_code - st->data.format_4.startCode[i];
+
+    const size_t range_offset_words = range_offset / 2;
+    const size_t words_until_glyph_array = seg_count - i;
+
+    /*
+     * Prevent unsigned underflow and reject malformed tables where the
+     * offset points before glyphIndexArray.
+     */
+    if (range_offset_words + character_offset < words_until_glyph_array) {
+        return 0;
+    }
+
+    const size_t glyph_index_array_index = range_offset_words + character_offset - words_until_glyph_array;
+    if (glyph_index_array_index >= st->data.format_4.glyphIndexCount) {
+        return 0;
+    }
+
+    const uint16_t glyph_index = st->data.format_4.glyphIndexArray[glyph_index_array_index];
+
+    /*
+     * A zero glyph ID remains zero. Do not apply idDelta to it.
+     */
+    if (glyph_index == 0) {
+        return 0;
+    }
+
+    return (uint16_t)(glyph_index + delta);
 }
 
 ATR_DEF void atr_hexargb_to_rgba(uint32_t color, uint8_t *r, uint8_t *g, uint8_t *b, uint8_t *a)
@@ -1675,7 +1768,7 @@ ATR_DEF void atr_quadratic_bezier_draw(struct Atr_Pixel_Buffer pixels, struct At
      * Increase this if curves look visibly segmented at high zoom.
      * A more advanced renderer would adapt this based on curve length.
      */
-    const size_t steps = 50;
+    const size_t steps = 10;
 
     for (size_t i = 0; i < steps; ++i) {
         atr_real t_i = (atr_real)i / (atr_real)steps;
@@ -1875,6 +1968,7 @@ ATR_DEF enum Atr_Return_Types atr_table_cmap_parse(struct Atr_Font *font, struct
             }
             size_t glyph_id_bytes = st.data.format_4.length - fixed_size;
             if (glyph_id_bytes % 2 != 0) {
+                atr_dprintERROR("%s", "Error while parsing cmap subtable with format 4. Glyph id byte count is not even.");
                 return ATR_FAIL;
             }
             st.data.format_4.glyphIndexCount = glyph_id_bytes / sizeof(uint16_t);
@@ -2423,9 +2517,8 @@ ATR_DEF enum Atr_Return_Types atr_table_maxp_parse(struct Atr_Font *font, struct
     font->tables.maxp.maxComponentDepth     = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
 
     /* Checks */
-    if (font->tables.maxp.maxZones != 2) {
-        atr_dprintERROR("Error while parsing the maxp table. Got maxZones of %u, but expected maxZones of 2.", font->tables.maxp.maxZones);
-        return ATR_FAIL;
+    if (font->tables.maxp.maxZones < 1 || font->tables.maxp.maxZones > 2) {
+        atr_dprintWARNING("Invalid maxZones value %u; expected 1 or 2.", font->tables.maxp.maxZones);
     }
 
     /*
@@ -2450,7 +2543,7 @@ ATR_DEF enum Atr_Return_Types atr_table_maxp_parse(struct Atr_Font *font, struct
     return ATR_SUCCESS;
 }
 
-ATR_DEF atr_real atr_text_line_draw(struct Atr_Pixel_Buffer screen, struct Atr_Font *font, char *text, atr_real top_left_x, atr_real top_left_y, atr_real letter_hight, atr_real letter_spacing, uint32_t color, int length, struct Atr_Offset_Zoom offzoom)
+ATR_DEF struct Atr_Vec2 atr_text_line_draw(struct Atr_Pixel_Buffer screen, struct Atr_Font *font, char *text, atr_real top_left_x, atr_real top_left_y, atr_real letter_hight, atr_real letter_spacing, uint32_t color, int length, struct Atr_Offset_Zoom offzoom)
 {
     ATR_UNUSED(screen);
     ATR_UNUSED(font);
@@ -2463,47 +2556,65 @@ ATR_DEF atr_real atr_text_line_draw(struct Atr_Pixel_Buffer screen, struct Atr_F
     ATR_UNUSED(length);
     ATR_UNUSED(offzoom);
 
-    return 0;
+    return (struct Atr_Vec2){.x = 0, .y = 0};
 }
 
-ATR_DEF atr_real atr_text_line_draw_outline(struct Atr_Pixel_Buffer screen, struct Atr_Font *font, uint8_t *text, atr_real top_left_x, atr_real top_left_y, atr_real letter_hight, atr_real letter_spacing, uint32_t color, int length, struct Atr_Offset_Zoom offzoom)
+ATR_DEF struct Atr_Vec2 atr_text_line_draw_outline(struct Atr_Pixel_Buffer screen, struct Atr_Font *font, uint8_t *text, atr_real top_left_x, atr_real top_left_y, atr_real letter_hight, atr_real letter_spacing, uint32_t color, int length, struct Atr_Offset_Zoom offzoom)
 {
     if (length == -1) {
         length = (int)strlen((const char *)text);
     }
 
-    atr_real y_max = 0;
-    for (size_t text_index = 0; text_index < length; text_index++) {
-        size_t c = (size_t)text[text_index];
-        struct Atr_Glyph g = font->tables.glyf.glyphs[atr_glyphIndex_get(font, (uint32_t)c)];
-        if (g.metadata.yMax > y_max) {
-            y_max = g.metadata.yMax;
+    atr_real glyph_y_max = -ATR_INFINITY;
+    atr_real glyph_y_min = ATR_INFINITY;
+    bool has_drawable_glyph = false;
+    for (int text_index = 0; text_index < length; text_index++) {
+        uint8_t c = text[text_index];
+        if (c == ' ') {
+            continue;
         }
+
+         struct Atr_Glyph g = font->tables.glyf.glyphs[atr_glyphIndex_get(font, (uint32_t)c)];
+
+        if (g.metadata.yMax > glyph_y_max) {
+            glyph_y_max = g.metadata.yMax;
+        }
+        if (g.metadata.yMin < glyph_y_min) {
+            glyph_y_min = g.metadata.yMin;
+        }
+        has_drawable_glyph = true;
+    }
+    if (!has_drawable_glyph) {
+        return (struct Atr_Vec2){.x = 0, .y = 0};
     }
 
     atr_real scale = atr_scale_get_for_em(font, letter_hight);
-    atr_real x = top_left_x;
-    y_max *= scale;
-    for (size_t text_index = 0; text_index < length; text_index++) {
-        size_t c = (size_t)text[text_index];
+    atr_real pen_x = 0;
+    atr_real y_offset = glyph_y_max * scale;
+
+    for (int text_index = 0; text_index < length; text_index++) {
+        uint8_t c = text[text_index];
         if (c == ' ') {
-            x += 300 * scale;
+            pen_x += 300 * scale;
             continue;
         }
+
         struct Atr_Glyph g = font->tables.glyf.glyphs[atr_glyphIndex_get(font, (uint32_t)c)];
-        // atr_rectangle_draw_min_max(screen, top_left_x + x, top_left_x + x + (g.metadata.xMax - g.metadata.xMin) * scale, top_left_y + y_max - (g.metadata.yMin) * scale, top_left_y + y_max - (g.metadata.yMax) * scale, 0xFFFFFFFF, offzoom);
         for (size_t i = 0; i + 2 < g.simple.points.length; i += 3) {
             struct Atr_Glyph_Point start = g.simple.points.elements[i + 0];
             struct Atr_Glyph_Point control = g.simple.points.elements[i + 1];
             struct Atr_Glyph_Point end = g.simple.points.elements[i + 2];
 
-            atr_quadratic_bezier_draw(screen, start, control, end, top_left_x + x, top_left_y, -g.metadata.xMin * scale, y_max, scale, color, offzoom);
+            atr_quadratic_bezier_draw(screen, start, control, end, top_left_x + pen_x, top_left_y, -g.metadata.xMin * scale, y_offset, scale, color, offzoom);
         }
-        
-        x += letter_spacing + (g.metadata.xMax - g.metadata.xMin) * scale;
+
+        pen_x += letter_spacing + (g.metadata.xMax - g.metadata.xMin) * scale;
     }
 
-    return x;
+    return (struct Atr_Vec2){
+        .x = pen_x,
+        .y = (glyph_y_max - glyph_y_min) * scale,
+    };
 }
 
 ATR_DEF uint8_t atr_u8_clamp_int(int x)
