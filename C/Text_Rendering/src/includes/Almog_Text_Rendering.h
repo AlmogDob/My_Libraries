@@ -516,7 +516,7 @@ ATR_DEF enum Atr_Return_Types       atr_offset_subtable_parse(struct Atr_Font *f
 
 ATR_DEF void                        atr_pixel_draw(struct Atr_Pixel_Buffer screen, atr_real x, atr_real y, uint32_t color, struct Atr_Offset_Zoom offzoom);
 
-ATR_DEF void                        atr_quadratic_bezier_draw(struct Atr_Pixel_Buffer pixels, struct Atr_Glyph_Point start, struct Atr_Glyph_Point control, struct Atr_Glyph_Point end, atr_real x_origin, atr_real y_origin, atr_real x_offset, atr_real y_offset, atr_real scale, uint32_t color, struct Atr_Offset_Zoom offzoom);
+ATR_DEF void                        atr_quadratic_bezier_draw(struct Atr_Pixel_Buffer pixels, struct Atr_Glyph_Point start, struct Atr_Glyph_Point control, struct Atr_Glyph_Point end, uint32_t color, struct Atr_Offset_Zoom offzoom);
 
 ATR_DEF void                        atr_rectangle_draw_min_max(struct Atr_Pixel_Buffer screen, atr_real min_x, atr_real max_x, atr_real min_y, atr_real max_y, uint32_t color, struct Atr_Offset_Zoom offzoom);
 ATR_DEF uint32_t                    atr_rgba_to_hexargb(int r, int g, int b, int a);
@@ -1761,8 +1761,7 @@ ATR_DEF void atr_pixel_draw(struct Atr_Pixel_Buffer screen, atr_real x, atr_real
     }
 }
 
-
-ATR_DEF void atr_quadratic_bezier_draw(struct Atr_Pixel_Buffer pixels, struct Atr_Glyph_Point start, struct Atr_Glyph_Point control, struct Atr_Glyph_Point end, atr_real x_origin, atr_real y_origin, atr_real x_offset, atr_real y_offset, atr_real scale, uint32_t color, struct Atr_Offset_Zoom offzoom)
+ATR_DEF void atr_quadratic_bezier_draw(struct Atr_Pixel_Buffer pixels, struct Atr_Glyph_Point start, struct Atr_Glyph_Point control, struct Atr_Glyph_Point end, uint32_t color, struct Atr_Offset_Zoom offzoom)
 {
     /*
      * Increase this if curves look visibly segmented at high zoom.
@@ -1791,16 +1790,12 @@ ATR_DEF void atr_quadratic_bezier_draw(struct Atr_Pixel_Buffer pixels, struct At
             (atr_real)2 * inverse_t_ip1 * t_ip1 * control.pos.y +
             t_ip1 * t_ip1 * end.pos.y;
 
-        atr_line_draw_fix_width(pixels, x_origin + x_offset + x_i * scale,
-                                        y_origin + y_offset - y_i * scale,
-                                        x_origin + x_offset + x_ip1 * scale,
-                                        y_origin + y_offset - y_ip1 * scale,
-                                        color, offzoom);
+        atr_line_draw_fix_width(pixels, x_i, y_i, x_ip1, y_ip1, color, offzoom);
     }
 
-    // atr_circle_fill_high_quality(pixels, -x_origin + start.pos.x + x_offset, y_origin + y_offset - start.pos.y, 4, 0xFF00FFFF, offzoom);
-    // atr_circle_fill_high_quality(pixels, -x_origin + end.pos.x + x_offset, y_origin + y_offset - end.pos.y, 4, 0xFF00FFFF, offzoom);
-    // atr_circle_fill_high_quality(pixels, -x_origin + control.pos.x + x_offset, y_origin + y_offset - control.pos.y, 4, 0xFFFF0000, offzoom);
+    atr_circle_fill_high_quality(pixels, start.pos.x, start.pos.y, 1, 0xFF00FFFF, offzoom);
+    atr_circle_fill_high_quality(pixels, end.pos.x, end.pos.y, 1, 0xFF00FFFF, offzoom);
+    atr_circle_fill_high_quality(pixels, control.pos.x, control.pos.y, 1, 0xFFFF0000, offzoom);
 }
 
 ATR_DEF void atr_rectangle_draw_min_max(struct Atr_Pixel_Buffer screen, atr_real min_x, atr_real max_x, atr_real min_y, atr_real max_y, uint32_t color, struct Atr_Offset_Zoom offzoom)
@@ -2590,7 +2585,7 @@ ATR_DEF struct Atr_Vec2 atr_text_line_draw_outline(struct Atr_Pixel_Buffer scree
 
     atr_real scale = atr_scale_get_for_em(font, letter_hight);
     atr_real pen_x = 0;
-    atr_real y_offset = glyph_y_max * scale;
+    atr_real pen_y = glyph_y_max * scale;
 
     for (int text_index = 0; text_index < length; text_index++) {
         uint8_t c = text[text_index];
@@ -2605,7 +2600,28 @@ ATR_DEF struct Atr_Vec2 atr_text_line_draw_outline(struct Atr_Pixel_Buffer scree
             struct Atr_Glyph_Point control = g.simple.points.elements[i + 1];
             struct Atr_Glyph_Point end = g.simple.points.elements[i + 2];
 
-            atr_quadratic_bezier_draw(screen, start, control, end, top_left_x + pen_x, top_left_y, -g.metadata.xMin * scale, y_offset, scale, color, offzoom);
+            adl_real x_origin = top_left_x + pen_x;
+            adl_real y_origin = top_left_y;
+            adl_real x_offset = -g.metadata.xMin * scale;
+            adl_real y_offset = pen_y;
+
+            start = (struct Atr_Glyph_Point){
+                .flag = start.flag,
+                .pos.x = x_origin + x_offset + start.pos.x * scale,
+                .pos.y = y_origin + y_offset - start.pos.y * scale,
+            };
+            control = (struct Atr_Glyph_Point){
+                .flag = control.flag,
+                .pos.x = x_origin + x_offset + control.pos.x * scale,
+                .pos.y = y_origin + y_offset - control.pos.y * scale,
+            };
+            end = (struct Atr_Glyph_Point){
+                .flag = end.flag,
+                .pos.x = x_origin + x_offset + end.pos.x * scale,
+                .pos.y = y_origin + y_offset - end.pos.y * scale,
+            };
+
+            atr_quadratic_bezier_draw(screen, start, control, end, color, offzoom);
         }
 
         pen_x += letter_spacing + (g.metadata.xMax - g.metadata.xMin) * scale;
