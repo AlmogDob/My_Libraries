@@ -9,18 +9,18 @@
 
 #define AMD_MEMORY_DEBUG
 #define ALMOG_MEMORY_DEBUG_IMPLEMENTATION
-#include "includes/Almog_Memory_Debug.h"
+#include "../includes/Almog_Memory_Debug.h"
 
 #define ALMOG_PLATFORM_LIBRARY_IMPLEMENTATION
-#include "includes/Almog_Platform_Library.h"
+#include "../includes/Almog_Platform_Library.h"
 
 #define ADL_ASSERT APL_ASSERT
 #define ALMOG_DRAW_LIBRARY_IMPLEMENTATION
-#include "includes/Almog_Draw_Library.h"
+#include "../includes/Almog_Draw_Library.h"
 
 #define ATR_ASSERT APL_ASSERT
 #define ALMOG_TEXT_RENDERING_IMPLEMENTATION
-#include "includes/Almog_Text_Rendering.h"
+#include "../includes/Almog_Text_Rendering.h"
 
 struct Atr_Pixel_Buffer adl_pixel_buffer_as_atr_pixel_buffer(struct Adl_Pixel_Buffer adl_b) 
 {
@@ -64,17 +64,8 @@ enum Apl_Return_Types apl_setup(struct Apl_Window_State *ws)
     offzoom = ADL_DEFAULT_OFFSET_ZOOM;
 
 
-    /* hebrew */
-    // char font_file_name[] = "../src/fonts/ankaclm-bold-webfont.ttf";
-    // char font_file_name[] = "../src/fonts/stamashkenazclm-webfont.ttf";
-    // char font_file_name[] = "../src/fonts/nehama-webfont.ttf";
-
-    /* both */
-    char font_file_name[] = "../src/fonts/VarelaRound-Regular.ttf";
-
-    /* other */
     // char font_file_name[] = "../src/fonts/BLKCHCRY.ttf";
-    // char font_file_name[] = "../src/fonts/Canterbury.ttf";
+    char font_file_name[] = "../src/fonts/Canterbury.ttf";
     // char font_file_name[] = "../src/fonts/ChopinScript.ttf";
     // char font_file_name[] = "../src/fonts/Inconsolata-Regular.ttf";
     // char font_file_name[] = "../src/fonts/Montague.ttf";
@@ -104,7 +95,7 @@ enum Apl_Return_Types apl_render(struct Apl_Window_State *ws)
     struct Adl_Pixel_Buffer pixels = apl_pixel_buffer_as_adl_pixel_buffer(ws->window_pixels_mat);
     struct Atr_Pixel_Buffer font_pixels = adl_pixel_buffer_as_atr_pixel_buffer(pixels);
 
-    char str1[] = "אלמוג";
+    char str1[] = "THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG";
     char str2[] = "the quick brown fox jumps over the lazy dog! @#$%^&*:\"{}[]?><\\/';.()_+-";
 
     atr_real top_left_x = 10, top_left_y = 10, letter_hight = 100, spacing = 10;

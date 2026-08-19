@@ -264,6 +264,13 @@ struct Atr_Table_cmap_Subtable {
         struct {
             uint32_t length;
             uint32_t language;
+            uint32_t startCharCode;
+            uint32_t numChars;
+            uint16_t *glyphs;
+        } format_10;
+        struct {
+            uint32_t length;
+            uint32_t language;
             uint32_t nGroups;
             struct Atr_Table_cmap_Group *groups;
         } format_12;
@@ -341,6 +348,7 @@ struct Atr_Glyph {
             int16_t  *xCoordinates;
             int16_t  *yCoordinates;
             struct Atr_Glyph_Point_Dynamic_Array points;
+            struct Atr_Glyph_Point_Dynamic_Array points_temp_for_resizing;
         } simple;
     };
 };
@@ -439,6 +447,19 @@ struct Atr_Font {
     } tables;
 };
 
+static uint8_t atr_bytes_for_utf8[] = {
+    1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+    1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+    1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+    1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+    1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+    1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+    2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2, 2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,
+    3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3, 4,4,4,4,4,4,4,4,
+};
+#define atr_bytes_for_utf8_count (sizeof(atr_bytes_for_utf8) / sizeof(atr_bytes_for_utf8[0]))
+#define ATR_UTF8_REPLACEMENT_CHARACTER 0xFFFDu
+
 #define atr_dprintSTRING(expr) printf("[Info] %s:%d:\n%*s" #expr " = %s\n", __FILE__, __LINE__, 7, "", expr)
 #define atr_dprintCHAR(expr) printf("[Info] %s:%d:\n%*s" #expr " = %c\n", __FILE__, __LINE__, 7, "", expr)
 #define atr_dprintINT(expr) printf("[Info] %s:%d:\n%*s" #expr " = %d\n", __FILE__, __LINE__, 7, "", expr)
@@ -470,7 +491,8 @@ struct Atr_Font {
     #endif
 #endif
 
-ATR_DEF uint32_t                    atr_4chars_to_uint32_t(const char *chars);
+ATR_DEF uint32_t                    atr_4chars_to_uint32(const char *chars);
+ATR_DEF uint32_t                    atr_4chars_to_uint32_be(const char *chars);
 
 ATR_DEF uint32_t                    atr_alpha_blend(uint32_t dst, uint32_t src);
 
@@ -549,6 +571,11 @@ ATR_DEF void                        atr_uint16_print_hex_imp(uint16_t value, uin
 ATR_DEF void                        atr_uint32_print_binary_imp(uint32_t value, uint8_t bit_count);
                                     #define atr_uint32_print_hex(value, bit_count) atr_dprintINFO("%s = ", #value); printf("%*.s", 7, ""); atr_uint32_print_hex_imp((value), (bit_count))
 ATR_DEF void                        atr_uint32_print_hex_imp(uint32_t value, uint8_t bit_count);
+ATR_DEF uint32_t                    atr_utf8_code_point_get_from_raw_char_bytes(uint32_t raw_char_bytes);
+ATR_DEF uint32_t                    atr_utf8_decode_next_code_point(uint8_t *text, size_t text_byte_count, size_t *consumed);
+ATR_DEF uint32_t                    atr_utf8_get_next_char_bytes(uint8_t *str, size_t byte_count);
+ATR_DEF bool                        atr_utf8_is_continuation_byte(uint8_t byte);
+ATR_DEF size_t                      atr_utf8_length(uint8_t *str, size_t byte_count);
 
 
 #endif /*ALMOG_TEXT_RENDERING_H_*/
@@ -557,9 +584,17 @@ ATR_DEF void                        atr_uint32_print_hex_imp(uint32_t value, uin
 #undef ALMOG_TEXT_RENDERING_IMPLEMENTATION
 
 
-ATR_DEF uint32_t atr_4chars_to_uint32_t(const char *chars)
+ATR_DEF uint32_t atr_4chars_to_uint32(const char *chars)
 {
     return ((uint32_t)(((uint32_t)((chars)[0]) << 0) | ((uint32_t)((chars)[1]) << 8) | ((uint32_t)((chars)[2]) << 16) | ((uint32_t)((chars)[3]) << 24)));
+}
+
+ATR_DEF uint32_t atr_4chars_to_uint32_be(const char *chars)
+{
+    return ((uint32_t)(uint8_t)chars[0] << 24) |
+            ((uint32_t)(uint8_t)chars[1] << 16) |
+            ((uint32_t)(uint8_t)chars[2] << 8) |
+            ((uint32_t)(uint8_t)chars[3]);
 }
  
 ATR_DEF uint32_t atr_alpha_blend(uint32_t dst, uint32_t src)
@@ -907,11 +942,11 @@ ATR_DEF enum Atr_Return_Types atr_font_load_from_file_name(struct Atr_Font *font
     if (atr_table_directory_parse(&loaded) == ATR_FAIL) {
         goto fail;
     }
-    const struct Atr_Table_Header *cmap_header = atr_table_header_find_by_tag_raw(&loaded, atr_4chars_to_uint32_t("cmap"));
-    const struct Atr_Table_Header *head_header = atr_table_header_find_by_tag_raw(&loaded, atr_4chars_to_uint32_t("head"));
-    const struct Atr_Table_Header *maxp_header = atr_table_header_find_by_tag_raw(&loaded, atr_4chars_to_uint32_t("maxp"));
-    const struct Atr_Table_Header *loca_header = atr_table_header_find_by_tag_raw(&loaded, atr_4chars_to_uint32_t("loca"));
-    const struct Atr_Table_Header *glyf_header = atr_table_header_find_by_tag_raw(&loaded, atr_4chars_to_uint32_t("glyf"));
+    const struct Atr_Table_Header *cmap_header = atr_table_header_find_by_tag_raw(&loaded, atr_4chars_to_uint32("cmap"));
+    const struct Atr_Table_Header *head_header = atr_table_header_find_by_tag_raw(&loaded, atr_4chars_to_uint32("head"));
+    const struct Atr_Table_Header *maxp_header = atr_table_header_find_by_tag_raw(&loaded, atr_4chars_to_uint32("maxp"));
+    const struct Atr_Table_Header *loca_header = atr_table_header_find_by_tag_raw(&loaded, atr_4chars_to_uint32("loca"));
+    const struct Atr_Table_Header *glyf_header = atr_table_header_find_by_tag_raw(&loaded, atr_4chars_to_uint32("glyf"));
     if (head_header == NULL || maxp_header == NULL ||
         loca_header == NULL || glyf_header == NULL ||
         cmap_header == NULL) {
@@ -1004,6 +1039,10 @@ ATR_DEF void atr_glyph_append_quadratic_bezier(struct Atr_Glyph *glyph, struct A
     atr_ada_append(struct Atr_Glyph_Point, glyph->simple.points, start);
     atr_ada_append(struct Atr_Glyph_Point, glyph->simple.points, control);
     atr_ada_append(struct Atr_Glyph_Point, glyph->simple.points, end);
+
+    atr_ada_append(struct Atr_Glyph_Point, glyph->simple.points_temp_for_resizing, start);
+    atr_ada_append(struct Atr_Glyph_Point, glyph->simple.points_temp_for_resizing, control);
+    atr_ada_append(struct Atr_Glyph_Point, glyph->simple.points_temp_for_resizing, end);
 }
 
 ATR_DEF void atr_glyph_free(struct Atr_Glyph *g)
@@ -1024,6 +1063,10 @@ ATR_DEF void atr_glyph_free(struct Atr_Glyph *g)
         g->simple.points.elements = NULL;
         g->simple.points.length = 0;
         g->simple.points.capacity = 0;
+        ATR_FREE(g->simple.points_temp_for_resizing.elements);
+        g->simple.points_temp_for_resizing.elements = NULL;
+        g->simple.points_temp_for_resizing.length = 0;
+        g->simple.points_temp_for_resizing.capacity = 0;
     }
 }
 
@@ -1139,8 +1182,8 @@ ATR_DEF enum Atr_Return_Types atr_glyph_parse_simple(struct Atr_Glyph *glyph, st
         glyph->simple.yCoordinates[i] = y;
     }
 
-    #if 1
     atr_ada_init_array(struct Atr_Glyph_Point, glyph->simple.points);
+    atr_ada_init_array(struct Atr_Glyph_Point, glyph->simple.points_temp_for_resizing);
     for (size_t contour_index = 0; contour_index < (size_t)glyph->metadata.numberOfContours; ++contour_index) {
         size_t start_point_index = contour_index == 0 ? 0 : (size_t)glyph->simple.endPtsOfContours[contour_index - 1] + 1;
         size_t end_point_index = (size_t)glyph->simple.endPtsOfContours[contour_index];
@@ -1246,123 +1289,12 @@ ATR_DEF enum Atr_Return_Types atr_glyph_parse_simple(struct Atr_Glyph *glyph, st
         */
         if (glyph->simple.points.length > contour_output_start) {
             glyph->simple.points.elements[glyph->simple.points.length - 1].flag |= ATR_GPF_CONTOUR_END;
+            glyph->simple.points_temp_for_resizing.elements[glyph->simple.points_temp_for_resizing.length - 1].flag |= ATR_GPF_CONTOUR_END;
         }
 
     }
 
     return ATR_SUCCESS;
-    #else
-    atr_ada_init_array(struct Atr_Glyph_Point, glyph->simple.points);
-    for (size_t contour_index = 0; contour_index < glyph->metadata.numberOfContours; contour_index++) {
-        size_t start_point_index = contour_index == 0 ? 0 : glyph->simple.endPtsOfContours[contour_index - 1] + 1;
-        size_t end_point_index = glyph->simple.endPtsOfContours[contour_index];
-        size_t num_points_in_contour = end_point_index - start_point_index + 1;
-
-        for (int i = 0, point_offset = 0; i + point_offset < num_points_in_contour; i++) {
-            size_t p0_i = ((i + point_offset + 0) % num_points_in_contour) + start_point_index;
-            size_t p1_i = ((i + point_offset + 1) % num_points_in_contour) + start_point_index;
-            size_t p2_i = ((i + point_offset + 2) % num_points_in_contour) + start_point_index;
-
-            struct Atr_Glyph_Point p0 = {
-                .flag = glyph->simple.flags[p0_i],
-                .pos.x = glyph->simple.xCoordinates[p0_i],
-                .pos.y = glyph->simple.yCoordinates[p0_i],
-            };
-            struct Atr_Glyph_Point p1 = {
-                .flag = glyph->simple.flags[p1_i],
-                .pos.x = glyph->simple.xCoordinates[p1_i],
-                .pos.y = glyph->simple.yCoordinates[p1_i],
-            };
-            struct Atr_Glyph_Point p2 = {
-                .flag = glyph->simple.flags[p2_i],
-                .pos.x = glyph->simple.xCoordinates[p2_i],
-                .pos.y = glyph->simple.yCoordinates[p2_i],
-            };
-
-            uint8_t on_curve = (
-                ((p0.flag & 0x1) << 2) |
-                ((p1.flag & 0x1) << 1) |
-                ((p2.flag & 0x1) << 0)
-            );
-
-            switch (on_curve) {
-            case 0b110:
-                /* fallthrough */
-            case 0b111:
-            {
-                /* line segment */
-                p2 = p1;
-                p1 = (struct Atr_Glyph_Point){
-                    .flag = ATR_GPF_GENERATED,
-                    .pos.x = (p2.pos.x + p0.pos.x) / 2,
-                    .pos.y = (p2.pos.y + p0.pos.y) / 2,
-                };
-            } break;
-            case 0b101:
-            {
-                /* explicit explicit explicit */
-                i++; /* skip off curve point */
-            } break;
-            case 0b100:
-            {
-                /* explicit explicit implicit */
-                p2 = (struct Atr_Glyph_Point){
-                    .flag = ATR_GPF_ON_CURVE | ATR_GPF_GENERATED,
-                    .pos.x = (p2.pos.x + p1.pos.x) / 2,
-                    .pos.y = (p2.pos.y + p1.pos.y) / 2,
-                };
-            } break;
-            case 0b001:
-            {
-                /* implicit explicit explicit */
-                p0 = (struct Atr_Glyph_Point){
-                    .flag = ATR_GPF_ON_CURVE | ATR_GPF_GENERATED,
-                    .pos.x = (p0.pos.x + p1.pos.x) / 2,
-                    .pos.y = (p0.pos.y + p1.pos.y) / 2,
-                };
-                i++; /* skip off curve point */
-            } break;
-            case 0b000:
-            {
-                /* implicit explicit implicit */
-                p0 = (struct Atr_Glyph_Point){
-                    .flag = ATR_GPF_ON_CURVE | ATR_GPF_GENERATED,
-                    .pos.x = (p0.pos.x + p1.pos.x) / 2,
-                    .pos.y = (p0.pos.y + p1.pos.y) / 2,
-                };
-                p2 = (struct Atr_Glyph_Point){
-                    .flag = ATR_GPF_ON_CURVE | ATR_GPF_GENERATED,
-                    .pos.x = (p2.pos.x + p1.pos.x) / 2,
-                    .pos.y = (p2.pos.y + p1.pos.y) / 2,
-                };
-            } break;
-            case 0b010:
-                /* fallthrough */
-            case 0b011:
-            {
-                /* line segment */
-                point_offset++;
-                i--;
-                continue;
-            } break;
-            default: 
-            {
-                atr_dprintERROR("%s", "Unknown 'on curve' case.");
-                return ATR_FAIL;
-            }
-            }
-
-            atr_ada_append(struct Atr_Glyph_Point, glyph->simple.points, p0);
-            atr_ada_append(struct Atr_Glyph_Point, glyph->simple.points, p1);
-            if (i == num_points_in_contour - 1) {
-                p2.flag |= ATR_GPF_CONTOUR_END;
-                atr_ada_append(struct Atr_Glyph_Point, glyph->simple.points, p2);
-            }
-        }
-    }
-
-    return ATR_SUCCESS;
-    #endif
 }
 
 ATR_DEF struct Atr_Glyph_Point atr_glyph_point_from_raw(const struct Atr_Glyph *glyph, size_t index)
@@ -1404,6 +1336,24 @@ ATR_DEF uint32_t atr_glyphIndex_get(struct Atr_Font *font, uint32_t code_point)
         return st.data.format_0.glyphIndexArray[code_point];
     } else if (st.format == 4) {
         return atr_glyphIndex_get_cmap4(&st, code_point);
+    } else if (st.format == 6) {
+        size_t first_code  = st.data.format_6.firstCode;
+        size_t entry_count = st.data.format_6.entryCount;
+            if (first_code <= code_point) {
+                if (code_point <= first_code + entry_count) {
+                    return st.data.format_6.glyphIndexArray[code_point - first_code];
+                }
+            }
+        return 0;
+    } else if (st.format == 10) {
+        size_t first_code  = st.data.format_10.startCharCode;
+        size_t entry_count = st.data.format_10.numChars;
+            if (first_code <= code_point) {
+                if (code_point <= first_code + entry_count) {
+                    return st.data.format_10.glyphs[code_point - first_code];
+                }
+            }
+        return 0;
     } else if (st.format == 12) {
         /** TODO:
          * Implement binary search for improved performance. The charCodes should be sorted.
@@ -1430,6 +1380,7 @@ ATR_DEF uint32_t atr_glyphIndex_get(struct Atr_Font *font, uint32_t code_point)
 
 ATR_DEF uint32_t atr_glyphIndex_get_cmap4(struct Atr_Table_cmap_Subtable *st, uint32_t code_point)
 {
+    /* By AI */
     if (code_point > UINT16_MAX) {
         return 0;
     }
@@ -1701,22 +1652,21 @@ ATR_DEF enum Atr_Return_Types atr_offset_subtable_parse(struct Atr_Font *font)
     font->offset_subtable.rangeShift    = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
 
     /* Checks */
-    if (!(atr_4chars_to_uint32_t("true") == font->offset_subtable.scaler_type ||
-        0x00010000 == font->offset_subtable.scaler_type)) {
-            if (atr_4chars_to_uint32_t("typ1") == font->offset_subtable.scaler_type) {
-                atr_dprintERROR("%s", "Font type recognized as the old style of PostScript font housed in a sfnt wrapper. This type is not supported.");
-                return ATR_FAIL;
-            }
-            if (atr_4chars_to_uint32_t("OTTO") == font->offset_subtable.scaler_type) {
-                atr_dprintERROR("%s", "Font type recognized as an OpenType font with PostScript outlines. This type is not supported.");
-                return ATR_FAIL;
-            }
-            {
-                atr_dprintERROR("Font type not recognized. Only supports TrueType fonts.\n%*.sGot:", 8, "");
-                printf("%*.s", 8, ""); atr_uint32_print_hex_imp(font->offset_subtable.scaler_type, 32);
-                printf("%*.sExpected\n%*.s0xtrue or 0x00010000.\n", 8, "", 8, "");
-            }
+    if (!(atr_4chars_to_uint32_be("true") == font->offset_subtable.scaler_type || 0x00010000 == font->offset_subtable.scaler_type)) {
+        if (atr_4chars_to_uint32_be("typ1") == font->offset_subtable.scaler_type) {
+            atr_dprintERROR("%s", "Font type recognized as the old style of PostScript font housed in a sfnt wrapper. This type is not supported.");
             return ATR_FAIL;
+        }
+        if (atr_4chars_to_uint32_be("OTTO") == font->offset_subtable.scaler_type) {
+            atr_dprintERROR("%s", "Font type recognized as an OpenType font with PostScript outlines. This type is not supported.");
+            return ATR_FAIL;
+        }
+        {
+            atr_dprintERROR("Font type not recognized. Only supports TrueType fonts.\n%*.sGot:", 8, "");
+            printf("%*.s", 8, ""); atr_uint32_print_hex_imp(font->offset_subtable.scaler_type, 32);
+            printf("%*.sExpected\n%*.s0xtrue or 0x00010000.\n", 8, "", 8, "");
+        }
+        return ATR_FAIL;
     }
 
     
@@ -1793,9 +1743,9 @@ ATR_DEF void atr_quadratic_bezier_draw(struct Atr_Pixel_Buffer pixels, struct At
         atr_line_draw_fix_width(pixels, x_i, y_i, x_ip1, y_ip1, color, offzoom);
     }
 
-    atr_circle_fill_high_quality(pixels, start.pos.x, start.pos.y, 1, 0xFF00FFFF, offzoom);
-    atr_circle_fill_high_quality(pixels, end.pos.x, end.pos.y, 1, 0xFF00FFFF, offzoom);
-    atr_circle_fill_high_quality(pixels, control.pos.x, control.pos.y, 1, 0xFFFF0000, offzoom);
+    // atr_circle_fill_high_quality(pixels, start.pos.x, start.pos.y, 1, 0xFF00FFFF, offzoom);
+    // atr_circle_fill_high_quality(pixels, end.pos.x, end.pos.y, 1, 0xFF00FFFF, offzoom);
+    // atr_circle_fill_high_quality(pixels, control.pos.x, control.pos.y, 1, 0xFFFF0000, offzoom);
 }
 
 ATR_DEF void atr_rectangle_draw_min_max(struct Atr_Pixel_Buffer screen, atr_real min_x, atr_real max_x, atr_real min_y, atr_real max_y, uint32_t color, struct Atr_Offset_Zoom offzoom)
@@ -1957,7 +1907,7 @@ ATR_DEF enum Atr_Return_Types atr_table_cmap_parse(struct Atr_Font *font, struct
                 st.data.format_4.idRangeOffset[gi]  = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br_st, 2));
             }
             size_t fixed_size = 16 + 4 * st.data.format_4.segCountx2;
-            if (fixed_size >= st.data.format_4.length) {
+            if (fixed_size > st.data.format_4.length) {
                 atr_dprintERROR("%s", "Error while parsing cmap subtable with format 4.");
                 return ATR_FAIL;
             }
@@ -1974,6 +1924,33 @@ ATR_DEF enum Atr_Return_Types atr_table_cmap_parse(struct Atr_Font *font, struct
             }
             for (size_t gi = 0; gi < st.data.format_4.glyphIndexCount; gi++) {
                 st.data.format_4.glyphIndexArray[gi] = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br_st, 2));
+            }
+        } else if (st.format == 6) {
+            st.data.format_6.length                  = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br_st, 2));
+            st.data.format_6.language                = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br_st, 2));
+            st.data.format_6.firstCode               = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br_st, 2));
+            st.data.format_6.entryCount              = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br_st, 2));
+            st.data.format_6.glyphIndexArray         = ATR_MALLOC(sizeof(uint16_t) * st.data.format_6.entryCount);
+            if (st.data.format_6.glyphIndexArray == NULL && st.data.format_6.entryCount > 0) {
+                atr_dprintERROR("%s", "Failed to allocate glyphIndexArray array.");
+                return ATR_FAIL;
+            }
+            for (size_t gi = 0; gi < st.data.format_6.entryCount; gi++) {
+                st.data.format_6.glyphIndexArray[gi] = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br_st, 2));
+            }
+        } else if (st.format == 10) {
+            atr_bit_reader_read_bytes(&br_st, 2); /* reserved */
+            st.data.format_10.length        = atr_endian_swap_uint32(atr_bit_reader_read_bytes(&br_st, 4));
+            st.data.format_10.language      = atr_endian_swap_uint32(atr_bit_reader_read_bytes(&br_st, 4));
+            st.data.format_10.startCharCode = atr_endian_swap_uint32(atr_bit_reader_read_bytes(&br_st, 4));
+            st.data.format_10.numChars      = atr_endian_swap_uint32(atr_bit_reader_read_bytes(&br_st, 4));
+            st.data.format_10.glyphs        = ATR_MALLOC(sizeof(uint16_t) * st.data.format_10.numChars);
+            if (st.data.format_10.glyphs == NULL && st.data.format_10.numChars > 0) {
+                atr_dprintERROR("%s", "Failed to allocate glyphs array.");
+                return ATR_FAIL;
+            }
+            for (size_t gi = 0; gi < st.data.format_10.numChars; gi++) {
+                st.data.format_10.glyphs[gi] = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br_st, 2));
             }
         } else if (st.format == 12) {
             atr_bit_reader_read_bytes(&br_st, 2); /* reserved */
@@ -2012,7 +1989,7 @@ ATR_DEF enum Atr_Return_Types atr_table_cmap_parse(struct Atr_Font *font, struct
     }
 
     if (ATR_FAIL == atr_table_cmap_subtable_choose(font)) {
-        atr_dprintERROR("%s", "Could not find a supported cmap subtable. Unable to continue to parse the font. Only supports formats: 0/4/12/13.");
+        atr_dprintERROR("%s", "Could not find a supported cmap subtable. Unable to continue to parse the font. Only supports formats: 0/4/6/12/13.");
         return ATR_FAIL;
     }
 
@@ -2095,6 +2072,7 @@ ATR_DEF enum Atr_Return_Types atr_table_cmap_subtable_choose(struct Atr_Font *fo
 
 ATR_DEF enum Atr_cmap_Priority atr_table_cmap_subtable_priority_score(struct Atr_Table_cmap_Subtable *subtable)
 {
+    /* By AI */
     uint16_t platform = subtable->platformID;
     uint16_t encoding = subtable->platformSpecificID;
     uint16_t format = subtable->format;
@@ -2102,10 +2080,11 @@ ATR_DEF enum Atr_cmap_Priority atr_table_cmap_subtable_priority_score(struct Atr
     /**
      * Full-repertoire Unicode.
      *
-     * Apple does not define an order between 0/4 and 3/10, so they
-     * receive the same score. The first one encountered wins.
+     * Formats 10 and 12 can represent Unicode code points outside the BMP.
+     * No ordering is defined between 0/4 and 3/10; the first encountered
+     * subtable with this score wins.
      */
-    if (format == 12) {
+    if (format == 10 || format == 12) {
         if (platform == 0 && encoding == 4) {
             return ATR_cmap_PRIORITY_UNICODE_FULL;
         }
@@ -2118,9 +2097,10 @@ ATR_DEF enum Atr_cmap_Priority atr_table_cmap_subtable_priority_score(struct Atr
     /**
      * BMP-only Unicode.
      *
-     * Apple does not define an order between 0/3 and 3/1.
+     * Formats 4 and 6 map 16-bit character codes only. No ordering is
+     * defined between 0/3 and 3/1.
      */
-    if (format == 4) {
+    if (format == 4 || format == 6) {
         if (platform == 0 && encoding == 3) {
             return ATR_cmap_PRIORITY_UNICODE_BMP;
         }
@@ -2556,21 +2536,24 @@ ATR_DEF struct Atr_Vec2 atr_text_line_draw(struct Atr_Pixel_Buffer screen, struc
 
 ATR_DEF struct Atr_Vec2 atr_text_line_draw_outline(struct Atr_Pixel_Buffer screen, struct Atr_Font *font, uint8_t *text, atr_real top_left_x, atr_real top_left_y, atr_real letter_hight, atr_real letter_spacing, uint32_t color, int length, struct Atr_Offset_Zoom offzoom)
 {
+    size_t text_byte_count = strlen(text);
+    size_t utf8_len = atr_utf8_length(text, text_byte_count);
+    if (utf8_len < length) {
+        length = (int)utf8_len;
+    }
     if (length == -1) {
-        length = (int)strlen((const char *)text);
+        length = (int)utf8_len;
     }
 
     atr_real glyph_y_max = -ATR_INFINITY;
     atr_real glyph_y_min = ATR_INFINITY;
     bool has_drawable_glyph = false;
-    for (int text_index = 0; text_index < length; text_index++) {
-        uint8_t c = text[text_index];
+    for (int text_index = 0; text_index < text_byte_count; text_index += atr_bytes_for_utf8[text[text_index]]) {
+        uint32_t c = atr_utf8_code_point_get_from_raw_char_bytes(atr_utf8_get_next_char_bytes(&text[text_index], text_byte_count - text_index));
         if (c == ' ') {
             continue;
         }
-
-         struct Atr_Glyph g = font->tables.glyf.glyphs[atr_glyphIndex_get(font, (uint32_t)c)];
-
+        struct Atr_Glyph g = font->tables.glyf.glyphs[atr_glyphIndex_get(font, c)];
         if (g.metadata.yMax > glyph_y_max) {
             glyph_y_max = g.metadata.yMax;
         }
@@ -2586,41 +2569,31 @@ ATR_DEF struct Atr_Vec2 atr_text_line_draw_outline(struct Atr_Pixel_Buffer scree
     atr_real scale = atr_scale_get_for_em(font, letter_hight);
     atr_real pen_x = 0;
     atr_real pen_y = glyph_y_max * scale;
-
-    for (int text_index = 0; text_index < length; text_index++) {
-        uint8_t c = text[text_index];
+    for (int text_index = 0; text_index <text_byte_count; text_index += atr_bytes_for_utf8[text[text_index]]) {
+        uint32_t c = atr_utf8_code_point_get_from_raw_char_bytes(atr_utf8_get_next_char_bytes(&text[text_index], text_byte_count - text_index));
         if (c == ' ') {
             pen_x += 300 * scale;
             continue;
         }
 
-        struct Atr_Glyph g = font->tables.glyf.glyphs[atr_glyphIndex_get(font, (uint32_t)c)];
+        struct Atr_Glyph g = font->tables.glyf.glyphs[atr_glyphIndex_get(font, c)];
+        adl_real x_origin = top_left_x + pen_x;
+        adl_real y_origin = top_left_y;
+        adl_real x_offset = -g.metadata.xMin * scale;
+        adl_real y_offset = pen_y;
+        for (size_t i = 0; i < g.simple.points.length; i++ ) {
+            struct Atr_Glyph_Point point = g.simple.points.elements[i];
+            g.simple.points_temp_for_resizing.elements[i] = (struct Atr_Glyph_Point){
+                .flag = point.flag,
+                .pos.x = x_origin + x_offset + point.pos.x * scale,
+                .pos.y = y_origin + y_offset - point.pos.y * scale,
+            };
+        }
+
         for (size_t i = 0; i + 2 < g.simple.points.length; i += 3) {
-            struct Atr_Glyph_Point start = g.simple.points.elements[i + 0];
-            struct Atr_Glyph_Point control = g.simple.points.elements[i + 1];
-            struct Atr_Glyph_Point end = g.simple.points.elements[i + 2];
-
-            adl_real x_origin = top_left_x + pen_x;
-            adl_real y_origin = top_left_y;
-            adl_real x_offset = -g.metadata.xMin * scale;
-            adl_real y_offset = pen_y;
-
-            start = (struct Atr_Glyph_Point){
-                .flag = start.flag,
-                .pos.x = x_origin + x_offset + start.pos.x * scale,
-                .pos.y = y_origin + y_offset - start.pos.y * scale,
-            };
-            control = (struct Atr_Glyph_Point){
-                .flag = control.flag,
-                .pos.x = x_origin + x_offset + control.pos.x * scale,
-                .pos.y = y_origin + y_offset - control.pos.y * scale,
-            };
-            end = (struct Atr_Glyph_Point){
-                .flag = end.flag,
-                .pos.x = x_origin + x_offset + end.pos.x * scale,
-                .pos.y = y_origin + y_offset - end.pos.y * scale,
-            };
-
+            struct Atr_Glyph_Point start = g.simple.points_temp_for_resizing.elements[i + 0];
+            struct Atr_Glyph_Point control = g.simple.points_temp_for_resizing.elements[i + 1];
+            struct Atr_Glyph_Point end = g.simple.points_temp_for_resizing.elements[i + 2];
             atr_quadratic_bezier_draw(screen, start, control, end, color, offzoom);
         }
 
@@ -2710,6 +2683,135 @@ ATR_DEF void atr_uint32_print_hex_imp(uint32_t value, uint8_t bit_count)
         printf("%X", digit);
     }
     printf("\n");
+}
+
+/* This solution for utf-8 is not a full support for utf-8 */
+ATR_DEF uint32_t atr_utf8_code_point_get_from_raw_char_bytes(uint32_t raw_char_bytes)
+{
+    /* By AI */
+    uint8_t first_byte = (uint8_t)((raw_char_bytes >> 0) & 0xFFu);
+    uint8_t second_byte = (uint8_t)((raw_char_bytes >> 8) & 0xFFu);
+    uint8_t third_byte = (uint8_t)((raw_char_bytes >> 16) & 0xFFu);
+    uint8_t fourth_byte = (uint8_t)((raw_char_bytes >> 24) & 0xFFu);
+
+    if (first_byte <= 0x7Fu) {
+        /* 0xxxxxxx */
+        return (uint32_t)first_byte;
+    }
+
+    if (first_byte >= 0xC2u && first_byte <= 0xDFu) {
+        /* 110xxxxx 10xxxxxx */
+
+        if ((second_byte & 0xC0u) != 0x80u) {
+            return ATR_UTF8_REPLACEMENT_CHARACTER;
+        }
+
+        return ((uint32_t)(first_byte & 0x1Fu) << 6) |
+               ((uint32_t)(second_byte & 0x3Fu) << 0);
+    }
+
+    if (first_byte >= 0xE0u && first_byte <= 0xEFu) {
+        /* 1110xxxx 10xxxxxx 10xxxxxx */
+
+        if ((second_byte & 0xC0u) != 0x80u ||
+            (third_byte & 0xC0u) != 0x80u) {
+            return ATR_UTF8_REPLACEMENT_CHARACTER;
+        }
+
+        uint32_t code_point = ((uint32_t)(first_byte & 0x0Fu) << 12) |
+                              ((uint32_t)(second_byte & 0x3Fu) << 6) |
+                              ((uint32_t)(third_byte & 0x3Fu) << 0);
+
+        /*
+         * Reject:
+         * - overlong sequences, such as E0 80 80 for U+0000
+         * - surrogate code points, U+D800 through U+DFFF
+         */
+        if (code_point < 0x800u ||
+            (code_point >= 0xD800u && code_point <= 0xDFFFu)) {
+            return ATR_UTF8_REPLACEMENT_CHARACTER;
+        }
+
+        return code_point;
+    }
+
+    if (first_byte >= 0xF0u && first_byte <= 0xF4u) {
+        /* 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx */
+
+        if ((second_byte & 0xC0u) != 0x80u ||
+            (third_byte & 0xC0u) != 0x80u ||
+            (fourth_byte & 0xC0u) != 0x80u) {
+            return ATR_UTF8_REPLACEMENT_CHARACTER;
+        }
+
+        uint32_t code_point = ((uint32_t)(first_byte & 0x07u) << 18) |
+                              ((uint32_t)(second_byte & 0x3Fu) << 12) |
+                              ((uint32_t)(third_byte & 0x3Fu) << 6) |
+                              ((uint32_t)(fourth_byte & 0x3Fu) << 0);
+
+        /*
+         * Reject:
+         * - overlong sequences, such as F0 80 80 80 for U+0000
+         * - code points above Unicode's U+10FFFF limit
+         */
+        if (code_point < 0x10000u || code_point > 0x10FFFFu) {
+            return ATR_UTF8_REPLACEMENT_CHARACTER;
+        }
+
+        return code_point;
+    }
+
+    /*
+     * Rejects:
+     *
+     * 80..BF: continuation bytes used as a leading byte
+     * C0..C1: overlong two-byte forms
+     * F5..FF: invalid in modern UTF-8
+     */
+    return ATR_UTF8_REPLACEMENT_CHARACTER;
+}
+
+ATR_DEF uint32_t atr_utf8_decode_next_code_point(uint8_t *text, size_t text_byte_count, size_t *consumed)
+{
+
+}
+
+ATR_DEF uint32_t atr_utf8_get_next_char_bytes(uint8_t *str, size_t byte_count)
+{
+    uint32_t result = 0;
+
+    if (str[0] == '\0') {
+        return 0;
+    }
+
+    uint8_t char_byte_count = atr_bytes_for_utf8[(uint8_t)str[0]];
+    ATR_ASSERT(char_byte_count <= byte_count && "'str' is not long enough to read full utf8 character.");
+    
+    for (size_t i = 0; i < char_byte_count; i++) {
+        uint8_t b = str[i];
+        result |= b << (i * 8);
+    }
+
+    return result;
+}
+
+ATR_DEF bool atr_utf8_is_continuation_byte(uint8_t byte)
+{
+    return (byte & 0xC0) == 0x80;
+}
+
+ATR_DEF size_t atr_utf8_length(uint8_t *str, size_t byte_count)
+{
+    size_t i = 0;
+    size_t n = 0;
+    for (; str[i] != '\0'; ) {
+        ATR_ASSERT(i < byte_count && "'str' is not long enough to read full utf8 character.");
+        ATR_ASSERT(str[i] < atr_bytes_for_utf8_count && "Unsupported utf8 bytes count of 5 or 6.");
+        i += atr_bytes_for_utf8[(uint8_t)str[i]];
+        n += 1;
+    }
+
+    return n;
 }
 
 
