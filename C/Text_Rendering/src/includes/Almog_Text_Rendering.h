@@ -134,6 +134,7 @@
         #define atr_fabs  fabsf
         #define atr_floor floorf
         #define atr_ceil  ceilf
+        #define atr_round roundf
         #define atr_sqrt  sqrtf
         #define atr_cbrt  cbrtf
         #define atr_cos   cosf
@@ -147,6 +148,7 @@
         #define atr_fabs  fabs
         #define atr_floor floor
         #define atr_ceil  ceil
+        #define atr_round round
         #define atr_sqrt  sqrt
         #define atr_cbrt  cbrt
         #define atr_cos   cos
@@ -544,8 +546,9 @@ ATR_DEF enum Atr_Return_Types       atr_offset_subtable_parse(struct Atr_Font *f
 
 ATR_DEF void                        atr_pixel_draw(struct Atr_Pixel_Buffer screen, atr_real x, atr_real y, uint32_t color, struct Atr_Offset_Zoom offzoom);
 
+ATR_DEF void                        atr_quadratic_bezier_array_fill(struct Atr_Pixel_Buffer screen, struct Atr_Glyph_Point *points, size_t points_count, uint32_t color, struct Atr_Offset_Zoom offzoom);
 ATR_DEF void                        atr_quadratic_bezier_draw(struct Atr_Pixel_Buffer pixels, struct Atr_Glyph_Point start, struct Atr_Glyph_Point control, struct Atr_Glyph_Point end, uint32_t color, struct Atr_Offset_Zoom offzoom);
-ATR_DEF size_t                      atr_quadratic_bezier_get_xs_from_y(struct Atr_Glyph_Point start, struct Atr_Glyph_Point control, struct Atr_Glyph_Point end, atr_real y, atr_real *x1, atr_real *x2, atr_real *der_x1, atr_real *der_x2);
+ATR_DEF size_t                      atr_quadratic_bezier_get_xs_from_y(struct Atr_Glyph_Point start, struct Atr_Glyph_Point control, struct Atr_Glyph_Point end, atr_real y, atr_real *x1, atr_real *x2, atr_real *dy_dt1, atr_real *dy_dt2);
 
 ATR_DEF void                        atr_rectangle_draw_min_max(struct Atr_Pixel_Buffer screen, atr_real min_x, atr_real max_x, atr_real min_y, atr_real max_y, uint32_t color, struct Atr_Offset_Zoom offzoom);
 ATR_DEF uint32_t                    atr_rgba_to_hexargb(int r, int g, int b, int a);
@@ -1348,7 +1351,7 @@ ATR_DEF uint32_t atr_glyphIndex_get(struct Atr_Font *font, uint32_t code_point)
         size_t first_code  = st.data.format_6.firstCode;
         size_t entry_count = st.data.format_6.entryCount;
             if (first_code <= code_point) {
-                if (code_point <= first_code + entry_count) {
+                if (code_point < first_code + entry_count) {
                     return st.data.format_6.glyphIndexArray[code_point - first_code];
                 }
             }
@@ -1357,7 +1360,7 @@ ATR_DEF uint32_t atr_glyphIndex_get(struct Atr_Font *font, uint32_t code_point)
         size_t first_code  = st.data.format_10.startCharCode;
         size_t entry_count = st.data.format_10.numChars;
             if (first_code <= code_point) {
-                if (code_point <= first_code + entry_count) {
+                if (code_point < first_code + entry_count) {
                     return st.data.format_10.glyphs[code_point - first_code];
                 }
             }
@@ -1374,8 +1377,8 @@ ATR_DEF uint32_t atr_glyphIndex_get(struct Atr_Font *font, uint32_t code_point)
         }
         return 0;
     } else if (st.format == 13) {
-        for (size_t i = 0; i < st.data.format_12.nGroups; i++) {
-            struct Atr_Table_cmap_Group cg = st.data.format_12.groups[i];
+        for (size_t i = 0; i < st.data.format_13.nGroups; i++) {
+            struct Atr_Table_cmap_Group cg = st.data.format_13.groups[i];
             if (cg.startCharCode <= code_point && code_point <= cg.endCharCode) {
                 return cg.startGlyphCode;
             }
@@ -1578,72 +1581,33 @@ ATR_DEF void atr_line_draw_fix_width(struct Atr_Pixel_Buffer screen, atr_real x1
 
 ATR_DEF void atr_line_draw_no_antialiasing(struct Atr_Pixel_Buffer screen, atr_real x1_input, atr_real y1_input, atr_real x2_input, atr_real y2_input, uint32_t color, struct Atr_Offset_Zoom offzoom)
 {
-    /** 
-     * This function is inspired by the Olive.c function developed by 'Tsoding' on his YouTube channel.
-     * You can fined the video in this link: https://youtu.be/LmQKZmQh1ZQ?list=PLpM-Dvs8t0Va-Gb0Dp4d9t8yvNFHaKH6N&t=4683.
-     */
+    /* Bresenham draw line function */
+    int x0 = (int)atr_round(x1_input);
+    int y0 = (int)atr_round(y1_input);
+    int x1 = (int)atr_round(x2_input);
+    int y1 = (int)atr_round(y2_input);
 
-    int x1 = (int)x1_input;
-    int x2 = (int)x2_input;
-    int y1 = (int)y1_input;
-    int y2 = (int)y2_input;
+    int dx = (int)atr_fabs(x1 - x0);
+    int sx = x0 < x1 ? 1 : -1;
+    int dy = -(int)atr_fabs(y1 - y0);
+    int sy = y0 < y1 ? 1 : -1;
+    int error = dx + dy;
 
-    int x = x1;
-    int y = y1;
-    int dx, dy;
-
-    atr_pixel_draw(screen, (atr_real)x, (atr_real)y, color, offzoom);
-
-    dx = x2 - x1;
-    dy = y2 - y1;
-
-    ATR_ASSERT(dy > INT_MIN && dy < INT_MAX);
-    ATR_ASSERT(dx > INT_MIN && dx < INT_MAX);
-
-    if (0 == dx && 0 == dy) return;
-    if (0 == dx) {
-        while (x != x2 || y != y2) {
-            if (dy > 0) {
-                y++;
-            }
-            if (dy < 0) {
-                y--;
-            }
-            atr_pixel_draw(screen, (atr_real)x, (atr_real)y, color, offzoom);
+    for (;;) {
+        atr_pixel_draw(screen, (atr_real)x0, (atr_real)y0, color, offzoom);
+        if (x0 == x1 && y0 == y1) {
+            break;
         }
-        return;
-    }
-    if (0 == dy) {
-        while (x != x2 || y != y2) {
-            if (dx > 0) {
-                x++;
-            }
-            if (dx < 0) {
-                x--;
-            }
-            atr_pixel_draw(screen, (atr_real)x, (atr_real)y, color, offzoom);
-        }
-        return;
-    }
 
-    /* atr_real m = (atr_real)dy / dx */
-    int b = y1 - dy * x1 / dx;
-
-    if (x1 > x2) {
-        int temp_x = x1;
-        x1 = x2;
-        x2 = temp_x;
-    }
-    for (x = x1; x < x2; x++) {
-        int sy1 = dy * x / dx + b;
-        int sy2 = dy * (x + 1) / dx + b;
-        if (sy1 > sy2) {
-            int temp_y = sy1;
-            sy1 = sy2;
-            sy2 = temp_y;
+        int error2 = error * 2;
+        if (error2 >= dy) {
+            error += dy;
+            x0 += sx;
         }
-        for (y = sy1; y <= sy2; y++) {
-            atr_pixel_draw(screen, (atr_real)x, (atr_real)y, color, offzoom);
+
+        if (error2 <= dx) {
+            error += dx;
+            y0 += sy;
         }
     }
 }
@@ -1719,6 +1683,109 @@ ATR_DEF void atr_pixel_draw(struct Atr_Pixel_Buffer screen, atr_real x, atr_real
     }
 }
 
+ATR_DEF void atr_quadratic_bezier_array_fill(struct Atr_Pixel_Buffer screen, struct Atr_Glyph_Point *points, size_t points_count, uint32_t color, struct Atr_Offset_Zoom offzoom)
+{
+    atr_real glyph_y_max = -ATR_INFINITY;
+    atr_real glyph_y_min = ATR_INFINITY;
+
+    // atr_dprintINFO("%zu", points_count);
+    for (size_t i = 0; i < points_count; i++) {
+        if (points[i].pos.y > glyph_y_max) {
+            glyph_y_max = points[i].pos.y;
+        }
+        if (points[i].pos.y < glyph_y_min) {
+            glyph_y_min = points[i].pos.y;
+        }
+    }
+
+    struct Atr_Real_Dynamic_Array intersection_xs = {0};
+    atr_ada_init_array(atr_real, intersection_xs);
+    struct Atr_Real_Dynamic_Array intersection_dy_dts = {0};
+    atr_ada_init_array(atr_real, intersection_dy_dts);
+    // atr_dprintINFO("[%f, %f]", glyph_y_min, glyph_y_max);
+    for (atr_real row = glyph_y_min; row <= glyph_y_max; row++) {
+        intersection_xs.length = 0;
+        intersection_dy_dts.length = 0;
+        for (size_t i = 0; i + 2 < points_count; i += 3) {
+            struct Atr_Glyph_Point start = points[i + 0];
+            struct Atr_Glyph_Point control = points[i + 1];
+            struct Atr_Glyph_Point end = points[i + 2];
+            atr_real x1, x2, der1, der2;
+            size_t intersection_count = atr_quadratic_bezier_get_xs_from_y(start, control, end, row, &x1, &x2, &der1, &der2);
+            if (intersection_count == 0) {
+                continue;
+            } else if (intersection_count == 1) {
+                atr_ada_append(atr_real, intersection_xs, x1);
+                atr_ada_append(atr_real, intersection_dy_dts, der1);
+            } else {
+                atr_ada_append(atr_real, intersection_xs, x1);
+                atr_ada_append(atr_real, intersection_xs, x2);
+                atr_ada_append(atr_real, intersection_dy_dts, der1);
+                atr_ada_append(atr_real, intersection_dy_dts, der2);
+            }
+        }
+        if (intersection_xs.length == 0) continue;
+
+        for (size_t i = 1; i < intersection_xs.length; i++) {
+            atr_real x = intersection_xs.elements[i];
+            atr_real derivative = intersection_dy_dts.elements[i];
+
+            size_t j = i;
+            while (j > 0 &&
+                intersection_xs.elements[j - 1] > x) {
+                intersection_xs.elements[j] = intersection_xs.elements[j - 1];
+                intersection_dy_dts.elements[j] = intersection_dy_dts.elements[j - 1];
+                j--;
+            }
+
+            intersection_xs.elements[j] = x;
+            intersection_dy_dts.elements[j] = derivative;
+        }
+
+        #define to_debug 0
+        #if to_debug
+            printf("y: %6.2f | ", row);
+            for (size_t x_index = 0; x_index < intersection_xs.length; x_index++) {
+                atr_real xi     = intersection_xs.elements[x_index];
+                printf("%6.2f ", xi);
+            }
+            printf("\n");
+            printf("          ");
+            int winding = 0;
+            for (size_t x_index = 0; x_index < intersection_xs.length; x_index++) {
+                atr_real xi     = intersection_xs.elements[x_index];
+                atr_real deri   = intersection_dy_dts.elements[x_index];
+                if (deri > 0) winding++;
+                if (deri <= 0) winding--;
+
+                printf("%6d ", winding);
+            }
+            printf("\n");
+        #else 
+        int winding = 0;
+        for (size_t x_index = 0; x_index < intersection_xs.length - 1; x_index++) {
+            atr_real xi = intersection_xs.elements[x_index];
+            atr_real xip1 = intersection_xs.elements[x_index + 1];
+            atr_real deri = intersection_dy_dts.elements[x_index];
+
+            if (deri > 0) winding++;
+            if (deri <= 0) winding--;
+
+            if (winding != 0) {
+                atr_line_draw_no_antialiasing(screen, xi, row, xip1, row, color, offzoom);
+            }
+        }
+        #endif
+    }
+    #if to_debug
+    ATR_ASSERT(0);
+    #endif
+
+    ATR_FREE(intersection_xs.elements);
+    ATR_FREE(intersection_dy_dts.elements);
+}
+
+
 ATR_DEF void atr_quadratic_bezier_draw(struct Atr_Pixel_Buffer pixels, struct Atr_Glyph_Point start, struct Atr_Glyph_Point control, struct Atr_Glyph_Point end, uint32_t color, struct Atr_Offset_Zoom offzoom)
 {
     /*
@@ -1748,7 +1815,7 @@ ATR_DEF void atr_quadratic_bezier_draw(struct Atr_Pixel_Buffer pixels, struct At
             (atr_real)2 * inverse_t_ip1 * t_ip1 * control.pos.y +
             t_ip1 * t_ip1 * end.pos.y;
 
-        atr_line_draw_fix_width(pixels, x_i, y_i, x_ip1, y_ip1, color, offzoom);
+        atr_line_draw_no_antialiasing(pixels, x_i, y_i, x_ip1, y_ip1, color, offzoom);
     }
 
     // atr_circle_fill_high_quality(pixels, start.pos.x, start.pos.y, 1, 0xFF00FFFF, offzoom);
@@ -1756,7 +1823,7 @@ ATR_DEF void atr_quadratic_bezier_draw(struct Atr_Pixel_Buffer pixels, struct At
     // atr_circle_fill_high_quality(pixels, control.pos.x, control.pos.y, 1, 0xFFFF0000, offzoom);
 }
 
-ATR_DEF size_t atr_quadratic_bezier_get_xs_from_y(struct Atr_Glyph_Point start, struct Atr_Glyph_Point control, struct Atr_Glyph_Point end, atr_real y, atr_real *x1, atr_real *x2, atr_real *der_x1, atr_real *der_x2)
+ATR_DEF size_t atr_quadratic_bezier_get_xs_from_y(struct Atr_Glyph_Point start, struct Atr_Glyph_Point control, struct Atr_Glyph_Point end, atr_real y, atr_real *x1, atr_real *x2, atr_real *dy_dt1, atr_real *dy_dt2)
 {
     atr_real dx12 = control.pos.x - start.pos.x;
     atr_real dx23 = end.pos.x     - control.pos.x;
@@ -1780,11 +1847,11 @@ ATR_DEF size_t atr_quadratic_bezier_get_xs_from_y(struct Atr_Glyph_Point start, 
             return 0;
         }
         atr_real t = -c / b;
-        if (t < 0 || t > 1) {
+        if (t < 0 || t >= 1) {
             return 0;
         }
         if (x1) *x1 = (dx23 - dx12) * t * t + 2 * dx12 * t + start.pos.x;
-        if (der_x1) *der_x1 = b;
+        if (dy_dt1) *dy_dt1 = b;
 
         return 1;
     }
@@ -1792,26 +1859,25 @@ ATR_DEF size_t atr_quadratic_bezier_get_xs_from_y(struct Atr_Glyph_Point start, 
     atr_real d = b * b - 4 * a * c;
     if (d < 0) {
         return 0;
-    } else if (d == 0) {
-        atr_real t1 = -b / (2 * a);
-        if (0 <= t1 && t1 <= 1) {
-            if (x1) *x1 = (dx23 - dx12) * t1 * t1 + 2 * dx12 * t1 + start.pos.x;
-            if (der_x1) *der_x1 = 2 * (dy23 - dy12) * t1 + 2 * dy12;
-            return 1;
-        }
+    } else if (ATR_IS_ZERO(d)) {
+        /*
+         * A tangent only touches this scanline; it does not cross it.
+         * Treat near-zero discriminants this way too, for float stability.
+         */
+        return 0;
     } else {
         atr_real t1 = (-b + atr_sqrt(d)) / (2 * a);
         atr_real t2 = (-b - atr_sqrt(d)) / (2 * a);
         bool t1_in = false, t2_in = false;
-        if (0 <= t1 && t1 <= 1) {
+        if (0 <= t1 && t1 < 1) {
             if (x1) *x1 = (dx23 - dx12) * t1 * t1 + 2 * dx12 * t1 + start.pos.x;
-            if (der_x1) *der_x1 = 2 * (dy23 - dy12) * t1 + 2 * dy12;
-            t1_in = true;
+            if (dy_dt1) *dy_dt1 = 2 * (dy23 - dy12) * t1 + 2 * dy12;
+            if (!ATR_IS_ZERO(*dy_dt1)) t1_in = true;
         }
-        if (0 <= t2 && t2 <= 1) {
+        if (0 <= t2 && t2 < 1) {
             if (x2) *x2 = (dx23 - dx12) * t2 * t2 + 2 * dx12 * t2 + start.pos.x;
-            if (der_x2) *der_x2 = 2 * (dy23 - dy12) * t2 + 2 * dy12;
-            t2_in = true;
+            if (dy_dt2) *dy_dt2 = 2 * (dy23 - dy12) * t2 + 2 * dy12;
+            if (!ATR_IS_ZERO(*dy_dt2)) t2_in = true;
         }
 
         if (t1_in && t2_in) {
@@ -1820,7 +1886,7 @@ ATR_DEF size_t atr_quadratic_bezier_get_xs_from_y(struct Atr_Glyph_Point start, 
             return 1;
         } else if (t2_in && !t1_in) {
             if (x1) *x1 = (dx23 - dx12) * t2 * t2 + 2 * dx12 * t2 + start.pos.x;
-            if (der_x1) *der_x1 = 2 * (dy23 - dy12) * t2 + 2 * dy12;
+            if (dy_dt1) *dy_dt1 = 2 * (dy23 - dy12) * t2 + 2 * dy12;
             return 1;
         }
     }
@@ -2629,7 +2695,7 @@ ATR_DEF struct Atr_Vec2 atr_text_line_draw_no_antialiasing(struct Atr_Pixel_Buff
     atr_real glyph_y_min = ATR_INFINITY;
     bool has_drawable_glyph = false;
     size_t consumed = 0;
-    for (size_t text_index = 0; text_index < text_byte_count; text_index += consumed) {
+    for (size_t text_index = 0, char_index = 0; text_index < text_byte_count && char_index < length; text_index += consumed, char_index++) {
         uint32_t c = atr_utf8_decode_next_code_point(text + text_index, text_byte_count - text_index, &consumed);
         if (c == ' ') {
             continue;
@@ -2650,11 +2716,7 @@ ATR_DEF struct Atr_Vec2 atr_text_line_draw_no_antialiasing(struct Atr_Pixel_Buff
     atr_real scale = atr_scale_get_for_em(font, letter_hight);
     atr_real pen_x = 0;
     atr_real pen_y = glyph_y_max * scale;
-    struct Atr_Real_Dynamic_Array intersection_xs = {0};
-    atr_ada_init_array(atr_real, intersection_xs);
-    struct Atr_Real_Dynamic_Array intersection_ders = {0};
-    atr_ada_init_array(atr_real, intersection_ders);
-    for (size_t text_index = 0; text_index < text_byte_count; text_index += consumed) {
+    for (size_t text_index = 0, char_index = 0; text_index < text_byte_count && char_index < length; text_index += consumed, char_index++) {
         uint32_t c = atr_utf8_decode_next_code_point(text + text_index, text_byte_count - text_index, &consumed);
         if (c == ' ') {
             pen_x += 300 * scale;
@@ -2664,7 +2726,8 @@ ATR_DEF struct Atr_Vec2 atr_text_line_draw_no_antialiasing(struct Atr_Pixel_Buff
         struct Atr_Glyph g = font->tables.glyf.glyphs[atr_glyphIndex_get(font, c)];
         adl_real x_origin = top_left_x + pen_x;
         adl_real y_origin = top_left_y;
-        adl_real x_offset = -g.metadata.xMin * scale;
+        // adl_real x_offset = -g.metadata.xMin * scale;
+        adl_real x_offset = 0;
         adl_real y_offset = pen_y;
         // if (x_origin + x_offset + g.metadata.xMax * scale > screen.cols) {
         //     break;
@@ -2678,70 +2741,13 @@ ATR_DEF struct Atr_Vec2 atr_text_line_draw_no_antialiasing(struct Atr_Pixel_Buff
             };
         }
 
-        for (atr_real row = y_origin; row <= y_origin + g.metadata.yMax - g.metadata.yMin; row++) {
-            intersection_xs.length = 0;
-            intersection_ders.length = 0;
-            for (size_t i = 0; i + 2 < g.simple.points_temp_for_resizing.length; i += 3) {
-                struct Atr_Glyph_Point start = g.simple.points_temp_for_resizing.elements[i + 0];
-                struct Atr_Glyph_Point control = g.simple.points_temp_for_resizing.elements[i + 1];
-                struct Atr_Glyph_Point end = g.simple.points_temp_for_resizing.elements[i + 2];
-                atr_real x1, x2, der1, der2;
-                size_t intersection_count = atr_quadratic_bezier_get_xs_from_y(start, control, end, row, &x1, &x2, &der1, &der2);
-                if (intersection_count == 0) {
-                    continue;
-                } else if (intersection_count == 1) {
-                    atr_ada_append(atr_real, intersection_xs, x1);
-                    atr_ada_append(atr_real, intersection_ders, der1);
-                } else {
-                    atr_ada_append(atr_real, intersection_xs, x1);
-                    atr_ada_append(atr_real, intersection_xs, x2);
-                    atr_ada_append(atr_real, intersection_ders, der1);
-                    atr_ada_append(atr_real, intersection_ders, der2);
-                }
-            }
-            if (intersection_xs.length == 0) continue;
+        // atr_dprintSIZE_T(g.simple.points.length);
 
-            for (size_t i = 1; i < intersection_xs.length; i++) {
-                atr_real x = intersection_xs.elements[i];
-                atr_real derivative = intersection_ders.elements[i];
-
-                size_t j = i;
-
-                while (j > 0 &&
-                    intersection_xs.elements[j - 1] > x) {
-                    intersection_xs.elements[j] =
-                        intersection_xs.elements[j - 1];
-
-                    intersection_ders.elements[j] =
-                        intersection_ders.elements[j - 1];
-
-                    j--;
-                }
-
-                intersection_xs.elements[j] = x;
-                intersection_ders.elements[j] = derivative;
-            }
-
-            int draw_counter = 0;
-            for (size_t x_index = 0; x_index < intersection_xs.length - 1; x_index++) {
-                atr_real xi = intersection_xs.elements[x_index];
-                atr_real xip1 = intersection_xs.elements[x_index + 1];
-                atr_real deri = intersection_ders.elements[x_index];
-
-                if (deri < 0) draw_counter++;
-                if (deri > 0) draw_counter--;
-
-                if (draw_counter > 0) {
-                    atr_line_draw_no_antialiasing(screen, xi, row, xip1, row, color, offzoom);
-                }
-            }
-        }
+        atr_quadratic_bezier_array_fill(screen, g.simple.points_temp_for_resizing.elements, g.simple.points_temp_for_resizing.length, color, offzoom);
 
         pen_x += letter_spacing + (g.metadata.xMax - g.metadata.xMin) * scale;
     }
 
-    ATR_FREE(intersection_xs.elements);
-    ATR_FREE(intersection_ders.elements);
 
     return (struct Atr_Vec2){
         .x = pen_x,
@@ -3001,6 +3007,9 @@ ATR_DEF uint32_t atr_utf8_get_next_char_bytes(uint8_t *str, size_t byte_count)
 {
     uint32_t result = 0;
 
+    if (str == NULL || byte_count == 0) {
+        return 0;
+    }
     if (str[0] == '\0') {
         return 0;
     }
@@ -3010,7 +3019,7 @@ ATR_DEF uint32_t atr_utf8_get_next_char_bytes(uint8_t *str, size_t byte_count)
     
     for (size_t i = 0; i < char_byte_count; i++) {
         uint8_t b = str[i];
-        result |= b << (i * 8);
+        result |= (uint32_t)b << (i * 8);
     }
 
     return result;
@@ -3024,15 +3033,28 @@ ATR_DEF bool atr_utf8_is_continuation_byte(uint8_t byte)
 ATR_DEF size_t atr_utf8_length(uint8_t *str, size_t byte_count)
 {
     size_t i = 0;
-    size_t n = 0;
-    for (; str[i] != '\0'; ) {
-        ATR_ASSERT(i < byte_count && "'str' is not long enough to read full utf8 character.");
-        ATR_ASSERT(str[i] < atr_bytes_for_utf8_count && "Unsupported utf8 bytes count of 5 or 6.");
-        i += atr_bytes_for_utf8[(uint8_t)str[i]];
-        n += 1;
+    size_t count = 0;
+
+    while (i < byte_count && str[i] != '\0') {
+        uint8_t lead = str[i];
+        if (lead >= atr_bytes_for_utf8_count) {
+            i++;
+            count++;
+            continue;
+        }
+
+        size_t char_bytes = atr_bytes_for_utf8[lead];
+        if (char_bytes == 0 || char_bytes > byte_count - i) {
+            i++;
+            count++;
+            continue;
+        }
+
+        i += char_bytes;
+        count++;
     }
 
-    return n;
+    return count;
 }
 
 

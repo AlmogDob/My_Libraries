@@ -1661,6 +1661,7 @@ int main(void)
             break;
         }
         if (window_state.to_update) {
+            window_state.frames_count++;
             rt = apl_window_update(&window_state);
             if (rt == APL_FAIL) {
                 apl_dprintERROR("%s", "failed to window update");
@@ -1675,7 +1676,6 @@ int main(void)
             }
         }
         apl_fix_framerate(&window_state);
-        window_state.frames_count++;
     }
 
     rt = apl_window_destroy(&window_state);

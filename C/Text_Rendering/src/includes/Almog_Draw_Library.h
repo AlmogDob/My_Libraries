@@ -24,6 +24,7 @@
     #define adl_fabs  fabsf
     #define adl_floor floorf
     #define adl_ceil  ceilf
+    #define adl_round roundf
     #define adl_sqrt  sqrtf
     #define adl_cbrt  cbrtf
     #define adl_cos   cosf
@@ -36,6 +37,7 @@
     #define adl_fabs  fabs
     #define adl_floor floor
     #define adl_ceil  ceil
+    #define adl_round round
     #define adl_sqrt  sqrt
     #define adl_cbrt  cbrt
     #define adl_cos   cos
@@ -472,72 +474,33 @@ ADL_DEF void adl_line_draw_fix_width(struct Adl_Pixel_Buffer screen, adl_real x1
 
 ADL_DEF void adl_line_draw_no_antialiasing(struct Adl_Pixel_Buffer screen, adl_real x1_input, adl_real y1_input, adl_real x2_input, adl_real y2_input, uint32_t color, struct Adl_Offset_Zoom offzoom)
 {
-    /** 
-     * This function is inspired by the Olive.c function developed by 'Tsoding' on his YouTube channel.
-     * You can fined the video in this link: https://youtu.be/LmQKZmQh1ZQ?list=PLpM-Dvs8t0Va-Gb0Dp4d9t8yvNFHaKH6N&t=4683.
-     */
+    /* Bresenham draw line function */
+    int x0 = (int)adl_round(x1_input);
+    int y0 = (int)adl_round(y1_input);
+    int x1 = (int)adl_round(x2_input);
+    int y1 = (int)adl_round(y2_input);
 
-    int x1 = (int)x1_input;
-    int x2 = (int)x2_input;
-    int y1 = (int)y1_input;
-    int y2 = (int)y2_input;
+    int dx = (int)adl_fabs(x1 - x0);
+    int sx = x0 < x1 ? 1 : -1;
+    int dy = -(int)adl_fabs(y1 - y0);
+    int sy = y0 < y1 ? 1 : -1;
+    int error = dx + dy;
 
-    int x = x1;
-    int y = y1;
-    int dx, dy;
-
-    adl_pixel_draw(screen, (adl_real)x, (adl_real)y, color, offzoom);
-
-    dx = x2 - x1;
-    dy = y2 - y1;
-
-    ADL_ASSERT(dy > INT_MIN && dy < INT_MAX);
-    ADL_ASSERT(dx > INT_MIN && dx < INT_MAX);
-
-    if (0 == dx && 0 == dy) return;
-    if (0 == dx) {
-        while (x != x2 || y != y2) {
-            if (dy > 0) {
-                y++;
-            }
-            if (dy < 0) {
-                y--;
-            }
-            adl_pixel_draw(screen, (adl_real)x, (adl_real)y, color, offzoom);
+    for (;;) {
+        adl_pixel_draw(screen, (adl_real)x0, (adl_real)y0, color, offzoom);
+        if (x0 == x1 && y0 == y1) {
+            break;
         }
-        return;
-    }
-    if (0 == dy) {
-        while (x != x2 || y != y2) {
-            if (dx > 0) {
-                x++;
-            }
-            if (dx < 0) {
-                x--;
-            }
-            adl_pixel_draw(screen, (adl_real)x, (adl_real)y, color, offzoom);
-        }
-        return;
-    }
 
-    /* adl_real m = (adl_real)dy / dx */
-    int b = y1 - dy * x1 / dx;
-
-    if (x1 > x2) {
-        int temp_x = x1;
-        x1 = x2;
-        x2 = temp_x;
-    }
-    for (x = x1; x < x2; x++) {
-        int sy1 = dy * x / dx + b;
-        int sy2 = dy * (x + 1) / dx + b;
-        if (sy1 > sy2) {
-            int temp_y = sy1;
-            sy1 = sy2;
-            sy2 = temp_y;
+        int error2 = error * 2;
+        if (error2 >= dy) {
+            error += dy;
+            x0 += sx;
         }
-        for (y = sy1; y <= sy2; y++) {
-            adl_pixel_draw(screen, (adl_real)x, (adl_real)y, color, offzoom);
+
+        if (error2 <= dx) {
+            error += dx;
+            y0 += sy;
         }
     }
 }

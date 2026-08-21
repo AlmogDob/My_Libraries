@@ -7,7 +7,7 @@
 #define APL_INPUT
 #define APL_DESTROY
 
-#define AMD_MEMORY_DEBUG
+// #define AMD_MEMORY_DEBUG
 #define ALMOG_MEMORY_DEBUG_IMPLEMENTATION
 #include "includes/Almog_Memory_Debug.h"
 
@@ -60,16 +60,12 @@ struct Atr_Font font = {0};
 
 enum Apl_Return_Types apl_setup(struct Apl_Window_State *ws)
 {
-    ws->to_limit_fps = false;
+    ws->to_limit_fps = true;
     offzoom = ADL_DEFAULT_OFFSET_ZOOM;
-
-    // char font_file_name[] = "../src/fonts/nehama-webfont.ttf";
-
-    char font_file_name[] = "../src/fonts/MPLUSU-VariableFont_wght.ttf";
 
     /* english */
     // char font_file_name[] = "../src/fonts/BLKCHCRY.ttf";
-    // char font_file_name[] = "../src/fonts/Canterbury.ttf";
+    char font_file_name[] = "../src/fonts/Canterbury.ttf";
     // char font_file_name[] = "../src/fonts/Inconsolata-Regular.ttf";
     // char font_file_name[] = "../src/fonts/Symbola.ttf";
     // char font_file_name[] = "../src/fonts/waltographUI.ttf";
@@ -94,11 +90,13 @@ enum Apl_Return_Types apl_render(struct Apl_Window_State *ws)
     struct Adl_Pixel_Buffer pixels = apl_pixel_buffer_as_adl_pixel_buffer(ws->window_pixels_mat);
     struct Atr_Pixel_Buffer font_pixels = adl_pixel_buffer_as_atr_pixel_buffer(pixels);
 
-    char str1[] = "the quick brown fox jumps over the lazy dog! @#$%^&*:\"{}[]?><\\/';.()_+-";
-    // char str1[] = "אלמוג";
-    // char str1[] = "いろはにほへと ちりぬるを わかよたれそ つねならむ うゐのおくやま けふこえて あさきゆめみし ゑひもせす";
+    // char str1[] = "the quick brown fox jumps over the lazy dog! @#$%^&*:\"{}[]?><\\/';.()_+-";
+    // char str1[] = "the quick brown";
+    char str1[] = "B";
+    // char str1[256];
+    // sprintf(str1, "%zu", ws->frames_count);
 
-    atr_real top_left_x = 10, top_left_y = 10, letter_hight = 50, spacing = 10;
+    atr_real top_left_x = 10, top_left_y = 10, letter_hight = 500, spacing = 10;
     struct Atr_Vec2 bounding_box1 = atr_text_line_draw_no_antialiasing(font_pixels, &font, (uint8_t *)str1, top_left_x, top_left_y, letter_hight, spacing, ADL_COLOR_WHITE_hexARGB, -1, adl_offset_zoom_to_atr_offset_zoom(offzoom));
     // atr_text_line_draw_outline(font_pixels, &font, (uint8_t *)str1, top_left_x, top_left_y, letter_hight, spacing, ADL_COLOR_RED_hexARGB, -1, adl_offset_zoom_to_atr_offset_zoom(offzoom));
     adl_rectangle_draw_min_max(pixels, top_left_x, top_left_x + bounding_box1.x, top_left_y, top_left_y + bounding_box1.y, ADL_COLOR_WHITE_hexARGB, offzoom);
@@ -141,6 +139,7 @@ enum Apl_Return_Types apl_input(struct Apl_Window_State *ws)
         apl_sleep(time_delay);
     } else if (ws->buttons.space_bar_is_pressed) {
         ws->to_update = !ws->to_update;
+        ws->to_render = !ws->to_render;
         apl_sleep(time_delay * 2000);
     }
 
