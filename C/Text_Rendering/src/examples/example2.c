@@ -104,7 +104,7 @@ enum Apl_Return_Types apl_render(struct Apl_Window_State *ws)
     struct Adl_Pixel_Buffer pixels = apl_pixel_buffer_as_adl_pixel_buffer(ws->window_pixels_mat);
     struct Atr_Pixel_Buffer font_pixels = adl_pixel_buffer_as_atr_pixel_buffer(pixels);
 
-    char str1[] = "אלמוג";
+    char str1[] = "דג סקרן שט בים מאוכזב ולפתע מצא לו חברה איך הקליטה";
     char str2[] = "the quick brown fox jumps over the lazy dog! @#$%^&*:\"{}[]?><\\/';.()_+-";
 
     atr_real top_left_x = 10, top_left_y = 10, letter_hight = 100, spacing = 10;

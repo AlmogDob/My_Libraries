@@ -63,27 +63,17 @@ enum Apl_Return_Types apl_setup(struct Apl_Window_State *ws)
     ws->to_limit_fps = false;
     offzoom = ADL_DEFAULT_OFFSET_ZOOM;
 
-
-    /* hebrew */
-    // char font_file_name[] = "../src/fonts/ankaclm-bold-webfont.ttf";
-    // char font_file_name[] = "../src/fonts/stamashkenazclm-webfont.ttf";
     // char font_file_name[] = "../src/fonts/nehama-webfont.ttf";
 
-    /* both */
-    char font_file_name[] = "../src/fonts/VarelaRound-Regular.ttf";
+    char font_file_name[] = "../src/fonts/MPLUSU-VariableFont_wght.ttf";
 
-    /* other */
+    /* english */
     // char font_file_name[] = "../src/fonts/BLKCHCRY.ttf";
     // char font_file_name[] = "../src/fonts/Canterbury.ttf";
-    // char font_file_name[] = "../src/fonts/ChopinScript.ttf";
     // char font_file_name[] = "../src/fonts/Inconsolata-Regular.ttf";
-    // char font_file_name[] = "../src/fonts/Montague.ttf";
-    // char font_file_name[] = "../src/fonts/MotionPicture_PersonalUseOnly.ttf";
-    // char font_file_name[] = "../src/fonts/Motterdam-K74zp.ttf";
-    // char font_file_name[] = "../src/fonts/PlayfairDisplay-Regular.ttf";
-    // char font_file_name[] = "../src/fonts/Scabber-q2Mn0.ttf";
     // char font_file_name[] = "../src/fonts/Symbola.ttf";
     // char font_file_name[] = "../src/fonts/waltographUI.ttf";
+
     if (ATR_FAIL == atr_font_load_from_file_name(&font, font_file_name)) {
         atr_dprintERROR("Failed to load font from file '%s'.", font_file_name);
         return APL_FAIL;
@@ -104,14 +94,16 @@ enum Apl_Return_Types apl_render(struct Apl_Window_State *ws)
     struct Adl_Pixel_Buffer pixels = apl_pixel_buffer_as_adl_pixel_buffer(ws->window_pixels_mat);
     struct Atr_Pixel_Buffer font_pixels = adl_pixel_buffer_as_atr_pixel_buffer(pixels);
 
-    char str1[] = "אלמוג";
-    char str2[] = "the quick brown fox jumps over the lazy dog! @#$%^&*:\"{}[]?><\\/';.()_+-";
+    char str1[] = "the quick brown fox jumps over the lazy dog! @#$%^&*:\"{}[]?><\\/';.()_+-";
+    // char str1[] = "אלמוג";
+    // char str1[] = "いろはにほへと ちりぬるを わかよたれそ つねならむ うゐのおくやま けふこえて あさきゆめみし ゑひもせす";
 
-    atr_real top_left_x = 10, top_left_y = 10, letter_hight = 100, spacing = 10;
-    struct Atr_Vec2 bounding_box1 = atr_text_line_draw_outline(font_pixels, &font, (uint8_t *)str1, top_left_x, top_left_y, letter_hight, spacing, ADL_COLOR_WHITE_hexARGB, -1, adl_offset_zoom_to_atr_offset_zoom(offzoom));
+    atr_real top_left_x = 10, top_left_y = 10, letter_hight = 50, spacing = 10;
+    struct Atr_Vec2 bounding_box1 = atr_text_line_draw_no_antialiasing(font_pixels, &font, (uint8_t *)str1, top_left_x, top_left_y, letter_hight, spacing, ADL_COLOR_WHITE_hexARGB, -1, adl_offset_zoom_to_atr_offset_zoom(offzoom));
+    // atr_text_line_draw_outline(font_pixels, &font, (uint8_t *)str1, top_left_x, top_left_y, letter_hight, spacing, ADL_COLOR_RED_hexARGB, -1, adl_offset_zoom_to_atr_offset_zoom(offzoom));
     adl_rectangle_draw_min_max(pixels, top_left_x, top_left_x + bounding_box1.x, top_left_y, top_left_y + bounding_box1.y, ADL_COLOR_WHITE_hexARGB, offzoom);
-    struct Atr_Vec2 bounding_box2 = atr_text_line_draw_outline(font_pixels, &font, (uint8_t *)str2, top_left_x, top_left_y + bounding_box1.y + top_left_y, letter_hight, spacing, ADL_COLOR_WHITE_hexARGB, -1, adl_offset_zoom_to_atr_offset_zoom(offzoom));
-    adl_rectangle_draw_min_max(pixels, top_left_x, top_left_x + bounding_box2.x, top_left_y + bounding_box1.y + top_left_y, top_left_y + bounding_box2.y + bounding_box1.y + top_left_y, ADL_COLOR_WHITE_hexARGB, offzoom);
+
+    // return APL_FAIL;
 
     return APL_SUCCESS;
 }
@@ -166,7 +158,7 @@ enum Apl_Return_Types apl_destroy(struct Apl_Window_State *ws)
         amd_dprintERROR("%s", "Corrupted memory detected.");
         return APL_FAIL;
     }
-    amd_debug_mem_print(0);
+    // amd_debug_mem_print(0);
     amd_debug_mem_reset();
 
 

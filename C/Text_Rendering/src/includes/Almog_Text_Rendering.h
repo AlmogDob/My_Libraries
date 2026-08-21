@@ -353,6 +353,12 @@ struct Atr_Glyph {
     };
 };
 
+struct Atr_Real_Dynamic_Array {
+    size_t capacity;
+    size_t length;
+    atr_real *elements;
+};
+
 struct Atr_Table_glyf {
     struct Atr_Table_Header header;
 
@@ -539,6 +545,7 @@ ATR_DEF enum Atr_Return_Types       atr_offset_subtable_parse(struct Atr_Font *f
 ATR_DEF void                        atr_pixel_draw(struct Atr_Pixel_Buffer screen, atr_real x, atr_real y, uint32_t color, struct Atr_Offset_Zoom offzoom);
 
 ATR_DEF void                        atr_quadratic_bezier_draw(struct Atr_Pixel_Buffer pixels, struct Atr_Glyph_Point start, struct Atr_Glyph_Point control, struct Atr_Glyph_Point end, uint32_t color, struct Atr_Offset_Zoom offzoom);
+ATR_DEF size_t                      atr_quadratic_bezier_get_xs_from_y(struct Atr_Glyph_Point start, struct Atr_Glyph_Point control, struct Atr_Glyph_Point end, atr_real y, atr_real *x1, atr_real *x2, atr_real *der_x1, atr_real *der_x2);
 
 ATR_DEF void                        atr_rectangle_draw_min_max(struct Atr_Pixel_Buffer screen, atr_real min_x, atr_real max_x, atr_real min_y, atr_real max_y, uint32_t color, struct Atr_Offset_Zoom offzoom);
 ATR_DEF uint32_t                    atr_rgba_to_hexargb(int r, int g, int b, int a);
@@ -559,7 +566,8 @@ ATR_DEF enum Atr_Return_Types       atr_table_header_verify_checksum(struct Atr_
 ATR_DEF enum Atr_Return_Types       atr_table_head_parse(struct Atr_Font *font, struct Atr_Table_Header head_header);
 ATR_DEF enum Atr_Return_Types       atr_table_loca_parse(struct Atr_Font *font, struct Atr_Table_Header loca_header);
 ATR_DEF enum Atr_Return_Types       atr_table_maxp_parse(struct Atr_Font *font, struct Atr_Table_Header maxp_header);
-ATR_DEF struct Atr_Vec2             atr_text_line_draw(struct Atr_Pixel_Buffer screen, struct Atr_Font *font, char *text, atr_real top_left_x, atr_real top_left_y, atr_real letter_hight, atr_real letter_spacing, uint32_t color, int length, struct Atr_Offset_Zoom offzoom);
+ATR_DEF struct Atr_Vec2             atr_text_line_draw(struct Atr_Pixel_Buffer screen, struct Atr_Font *font, uint8_t *text, atr_real top_left_x, atr_real top_left_y, atr_real letter_hight, atr_real letter_spacing, uint32_t color, int length, struct Atr_Offset_Zoom offzoom);
+ATR_DEF struct Atr_Vec2             atr_text_line_draw_no_antialiasing(struct Atr_Pixel_Buffer screen, struct Atr_Font *font, uint8_t *text, atr_real top_left_x, atr_real top_left_y, atr_real letter_hight, atr_real letter_spacing, uint32_t color, int length, struct Atr_Offset_Zoom offzoom);
 ATR_DEF struct Atr_Vec2             atr_text_line_draw_outline(struct Atr_Pixel_Buffer screen, struct Atr_Font *font, uint8_t *text, atr_real top_left_x, atr_real top_left_y, atr_real letter_hight, atr_real letter_spacing, uint32_t color, int length, struct Atr_Offset_Zoom offzoom);
 
 ATR_DEF uint8_t                     atr_u8_clamp_int(int x);
@@ -572,7 +580,7 @@ ATR_DEF void                        atr_uint32_print_binary_imp(uint32_t value, 
                                     #define atr_uint32_print_hex(value, bit_count) atr_dprintINFO("%s = ", #value); printf("%*.s", 7, ""); atr_uint32_print_hex_imp((value), (bit_count))
 ATR_DEF void                        atr_uint32_print_hex_imp(uint32_t value, uint8_t bit_count);
 ATR_DEF uint32_t                    atr_utf8_code_point_get_from_raw_char_bytes(uint32_t raw_char_bytes);
-ATR_DEF uint32_t                    atr_utf8_decode_next_code_point(uint8_t *text, size_t text_byte_count, size_t *consumed);
+ATR_DEF uint32_t                    atr_utf8_decode_next_code_point(uint8_t *text, size_t byte_count, size_t *consumed);
 ATR_DEF uint32_t                    atr_utf8_get_next_char_bytes(uint8_t *str, size_t byte_count);
 ATR_DEF bool                        atr_utf8_is_continuation_byte(uint8_t byte);
 ATR_DEF size_t                      atr_utf8_length(uint8_t *str, size_t byte_count);
@@ -1717,7 +1725,7 @@ ATR_DEF void atr_quadratic_bezier_draw(struct Atr_Pixel_Buffer pixels, struct At
      * Increase this if curves look visibly segmented at high zoom.
      * A more advanced renderer would adapt this based on curve length.
      */
-    const size_t steps = 10;
+    const size_t steps = 5;
 
     for (size_t i = 0; i < steps; ++i) {
         atr_real t_i = (atr_real)i / (atr_real)steps;
@@ -1746,6 +1754,78 @@ ATR_DEF void atr_quadratic_bezier_draw(struct Atr_Pixel_Buffer pixels, struct At
     // atr_circle_fill_high_quality(pixels, start.pos.x, start.pos.y, 1, 0xFF00FFFF, offzoom);
     // atr_circle_fill_high_quality(pixels, end.pos.x, end.pos.y, 1, 0xFF00FFFF, offzoom);
     // atr_circle_fill_high_quality(pixels, control.pos.x, control.pos.y, 1, 0xFFFF0000, offzoom);
+}
+
+ATR_DEF size_t atr_quadratic_bezier_get_xs_from_y(struct Atr_Glyph_Point start, struct Atr_Glyph_Point control, struct Atr_Glyph_Point end, atr_real y, atr_real *x1, atr_real *x2, atr_real *der_x1, atr_real *der_x2)
+{
+    atr_real dx12 = control.pos.x - start.pos.x;
+    atr_real dx23 = end.pos.x     - control.pos.x;
+    atr_real dy12 = control.pos.y - start.pos.y;
+    atr_real dy23 = end.pos.y     - control.pos.y;
+
+    /** formula:
+     * atr_real x     = (dx23 - dx12) * t * t + 2 * dx12 * t + start.pos.x
+     * atr_real y     = (dy23 - dy12) * t * t + 2 * dy12 * t + start.pos.y
+     * atr_real dy/dt = 2 * (dy23 - dy12) * t + 2 * dy12
+     */
+
+    atr_real a = (dy23 - dy12);
+    atr_real b = 2 * dy12;
+    atr_real c = start.pos.y - y;
+
+    if (atr_fabs(a) < ATR_EPS) {
+        /* y(t) = b * t + c */
+        if (atr_fabs(b) < ATR_EPS) {
+            /* The entire segment is horizontal. It should not contribute a normal scanline crossing.  */
+            return 0;
+        }
+        atr_real t = -c / b;
+        if (t < 0 || t > 1) {
+            return 0;
+        }
+        if (x1) *x1 = (dx23 - dx12) * t * t + 2 * dx12 * t + start.pos.x;
+        if (der_x1) *der_x1 = b;
+
+        return 1;
+    }
+
+    atr_real d = b * b - 4 * a * c;
+    if (d < 0) {
+        return 0;
+    } else if (d == 0) {
+        atr_real t1 = -b / (2 * a);
+        if (0 <= t1 && t1 <= 1) {
+            if (x1) *x1 = (dx23 - dx12) * t1 * t1 + 2 * dx12 * t1 + start.pos.x;
+            if (der_x1) *der_x1 = 2 * (dy23 - dy12) * t1 + 2 * dy12;
+            return 1;
+        }
+    } else {
+        atr_real t1 = (-b + atr_sqrt(d)) / (2 * a);
+        atr_real t2 = (-b - atr_sqrt(d)) / (2 * a);
+        bool t1_in = false, t2_in = false;
+        if (0 <= t1 && t1 <= 1) {
+            if (x1) *x1 = (dx23 - dx12) * t1 * t1 + 2 * dx12 * t1 + start.pos.x;
+            if (der_x1) *der_x1 = 2 * (dy23 - dy12) * t1 + 2 * dy12;
+            t1_in = true;
+        }
+        if (0 <= t2 && t2 <= 1) {
+            if (x2) *x2 = (dx23 - dx12) * t2 * t2 + 2 * dx12 * t2 + start.pos.x;
+            if (der_x2) *der_x2 = 2 * (dy23 - dy12) * t2 + 2 * dy12;
+            t2_in = true;
+        }
+
+        if (t1_in && t2_in) {
+            return 2;
+        } else if (t1_in && !t2_in) {
+            return 1;
+        } else if (t2_in && !t1_in) {
+            if (x1) *x1 = (dx23 - dx12) * t2 * t2 + 2 * dx12 * t2 + start.pos.x;
+            if (der_x1) *der_x1 = 2 * (dy23 - dy12) * t2 + 2 * dy12;
+            return 1;
+        }
+    }
+
+    return 0;
 }
 
 ATR_DEF void atr_rectangle_draw_min_max(struct Atr_Pixel_Buffer screen, atr_real min_x, atr_real max_x, atr_real min_y, atr_real max_y, uint32_t color, struct Atr_Offset_Zoom offzoom)
@@ -2518,25 +2598,25 @@ ATR_DEF enum Atr_Return_Types atr_table_maxp_parse(struct Atr_Font *font, struct
     return ATR_SUCCESS;
 }
 
-ATR_DEF struct Atr_Vec2 atr_text_line_draw(struct Atr_Pixel_Buffer screen, struct Atr_Font *font, char *text, atr_real top_left_x, atr_real top_left_y, atr_real letter_hight, atr_real letter_spacing, uint32_t color, int length, struct Atr_Offset_Zoom offzoom)
+ATR_DEF struct Atr_Vec2 atr_text_line_draw(struct Atr_Pixel_Buffer screen, struct Atr_Font *font, uint8_t *text, atr_real top_left_x, atr_real top_left_y, atr_real letter_hight, atr_real letter_spacing, uint32_t color, int length, struct Atr_Offset_Zoom offzoom)
 {
     ATR_UNUSED(screen);
-    ATR_UNUSED(font);
-    ATR_UNUSED(text);
+    ATR_UNUSED(length);
+    ATR_UNUSED(color);
+    ATR_UNUSED(letter_spacing);
+    ATR_UNUSED(letter_hight);
     ATR_UNUSED(top_left_x);
     ATR_UNUSED(top_left_y);
-    ATR_UNUSED(letter_hight);
-    ATR_UNUSED(letter_spacing);
-    ATR_UNUSED(color);
-    ATR_UNUSED(length);
+    ATR_UNUSED(text);
     ATR_UNUSED(offzoom);
+    ATR_UNUSED(font);
 
-    return (struct Atr_Vec2){.x = 0, .y = 0};
+    return (struct Atr_Vec2){0, 0};
 }
 
-ATR_DEF struct Atr_Vec2 atr_text_line_draw_outline(struct Atr_Pixel_Buffer screen, struct Atr_Font *font, uint8_t *text, atr_real top_left_x, atr_real top_left_y, atr_real letter_hight, atr_real letter_spacing, uint32_t color, int length, struct Atr_Offset_Zoom offzoom)
+ATR_DEF struct Atr_Vec2 atr_text_line_draw_no_antialiasing(struct Atr_Pixel_Buffer screen, struct Atr_Font *font, uint8_t *text, atr_real top_left_x, atr_real top_left_y, atr_real letter_hight, atr_real letter_spacing, uint32_t color, int length, struct Atr_Offset_Zoom offzoom)
 {
-    size_t text_byte_count = strlen(text);
+    size_t text_byte_count = strlen((const char *)text);
     size_t utf8_len = atr_utf8_length(text, text_byte_count);
     if (utf8_len < length) {
         length = (int)utf8_len;
@@ -2548,8 +2628,9 @@ ATR_DEF struct Atr_Vec2 atr_text_line_draw_outline(struct Atr_Pixel_Buffer scree
     atr_real glyph_y_max = -ATR_INFINITY;
     atr_real glyph_y_min = ATR_INFINITY;
     bool has_drawable_glyph = false;
-    for (int text_index = 0; text_index < text_byte_count; text_index += atr_bytes_for_utf8[text[text_index]]) {
-        uint32_t c = atr_utf8_code_point_get_from_raw_char_bytes(atr_utf8_get_next_char_bytes(&text[text_index], text_byte_count - text_index));
+    size_t consumed = 0;
+    for (size_t text_index = 0; text_index < text_byte_count; text_index += consumed) {
+        uint32_t c = atr_utf8_decode_next_code_point(text + text_index, text_byte_count - text_index, &consumed);
         if (c == ' ') {
             continue;
         }
@@ -2569,8 +2650,12 @@ ATR_DEF struct Atr_Vec2 atr_text_line_draw_outline(struct Atr_Pixel_Buffer scree
     atr_real scale = atr_scale_get_for_em(font, letter_hight);
     atr_real pen_x = 0;
     atr_real pen_y = glyph_y_max * scale;
-    for (int text_index = 0; text_index <text_byte_count; text_index += atr_bytes_for_utf8[text[text_index]]) {
-        uint32_t c = atr_utf8_code_point_get_from_raw_char_bytes(atr_utf8_get_next_char_bytes(&text[text_index], text_byte_count - text_index));
+    struct Atr_Real_Dynamic_Array intersection_xs = {0};
+    atr_ada_init_array(atr_real, intersection_xs);
+    struct Atr_Real_Dynamic_Array intersection_ders = {0};
+    atr_ada_init_array(atr_real, intersection_ders);
+    for (size_t text_index = 0; text_index < text_byte_count; text_index += consumed) {
+        uint32_t c = atr_utf8_decode_next_code_point(text + text_index, text_byte_count - text_index, &consumed);
         if (c == ' ') {
             pen_x += 300 * scale;
             continue;
@@ -2581,6 +2666,9 @@ ATR_DEF struct Atr_Vec2 atr_text_line_draw_outline(struct Atr_Pixel_Buffer scree
         adl_real y_origin = top_left_y;
         adl_real x_offset = -g.metadata.xMin * scale;
         adl_real y_offset = pen_y;
+        // if (x_origin + x_offset + g.metadata.xMax * scale > screen.cols) {
+        //     break;
+        // } 
         for (size_t i = 0; i < g.simple.points.length; i++ ) {
             struct Atr_Glyph_Point point = g.simple.points.elements[i];
             g.simple.points_temp_for_resizing.elements[i] = (struct Atr_Glyph_Point){
@@ -2590,7 +2678,138 @@ ATR_DEF struct Atr_Vec2 atr_text_line_draw_outline(struct Atr_Pixel_Buffer scree
             };
         }
 
-        for (size_t i = 0; i + 2 < g.simple.points.length; i += 3) {
+        for (atr_real row = y_origin; row <= y_origin + g.metadata.yMax - g.metadata.yMin; row++) {
+            intersection_xs.length = 0;
+            intersection_ders.length = 0;
+            for (size_t i = 0; i + 2 < g.simple.points_temp_for_resizing.length; i += 3) {
+                struct Atr_Glyph_Point start = g.simple.points_temp_for_resizing.elements[i + 0];
+                struct Atr_Glyph_Point control = g.simple.points_temp_for_resizing.elements[i + 1];
+                struct Atr_Glyph_Point end = g.simple.points_temp_for_resizing.elements[i + 2];
+                atr_real x1, x2, der1, der2;
+                size_t intersection_count = atr_quadratic_bezier_get_xs_from_y(start, control, end, row, &x1, &x2, &der1, &der2);
+                if (intersection_count == 0) {
+                    continue;
+                } else if (intersection_count == 1) {
+                    atr_ada_append(atr_real, intersection_xs, x1);
+                    atr_ada_append(atr_real, intersection_ders, der1);
+                } else {
+                    atr_ada_append(atr_real, intersection_xs, x1);
+                    atr_ada_append(atr_real, intersection_xs, x2);
+                    atr_ada_append(atr_real, intersection_ders, der1);
+                    atr_ada_append(atr_real, intersection_ders, der2);
+                }
+            }
+            if (intersection_xs.length == 0) continue;
+
+            for (size_t i = 1; i < intersection_xs.length; i++) {
+                atr_real x = intersection_xs.elements[i];
+                atr_real derivative = intersection_ders.elements[i];
+
+                size_t j = i;
+
+                while (j > 0 &&
+                    intersection_xs.elements[j - 1] > x) {
+                    intersection_xs.elements[j] =
+                        intersection_xs.elements[j - 1];
+
+                    intersection_ders.elements[j] =
+                        intersection_ders.elements[j - 1];
+
+                    j--;
+                }
+
+                intersection_xs.elements[j] = x;
+                intersection_ders.elements[j] = derivative;
+            }
+
+            int draw_counter = 0;
+            for (size_t x_index = 0; x_index < intersection_xs.length - 1; x_index++) {
+                atr_real xi = intersection_xs.elements[x_index];
+                atr_real xip1 = intersection_xs.elements[x_index + 1];
+                atr_real deri = intersection_ders.elements[x_index];
+
+                if (deri < 0) draw_counter++;
+                if (deri > 0) draw_counter--;
+
+                if (draw_counter > 0) {
+                    atr_line_draw_no_antialiasing(screen, xi, row, xip1, row, color, offzoom);
+                }
+            }
+        }
+
+        pen_x += letter_spacing + (g.metadata.xMax - g.metadata.xMin) * scale;
+    }
+
+    ATR_FREE(intersection_xs.elements);
+    ATR_FREE(intersection_ders.elements);
+
+    return (struct Atr_Vec2){
+        .x = pen_x,
+        .y = (glyph_y_max - glyph_y_min) * scale,
+    };
+}
+
+ATR_DEF struct Atr_Vec2 atr_text_line_draw_outline(struct Atr_Pixel_Buffer screen, struct Atr_Font *font, uint8_t *text, atr_real top_left_x, atr_real top_left_y, atr_real letter_hight, atr_real letter_spacing, uint32_t color, int length, struct Atr_Offset_Zoom offzoom)
+{
+    size_t text_byte_count = strlen((const char *)text);
+    size_t utf8_len = atr_utf8_length(text, text_byte_count);
+    if (utf8_len < length) {
+        length = (int)utf8_len;
+    }
+    if (length == -1) {
+        length = (int)utf8_len;
+    }
+
+    atr_real glyph_y_max = -ATR_INFINITY;
+    atr_real glyph_y_min = ATR_INFINITY;
+    bool has_drawable_glyph = false;
+    size_t consumed = 0;
+    for (size_t text_index = 0; text_index < text_byte_count; text_index += consumed) {
+        uint32_t c = atr_utf8_decode_next_code_point(text + text_index, text_byte_count - text_index, &consumed);
+        if (c == ' ') {
+            continue;
+        }
+        struct Atr_Glyph g = font->tables.glyf.glyphs[atr_glyphIndex_get(font, c)];
+        if (g.metadata.yMax > glyph_y_max) {
+            glyph_y_max = g.metadata.yMax;
+        }
+        if (g.metadata.yMin < glyph_y_min) {
+            glyph_y_min = g.metadata.yMin;
+        }
+        has_drawable_glyph = true;
+    }
+    if (!has_drawable_glyph) {
+        return (struct Atr_Vec2){.x = 0, .y = 0};
+    }
+
+    atr_real scale = atr_scale_get_for_em(font, letter_hight);
+    atr_real pen_x = 0;
+    atr_real pen_y = glyph_y_max * scale;
+    for (size_t text_index = 0; text_index < text_byte_count; text_index += consumed) {
+        uint32_t c = atr_utf8_decode_next_code_point(text + text_index, text_byte_count - text_index, &consumed);
+        if (c == ' ') {
+            pen_x += 300 * scale;
+            continue;
+        }
+
+        struct Atr_Glyph g = font->tables.glyf.glyphs[atr_glyphIndex_get(font, c)];
+        adl_real x_origin = top_left_x + pen_x;
+        adl_real y_origin = top_left_y;
+        adl_real x_offset = -g.metadata.xMin * scale;
+        adl_real y_offset = pen_y;
+        // if (x_origin + x_offset + g.metadata.xMax * scale > screen.cols) {
+        //     break;
+        // } 
+        for (size_t i = 0; i < g.simple.points.length; i++ ) {
+            struct Atr_Glyph_Point point = g.simple.points.elements[i];
+            g.simple.points_temp_for_resizing.elements[i] = (struct Atr_Glyph_Point){
+                .flag = point.flag,
+                .pos.x = x_origin + x_offset + point.pos.x * scale,
+                .pos.y = y_origin + y_offset - point.pos.y * scale,
+            };
+        }
+
+        for (size_t i = 0; i + 2 < g.simple.points_temp_for_resizing.length; i += 3) {
             struct Atr_Glyph_Point start = g.simple.points_temp_for_resizing.elements[i + 0];
             struct Atr_Glyph_Point control = g.simple.points_temp_for_resizing.elements[i + 1];
             struct Atr_Glyph_Point end = g.simple.points_temp_for_resizing.elements[i + 2];
@@ -2771,9 +2990,11 @@ ATR_DEF uint32_t atr_utf8_code_point_get_from_raw_char_bytes(uint32_t raw_char_b
     return ATR_UTF8_REPLACEMENT_CHARACTER;
 }
 
-ATR_DEF uint32_t atr_utf8_decode_next_code_point(uint8_t *text, size_t text_byte_count, size_t *consumed)
+ATR_DEF uint32_t atr_utf8_decode_next_code_point(uint8_t *text, size_t byte_count, size_t *consumed)
 {
-
+    ATR_ASSERT(text);
+    if (consumed) *consumed = atr_bytes_for_utf8[*text]; 
+    return atr_utf8_code_point_get_from_raw_char_bytes(atr_utf8_get_next_char_bytes(text, byte_count));
 }
 
 ATR_DEF uint32_t atr_utf8_get_next_char_bytes(uint8_t *str, size_t byte_count)
