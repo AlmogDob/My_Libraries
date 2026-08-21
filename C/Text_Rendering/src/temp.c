@@ -7,7 +7,7 @@
 #define APL_INPUT
 #define APL_DESTROY
 
-#define AMD_MEMORY_DEBUG
+// #define AMD_MEMORY_DEBUG
 #define ALMOG_MEMORY_DEBUG_IMPLEMENTATION
 #include "includes/Almog_Memory_Debug.h"
 
@@ -60,21 +60,20 @@ struct Atr_Font font = {0};
 
 enum Apl_Return_Types apl_setup(struct Apl_Window_State *ws)
 {
-    ws->to_limit_fps = false;
+    ws->to_limit_fps = true;
     offzoom = ADL_DEFAULT_OFFSET_ZOOM;
 
-
+    /* english */
+    // char font_file_name[] = "../src/fonts/BLKCHCRY.ttf";
+    char font_file_name[] = "../src/fonts/Canterbury.ttf";
     // char font_file_name[] = "../src/fonts/Inconsolata-Regular.ttf";
-    char font_file_name[] = "../src/fonts/Symbola.ttf";
+    // char font_file_name[] = "../src/fonts/Symbola.ttf";
+    // char font_file_name[] = "../src/fonts/waltographUI.ttf";
+
     if (ATR_FAIL == atr_font_load_from_file_name(&font, font_file_name)) {
         atr_dprintERROR("Failed to load font from file '%s'.", font_file_name);
         return APL_FAIL;
     }
-
-
-
-
-    // ws->running = false;
 
     return APL_SUCCESS;
 }
@@ -89,17 +88,20 @@ enum Apl_Return_Types apl_update(struct Apl_Window_State *ws)
 enum Apl_Return_Types apl_render(struct Apl_Window_State *ws)
 {
     struct Adl_Pixel_Buffer pixels = apl_pixel_buffer_as_adl_pixel_buffer(ws->window_pixels_mat);
+    struct Atr_Pixel_Buffer font_pixels = adl_pixel_buffer_as_atr_pixel_buffer(pixels);
 
-    struct Atr_Glyph g = font.tables.glyf.glyphs[atr_glyphIndex_get(&font, 'A')];
-    adl_rectangle_draw_min_max(pixels, g.metadata.xMin, g.metadata.xMax, g.metadata.yMin, g.metadata.yMax, ADL_COLOR_WHITE_hexARGB, offzoom);
+    // char str1[] = "the quick brown fox jumps over the lazy dog! @#$%^&*:\"{}[]?><\\/';.()_+-";
+    // char str1[] = "the quick brown";
+    char str1[] = "B";
+    // char str1[256];
+    // sprintf(str1, "%zu", ws->frames_count);
 
-    for (size_t i = 0; i < g.simple.points.length; i++) {
-        atr_real x = g.simple.points.elements[i].pos.x;
-        atr_real y = g.simple.points.elements[i].pos.y;
-        uint32_t color = g.simple.points.elements[i].flag & ATR_GPF_ON_CURVE ? ADL_COLOR_CYAN_hexARGB : ADL_COLOR_RED_hexARGB;
-        
-        adl_circle_fill_high_quality(pixels, x, g.metadata.yMax-y, 20, color, offzoom);
-    }
+    atr_real top_left_x = 10, top_left_y = 10, letter_hight = 500, spacing = 10;
+    struct Atr_Vec2 bounding_box1 = atr_text_line_draw_no_antialiasing(font_pixels, &font, (uint8_t *)str1, top_left_x, top_left_y, letter_hight, spacing, ADL_COLOR_WHITE_hexARGB, -1, adl_offset_zoom_to_atr_offset_zoom(offzoom));
+    // atr_text_line_draw_outline(font_pixels, &font, (uint8_t *)str1, top_left_x, top_left_y, letter_hight, spacing, ADL_COLOR_RED_hexARGB, -1, adl_offset_zoom_to_atr_offset_zoom(offzoom));
+    adl_rectangle_draw_min_max(pixels, top_left_x, top_left_x + bounding_box1.x, top_left_y, top_left_y + bounding_box1.y, ADL_COLOR_WHITE_hexARGB, offzoom);
+
+    // return APL_FAIL;
 
     return APL_SUCCESS;
 }
@@ -137,6 +139,7 @@ enum Apl_Return_Types apl_input(struct Apl_Window_State *ws)
         apl_sleep(time_delay);
     } else if (ws->buttons.space_bar_is_pressed) {
         ws->to_update = !ws->to_update;
+        ws->to_render = !ws->to_render;
         apl_sleep(time_delay * 2000);
     }
 
@@ -154,7 +157,7 @@ enum Apl_Return_Types apl_destroy(struct Apl_Window_State *ws)
         amd_dprintERROR("%s", "Corrupted memory detected.");
         return APL_FAIL;
     }
-    amd_debug_mem_print(0);
+    // amd_debug_mem_print(0);
     amd_debug_mem_reset();
 
 
