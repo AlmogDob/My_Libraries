@@ -7,6 +7,9 @@
 #define APL_INPUT
 #define APL_DESTROY
 
+#define to_debug 0
+#define y_bug 87.5
+
 #define AMD_MEMORY_DEBUG
 #define ALMOG_MEMORY_DEBUG_IMPLEMENTATION
 #include "includes/Almog_Memory_Debug.h"
@@ -63,7 +66,8 @@ struct Atr_Font font = {0};
 
 enum Apl_Return_Types apl_setup(struct Apl_Window_State *ws)
 {
-    ws->to_limit_fps = true;
+    // ws->to_limit_fps = true;
+    ws->to_limit_fps = false;
     offzoom = ADL_DEFAULT_OFFSET_ZOOM;
 
     /* english */
@@ -93,21 +97,22 @@ enum Apl_Return_Types apl_render(struct Apl_Window_State *ws)
     struct Adl_Pixel_Buffer pixels = apl_pixel_buffer_as_adl_pixel_buffer(ws->window_pixels_mat);
     struct Atr_Pixel_Buffer font_pixels = adl_pixel_buffer_as_atr_pixel_buffer(pixels);
 
-    // char str1[] = "the quick brown fox jumps over the lazy dog! @#$%^&*:\"{}[]?><\\/';.()_+-"
-    //               "THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG 0123456789";
+    char str1[] = "the quick brown fox jumps over the lazy dog! @#$%^&*:\"{}[]?><\\/';.()_+-"
+                  "THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG 0123456789";
     // char str1[] = "e H K B R W N S V L 8 } T Q";
-    char str1[] = "e";
+    // char str1[] = "Y";
     // char str1[256];
     // sprintf(str1, "%zu", ws->frames_count);
 
-    // atr_real top_left_x = 10, top_left_y = 10, letter_hight = 155 + (atr_real)ws->elapsed_time_micro_sec / 1000 / 1000 * 0.01, spacing = 10;
-    atr_real top_left_x = 10, top_left_y = 10, letter_hight = 155.091492, spacing = 10;
+    atr_real top_left_x = 10, top_left_y = 10, letter_hight = 288 + (atr_real)ws->elapsed_time_micro_sec / 1000 / 1000 * 1, spacing = 10;
+    // atr_real top_left_x = 10, top_left_y = 10, letter_hight = 288.778839, spacing = 10;
     atr_dprintFLOAT(letter_hight);
     struct Atr_Vec2 bounding_box1 = atr_text_line_draw_no_antialiasing(font_pixels, &font, (uint8_t *)str1, top_left_x, top_left_y, letter_hight, spacing, ADL_COLOR_WHITE_hexARGB, -1, adl_offset_zoom_to_atr_offset_zoom(offzoom));
     atr_text_line_draw_outline(font_pixels, &font, (uint8_t *)str1, top_left_x, top_left_y, letter_hight, spacing, ADL_COLOR_RED_hexARGB, -1, adl_offset_zoom_to_atr_offset_zoom(offzoom));
     adl_rectangle_draw_min_max(pixels, top_left_x, top_left_x + bounding_box1.x, top_left_y, top_left_y + bounding_box1.y, ADL_COLOR_WHITE_hexARGB, offzoom);
 
     // return APL_FAIL;
+    ws->to_update = true;
 
     return APL_SUCCESS;
 }
