@@ -449,7 +449,7 @@ APL_DEF void apl_depth_buffer_copy_to_screen(struct Apl_Pixel_Buffer screen_mat,
         for (size_t j = 0; j < inv_z_buffer.cols; j++) {
             apl_real z_fraq = APL_BUFFER_AT(inv_z_buffer, i, j);
             z_fraq = apl_fmax(z_fraq, min_inv_z);
-            z_fraq = apl_linear_map(z_fraq, min_inv_z, max_inv_z, 0.1, 1);
+            z_fraq = apl_linear_map(z_fraq, min_inv_z, max_inv_z, (apl_real)0.1, (apl_real)1);
             uint32_t color = apl_rgba_to_hexargb((int)(0xFF*z_fraq), (int)(0xFF*z_fraq), (int)(0xFF*z_fraq), (int)0xFF); 
             APL_BUFFER_AT(screen_mat, i, j) = color;
         }

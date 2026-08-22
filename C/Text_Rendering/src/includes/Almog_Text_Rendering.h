@@ -1,6 +1,14 @@
 /**
  * Apple's reference manual is at: https://developer.apple.com/fonts/TrueType-Reference-Manual/.
  */
+
+/** TODO:
+ *  - fix the rasterazing bugs.
+ *  - add support for compound glyphs
+ *  - add support for all the mendatory font tables.
+ *  - add support for OpenType.
+ */
+
 #ifndef ALMOG_TEXT_RENDERING_H_
 #define ALMOG_TEXT_RENDERING_H_
 
@@ -541,14 +549,16 @@ ATR_DEF void                        atr_hexargb_to_rgba(uint32_t color, uint8_t 
 ATR_DEF void                        atr_line_draw(struct Atr_Pixel_Buffer screen, atr_real x1_input, atr_real y1_input, atr_real x2_input, atr_real y2_input, uint32_t color, struct Atr_Offset_Zoom offzoom);
 ATR_DEF void                        atr_line_draw_fix_width(struct Atr_Pixel_Buffer screen, atr_real x1_input, atr_real y1_input, atr_real x2_input, atr_real y2_input, uint32_t color, struct Atr_Offset_Zoom offzoom);
 ATR_DEF void                        atr_line_draw_no_antialiasing(struct Atr_Pixel_Buffer screen, atr_real x1_input, atr_real y1_input, atr_real x2_input, atr_real y2_input, uint32_t color, struct Atr_Offset_Zoom offzoom);
+ATR_DEF void                        atr_line_horiz_draw(struct Atr_Pixel_Buffer screen, atr_real x1_input, atr_real x2_input, atr_real y_input, uint32_t color, struct Atr_Offset_Zoom offzoom);
 
 ATR_DEF enum Atr_Return_Types       atr_offset_subtable_parse(struct Atr_Font *font);
 
 ATR_DEF void                        atr_pixel_draw(struct Atr_Pixel_Buffer screen, atr_real x, atr_real y, uint32_t color, struct Atr_Offset_Zoom offzoom);
 
-ATR_DEF void                        atr_quadratic_bezier_array_fill(struct Atr_Pixel_Buffer screen, struct Atr_Glyph_Point *points, size_t points_count, uint32_t color, struct Atr_Offset_Zoom offzoom);
+ATR_DEF void                        atr_quadratic_bezier_array_fill_no_antialiasing(struct Atr_Pixel_Buffer screen, struct Atr_Glyph_Point *points, size_t points_count, uint32_t color, struct Atr_Offset_Zoom offzoom);
 ATR_DEF void                        atr_quadratic_bezier_draw(struct Atr_Pixel_Buffer pixels, struct Atr_Glyph_Point start, struct Atr_Glyph_Point control, struct Atr_Glyph_Point end, uint32_t color, struct Atr_Offset_Zoom offzoom);
 ATR_DEF size_t                      atr_quadratic_bezier_get_xs_from_y(struct Atr_Glyph_Point start, struct Atr_Glyph_Point control, struct Atr_Glyph_Point end, atr_real y, atr_real *x1, atr_real *x2, atr_real *dy_dt1, atr_real *dy_dt2);
+ATR_DEF bool                        atr_quadratic_bezier_root_is_crossing(atr_real t, atr_real dy_dt);
 
 ATR_DEF void                        atr_rectangle_draw_min_max(struct Atr_Pixel_Buffer screen, atr_real min_x, atr_real max_x, atr_real min_y, atr_real max_y, uint32_t color, struct Atr_Offset_Zoom offzoom);
 ATR_DEF uint32_t                    atr_rgba_to_hexargb(int r, int g, int b, int a);
@@ -1508,14 +1518,14 @@ ATR_DEF void atr_line_draw(struct Atr_Pixel_Buffer screen, atr_real x1_input, at
         atr_real dy = y2_input - y1_input;
         atr_real m = dy / dx;
 
-        atr_real overlap = 1 - ((x1_input + 0.5) - (int)(x1_input + 0.5));
+        atr_real overlap = 1 - ((x1_input + (atr_real)0.5) - (int)(x1_input + (atr_real)0.5));
         atr_real dis_start = y1_input - (int)y1_input;
-        atr_pixel_draw(screen, (atr_real)((int)(x1_input + 0.5)), (atr_real)((int)(y1_input)), atr_rgba_to_hexargb(r, g, b, (int)(a * ((atr_real)1 - dis_start) * overlap)), offzoom);
-        atr_pixel_draw(screen, (atr_real)((int)(x1_input + 0.5)), (atr_real)((int)(y1_input) + (atr_real)1), atr_rgba_to_hexargb(r, g, b, (int)(a * (dis_start) * overlap)), offzoom);
-        overlap = ((x2_input + 0.5) - (int)(x2_input + 0.5));
+        atr_pixel_draw(screen, (atr_real)((int)(x1_input + (atr_real)0.5)), (atr_real)((int)(y1_input)), atr_rgba_to_hexargb(r, g, b, (int)(a * ((atr_real)1 - dis_start) * overlap)), offzoom);
+        atr_pixel_draw(screen, (atr_real)((int)(x1_input + (atr_real)0.5)), (atr_real)((int)(y1_input) + (atr_real)1), atr_rgba_to_hexargb(r, g, b, (int)(a * (dis_start) * overlap)), offzoom);
+        overlap = ((x2_input + (atr_real)0.5) - (int)(x2_input + (atr_real)0.5));
         atr_real dis_end = y2_input - (int)y2_input;
-        atr_pixel_draw(screen, (atr_real)((int)(x2_input + 0.5)), (atr_real)((int)(y2_input)), atr_rgba_to_hexargb(r, g, b, (int)(a * ((atr_real)1 - dis_end) * overlap)), offzoom);
-        atr_pixel_draw(screen, (atr_real)((int)(x2_input + 0.5)), (atr_real)((int)(y2_input) + (atr_real)1), atr_rgba_to_hexargb(r, g, b, (int)(a * (dis_end) * overlap)), offzoom);
+        atr_pixel_draw(screen, (atr_real)((int)(x2_input + (atr_real)0.5)), (atr_real)((int)(y2_input)), atr_rgba_to_hexargb(r, g, b, (int)(a * ((atr_real)1 - dis_end) * overlap)), offzoom);
+        atr_pixel_draw(screen, (atr_real)((int)(x2_input + (atr_real)0.5)), (atr_real)((int)(y2_input) + (atr_real)1), atr_rgba_to_hexargb(r, g, b, (int)(a * (dis_end) * overlap)), offzoom);
 
         for (size_t i = 1; i < dx; i++) {
             atr_real x = x1_input + (atr_real)i;
@@ -1542,14 +1552,14 @@ ATR_DEF void atr_line_draw(struct Atr_Pixel_Buffer screen, atr_real x1_input, at
         atr_real dy = y2_input - y1_input;
         atr_real m = dx / dy;
 
-        atr_real overlap = 1 - ((y1_input + 0.5) - (int)(y1_input + 0.5));
+        atr_real overlap = 1 - ((y1_input + (atr_real)0.5) - (int)(y1_input + (atr_real)0.5));
         atr_real dis_start = y1_input - (int)y1_input;
-        atr_pixel_draw(screen, (atr_real)((int)(x1_input)), (atr_real)((int)(y1_input + 0.5)), atr_rgba_to_hexargb(r, g, b, (int)(a * ((atr_real)1 - dis_start) * overlap)), offzoom);
-        atr_pixel_draw(screen, (atr_real)((int)(x1_input) + (atr_real)1), (atr_real)((int)(y1_input + 0.5)), atr_rgba_to_hexargb(r, g, b, (int)(a * (dis_start) * overlap)), offzoom);
-        overlap = ((y2_input + 0.5) - (int)(y2_input + 0.5));
+        atr_pixel_draw(screen, (atr_real)((int)(x1_input)), (atr_real)((int)(y1_input + (atr_real)0.5)), atr_rgba_to_hexargb(r, g, b, (int)(a * ((atr_real)1 - dis_start) * overlap)), offzoom);
+        atr_pixel_draw(screen, (atr_real)((int)(x1_input) + (atr_real)1), (atr_real)((int)(y1_input + (atr_real)0.5)), atr_rgba_to_hexargb(r, g, b, (int)(a * (dis_start) * overlap)), offzoom);
+        overlap = ((y2_input + (atr_real)0.5) - (int)(y2_input + (atr_real)0.5));
         atr_real dis_end = y2_input - (int)y2_input;
-        atr_pixel_draw(screen, (atr_real)((int)(x2_input)), (atr_real)((int)(y2_input + 0.5)), atr_rgba_to_hexargb(r, g, b, (int)(a * ((atr_real)1 - dis_end) * overlap)), offzoom);
-        atr_pixel_draw(screen, (atr_real)((int)(x2_input) + (atr_real)1), (atr_real)((int)(y2_input + 0.5)), atr_rgba_to_hexargb(r, g, b, (int)(a * (dis_end) * overlap)), offzoom);
+        atr_pixel_draw(screen, (atr_real)((int)(x2_input)), (atr_real)((int)(y2_input + (atr_real)0.5)), atr_rgba_to_hexargb(r, g, b, (int)(a * ((atr_real)1 - dis_end) * overlap)), offzoom);
+        atr_pixel_draw(screen, (atr_real)((int)(x2_input) + (atr_real)1), (atr_real)((int)(y2_input + (atr_real)0.5)), atr_rgba_to_hexargb(r, g, b, (int)(a * (dis_end) * overlap)), offzoom);
 
         for (size_t i = 1; i < dy; i++) {
             atr_real y = y1_input + (atr_real)i;
@@ -1582,10 +1592,10 @@ ATR_DEF void atr_line_draw_fix_width(struct Atr_Pixel_Buffer screen, atr_real x1
 ATR_DEF void atr_line_draw_no_antialiasing(struct Atr_Pixel_Buffer screen, atr_real x1_input, atr_real y1_input, atr_real x2_input, atr_real y2_input, uint32_t color, struct Atr_Offset_Zoom offzoom)
 {
     /* Bresenham draw line function */
-    int x0 = (int)atr_round(x1_input);
-    int y0 = (int)atr_round(y1_input);
-    int x1 = (int)atr_round(x2_input);
-    int y1 = (int)atr_round(y2_input);
+    atr_real x0 = atr_round(x1_input);
+    atr_real y0 = atr_round(y1_input);
+    atr_real x1 = atr_round(x2_input);
+    atr_real y1 = atr_round(y2_input);
 
     int dx = (int)atr_fabs(x1 - x0);
     int sx = x0 < x1 ? 1 : -1;
@@ -1594,7 +1604,7 @@ ATR_DEF void atr_line_draw_no_antialiasing(struct Atr_Pixel_Buffer screen, atr_r
     int error = dx + dy;
 
     for (;;) {
-        atr_pixel_draw(screen, (atr_real)x0, (atr_real)y0, color, offzoom);
+        atr_pixel_draw(screen, x0, y0, color, offzoom);
         if (x0 == x1 && y0 == y1) {
             break;
         }
@@ -1609,6 +1619,27 @@ ATR_DEF void atr_line_draw_no_antialiasing(struct Atr_Pixel_Buffer screen, atr_r
             error += dx;
             y0 += sy;
         }
+    }
+}
+
+ATR_DEF void atr_line_horiz_draw(struct Atr_Pixel_Buffer screen, atr_real x1_input, atr_real x2_input, atr_real y_input, uint32_t color, struct Atr_Offset_Zoom offzoom)
+{
+    if (x1_input > x2_input) {
+        atr_real temp = x1_input;
+        x1_input = x2_input;
+        x2_input = temp;
+    }
+
+    /*
+     * Fill pixels whose centers satisfy:
+     *
+     *     left <= ix + 0.5 < right
+     */
+    int ix_begin = (int)atr_ceil(x1_input - 0.5f);
+    int ix_end = (int)atr_ceil(x2_input - 0.5f);
+
+    for (int ix = ix_begin; ix < ix_end; ++ix) {
+        atr_pixel_draw(screen, (atr_real)ix, y_input, color, offzoom);
     }
 }
 
@@ -1683,8 +1714,10 @@ ATR_DEF void atr_pixel_draw(struct Atr_Pixel_Buffer screen, atr_real x, atr_real
     }
 }
 
-ATR_DEF void atr_quadratic_bezier_array_fill(struct Atr_Pixel_Buffer screen, struct Atr_Glyph_Point *points, size_t points_count, uint32_t color, struct Atr_Offset_Zoom offzoom)
+ATR_DEF void atr_quadratic_bezier_array_fill_no_antialiasing(struct Atr_Pixel_Buffer screen, struct Atr_Glyph_Point *points, size_t points_count, uint32_t color, struct Atr_Offset_Zoom offzoom)
 {
+    ATR_ASSERT(points_count % 3 == 0);
+
     atr_real glyph_y_max = -ATR_INFINITY;
     atr_real glyph_y_min = ATR_INFINITY;
 
@@ -1703,7 +1736,10 @@ ATR_DEF void atr_quadratic_bezier_array_fill(struct Atr_Pixel_Buffer screen, str
     struct Atr_Real_Dynamic_Array intersection_dy_dts = {0};
     atr_ada_init_array(atr_real, intersection_dy_dts);
     // atr_dprintINFO("[%f, %f]", glyph_y_min, glyph_y_max);
-    for (atr_real row = glyph_y_min; row <= glyph_y_max; row++) {
+    int first_row = (int)atr_floor(glyph_y_min);
+    int last_row = (int)atr_ceil(glyph_y_max);
+    for (int iy = first_row; iy < last_row; ++iy) {
+        atr_real scan_y = (atr_real)iy + (atr_real)0.5;
         intersection_xs.length = 0;
         intersection_dy_dts.length = 0;
         for (size_t i = 0; i + 2 < points_count; i += 3) {
@@ -1711,16 +1747,13 @@ ATR_DEF void atr_quadratic_bezier_array_fill(struct Atr_Pixel_Buffer screen, str
             struct Atr_Glyph_Point control = points[i + 1];
             struct Atr_Glyph_Point end = points[i + 2];
             atr_real x1, x2, der1, der2;
-            size_t intersection_count = atr_quadratic_bezier_get_xs_from_y(start, control, end, row, &x1, &x2, &der1, &der2);
-            if (intersection_count == 0) {
-                continue;
-            } else if (intersection_count == 1) {
+            size_t intersection_count = atr_quadratic_bezier_get_xs_from_y(start, control, end, scan_y, &x1, &x2, &der1, &der2);
+            if (intersection_count >= 1) {
                 atr_ada_append(atr_real, intersection_xs, x1);
                 atr_ada_append(atr_real, intersection_dy_dts, der1);
-            } else {
-                atr_ada_append(atr_real, intersection_xs, x1);
+            }
+            if (intersection_count >= 2) {
                 atr_ada_append(atr_real, intersection_xs, x2);
-                atr_ada_append(atr_real, intersection_dy_dts, der1);
                 atr_ada_append(atr_real, intersection_dy_dts, der2);
             }
         }
@@ -1742,9 +1775,9 @@ ATR_DEF void atr_quadratic_bezier_array_fill(struct Atr_Pixel_Buffer screen, str
             intersection_dy_dts.elements[j] = derivative;
         }
 
-        #define to_debug 0
+        #define to_debug 1
         #if to_debug
-            printf("y: %6.2f | ", row);
+            printf("y: %6.2f | ", scan_y);
             for (size_t x_index = 0; x_index < intersection_xs.length; x_index++) {
                 atr_real xi     = intersection_xs.elements[x_index];
                 printf("%6.2f ", xi);
@@ -1763,18 +1796,26 @@ ATR_DEF void atr_quadratic_bezier_array_fill(struct Atr_Pixel_Buffer screen, str
             printf("\n");
         #else 
         int winding = 0;
-        for (size_t x_index = 0; x_index < intersection_xs.length - 1; x_index++) {
-            atr_real xi = intersection_xs.elements[x_index];
-            atr_real xip1 = intersection_xs.elements[x_index + 1];
-            atr_real deri = intersection_dy_dts.elements[x_index];
+        size_t x_index = 0;
 
-            if (deri > 0) winding++;
-            if (deri <= 0) winding--;
+        while (x_index < intersection_xs.length) {
+            atr_real x_left = intersection_xs.elements[x_index];
+            while (x_index < intersection_xs.length && ATR_IS_ZERO(intersection_xs.elements[x_index] - x_left)) {
+                atr_real derivative = intersection_dy_dts.elements[x_index];
+                winding += derivative > 0 ? 1 : -1;
+                x_index++;
+            }
 
-            if (winding != 0) {
-                atr_line_draw_no_antialiasing(screen, xi, row, xip1, row, color, offzoom);
+            if (x_index >= intersection_xs.length) {
+                break;
+            }
+
+            atr_real x_right = intersection_xs.elements[x_index];
+            if (winding != 0 && x_right > x_left) {
+                atr_line_horiz_draw(screen, x_left, x_right, scan_y, color, offzoom);
             }
         }
+        ATR_ASSERT(winding == 0);
         #endif
     }
     #if to_debug
@@ -1815,16 +1856,17 @@ ATR_DEF void atr_quadratic_bezier_draw(struct Atr_Pixel_Buffer pixels, struct At
             (atr_real)2 * inverse_t_ip1 * t_ip1 * control.pos.y +
             t_ip1 * t_ip1 * end.pos.y;
 
-        atr_line_draw_no_antialiasing(pixels, x_i, y_i, x_ip1, y_ip1, color, offzoom);
+        atr_line_draw_fix_width(pixels, x_i, y_i, x_ip1, y_ip1, color, offzoom);
     }
 
-    // atr_circle_fill_high_quality(pixels, start.pos.x, start.pos.y, 1, 0xFF00FFFF, offzoom);
-    // atr_circle_fill_high_quality(pixels, end.pos.x, end.pos.y, 1, 0xFF00FFFF, offzoom);
-    // atr_circle_fill_high_quality(pixels, control.pos.x, control.pos.y, 1, 0xFFFF0000, offzoom);
+    atr_circle_fill_high_quality(pixels, start.pos.x, start.pos.y, 1, 0xFF00FFFF, offzoom);
+    atr_circle_fill_high_quality(pixels, end.pos.x, end.pos.y, 1, 0xFF00FFFF, offzoom);
+    atr_circle_fill_high_quality(pixels, control.pos.x, control.pos.y, 1, 0xFFFF0000, offzoom);
 }
 
 ATR_DEF size_t atr_quadratic_bezier_get_xs_from_y(struct Atr_Glyph_Point start, struct Atr_Glyph_Point control, struct Atr_Glyph_Point end, atr_real y, atr_real *x1, atr_real *x2, atr_real *dy_dt1, atr_real *dy_dt2)
 {
+    /* Fine tuning by AI */
     atr_real dx12 = control.pos.x - start.pos.x;
     atr_real dx23 = end.pos.x     - control.pos.x;
     atr_real dy12 = control.pos.y - start.pos.y;
@@ -1840,59 +1882,143 @@ ATR_DEF size_t atr_quadratic_bezier_get_xs_from_y(struct Atr_Glyph_Point start, 
     atr_real b = 2 * dy12;
     atr_real c = start.pos.y - y;
 
-    if (atr_fabs(a) < ATR_EPS) {
-        /* y(t) = b * t + c */
-        if (atr_fabs(b) < ATR_EPS) {
-            /* The entire segment is horizontal. It should not contribute a normal scanline crossing.  */
-            return 0;
-        }
-        atr_real t = -c / b;
-        if (t < 0 || t >= 1) {
-            return 0;
-        }
-        if (x1) *x1 = (dx23 - dx12) * t * t + 2 * dx12 * t + start.pos.x;
-        if (dy_dt1) *dy_dt1 = b;
-
-        return 1;
+    if (atr_fabs(start.pos.y - y) < (atr_real)0.001 ||
+        atr_fabs(end.pos.y - y) < (atr_real)0.001) {
+        printf(
+            "scan=%f start=(%f,%f) control=(%f,%f) "
+            "end=(%f,%f) a=%f b=%f c=%f d=%f\n",
+            (double)y,
+            (double)start.pos.x,
+            (double)start.pos.y,
+            (double)control.pos.x,
+            (double)control.pos.y,
+            (double)end.pos.x,
+            (double)end.pos.y,
+            (double)a,
+            (double)b,
+            (double)c,
+            (double)(b * b - (atr_real)4 * a * c)
+        );
     }
 
-    atr_real d = b * b - 4 * a * c;
-    if (d < 0) {
-        return 0;
-    } else if (ATR_IS_ZERO(d)) {
-        /*
-         * A tangent only touches this scanline; it does not cross it.
-         * Treat near-zero discriminants this way too, for float stability.
-         */
-        return 0;
+    atr_real roots[2];
+    size_t root_count = 0;
+
+    if (ATR_IS_ZERO(a)) {
+        if (ATR_IS_ZERO(b)) {
+            return 0;
+        }
+        roots[root_count++] = -c / b;
     } else {
-        atr_real t1 = (-b + atr_sqrt(d)) / (2 * a);
-        atr_real t2 = (-b - atr_sqrt(d)) / (2 * a);
-        bool t1_in = false, t2_in = false;
-        if (0 <= t1 && t1 < 1) {
-            if (x1) *x1 = (dx23 - dx12) * t1 * t1 + 2 * dx12 * t1 + start.pos.x;
-            if (dy_dt1) *dy_dt1 = 2 * (dy23 - dy12) * t1 + 2 * dy12;
-            if (!ATR_IS_ZERO(*dy_dt1)) t1_in = true;
-        }
-        if (0 <= t2 && t2 < 1) {
-            if (x2) *x2 = (dx23 - dx12) * t2 * t2 + 2 * dx12 * t2 + start.pos.x;
-            if (dy_dt2) *dy_dt2 = 2 * (dy23 - dy12) * t2 + 2 * dy12;
-            if (!ATR_IS_ZERO(*dy_dt2)) t2_in = true;
+        atr_real d = b * b - (atr_real)4 * a * c;
+
+        /*
+        * Permit a small negative value caused by floating-point error.
+        * A zero-discriminant root may be relevant when it is at a segment
+        * endpoint shared with another segment.
+        */
+        atr_real d_scale = atr_fabs(b * b) + atr_fabs((atr_real)4 * a * c) + (atr_real)1;
+        atr_real d_tolerance = (atr_real)32 * ATR_EPS * d_scale;
+        if (d < -d_tolerance) {
+            return 0;
         }
 
-        if (t1_in && t2_in) {
-            return 2;
-        } else if (t1_in && !t2_in) {
-            return 1;
-        } else if (t2_in && !t1_in) {
-            if (x1) *x1 = (dx23 - dx12) * t2 * t2 + 2 * dx12 * t2 + start.pos.x;
-            if (dy_dt1) *dy_dt1 = 2 * (dy23 - dy12) * t2 + 2 * dy12;
-            return 1;
+        if (d <= (atr_real)0) {
+            d = (atr_real)0;
+        }
+        if (d == (atr_real)0) {
+            roots[root_count++] = -b / ((atr_real)2 * a);
+        } else {
+            atr_real sqrt_d = atr_sqrt(d);
+
+            roots[root_count++] = (-b - sqrt_d) / ((atr_real)2 * a);
+            roots[root_count++] = (-b + sqrt_d) / ((atr_real)2 * a);
         }
     }
 
-    return 0;
+    size_t count = 0;
+
+    for (size_t i = 0; i < root_count; ++i) {
+        atr_real t = roots[i];
+        if (t < -ATR_EPS || t > (atr_real)1 + ATR_EPS) {
+            continue;
+        }
+        if (t < (atr_real)0) {
+            t = (atr_real)0;
+        }
+        if (t > (atr_real)1) {
+            t = (atr_real)1;
+        }
+
+        atr_real derivative = (atr_real)2 * a * t + b;
+        if (ATR_IS_ZERO(derivative)) {
+            if (t <= ATR_EPS) {
+                /*
+                * dy/dt immediately after t = 0:
+                *
+                *     dy/dt ~= 2*a*t
+                */
+                derivative = a;
+            } else if (t >= (atr_real)1 - ATR_EPS) {
+                /*
+                * dy/dt immediately before t = 1:
+                *
+                *     dy/dt ~= -2*a*(1 - t)
+                */
+                derivative = -a;
+            } else {
+                /*
+                * An interior zero derivative is a tangent, not a crossing.
+                */
+                continue;
+            }
+        }
+
+        if (ATR_IS_ZERO(derivative) || !atr_quadratic_bezier_root_is_crossing(t, derivative)) {
+            continue;
+        }
+
+        atr_real x = (dx23 - dx12) * t * t + (atr_real)2 * dx12 * t + start.pos.x;
+        if (count == 0) {
+            if (x1) *x1 = x;
+            if (dy_dt1) *dy_dt1 = derivative;
+        } else {
+            if (x2) *x2 = x;
+            if (dy_dt2) *dy_dt2 = derivative;
+        }
+
+        count++;
+    }
+
+    return count;
 }
+
+ATR_DEF bool atr_quadratic_bezier_root_is_crossing(atr_real t, atr_real dy_dt)
+{
+    /* By AI */
+    if (ATR_IS_ZERO(dy_dt)) {
+        return false;
+    }
+
+    if (t <= ATR_EPS) {
+        /*
+         * Include the initial endpoint only when the curve leaves it
+         * toward increasing y. This is the ymin-inclusive rule.
+         */
+        return dy_dt > 0;
+    }
+
+    if (t >= 1.0f - ATR_EPS) {
+        /*
+         * Include the final endpoint only when the curve arrives there
+         * from increasing y. This is also the ymin-inclusive rule.
+         */
+        return dy_dt < 0;
+    }
+
+    return true;
+}
+
 
 ATR_DEF void atr_rectangle_draw_min_max(struct Atr_Pixel_Buffer screen, atr_real min_x, atr_real max_x, atr_real min_y, atr_real max_y, uint32_t color, struct Atr_Offset_Zoom offzoom)
 {
@@ -2726,8 +2852,8 @@ ATR_DEF struct Atr_Vec2 atr_text_line_draw_no_antialiasing(struct Atr_Pixel_Buff
         struct Atr_Glyph g = font->tables.glyf.glyphs[atr_glyphIndex_get(font, c)];
         adl_real x_origin = top_left_x + pen_x;
         adl_real y_origin = top_left_y;
-        // adl_real x_offset = -g.metadata.xMin * scale;
-        adl_real x_offset = 0;
+        adl_real x_offset = -g.metadata.xMin * scale;
+        // adl_real x_offset = 0;
         adl_real y_offset = pen_y;
         // if (x_origin + x_offset + g.metadata.xMax * scale > screen.cols) {
         //     break;
@@ -2743,7 +2869,7 @@ ATR_DEF struct Atr_Vec2 atr_text_line_draw_no_antialiasing(struct Atr_Pixel_Buff
 
         // atr_dprintSIZE_T(g.simple.points.length);
 
-        atr_quadratic_bezier_array_fill(screen, g.simple.points_temp_for_resizing.elements, g.simple.points_temp_for_resizing.length, color, offzoom);
+        atr_quadratic_bezier_array_fill_no_antialiasing(screen, g.simple.points_temp_for_resizing.elements, g.simple.points_temp_for_resizing.length, color, offzoom);
 
         pen_x += letter_spacing + (g.metadata.xMax - g.metadata.xMin) * scale;
     }
@@ -2802,6 +2928,7 @@ ATR_DEF struct Atr_Vec2 atr_text_line_draw_outline(struct Atr_Pixel_Buffer scree
         adl_real x_origin = top_left_x + pen_x;
         adl_real y_origin = top_left_y;
         adl_real x_offset = -g.metadata.xMin * scale;
+        // adl_real x_offset = 0;
         adl_real y_offset = pen_y;
         // if (x_origin + x_offset + g.metadata.xMax * scale > screen.cols) {
         //     break;

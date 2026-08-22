@@ -401,14 +401,14 @@ ADL_DEF void adl_line_draw(struct Adl_Pixel_Buffer screen, adl_real x1_input, ad
         adl_real dy = y2_input - y1_input;
         adl_real m = dy / dx;
 
-        adl_real overlap = 1 - ((x1_input + 0.5) - (int)(x1_input + 0.5));
+        adl_real overlap = 1 - ((x1_input + (adl_real)0.5) - (int)(x1_input + (adl_real)0.5));
         adl_real dis_start = y1_input - (int)y1_input;
-        adl_pixel_draw(screen, (adl_real)((int)(x1_input + 0.5)), (adl_real)((int)(y1_input)), adl_rgba_to_hexargb(r, g, b, (int)(a * ((adl_real)1 - dis_start) * overlap)), offzoom);
-        adl_pixel_draw(screen, (adl_real)((int)(x1_input + 0.5)), (adl_real)((int)(y1_input) + (adl_real)1), adl_rgba_to_hexargb(r, g, b, (int)(a * (dis_start) * overlap)), offzoom);
-        overlap = ((x2_input + 0.5) - (int)(x2_input + 0.5));
+        adl_pixel_draw(screen, (adl_real)((int)(x1_input + (adl_real)0.5)), (adl_real)((int)(y1_input)), adl_rgba_to_hexargb(r, g, b, (int)(a * ((adl_real)1 - dis_start) * overlap)), offzoom);
+        adl_pixel_draw(screen, (adl_real)((int)(x1_input + (adl_real)0.5)), (adl_real)((int)(y1_input) + (adl_real)1), adl_rgba_to_hexargb(r, g, b, (int)(a * (dis_start) * overlap)), offzoom);
+        overlap = ((x2_input + (adl_real)0.5) - (int)(x2_input + (adl_real)0.5));
         adl_real dis_end = y2_input - (int)y2_input;
-        adl_pixel_draw(screen, (adl_real)((int)(x2_input + 0.5)), (adl_real)((int)(y2_input)), adl_rgba_to_hexargb(r, g, b, (int)(a * ((adl_real)1 - dis_end) * overlap)), offzoom);
-        adl_pixel_draw(screen, (adl_real)((int)(x2_input + 0.5)), (adl_real)((int)(y2_input) + (adl_real)1), adl_rgba_to_hexargb(r, g, b, (int)(a * (dis_end) * overlap)), offzoom);
+        adl_pixel_draw(screen, (adl_real)((int)(x2_input + (adl_real)0.5)), (adl_real)((int)(y2_input)), adl_rgba_to_hexargb(r, g, b, (int)(a * ((adl_real)1 - dis_end) * overlap)), offzoom);
+        adl_pixel_draw(screen, (adl_real)((int)(x2_input + (adl_real)0.5)), (adl_real)((int)(y2_input) + (adl_real)1), adl_rgba_to_hexargb(r, g, b, (int)(a * (dis_end) * overlap)), offzoom);
 
         for (size_t i = 1; i < dx; i++) {
             adl_real x = x1_input + (adl_real)i;
@@ -435,14 +435,14 @@ ADL_DEF void adl_line_draw(struct Adl_Pixel_Buffer screen, adl_real x1_input, ad
         adl_real dy = y2_input - y1_input;
         adl_real m = dx / dy;
 
-        adl_real overlap = 1 - ((y1_input + 0.5) - (int)(y1_input + 0.5));
+        adl_real overlap = 1 - ((y1_input + (adl_real)0.5) - (int)(y1_input + (adl_real)0.5));
         adl_real dis_start = y1_input - (int)y1_input;
-        adl_pixel_draw(screen, (adl_real)((int)(x1_input)), (adl_real)((int)(y1_input + 0.5)), adl_rgba_to_hexargb(r, g, b, (int)(a * ((adl_real)1 - dis_start) * overlap)), offzoom);
-        adl_pixel_draw(screen, (adl_real)((int)(x1_input) + (adl_real)1), (adl_real)((int)(y1_input + 0.5)), adl_rgba_to_hexargb(r, g, b, (int)(a * (dis_start) * overlap)), offzoom);
-        overlap = ((y2_input + 0.5) - (int)(y2_input + 0.5));
+        adl_pixel_draw(screen, (adl_real)((int)(x1_input)), (adl_real)((int)(y1_input + (adl_real)0.5)), adl_rgba_to_hexargb(r, g, b, (int)(a * ((adl_real)1 - dis_start) * overlap)), offzoom);
+        adl_pixel_draw(screen, (adl_real)((int)(x1_input) + (adl_real)1), (adl_real)((int)(y1_input + (adl_real)0.5)), adl_rgba_to_hexargb(r, g, b, (int)(a * (dis_start) * overlap)), offzoom);
+        overlap = ((y2_input + (adl_real)0.5) - (int)(y2_input + (adl_real)0.5));
         adl_real dis_end = y2_input - (int)y2_input;
-        adl_pixel_draw(screen, (adl_real)((int)(x2_input)), (adl_real)((int)(y2_input + 0.5)), adl_rgba_to_hexargb(r, g, b, (int)(a * ((adl_real)1 - dis_end) * overlap)), offzoom);
-        adl_pixel_draw(screen, (adl_real)((int)(x2_input) + (adl_real)1), (adl_real)((int)(y2_input + 0.5)), adl_rgba_to_hexargb(r, g, b, (int)(a * (dis_end) * overlap)), offzoom);
+        adl_pixel_draw(screen, (adl_real)((int)(x2_input)), (adl_real)((int)(y2_input + (adl_real)0.5)), adl_rgba_to_hexargb(r, g, b, (int)(a * ((adl_real)1 - dis_end) * overlap)), offzoom);
+        adl_pixel_draw(screen, (adl_real)((int)(x2_input) + (adl_real)1), (adl_real)((int)(y2_input + (adl_real)0.5)), adl_rgba_to_hexargb(r, g, b, (int)(a * (dis_end) * overlap)), offzoom);
 
         for (size_t i = 1; i < dy; i++) {
             adl_real y = y1_input + (adl_real)i;
@@ -475,10 +475,10 @@ ADL_DEF void adl_line_draw_fix_width(struct Adl_Pixel_Buffer screen, adl_real x1
 ADL_DEF void adl_line_draw_no_antialiasing(struct Adl_Pixel_Buffer screen, adl_real x1_input, adl_real y1_input, adl_real x2_input, adl_real y2_input, uint32_t color, struct Adl_Offset_Zoom offzoom)
 {
     /* Bresenham draw line function */
-    int x0 = (int)adl_round(x1_input);
-    int y0 = (int)adl_round(y1_input);
-    int x1 = (int)adl_round(x2_input);
-    int y1 = (int)adl_round(y2_input);
+    adl_real x0 = adl_round(x1_input);
+    adl_real y0 = adl_round(y1_input);
+    adl_real x1 = adl_round(x2_input);
+    adl_real y1 = adl_round(y2_input);
 
     int dx = (int)adl_fabs(x1 - x0);
     int sx = x0 < x1 ? 1 : -1;
@@ -487,7 +487,7 @@ ADL_DEF void adl_line_draw_no_antialiasing(struct Adl_Pixel_Buffer screen, adl_r
     int error = dx + dy;
 
     for (;;) {
-        adl_pixel_draw(screen, (adl_real)x0, (adl_real)y0, color, offzoom);
+        adl_pixel_draw(screen, x0, y0, color, offzoom);
         if (x0 == x1 && y0 == y1) {
             break;
         }
