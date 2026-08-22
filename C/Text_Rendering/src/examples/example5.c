@@ -7,10 +7,7 @@
 #define APL_INPUT
 #define APL_DESTROY
 
-#define to_debug 0
-#define y_bug 87.5
-
-#define AMD_MEMORY_DEBUG
+// #define AMD_MEMORY_DEBUG
 #define ALMOG_MEMORY_DEBUG_IMPLEMENTATION
 #include "../includes/Almog_Memory_Debug.h"
 

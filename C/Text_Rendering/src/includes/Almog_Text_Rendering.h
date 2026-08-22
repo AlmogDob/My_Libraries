@@ -3,7 +3,6 @@
  */
 
 /** TODO:
- *  - fix the rasterazing bugs.
  *  - add support for compound glyphs
  *  - add support for all the mendatory font tables.
  *  - add support for OpenType.
@@ -1625,6 +1624,48 @@ ATR_DEF void atr_line_draw_no_antialiasing(struct Atr_Pixel_Buffer screen, atr_r
 
 ATR_DEF void atr_line_horiz_draw(struct Atr_Pixel_Buffer screen, atr_real x1_input, atr_real x2_input, atr_real y_input, uint32_t color, struct Atr_Offset_Zoom offzoom)
 {
+    if (x2_input < x1_input) {
+        atr_real temp = x1_input;
+        x1_input = x2_input;
+        x2_input = temp;
+    }
+
+    if (x2_input <= x1_input) {
+        return;
+    }
+
+    uint8_t r;
+    uint8_t g;
+    uint8_t b;
+    uint8_t a;
+
+    atr_hexargb_to_rgba(color, &r, &g, &b, &a);
+
+    int first_x = (int)atr_floor(x1_input);
+    int last_x = (int)atr_ceil(x2_input) - 1;
+
+    for (int ix = first_x; ix <= last_x; ++ix) {
+        atr_real pixel_left = (atr_real)ix;
+        atr_real pixel_right = (atr_real)ix + (atr_real)1;
+
+        atr_real covered_left = atr_max(x1_input, pixel_left);
+        atr_real covered_right = atr_min(x2_input, pixel_right);
+        atr_real coverage = covered_right - covered_left;
+
+        coverage = atr_max((atr_real)0, atr_min((atr_real)1, coverage));
+
+        if (coverage <= (atr_real)0) {
+            continue;
+        }
+
+        int covered_alpha = (int)((atr_real)a * coverage + (atr_real)0.5);
+
+        atr_pixel_draw(screen, (atr_real)ix, y_input, atr_rgba_to_hexargb(r, g, b, covered_alpha), offzoom);
+    }
+}
+
+ATR_DEF void atr_line_horiz_draw_no_antialiasing(struct Atr_Pixel_Buffer screen, atr_real x1_input, atr_real x2_input, atr_real y_input, uint32_t color, struct Atr_Offset_Zoom offzoom)
+{
     if (x1_input > x2_input) {
         atr_real temp = x1_input;
         x1_input = x2_input;
@@ -1740,7 +1781,7 @@ ATR_DEF enum Atr_Return_Types atr_quadratic_bezier_array_fill(struct Atr_Pixel_B
     int first_row = (int)atr_floor(glyph_y_min);
     int last_row = (int)atr_ceil(glyph_y_max);
     for (int iy = first_row; iy < last_row; ++iy) {
-        atr_real scan_y = (atr_real)iy;
+        atr_real scan_y = (atr_real)iy + (atr_real)0.5;
         intersection_xs.length = 0;
         intersection_dy_dts.length = 0;
         for (size_t i = 0; i + 2 < points_count; i += 3) {
@@ -1749,34 +1790,6 @@ ATR_DEF enum Atr_Return_Types atr_quadratic_bezier_array_fill(struct Atr_Pixel_B
             struct Atr_Glyph_Point end = points[i + 2];
             atr_real x1, x2, der1, der2;
             size_t intersection_count = atr_quadratic_bezier_get_xs_from_y(start, control, end, scan_y, &x1, &x2, &der1, &der2);
-            #if to_debug
-            /*
-            * Debug every curve segment at the problematic scanline.
-            */
-            if (scan_y >= (atr_real)(y_bug - 1) && scan_y <= (atr_real)(y_bug + 1)) {
-                atr_dprintINFO(
-                    "segment=%zu: count=%zu",
-                    i / 3,
-                    intersection_count
-                );
-
-                if (intersection_count >= 1) {
-                    atr_dprintINFO(
-                        " x1=%f dy1=%f",
-                        (double)x1,
-                        (double)der1
-                    );
-                }
-
-                if (intersection_count >= 2) {
-                    atr_dprintINFO(
-                        " x2=%f dy2=%f",
-                        (double)x2,
-                        (double)der2
-                    );
-                }
-            }
-            #endif
             if (intersection_count >= 1) {
                 atr_ada_append(atr_real, intersection_xs, x1);
                 atr_ada_append(atr_real, intersection_dy_dts, der1);
@@ -1804,33 +1817,6 @@ ATR_DEF enum Atr_Return_Types atr_quadratic_bezier_array_fill(struct Atr_Pixel_B
             intersection_dy_dts.elements[j] = derivative;
         }
 
-        #if to_debug
-            printf("y: %6.2f | ", scan_y);
-            for (size_t x_index = 0; x_index < intersection_xs.length; x_index++) {
-                atr_real xi     = intersection_xs.elements[x_index];
-                printf("%6.2f ", xi);
-            }
-            printf("\n");
-            printf("          ");
-            int winding = 0;
-            for (size_t x_index = 0; x_index < intersection_xs.length; x_index++) {
-                atr_real xi     = intersection_xs.elements[x_index];
-                atr_real deri   = intersection_dy_dts.elements[x_index];
-                if (deri > 0) winding++;
-                if (deri <= 0) winding--;
-
-                printf("%6d ", winding);
-            }
-            printf("\n");
-            if (winding != 0) {
-                atr_dprintERROR(
-                    "unbalanced scanline: y=%f winding=%d intersections=%zu\n",
-                    (double)scan_y,
-                    winding,
-                    intersection_xs.length
-                );
-            }
-        #else 
         int winding = 0;
         size_t x_index = 0;
 
@@ -1848,18 +1834,14 @@ ATR_DEF enum Atr_Return_Types atr_quadratic_bezier_array_fill(struct Atr_Pixel_B
 
             atr_real x_right = intersection_xs.elements[x_index];
             if (winding != 0 && x_right > x_left) {
-                atr_line_draw(screen, x_left, scan_y, x_right, scan_y, color, offzoom);
+                atr_line_horiz_draw(screen, x_left, x_right, scan_y, color, offzoom);
             }
         }
         if (winding != 0) {
             atr_dprintERROR("%s", "incorrect winding number.");
             return ATR_FAIL;
         }
-        #endif
     }
-    #if to_debug
-    ATR_ASSERT(0);
-    #endif
 
     ATR_FREE(intersection_xs.elements);
     ATR_FREE(intersection_dy_dts.elements);
@@ -1901,34 +1883,6 @@ ATR_DEF enum Atr_Return_Types atr_quadratic_bezier_array_fill_no_antialiasing(st
             struct Atr_Glyph_Point end = points[i + 2];
             atr_real x1, x2, der1, der2;
             size_t intersection_count = atr_quadratic_bezier_get_xs_from_y(start, control, end, scan_y, &x1, &x2, &der1, &der2);
-            #if to_debug
-            /*
-            * Debug every curve segment at the problematic scanline.
-            */
-            if (scan_y >= (atr_real)(y_bug - 1) && scan_y <= (atr_real)(y_bug + 1)) {
-                atr_dprintINFO(
-                    "segment=%zu: count=%zu",
-                    i / 3,
-                    intersection_count
-                );
-
-                if (intersection_count >= 1) {
-                    atr_dprintINFO(
-                        " x1=%f dy1=%f",
-                        (double)x1,
-                        (double)der1
-                    );
-                }
-
-                if (intersection_count >= 2) {
-                    atr_dprintINFO(
-                        " x2=%f dy2=%f",
-                        (double)x2,
-                        (double)der2
-                    );
-                }
-            }
-            #endif
             if (intersection_count >= 1) {
                 atr_ada_append(atr_real, intersection_xs, x1);
                 atr_ada_append(atr_real, intersection_dy_dts, der1);
@@ -1956,33 +1910,6 @@ ATR_DEF enum Atr_Return_Types atr_quadratic_bezier_array_fill_no_antialiasing(st
             intersection_dy_dts.elements[j] = derivative;
         }
 
-        #if to_debug
-            printf("y: %6.2f | ", scan_y);
-            for (size_t x_index = 0; x_index < intersection_xs.length; x_index++) {
-                atr_real xi     = intersection_xs.elements[x_index];
-                printf("%6.2f ", xi);
-            }
-            printf("\n");
-            printf("          ");
-            int winding = 0;
-            for (size_t x_index = 0; x_index < intersection_xs.length; x_index++) {
-                atr_real xi     = intersection_xs.elements[x_index];
-                atr_real deri   = intersection_dy_dts.elements[x_index];
-                if (deri > 0) winding++;
-                if (deri <= 0) winding--;
-
-                printf("%6d ", winding);
-            }
-            printf("\n");
-            if (winding != 0) {
-                atr_dprintERROR(
-                    "unbalanced scanline: y=%f winding=%d intersections=%zu\n",
-                    (double)scan_y,
-                    winding,
-                    intersection_xs.length
-                );
-            }
-        #else 
         int winding = 0;
         size_t x_index = 0;
 
@@ -2000,18 +1927,14 @@ ATR_DEF enum Atr_Return_Types atr_quadratic_bezier_array_fill_no_antialiasing(st
 
             atr_real x_right = intersection_xs.elements[x_index];
             if (winding != 0 && x_right > x_left) {
-                atr_line_horiz_draw(screen, x_left, x_right, scan_y, color, offzoom);
+                atr_line_horiz_draw_no_antialiasing(screen, x_left, x_right, scan_y, color, offzoom);
             }
         }
         if (winding != 0) {
             atr_dprintERROR("%s", "incorrect winding number.");
             return ATR_FAIL;
         }
-        #endif
     }
-    #if to_debug
-    ATR_ASSERT(0);
-    #endif
 
     ATR_FREE(intersection_xs.elements);
     ATR_FREE(intersection_dy_dts.elements);
@@ -2074,23 +1997,6 @@ ATR_DEF size_t atr_quadratic_bezier_get_xs_from_y(struct Atr_Glyph_Point start, 
     atr_real b = 2 * dy12;
     atr_real c = start.pos.y - y;
 
-    #if to_debug
-    bool debug_scan = atr_fabs(y - (atr_real)(y_bug)) < (atr_real)0.001;
-    if (debug_scan) {
-        atr_dprintINFO(
-            "    equation: "
-            "start_y=%9.7f control_y=%9.7f end_y=%9.7f "
-            "a=% .9g b=% .9g c=% .9g\n",
-            (double)start.pos.y,
-            (double)control.pos.y,
-            (double)end.pos.y,
-            (double)a,
-            (double)b,
-            (double)c
-        );
-    }
-    #endif
-
     atr_real roots[2];
     size_t root_count = 0;
 
@@ -2143,11 +2049,6 @@ ATR_DEF size_t atr_quadratic_bezier_get_xs_from_y(struct Atr_Glyph_Point start, 
     size_t count = 0;
 
     for (size_t i = 0; i < root_count; ++i) {
-    #if to_debug
-        if (debug_scan) {
-            atr_dprintINFO("        raw root[%zu]=%.9g\n", i, (double)roots[i]);
-        }
-    #endif
         atr_real t = roots[i];
         bool at_start = false;
         bool at_end = false;
@@ -2159,11 +2060,6 @@ ATR_DEF size_t atr_quadratic_bezier_get_xs_from_y(struct Atr_Glyph_Point start, 
             t = (atr_real)1;
             at_end = true;
         } else if (t <= (atr_real)0 || t >= (atr_real)1) {
-    #if to_debug
-            if (debug_scan) {
-                atr_dprintINFO("        rejected: non-interior root %.9g\n", (double)t);
-            }
-    #endif
             continue;
         }
 
@@ -2185,18 +2081,6 @@ ATR_DEF size_t atr_quadratic_bezier_get_xs_from_y(struct Atr_Glyph_Point start, 
         }
 
         if (!atr_quadratic_bezier_root_is_crossing(at_start, at_end, derivative)) {
-    #if to_debug
-            if (debug_scan) {
-                atr_dprintINFO("        rejected by crossing rule: "
-                    "t=%.9g at_start=%d at_end=%d "
-                    "derivative=%.9g\n",
-                    (double)t,
-                    at_start,
-                    at_end,
-                    (double)derivative
-                );
-            }
-    #endif
             continue;
         }
 

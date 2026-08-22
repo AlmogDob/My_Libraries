@@ -7,26 +7,23 @@
 #define APL_INPUT
 #define APL_DESTROY
 
-#define to_debug 0
-#define y_bug 87.5
-
 #define AMD_MEMORY_DEBUG
 #define ALMOG_MEMORY_DEBUG_IMPLEMENTATION
-#include "includes/Almog_Memory_Debug.h"
+#include "../includes/Almog_Memory_Debug.h"
 
 #define APL_SINGLE_PRECISION
 #define ALMOG_PLATFORM_LIBRARY_IMPLEMENTATION
-#include "includes/Almog_Platform_Library.h"
+#include "../includes/Almog_Platform_Library.h"
 
 #define ADL_ASSERT APL_ASSERT
 #define ADL_SINGLE_PRECISION
 #define ALMOG_DRAW_LIBRARY_IMPLEMENTATION
-#include "includes/Almog_Draw_Library.h"
+#include "../includes/Almog_Draw_Library.h"
 
 #define ATR_ASSERT APL_ASSERT
 #define ATR_SINGLE_PRECISION
 #define ALMOG_TEXT_RENDERING_IMPLEMENTATION
-#include "includes/Almog_Text_Rendering.h"
+#include "../includes/Almog_Text_Rendering.h"
 
 struct Atr_Pixel_Buffer adl_pixel_buffer_as_atr_pixel_buffer(struct Adl_Pixel_Buffer adl_b) 
 {
