@@ -337,6 +337,36 @@ struct Atr_Glyph_Point_Dynamic_Array {
     struct Atr_Glyph_Point *elements;
 };
 
+enum Atr_Glyph_Compound_Components_Flag {
+    ATR_GCCF_ARG_1_AND_2_ARE_WORDS    = 0b00000000001,
+    ATR_GCCF_ARGS_ARE_XY_VALUES       = 0b00000000010,
+    ATR_GCCF_ROUND_XY_TO_GRID         = 0b00000000100,
+    ATR_GCCF_WE_HAVE_A_SCALE          = 0b00000001000,
+    ATR_GCCF_OBSOLETE                 = 0b00000010000,
+    ATR_GCCF_MORE_COMPONENTS          = 0b00000100000,
+    ATR_GCCF_WE_HAVE_AN_X_AND_Y_SCALE = 0b00001000000,
+    ATR_GCCF_WE_HAVE_A_TWO_BY_TWO     = 0b00010000000,
+    ATR_GCCF_WE_HAVE_INSTRUCTIONS     = 0b00100000000,
+    ATR_GCCF_USE_MY_METRICES          = 0b01000000000,
+    ATR_GCCF_OVERLAP_COMPOUND         = 0b10000000000,
+};
+
+struct Atr_Glyph_Compound_Components {
+    uint16_t flags;
+    uint16_t glyphIndex;
+    int32_t  argument1;
+    int32_t  argument2;
+    size_t   transformation_count;
+    atr_real transformations[4];
+};
+
+struct Atr_Glyph_Compound_Components_Dynamic_Array {
+    size_t capacity;
+    size_t length;
+    struct Atr_Glyph_Compound_Components *elements;
+};
+
+
 struct Atr_Glyph {
     struct {
         int16_t numberOfContours;
@@ -359,6 +389,11 @@ struct Atr_Glyph {
             struct Atr_Glyph_Point_Dynamic_Array points;
             struct Atr_Glyph_Point_Dynamic_Array points_temp_for_resizing;
         } simple;
+        struct {
+            struct Atr_Glyph_Compound_Components_Dynamic_Array compound_components_array;
+            struct Atr_Glyph_Point_Dynamic_Array points;
+            struct Atr_Glyph_Point_Dynamic_Array points_temp_for_resizing;
+        } compound;
     };
 };
 
@@ -518,6 +553,7 @@ ATR_DEF uint8_t                     atr_bit_reader_read_bit(struct Atr_Bit_Reade
 ATR_DEF uint32_t                    atr_bit_reader_read_bits(struct Atr_Bit_Reader *br, size_t count);
 ATR_DEF uint8_t                     atr_bit_reader_read_byte(struct Atr_Bit_Reader *br);
 ATR_DEF uint32_t                    atr_bit_reader_read_bytes(struct Atr_Bit_Reader *br, size_t count);
+ATR_DEF enum Atr_Return_Types       atr_bit_reader_read_f2dot14(struct Atr_Bit_Reader *br, atr_real *value);
 
 ATR_DEF struct Atr_Byte_String      atr_byte_string_get_from_binary_file_name(char *file_name);
 ATR_DEF struct Atr_Byte_String      atr_byte_string_get_from_binary_file_pointer(FILE *fp, char *file_name);
@@ -536,6 +572,7 @@ ATR_DEF void                        atr_glyph_append_line(struct Atr_Glyph *glyp
 ATR_DEF void                        atr_glyph_append_quadratic_bezier(struct Atr_Glyph *glyph, struct Atr_Glyph_Point start, struct Atr_Glyph_Point control, struct Atr_Glyph_Point end);
 ATR_DEF void                        atr_glyph_free(struct Atr_Glyph *g);
 ATR_DEF enum Atr_Return_Types       atr_glyph_parse(struct Atr_Glyph *glyph, struct Atr_Bit_Reader br);
+ATR_DEF enum Atr_Return_Types       atr_glyph_parse_compound_components(struct Atr_Glyph *glyph, struct Atr_Bit_Reader br);
 ATR_DEF enum Atr_Return_Types       atr_glyph_parse_simple(struct Atr_Glyph *glyph, struct Atr_Bit_Reader br);
 ATR_DEF struct Atr_Glyph_Point      atr_glyph_point_from_raw(const struct Atr_Glyph *glyph, size_t index);
 ATR_DEF bool                        atr_glyph_point_is_on_curve(const struct Atr_Glyph_Point *point);
@@ -745,6 +782,54 @@ ATR_DEF uint32_t atr_bit_reader_read_bytes(struct Atr_Bit_Reader *br, size_t cou
     }
 
     return res;
+}
+
+/**
+ * @brief Read a signed TrueType F2Dot14 fixed-point value.
+ *
+ * An F2Dot14 value is a signed, big-endian 16-bit integer with 14
+ * fractional bits. For example, 0x4000 represents 1.0.
+ *
+ * @param reader Reader positioned at a byte boundary.
+ * @param value Receives the converted value.
+ * @return true on success, or false if the reader is not byte-aligned or
+ *         fewer than two bytes remain.
+ */
+ATR_DEF enum Atr_Return_Types atr_bit_reader_read_f2dot14(struct Atr_Bit_Reader *br, atr_real *value)
+{
+    ATR_ASSERT(br != NULL);
+
+    /*
+     * TrueType table fields are byte-aligned. Do not silently discard
+     * partially consumed bits.
+     */
+    if (br->bits_left != 0) {
+        return ATR_FAIL;
+    }
+
+    if (br->file.cursor > br->file.length ||
+        br->file.length - br->file.cursor < 2) {
+        return ATR_FAIL;
+    }
+
+    uint8_t high = atr_bit_reader_read_byte(br);
+    uint8_t low = atr_bit_reader_read_byte(br);
+
+    uint16_t raw = ((uint16_t)high << 8) | (uint16_t)low;
+
+    /*
+     * Convert the unsigned bit pattern to its signed two's-complement
+     * value without depending on an implementation-defined uint16_t to
+     * int16_t conversion.
+     */
+    int32_t signed_raw = (int32_t)raw;
+
+    if ((raw & 0x8000u) != 0) {
+        signed_raw -= 0x10000;
+    }
+
+    if (value) *value = (atr_real)signed_raw / (atr_real)16384.0;
+    return ATR_SUCCESS;
 }
 
 /**
@@ -1088,6 +1173,16 @@ ATR_DEF void atr_glyph_free(struct Atr_Glyph *g)
         g->simple.points_temp_for_resizing.elements = NULL;
         g->simple.points_temp_for_resizing.length = 0;
         g->simple.points_temp_for_resizing.capacity = 0;
+    } else {
+        ATR_FREE(g->compound.compound_components_array.elements);
+        g->compound.compound_components_array.elements = NULL;
+        g->compound.compound_components_array.length = 0;
+        ATR_FREE(g->compound.points.elements);
+        g->compound.points.elements = NULL;
+        g->compound.points.length = 0;
+        ATR_FREE(g->compound.points_temp_for_resizing.elements);
+        g->compound.points_temp_for_resizing.elements = NULL;
+        g->compound.points_temp_for_resizing.length = 0;
     }
 }
 
@@ -1101,12 +1196,60 @@ ATR_DEF enum Atr_Return_Types atr_glyph_parse(struct Atr_Glyph *glyph, struct At
     glyph->metadata.xMax                      = (int16_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
     glyph->metadata.yMax                      = (int16_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
 
-    if (glyph->metadata.numberOfContours > 0) {
+    if (glyph->metadata.numberOfContours >= 0) {
         if (ATR_FAIL == atr_glyph_parse_simple(glyph, br)) {
             atr_dprintERROR("%s", "Failed to parse a simple glyph.");
             return ATR_FAIL;
         }
+    } else {
+        if (ATR_FAIL == atr_glyph_parse_compound_components(glyph, br)) {
+            atr_dprintERROR("%s", "Failed to parse a compound glyph.");
+            return ATR_FAIL;
+        }
     }
+
+
+    return ATR_SUCCESS;
+}
+
+ATR_DEF enum Atr_Return_Types atr_glyph_parse_compound_components(struct Atr_Glyph *glyph, struct Atr_Bit_Reader br)
+{
+    atr_ada_init_array(struct Atr_Glyph_Compound_Components, glyph->compound.compound_components_array);
+
+    struct Atr_Glyph_Compound_Components gcc;
+    do {
+        gcc = (struct Atr_Glyph_Compound_Components){0};
+        gcc.flags = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+        gcc.glyphIndex = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+        if ((gcc.flags & ATR_GCCF_ARG_1_AND_2_ARE_WORDS) != 0) {
+            gcc.argument1 = (int32_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+            gcc.argument2 = (int32_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+        } else {
+            gcc.argument1 = (int32_t)atr_bit_reader_read_byte(&br);
+            gcc.argument2 = (int32_t)atr_bit_reader_read_byte(&br);
+        }
+
+        if ((gcc.flags & ATR_GCCF_WE_HAVE_A_SCALE) != 0) {
+            if ((gcc.flags & ATR_GCCF_WE_HAVE_AN_X_AND_Y_SCALE) != 0) {
+                gcc.transformation_count = 2;
+            } else if ((gcc.flags & ATR_GCCF_WE_HAVE_A_TWO_BY_TWO) != 0) {
+                gcc.transformation_count = 4;
+            } else {
+                gcc.transformation_count = 1;
+            }
+        } else {
+            gcc.transformation_count = 0;
+        }
+
+        for (size_t i = 0; i < gcc.transformation_count; i++) {
+            if (ATR_FAIL == atr_bit_reader_read_f2dot14(&br, &gcc.transformations[i])) {
+                atr_dprintERROR("Could not read f2dot14 from file '%s', at offset %zu", br.file.name, br.file.cursor);
+                return ATR_FAIL;
+            }
+        }
+
+        atr_ada_append(struct Atr_Glyph_Compound_Components, glyph->compound.compound_components_array, gcc);
+    } while ((gcc.flags & ATR_GCCF_MORE_COMPONENTS) != 0);
 
     return ATR_SUCCESS;
 }
@@ -2588,6 +2731,9 @@ ATR_DEF enum Atr_Return_Types atr_table_glyf_parse(struct Atr_Font *font, struct
             goto fail;
         }
     }
+    /** TODO: 
+     * parse all compound glyphs after pasing all the simple glyphs and the components of the compound glyphs 
+     */
 
     atr_table_glyf_free(font);
     font->tables.glyf = parsed;
@@ -2909,9 +3055,9 @@ ATR_DEF struct Atr_Vec2 atr_text_line_draw(struct Atr_Pixel_Buffer screen, struc
     size_t consumed = 0;
     for (size_t text_index = 0, char_index = 0; text_index < text_byte_count && char_index < length; text_index += consumed, char_index++) {
         uint32_t c = atr_utf8_decode_next_code_point(text + text_index, text_byte_count - text_index, &consumed);
-        if (c == ' ') {
-            continue;
-        }
+        // if (c == ' ') {
+        //     continue;
+        // }
         struct Atr_Glyph g = font->tables.glyf.glyphs[atr_glyphIndex_get(font, c)];
         if (g.metadata.yMax > glyph_y_max) {
             glyph_y_max = g.metadata.yMax;
@@ -2930,16 +3076,16 @@ ATR_DEF struct Atr_Vec2 atr_text_line_draw(struct Atr_Pixel_Buffer screen, struc
     atr_real pen_y = glyph_y_max * scale;
     for (size_t text_index = 0, char_index = 0; text_index < text_byte_count && char_index < length; text_index += consumed, char_index++) {
         uint32_t c = atr_utf8_decode_next_code_point(text + text_index, text_byte_count - text_index, &consumed);
-        if (c == ' ') {
-            pen_x += 300 * scale;
-            continue;
-        }
+        // if (c == ' ') {
+        //     pen_x += 300 * scale;
+        //     continue;
+        // }
 
         struct Atr_Glyph g = font->tables.glyf.glyphs[atr_glyphIndex_get(font, c)];
         adl_real x_origin = top_left_x + pen_x;
         adl_real y_origin = top_left_y;
-        adl_real x_offset = -g.metadata.xMin * scale;
-        // adl_real x_offset = 0;
+        // adl_real x_offset = -g.metadata.xMin * scale;
+        adl_real x_offset = 0;
         adl_real y_offset = pen_y;
         // if (x_origin + x_offset + g.metadata.xMax * scale > screen.cols) {
         //     break;
@@ -2987,9 +3133,9 @@ ATR_DEF struct Atr_Vec2 atr_text_line_draw_no_antialiasing(struct Atr_Pixel_Buff
     size_t consumed = 0;
     for (size_t text_index = 0, char_index = 0; text_index < text_byte_count && char_index < length; text_index += consumed, char_index++) {
         uint32_t c = atr_utf8_decode_next_code_point(text + text_index, text_byte_count - text_index, &consumed);
-        if (c == ' ') {
-            continue;
-        }
+        // if (c == ' ') {
+        //     continue;
+        // }
         struct Atr_Glyph g = font->tables.glyf.glyphs[atr_glyphIndex_get(font, c)];
         if (g.metadata.yMax > glyph_y_max) {
             glyph_y_max = g.metadata.yMax;
@@ -3008,16 +3154,16 @@ ATR_DEF struct Atr_Vec2 atr_text_line_draw_no_antialiasing(struct Atr_Pixel_Buff
     atr_real pen_y = glyph_y_max * scale;
     for (size_t text_index = 0, char_index = 0; text_index < text_byte_count && char_index < length; text_index += consumed, char_index++) {
         uint32_t c = atr_utf8_decode_next_code_point(text + text_index, text_byte_count - text_index, &consumed);
-        if (c == ' ') {
-            pen_x += 300 * scale;
-            continue;
-        }
+        // if (c == ' ') {
+        //     pen_x += 300 * scale;
+        //     continue;
+        // }
 
         struct Atr_Glyph g = font->tables.glyf.glyphs[atr_glyphIndex_get(font, c)];
         adl_real x_origin = top_left_x + pen_x;
         adl_real y_origin = top_left_y;
-        adl_real x_offset = -g.metadata.xMin * scale;
-        // adl_real x_offset = 0;
+        // adl_real x_offset = -g.metadata.xMin * scale;
+        adl_real x_offset = 0;
         adl_real y_offset = pen_y;
         // if (x_origin + x_offset + g.metadata.xMax * scale > screen.cols) {
         //     break;
@@ -3065,9 +3211,9 @@ ATR_DEF struct Atr_Vec2 atr_text_line_draw_outline(struct Atr_Pixel_Buffer scree
     size_t consumed = 0;
     for (size_t text_index = 0; text_index < text_byte_count; text_index += consumed) {
         uint32_t c = atr_utf8_decode_next_code_point(text + text_index, text_byte_count - text_index, &consumed);
-        if (c == ' ') {
-            continue;
-        }
+        // if (c == ' ') {
+        //     continue;
+        // }
         struct Atr_Glyph g = font->tables.glyf.glyphs[atr_glyphIndex_get(font, c)];
         if (g.metadata.yMax > glyph_y_max) {
             glyph_y_max = g.metadata.yMax;
@@ -3086,16 +3232,16 @@ ATR_DEF struct Atr_Vec2 atr_text_line_draw_outline(struct Atr_Pixel_Buffer scree
     atr_real pen_y = glyph_y_max * scale;
     for (size_t text_index = 0; text_index < text_byte_count; text_index += consumed) {
         uint32_t c = atr_utf8_decode_next_code_point(text + text_index, text_byte_count - text_index, &consumed);
-        if (c == ' ') {
-            pen_x += 300 * scale;
-            continue;
-        }
+        // if (c == ' ') {
+        //     pen_x += 300 * scale;
+        //     continue;
+        // }
 
         struct Atr_Glyph g = font->tables.glyf.glyphs[atr_glyphIndex_get(font, c)];
         adl_real x_origin = top_left_x + pen_x;
         adl_real y_origin = top_left_y;
-        adl_real x_offset = -g.metadata.xMin * scale;
-        // adl_real x_offset = 0;
+        // adl_real x_offset = -g.metadata.xMin * scale;
+        adl_real x_offset = 0;
         adl_real y_offset = pen_y;
         // if (x_origin + x_offset + g.metadata.xMax * scale > screen.cols) {
         //     break;
