@@ -7,7 +7,7 @@
 #define APL_INPUT
 #define APL_DESTROY
 
-#define AMD_MEMORY_DEBUG
+// #define AMD_MEMORY_DEBUG
 #define ALMOG_MEMORY_DEBUG_IMPLEMENTATION
 #include "includes/Almog_Memory_Debug.h"
 
@@ -69,8 +69,8 @@ enum Apl_Return_Types apl_setup(struct Apl_Window_State *ws)
 
     /* english */
     // char font_file_name[] = "../src/fonts/BLKCHCRY.ttf";
-    // char font_file_name[] = "../src/fonts/Canterbury.ttf";
-    char font_file_name[] = "../src/fonts/Inconsolata-Regular.ttf";
+    char font_file_name[] = "../src/fonts/Canterbury.ttf";
+    // char font_file_name[] = "../src/fonts/Inconsolata-Regular.ttf";
     // char font_file_name[] = "../src/fonts/Symbola.ttf";
     // char font_file_name[] = "../src/fonts/waltographUI.ttf";
 
@@ -78,6 +78,8 @@ enum Apl_Return_Types apl_setup(struct Apl_Window_State *ws)
         atr_dprintERROR("Failed to load font from file '%s'.", font_file_name);
         return APL_FAIL;
     }
+
+    // return APL_FAIL;
 
     return APL_SUCCESS;
 }
@@ -94,11 +96,11 @@ enum Apl_Return_Types apl_render(struct Apl_Window_State *ws)
     struct Adl_Pixel_Buffer pixels = apl_pixel_buffer_as_adl_pixel_buffer(ws->window_pixels_mat);
     struct Atr_Pixel_Buffer font_pixels = adl_pixel_buffer_as_atr_pixel_buffer(pixels);
 
-    // char str1[] = "the quick brown fox jumps over the lazy dog! @#$%^&*:\"{}[]?><\\/';.()_+-"
-    //               "THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG 0123456789";
-    char str1[] = "alphabet: abcdefghijklmnopqrstuvwxyz";
+    char str1[] = "the quick brown fox jumps over the lazy dog! @#$%^&*:\"{}[]?><\\/';.()_+-"
+                  "THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG 0123456789";
+    // char str1[] = "alphabet -> abcdefghijklmnopqrstuvwxyz";
 
-    atr_real top_left_x = 10, top_left_y = 10, letter_hight = 100, spacing = 10;
+    atr_real top_left_x = 10, top_left_y = 10, letter_hight = 300, spacing = 10;
     atr_text_line_draw_no_antialiasing(font_pixels, &font, (uint8_t *)str1, top_left_x, top_left_y, letter_hight, spacing, ADL_COLOR_WHITE_hexARGB, -1, adl_offset_zoom_to_atr_offset_zoom(offzoom));
     atr_text_line_draw(font_pixels, &font, (uint8_t *)str1, top_left_x, top_left_y * 2 + letter_hight, letter_hight, spacing, ADL_COLOR_WHITE_hexARGB, -1, adl_offset_zoom_to_atr_offset_zoom(offzoom));
     atr_text_line_draw_outline(font_pixels, &font, (uint8_t *)str1, top_left_x, top_left_y * 3 + letter_hight * 2, letter_hight, spacing, ADL_COLOR_WHITE_hexARGB, -1, adl_offset_zoom_to_atr_offset_zoom(offzoom));

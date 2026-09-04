@@ -94,9 +94,10 @@ enum Apl_Return_Types apl_render(struct Apl_Window_State *ws)
     struct Adl_Pixel_Buffer pixels = apl_pixel_buffer_as_adl_pixel_buffer(ws->window_pixels_mat);
     struct Atr_Pixel_Buffer font_pixels = adl_pixel_buffer_as_atr_pixel_buffer(pixels);
 
-    char str1[] = "the quick brown fox jumps over the lazy dog! @#$%^&*:\"{}[]?><\\/';.()_+-";
+    // char str1[] = "the quick brown fox jumps over the lazy dog! @#$%^&*:\"{}[]?><\\/';.()_+-";
     // char str1[] = "אלמוג";
-    // char str1[] = "いろはにほへと ちりぬるを わかよたれそ つねならむ うゐのおくやま けふこえて あさきゆめみし ゑひもせす";
+    char str1[] = "いろはにほへと ちりぬるを わかよたれそ つねならむ うゐのおくやま けふこえて あさきゆめみし ゑひもせす" 
+                  "媛 怨 鬱 唄 淫 咽 茨 彙 椅 萎 畏 嵐 宛 顎 曖 挨 韓 鎌 葛 骸 蓋 崖 諧 潰 瓦 牙 苛 俺 臆 岡 旺 艶 稽 憬 詣 熊 窟 串 惧 錦 僅 巾 嗅 臼 畿 亀 伎 玩 挫 沙 痕 頃 駒 傲 乞 喉 梗 虎 股 舷 鍵 拳 桁 隙 呪 腫 嫉 𠮟/叱 鹿 餌 摯 恣 斬 拶 刹 柵 埼 塞 采 戚 脊 醒 凄 裾 須 腎 芯 尻 拭 憧 蹴 羞 袖 汰 遜 捉 踪 痩 曽 爽 遡 狙 膳 箋 詮 腺 煎 羨 鶴 爪 椎 捗 嘲 貼 酎 緻 綻 旦 誰 戴 堆 唾 鍋 謎 梨 奈 那 丼 貪 頓 栃 瞳 藤 賭 妬 塡[填] 溺 諦 阜 訃 肘 膝 眉 斑 阪 汎 氾 箸 剝[剥] 罵 捻 虹 匂 喩 闇 弥 冶 麺 冥 蜜 枕 昧 勃 頰[頬] 貌 蜂 蔑 璧 餅 蔽 脇 麓 籠 弄 呂 瑠 瞭 侶 慄 璃 藍 辣 拉 沃 瘍 妖 湧 柿 哺 楷 睦 釜 錮 賂 毀 勾";
 
     atr_real top_left_x = 10, top_left_y = 10, letter_hight = 50, spacing = 10;
     struct Atr_Vec2 bounding_box1 = atr_text_line_draw_no_antialiasing(font_pixels, &font, (uint8_t *)str1, top_left_x, top_left_y, letter_hight, spacing, ADL_COLOR_WHITE_hexARGB, -1, adl_offset_zoom_to_atr_offset_zoom(offzoom));
