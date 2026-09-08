@@ -497,8 +497,23 @@ struct Atr_Table_maxp {
     uint16_t maxComponentDepth;
 };
 
+struct Atr_Name_Record {
+    uint16_t platformID;
+    uint16_t platformSpecificID;
+    uint16_t languageID;
+    uint16_t nameID;
+    uint16_t length;
+    uint16_t offset;
+};
+
 struct Atr_Table_name {
     struct Atr_Table_Header header;
+    uint16_t format;
+    uint16_t nameRecord_count;
+    uint16_t stringOffset;
+    struct Atr_Name_Record *nameRecord;
+    size_t name_count;
+    uint8_t *name;
 };
 
 struct Atr_Table_post {
@@ -618,6 +633,10 @@ ATR_DEF void                        atr_line_draw(struct Atr_Pixel_Buffer screen
 ATR_DEF void                        atr_line_draw_fix_width(struct Atr_Pixel_Buffer screen, atr_real x1_input, atr_real y1_input, atr_real x2_input, atr_real y2_input, uint32_t color, struct Atr_Offset_Zoom offzoom);
 ATR_DEF void                        atr_line_draw_no_antialiasing(struct Atr_Pixel_Buffer screen, atr_real x1_input, atr_real y1_input, atr_real x2_input, atr_real y2_input, uint32_t color, struct Atr_Offset_Zoom offzoom);
 ATR_DEF void                        atr_line_horiz_draw(struct Atr_Pixel_Buffer screen, atr_real x1_input, atr_real x2_input, atr_real y_input, uint32_t color, struct Atr_Offset_Zoom offzoom);
+ATR_DEF void                        atr_line_horiz_draw_no_antialiasing(struct Atr_Pixel_Buffer screen, atr_real x1_input, atr_real x2_input, atr_real y_input, uint32_t color, struct Atr_Offset_Zoom offzoom);
+
+ATR_DEF enum Atr_Return_Types       atr_name_record_get_bytes(const struct Atr_Table_name *name_table, size_t record_index, const uint8_t **bytes, size_t *length);
+ATR_DEF enum Atr_Return_Types       atr_name_record_get_text_utf8_malloc(const struct Atr_Table_name *name_table, size_t record_index, const uint8_t **text, size_t *length);
 
 ATR_DEF enum Atr_Return_Types       atr_offset_subtable_parse(struct Atr_Font *font);
 
@@ -651,6 +670,8 @@ ATR_DEF void                        atr_table_hmtx_free(struct Atr_Font *font);
 ATR_DEF enum Atr_Return_Types       atr_table_hmtx_parse(struct Atr_Font *font, struct Atr_Table_Header hmtx_header);
 ATR_DEF enum Atr_Return_Types       atr_table_loca_parse(struct Atr_Font *font, struct Atr_Table_Header loca_header);
 ATR_DEF enum Atr_Return_Types       atr_table_maxp_parse(struct Atr_Font *font, struct Atr_Table_Header maxp_header);
+ATR_DEF void                        atr_table_name_free(struct Atr_Font *font);
+ATR_DEF enum Atr_Return_Types       atr_table_name_parse(struct Atr_Font *font, struct Atr_Table_Header name_header);
 ATR_DEF struct Atr_Vec2             atr_text_line_draw(struct Atr_Pixel_Buffer screen, struct Atr_Font *font, uint8_t *text, atr_real top_left_x, atr_real top_left_y, atr_real letter_hight, atr_real letter_spacing, uint32_t color, int length, struct Atr_Offset_Zoom offzoom);
 ATR_DEF struct Atr_Vec2             atr_text_line_draw_no_antialiasing(struct Atr_Pixel_Buffer screen, struct Atr_Font *font, uint8_t *text, atr_real top_left_x, atr_real top_left_y, atr_real letter_hight, atr_real letter_spacing, uint32_t color, int length, struct Atr_Offset_Zoom offzoom);
 ATR_DEF struct Atr_Vec2             atr_text_line_draw_outline(struct Atr_Pixel_Buffer screen, struct Atr_Font *font, uint8_t *text, atr_real top_left_x, atr_real top_left_y, atr_real letter_hight, atr_real letter_spacing, uint32_t color, int length, struct Atr_Offset_Zoom offzoom);
@@ -664,11 +685,13 @@ ATR_DEF void                        atr_uint16_print_hex_imp(uint16_t value, uin
 ATR_DEF void                        atr_uint32_print_binary_imp(uint32_t value, uint8_t bit_count);
                                     #define atr_uint32_print_hex(value, bit_count) atr_dprintINFO("%s = ", #value); printf("%*.s", 7, ""); atr_uint32_print_hex_imp((value), (bit_count))
 ATR_DEF void                        atr_uint32_print_hex_imp(uint32_t value, uint8_t bit_count);
+ATR_DEF enum Atr_Return_Types       atr_utf8_append_code_point(uint8_t *dst, size_t capacity, size_t *length, uint32_t code_point);
 ATR_DEF uint32_t                    atr_utf8_code_point_get_from_raw_char_bytes(uint32_t raw_char_bytes);
 ATR_DEF uint32_t                    atr_utf8_decode_next_code_point(uint8_t *text, size_t byte_count, size_t *consumed);
 ATR_DEF uint32_t                    atr_utf8_get_next_char_bytes(uint8_t *str, size_t byte_count);
 ATR_DEF bool                        atr_utf8_is_continuation_byte(uint8_t byte);
 ATR_DEF size_t                      atr_utf8_length(uint8_t *str, size_t byte_count);
+ATR_DEF bool                        atr_utf16be_to_utf8_malloc(const uint8_t *src, size_t src_length, uint8_t **out, size_t *out_length);
 
 ATR_DEF struct Atr_Vec2             atr_vec2_linear_transform(struct Atr_Vec2 vec2, atr_real a, atr_real b, atr_real c, atr_real d, atr_real tx, atr_real ty);
 
@@ -1064,6 +1087,8 @@ ATR_DEF void atr_font_free(struct Atr_Font *font)
 
     atr_table_hmtx_free(font);
 
+    atr_table_name_free(font);
+
     *font = (struct Atr_Font){0};
 }
 
@@ -1094,10 +1119,11 @@ ATR_DEF enum Atr_Return_Types atr_font_load_from_file_name(struct Atr_Font *font
     const struct Atr_Table_Header *glyf_header = atr_table_header_find_by_tag_raw(&loaded, atr_4chars_to_uint32("glyf"));
     const struct Atr_Table_Header *hhea_header = atr_table_header_find_by_tag_raw(&loaded, atr_4chars_to_uint32("hhea"));
     const struct Atr_Table_Header *hmtx_header = atr_table_header_find_by_tag_raw(&loaded, atr_4chars_to_uint32("hmtx"));
+    const struct Atr_Table_Header *name_header = atr_table_header_find_by_tag_raw(&loaded, atr_4chars_to_uint32("name"));
     if (head_header == NULL || maxp_header == NULL ||
         loca_header == NULL || glyf_header == NULL ||
         cmap_header == NULL || hhea_header == NULL || 
-        hmtx_header == NULL) {
+        hmtx_header == NULL || name_header == NULL) {
         atr_dprintERROR("%s", "Font is missing one or more required TrueType tables.");
         goto fail;
     }
@@ -1165,6 +1191,13 @@ ATR_DEF enum Atr_Return_Types atr_font_load_from_file_name(struct Atr_Font *font
         goto fail;
     }
     if (atr_table_hmtx_parse(&loaded, *hmtx_header) == ATR_FAIL) {
+        goto fail;
+    }
+
+    if (atr_table_header_verify_checksum(&loaded, *name_header, -1) == ATR_FAIL) {
+        goto fail;
+    }
+    if (atr_table_name_parse(&loaded, *name_header) == ATR_FAIL) {
         goto fail;
     }
 
@@ -2074,6 +2107,68 @@ ATR_DEF void atr_line_horiz_draw_no_antialiasing(struct Atr_Pixel_Buffer screen,
     for (int ix = ix_begin; ix < ix_end; ++ix) {
         atr_pixel_draw(screen, (atr_real)ix, y_input, color, offzoom);
     }
+}
+
+ATR_DEF enum Atr_Return_Types atr_name_record_get_bytes(const struct Atr_Table_name *name_table, size_t record_index, const uint8_t **bytes, size_t *length)
+{
+    /* By AI */
+    const struct Atr_Name_Record *record;
+
+    if (name_table == NULL ||
+        bytes == NULL ||
+        length == NULL ||
+        record_index >= name_table->nameRecord_count) {
+        return false;
+    }
+
+    record = &name_table->nameRecord[record_index];
+
+    if ((size_t)record->offset > name_table->name_count) {
+        return false;
+    }
+
+    if ((size_t)record->length >
+        name_table->name_count - (size_t)record->offset) {
+        return false;
+    }
+
+    *bytes = name_table->name + record->offset;
+    *length = record->length;
+
+    return true;
+}
+
+ATR_DEF enum Atr_Return_Types atr_name_record_get_text_utf8_malloc(const struct Atr_Table_name *name_table, size_t record_index, const uint8_t **text, size_t *length)
+{
+    struct Atr_Name_Record *record = &name_table->nameRecord[record_index];
+    const uint8_t *raw_name;
+    size_t raw_name_length;
+
+    if (record->platformID == 3 && record->platformSpecificID == 1) {
+        if (!atr_name_record_get_bytes(name_table, record_index, &raw_name, &raw_name_length)) {
+            atr_dprintERROR("Failed to get the raw bytes of name record at index %zu", record_index);
+            return ATR_FAIL;
+        }
+        if (!atr_utf16be_to_utf8_malloc(raw_name, raw_name_length, text, length)) {
+            atr_dprintERROR("Failed to decode name record %zu.", record_index);
+            return ATR_FAIL;
+        }
+    } else if (record->platformID == 1 && record->platformSpecificID == 0) {
+        if (!atr_name_record_get_bytes(name_table, record_index, &raw_name, &raw_name_length)) {
+            atr_dprintERROR("Failed to get the raw bytes of name record at index %zu", record_index);
+            return ATR_FAIL;
+        }
+        *text = ATR_MALLOC(sizeof(uint8_t) * raw_name_length);
+        if (*text == NULL && raw_name_length) {
+            atr_dprintERROR("%s", "Failed to allocate text.");
+            return ATR_FAIL;
+        }
+        memcpy((void *)*text, (const void *)raw_name, raw_name_length);
+        *length = raw_name_length;
+    }
+
+
+    return ATR_SUCCESS;
 }
 
 ATR_DEF enum Atr_Return_Types atr_offset_subtable_parse(struct Atr_Font *font)
@@ -3438,6 +3533,67 @@ ATR_DEF enum Atr_Return_Types atr_table_maxp_parse(struct Atr_Font *font, struct
     return ATR_SUCCESS;
 }
 
+ATR_DEF void atr_table_name_free(struct Atr_Font *font)
+{
+    ATR_ASSERT(font);
+
+    ATR_FREE(font->tables.name.nameRecord);
+    font->tables.name.nameRecord = NULL;
+    ATR_FREE(font->tables.name.name);
+    font->tables.name.name = NULL;
+}
+
+ATR_DEF enum Atr_Return_Types atr_table_name_parse(struct Atr_Font *font, struct Atr_Table_Header name_header)
+{
+    struct Atr_Bit_Reader br = {0};
+    atr_bit_reader_init(&br, font->file);
+    br.file.cursor = name_header.offset;
+
+    font->tables.name.header = name_header;
+    font->tables.name.format                               = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    if (font->tables.name.format != 0) {
+        atr_dprintERROR("Unsupported format for the name table. Currently supports only TrueType format (0) but got format %u.", font->tables.name.format);
+        return ATR_FAIL;
+    }
+    font->tables.name.nameRecord_count                     = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    font->tables.name.stringOffset                         = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    font->tables.name.nameRecord = ATR_MALLOC(sizeof(*font->tables.name.nameRecord) * font->tables.name.nameRecord_count);
+    if (font->tables.name.nameRecord == NULL && font->tables.name.nameRecord_count > 0) {
+        atr_dprintERROR("%s", "Failed to allocate nameRecord array.");
+        return ATR_FAIL;
+    }
+    for (size_t i = 0; i < font->tables.name.nameRecord_count; i++) {
+        font->tables.name.nameRecord[i].platformID         = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+        font->tables.name.nameRecord[i].platformSpecificID = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+        font->tables.name.nameRecord[i].languageID         = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+        font->tables.name.nameRecord[i].nameID             = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+        font->tables.name.nameRecord[i].length             = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+        font->tables.name.nameRecord[i].offset             = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+
+        /* Checks */
+        if (font->tables.name.nameRecord[i].platformID == 0 && font->tables.name.nameRecord[i].languageID != 0) {
+            atr_dprintERROR("For names with a Unicode platformID (0), the language code is unused and should be set to 0. Got %u", font->tables.name.nameRecord[i].languageID);
+            return ATR_FAIL;
+        } 
+    }
+    if (font->tables.name.stringOffset >= name_header.length) {
+            atr_dprintERROR("%s", "Error parsing name table. stringOffset is incorrect.");
+        return ATR_FAIL;
+    }
+    font->tables.name.name_count = name_header.length - font->tables.name.stringOffset;
+    font->tables.name.name = ATR_MALLOC(sizeof(*font->tables.name.name) * font->tables.name.name_count);
+    if (font->tables.name.name == NULL && font->tables.name.name_count > 0) {
+        atr_dprintERROR("%s", "Failed to allocate name array.");
+        return ATR_FAIL;
+    }
+    for (size_t i = 0; i < font->tables.name.name_count; i++) {
+        font->tables.name.name[i]                          = atr_bit_reader_read_byte(&br);
+    }
+
+
+    return ATR_SUCCESS;
+}
+
 ATR_DEF struct Atr_Vec2 atr_text_line_draw(struct Atr_Pixel_Buffer screen, struct Atr_Font *font, uint8_t *text, atr_real top_left_x, atr_real top_left_y, atr_real letter_hight, atr_real letter_spacing, uint32_t color, int length, struct Atr_Offset_Zoom offzoom)
 {
     size_t text_byte_count = strlen((const char *)text);
@@ -3768,6 +3924,71 @@ ATR_DEF void atr_uint32_print_hex_imp(uint32_t value, uint8_t bit_count)
     printf("\n");
 }
 
+ATR_DEF enum Atr_Return_Types atr_utf8_append_code_point(uint8_t *dst, size_t capacity, size_t *length, uint32_t code_point)
+{
+    if (code_point <= 0x7Fu) {
+        if (*length + 1 >= capacity) {
+            return ATR_FAIL;
+        }
+
+        dst[(*length)++] = (uint8_t)code_point;
+        return ATR_SUCCESS;
+    }
+
+    if (code_point <= 0x7FFu) {
+        if (*length + 2 >= capacity) {
+            return ATR_FAIL;
+        }
+
+        dst[(*length)++] =
+            (uint8_t)(0xC0u | (code_point >> 6));
+
+        dst[(*length)++] =
+            (uint8_t)(0x80u | (code_point & 0x3Fu));
+
+        return ATR_SUCCESS;
+    }
+
+    if (code_point <= 0xFFFFu) {
+        if (*length + 3 >= capacity) {
+            return ATR_FAIL;
+        }
+
+        dst[(*length)++] =
+            (uint8_t)(0xE0u | (code_point >> 12));
+
+        dst[(*length)++] =
+            (uint8_t)(0x80u | ((code_point >> 6) & 0x3Fu));
+
+        dst[(*length)++] =
+            (uint8_t)(0x80u | (code_point & 0x3Fu));
+
+        return ATR_SUCCESS;
+    }
+
+    if (code_point <= 0x10FFFFu) {
+        if (*length + 4 >= capacity) {
+            return ATR_FAIL;
+        }
+
+        dst[(*length)++] =
+            (uint8_t)(0xF0u | (code_point >> 18));
+
+        dst[(*length)++] =
+            (uint8_t)(0x80u | ((code_point >> 12) & 0x3Fu));
+
+        dst[(*length)++] =
+            (uint8_t)(0x80u | ((code_point >> 6) & 0x3Fu));
+
+        dst[(*length)++] =
+            (uint8_t)(0x80u | (code_point & 0x3Fu));
+
+        return ATR_SUCCESS;
+    }
+
+    return ATR_FAIL;
+}
+
 /* This solution for utf-8 is not a full support for utf-8 */
 ATR_DEF uint32_t atr_utf8_code_point_get_from_raw_char_bytes(uint32_t raw_char_bytes)
 {
@@ -3913,6 +4134,88 @@ ATR_DEF size_t atr_utf8_length(uint8_t *str, size_t byte_count)
     }
 
     return count;
+}
+
+ATR_DEF bool atr_utf16be_to_utf8_malloc(const uint8_t *src, size_t src_length, uint8_t **out, size_t *out_length)
+{
+    /* By AI */
+    size_t capacity;
+    size_t src_index = 0;
+    size_t dst_index = 0;
+    uint8_t *dst;
+
+    if (src == NULL || out == NULL || out_length == NULL) {
+        return ATR_FAIL;
+    }
+
+    if ((src_length & 1u) != 0) {
+        return ATR_FAIL;
+    }
+
+    /*
+     * Every UTF-16 code unit can produce at most three UTF-8 bytes.
+     * A surrogate pair produces four UTF-8 bytes, which is still less
+     * than six bytes for the two code units.
+     *
+     * Add one byte for the null terminator.
+     */
+    if (src_length > (SIZE_MAX - 1) / 3) {
+        return ATR_FAIL;
+    }
+
+    capacity = src_length * 3 + 1;
+    dst = ATR_MALLOC(capacity);
+
+    if (dst == NULL) {
+        return ATR_FAIL;
+    }
+
+    while (src_index < src_length) {
+        uint16_t first;
+        uint32_t code_point;
+
+        first = ((uint16_t)src[src_index] << 8) | (uint16_t)src[src_index + 1];
+
+        src_index += 2;
+
+        if (first >= 0xD800u && first <= 0xDBFFu) {
+            /*
+             * High surrogate: it must be followed by a low surrogate.
+             */
+            uint16_t second;
+
+            if (src_index + 1 >= src_length) {
+                code_point = ATR_UTF8_REPLACEMENT_CHARACTER;
+            } else {
+                second = ((uint16_t)src[src_index] << 8) | (uint16_t)src[src_index + 1];
+                if (second < 0xDC00u || second > 0xDFFFu) {
+                    code_point = ATR_UTF8_REPLACEMENT_CHARACTER;
+                } else {
+                    src_index += 2;
+                    code_point = 0x10000u + (((uint32_t)first - 0xD800u) << 10) + ((uint32_t)second - 0xDC00u);
+                }
+            }
+        } else if (first >= 0xDC00u && first <= 0xDFFFu) {
+            /*
+             * A low surrogate without a preceding high surrogate.
+             */
+            code_point = ATR_UTF8_REPLACEMENT_CHARACTER;
+        } else {
+            code_point = first;
+        }
+
+        if (!atr_utf8_append_code_point(dst, capacity, &dst_index, code_point)) {
+            ATR_FREE(dst);
+            return ATR_FAIL;
+        }
+    }
+
+    dst[dst_index] = '\0';
+
+    *out = dst;
+    *out_length = dst_index;
+
+    return ATR_SUCCESS;
 }
 
 ATR_DEF struct Atr_Vec2 atr_vec2_linear_transform(struct Atr_Vec2 vec2, atr_real a, atr_real b, atr_real c, atr_real d, atr_real tx, atr_real ty)
