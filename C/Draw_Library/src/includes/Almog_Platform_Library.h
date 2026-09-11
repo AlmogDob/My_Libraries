@@ -194,14 +194,42 @@ enum Apl_Return_Types {
 #ifndef apl_real
     #if defined(APL_SINGLE_PRECISION)
         typedef float apl_real_type;
-        #define APL_REAL_MAX FLT_MAX
-        #define apl_fmax fmaxf
+        #define APL_INFINITY FLT_MAX
+        #define APL_EPS   FLT_EPSILON
+        #define apl_fabs  fabsf
+        #define apl_floor floorf
+        #define apl_ceil  ceilf
+        #define apl_round roundf
+        #define apl_sqrt  sqrtf
+        #define apl_cbrt  cbrtf
+        #define apl_cos   cosf
+        #define apl_sin   sinf
+        #define apl_atan2 atan2f
+        #define apl_fmod  fmodf
+        #define apl_fmax  fmaxf
+        #define apl_fmin  fminf
     #else 
         typedef double apl_real_type;
-        #define APL_REAL_MAX DBL_MAX
-        #define apl_fmax fmax
+        #define APL_INFINITY DBL_MAX
+        #define APL_EPS   DBL_EPSILON
+        #define apl_fabs  fabs
+        #define apl_floor floor
+        #define apl_ceil  ceil
+        #define apl_round round
+        #define apl_sqrt  sqrt
+        #define apl_cbrt  cbrt
+        #define apl_cos   cos
+        #define apl_sin   sin
+        #define apl_atan2 atan2
+        #define apl_fmod  fmod
+        #define apl_fmax  fmax
+        #define apl_fmin  fmin
     #endif
     #define apl_real apl_real_type
+#endif
+
+#ifndef APL_PI
+    #define APL_PI (apl_real)3.14159265358979323846
 #endif
 
 /**
@@ -282,6 +310,7 @@ struct Apl_Window_State {
     size_t delta_time_micro_sec;
     size_t elapsed_time_micro_sec;
     size_t previous_frame_time_micro_sec;
+    size_t frames_count;
     apl_real fps;
     apl_real wanted_fps;
 
@@ -433,7 +462,7 @@ APL_DEF void                apl_print_stack_trace(void);
 APL_DEF void apl_depth_buffer_copy_to_screen(struct Apl_Pixel_Buffer screen_mat, struct Apl_Depth_Buffer inv_z_buffer)
 {
     apl_real max_inv_z = 0;
-    apl_real min_inv_z = APL_REAL_MAX;
+    apl_real min_inv_z = APL_INFINITY;
     for (size_t i = 0; i < inv_z_buffer.rows; i++) {
         for (size_t j = 0; j < inv_z_buffer.cols; j++) {
             if (APL_BUFFER_AT(inv_z_buffer, i, j) > max_inv_z) {
@@ -448,7 +477,7 @@ APL_DEF void apl_depth_buffer_copy_to_screen(struct Apl_Pixel_Buffer screen_mat,
         for (size_t j = 0; j < inv_z_buffer.cols; j++) {
             apl_real z_fraq = APL_BUFFER_AT(inv_z_buffer, i, j);
             z_fraq = apl_fmax(z_fraq, min_inv_z);
-            z_fraq = apl_linear_map(z_fraq, min_inv_z, max_inv_z, 0.1, 1);
+            z_fraq = apl_linear_map(z_fraq, min_inv_z, max_inv_z, (apl_real)0.1, (apl_real)1);
             uint32_t color = apl_rgba_to_hexargb((int)(0xFF*z_fraq), (int)(0xFF*z_fraq), (int)(0xFF*z_fraq), (int)0xFF); 
             APL_BUFFER_AT(screen_mat, i, j) = color;
         }
@@ -641,9 +670,11 @@ APL_DEF enum Apl_Return_Types apl_window_render(struct Apl_Window_State *ws)
     }
     /*------------------------------------------------------------*/
 
-    if (apl_render(ws) != APL_SUCCESS) {
-        apl_dprintERROR("%s", "apl_render failed");
-        return APL_FAIL;
+    if (ws->frames_count > 0) {
+        if (apl_render(ws) != APL_SUCCESS) {
+            apl_dprintERROR("%s", "apl_render failed");
+            return APL_FAIL;
+        }
     }
             
     /*------------------------------------------------------------*/
@@ -1633,8 +1664,6 @@ int main(void)
     if (rt == APL_FAIL) {
         apl_dprintERROR("%s", "failed to preform window setup");
         window_state.running = false;
-    } else {
-        window_state.running = true;
     }
 
     MSG message;
@@ -1660,6 +1689,7 @@ int main(void)
             break;
         }
         if (window_state.to_update) {
+            window_state.frames_count++;
             rt = apl_window_update(&window_state);
             if (rt == APL_FAIL) {
                 apl_dprintERROR("%s", "failed to window update");
@@ -1674,11 +1704,6 @@ int main(void)
             }
         }
         apl_fix_framerate(&window_state);
-        /*
-        if (game_state->elapsed_time*10-(int)(game_state->elapsed_time*10) < 0.1) {
-            SDL_SetWindowTitle(game_state->window, fps_count);
-        }
-        */
     }
 
     rt = apl_window_destroy(&window_state);
