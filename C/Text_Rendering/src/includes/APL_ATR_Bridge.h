@@ -31,11 +31,15 @@
 #ifndef APL_ATR_ASSERT
     #define APL_ATR_ASSERT APL_ASSERT
 #endif
+#ifndef APL_ATR_PI
+    #define APL_ATR_PI APL_PI
+#endif
 
 #define ATR_ASSERT APL_ATR_ASSERT
 #define ATR_MALLOC APL_ATR_MALLOC
 #define ATR_REALLOC APL_ATR_REALLOC
 #define ATR_FREE APL_ATR_FREE
+#define ATR_PI APL_ATR_PI
 #include "./Almog_Text_Rendering.h"
 
 
@@ -45,12 +49,6 @@ struct Atr_Pixel_Buffer apl_pixel_buffer_as_atr_pixel_buffer(struct Apl_Pixel_Bu
 #endif /*APL_ATR_BRIDGE_H_*/
 #ifdef APL_ATR_BRIDGE_IMPLEMENTATION
 #undef APL_ATR_BRIDGE_IMPLEMENTATION
-
-#define ALMOG_PLATFORM_LIBRARY_IMPLEMENTATION
-#include "./Almog_Platform_Library.h"
-
-#define ALMOG_TEXT_RENDERING_IMPLEMENTATION
-#include "./Almog_Text_Rendering.h"
 
 struct Atr_Pixel_Buffer apl_pixel_buffer_as_atr_pixel_buffer(struct Apl_Pixel_Buffer apl_b) 
 {
