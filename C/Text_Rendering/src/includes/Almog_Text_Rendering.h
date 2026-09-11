@@ -549,6 +549,36 @@ struct Atr_Table_post {
     };
 };
 
+struct Atr_Table_OS_2 {
+    struct Atr_Table_Header header;
+    uint16_t version;
+    union {
+        struct {
+            int16_t  xAvgCharWidth;
+            uint16_t usWeightClass;
+            uint16_t usWidthClass;
+            int16_t  fsType;
+            int16_t  ySubscriptXSize;
+            int16_t  ySubscriptYSize;
+            int16_t  ySubscriptXOffset;
+            int16_t  ySubscriptYOffset;
+            int16_t  ySuperscriptXSize;
+            int16_t  ySuperscriptYSize;
+            int16_t  ySuperscriptXOffset;
+            int16_t  ySuperscriptYOffset;
+            int16_t  yStrikeoutSize;
+            int16_t  yStrikeoutPosition;
+            int16_t  sFamilyClass;
+            uint8_t  panose[10];
+            uint32_t ulUnicodeRange[4];
+            int8_t   achVendID[4];
+            uint16_t fsSelection;
+            uint16_t fsFirstCharIndex;
+            uint16_t fsLastCharIndex;
+        } version_0;
+    };
+};
+
 struct Atr_Font {
     struct Atr_Byte_String file;
     struct Atr_Offset_Subtable offset_subtable;
@@ -566,6 +596,7 @@ struct Atr_Font {
         struct Atr_Table_hmtx hmtx;
         struct Atr_Table_name name;
         struct Atr_Table_post post;
+        struct Atr_Table_OS_2 OS_2;
     } tables;
 };
 
@@ -703,6 +734,7 @@ ATR_DEF enum Atr_Return_Types       atr_table_loca_parse(struct Atr_Font *font, 
 ATR_DEF enum Atr_Return_Types       atr_table_maxp_parse(struct Atr_Font *font, struct Atr_Table_Header maxp_header);
 ATR_DEF void                        atr_table_name_free(struct Atr_Font *font);
 ATR_DEF enum Atr_Return_Types       atr_table_name_parse(struct Atr_Font *font, struct Atr_Table_Header name_header);
+ATR_DEF enum Atr_Return_Types       atr_table_OS_2_parse(struct Atr_Font *font, struct Atr_Table_Header OS_2_header);
 ATR_DEF void                        atr_table_post_free(struct Atr_Font *font);
 ATR_DEF enum Atr_Return_Types       atr_table_post_parse(struct Atr_Font *font, struct Atr_Table_Header post_header);
 ATR_DEF struct Atr_Vec2             atr_text_line_draw(struct Atr_Pixel_Buffer screen, struct Atr_Font *font, uint8_t *text, atr_real top_left_x, atr_real top_left_y, atr_real letter_hight, atr_real letter_spacing, uint32_t color, int length, struct Atr_Offset_Zoom offzoom);
@@ -1164,6 +1196,8 @@ ATR_DEF enum Atr_Return_Types atr_font_load_from_file_name(struct Atr_Font *font
         atr_dprintERROR("%s", "Font is missing one or more required TrueType tables.");
         goto fail;
     }
+    const struct Atr_Table_Header *OS_2_header = atr_table_header_find_by_tag_raw(&loaded, atr_4chars_to_uint32("OS/2"));
+
     /*
      * cmap does not depend on loca, head, or maxp. It can be
      * parsed after the required metadata tables.
@@ -1246,6 +1280,15 @@ ATR_DEF enum Atr_Return_Types atr_font_load_from_file_name(struct Atr_Font *font
     }
     if (atr_table_name_parse(&loaded, *name_header) == ATR_FAIL) {
         goto fail;
+    }
+
+    if (OS_2_header) {
+        if (atr_table_header_verify_checksum(&loaded, *OS_2_header, -1) == ATR_FAIL) {
+            goto fail;
+        }
+        if (atr_table_OS_2_parse(&loaded, *OS_2_header) == ATR_FAIL) {
+            atr_dprintWARNING("%s", "Failed to parse unrequired table 'OS/2'.");
+        }
     }
 
     /*
@@ -3649,6 +3692,52 @@ ATR_DEF enum Atr_Return_Types atr_table_name_parse(struct Atr_Font *font, struct
         font->tables.name.name[i]                          = atr_bit_reader_read_byte(&br);
     }
 
+
+    return ATR_SUCCESS;
+}
+
+ATR_DEF enum Atr_Return_Types atr_table_OS_2_parse(struct Atr_Font *font, struct Atr_Table_Header OS_2_header)
+{
+    struct Atr_Bit_Reader br = {0};
+    atr_bit_reader_init(&br, font->file);
+    br.file.cursor = OS_2_header.offset;
+
+    font->tables.OS_2.header = OS_2_header;
+    atr_dprintINT(font->tables.OS_2.header.length);
+    font->tables.OS_2.version                             = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2)); 
+    atr_dprintINFO("OS/2 table version: %u", font->tables.OS_2.version);
+    if (font->tables.OS_2.version == 0) {
+        font->tables.OS_2.version_0.xAvgCharWidth         = (int16_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2)); 
+        font->tables.OS_2.version_0.usWeightClass         = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2)); 
+        font->tables.OS_2.version_0.usWidthClass          = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2)); 
+        font->tables.OS_2.version_0.fsType                = (int16_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2)); 
+        font->tables.OS_2.version_0.ySubscriptXSize       = (int16_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2)); 
+        font->tables.OS_2.version_0.ySubscriptYSize       = (int16_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2)); 
+        font->tables.OS_2.version_0.ySubscriptXOffset     = (int16_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2)); 
+        font->tables.OS_2.version_0.ySubscriptYOffset     = (int16_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2)); 
+        font->tables.OS_2.version_0.ySuperscriptXSize     = (int16_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2)); 
+        font->tables.OS_2.version_0.ySuperscriptYSize     = (int16_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2)); 
+        font->tables.OS_2.version_0.ySuperscriptXOffset   = (int16_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2)); 
+        font->tables.OS_2.version_0.ySuperscriptYOffset   = (int16_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2)); 
+        font->tables.OS_2.version_0.yStrikeoutSize        = (int16_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2)); 
+        font->tables.OS_2.version_0.yStrikeoutPosition    = (int16_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2)); 
+        font->tables.OS_2.version_0.sFamilyClass          = (int16_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2)); 
+        for (size_t i = 0; i < 10; i++) {
+            font->tables.OS_2.version_0.panose[i]         = atr_bit_reader_read_byte(&br); 
+        }
+        for (size_t i = 0; i < 4; i++) {
+            font->tables.OS_2.version_0.ulUnicodeRange[i] = atr_endian_swap_uint32(atr_bit_reader_read_bytes(&br, 4)); 
+        }
+        for (size_t i = 0; i < 4; i++) {
+            font->tables.OS_2.version_0.achVendID[i]      = atr_bit_reader_read_byte(&br); 
+        }
+        font->tables.OS_2.version_0.fsSelection           = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2)); 
+        font->tables.OS_2.version_0.fsFirstCharIndex      = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2)); 
+        font->tables.OS_2.version_0.fsLastCharIndex       = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2)); 
+    } else {
+        atr_dprintWARNING("Got unsupported OS/2 table version (%u). Currently supports only version 0.", font->tables.OS_2.version);
+        return ATR_FAIL;
+    }
 
     return ATR_SUCCESS;
 }
