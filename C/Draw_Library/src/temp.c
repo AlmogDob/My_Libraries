@@ -6,24 +6,13 @@
 #define APL_UPDATE
 #define APL_RENDER
 
+#define APL_ADL_BRIDGE_IMPLEMENTATION
+#include "includes/APL_ADL_Bridge.h"
 #define ALMOG_DRAW_LIBRARY_IMPLEMENTATION
 #include "includes/Almog_Draw_Library.h"
-
 #define ALMOG_PLATFORM_LIBRARY_IMPLEMENTATION
 #include "includes/Almog_Platform_Library.h"
 
-
-struct Adl_Pixel_Buffer apl_pixel_buffer_as_adl_pixel_buffer(struct Apl_Pixel_Buffer apl_b) 
-{
-    struct Adl_Pixel_Buffer adl_b = {
-        .cols = apl_b.cols,
-        .rows = apl_b.rows,
-        .stride_r = apl_b.stride_r,
-        .elements = apl_b.elements,
-    };
-
-    return adl_b;
-}
 
 struct Adl_Offset_Zoom offzoom = {0};
 
