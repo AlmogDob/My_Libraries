@@ -69,9 +69,9 @@ enum Apl_Return_Types apl_setup(struct Apl_Window_State *ws)
 
     /* english */
     // char font_file_name[] = "../src/fonts/BLKCHCRY.ttf";
-    char font_file_name[] = "../src/fonts/Canterbury.ttf";
+    // char font_file_name[] = "../src/fonts/Canterbury.ttf";
     // char font_file_name[] = "../src/fonts/Inconsolata-Regular.ttf";
-    // char font_file_name[] = "../src/fonts/Symbola.ttf";
+    char font_file_name[] = "../src/fonts/Symbola.ttf";
     // char font_file_name[] = "../src/fonts/Scabber-q2Mn0.ttf";
 
     if (ATR_FAIL == atr_font_load_from_file_name(&font, font_file_name)) {

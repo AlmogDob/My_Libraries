@@ -7,7 +7,7 @@
 #define APL_INPUT
 #define APL_DESTROY
 
-#define AMD_MEMORY_DEBUG
+// #define AMD_MEMORY_DEBUG
 #define ALMOG_MEMORY_DEBUG_IMPLEMENTATION
 #include "includes/Almog_Memory_Debug.h"
 
@@ -68,8 +68,8 @@ enum Apl_Return_Types apl_setup(struct Apl_Window_State *ws)
     offzoom = ADL_DEFAULT_OFFSET_ZOOM;
 
     /* english */
-    // char font_file_name[] = "../src/fonts/BLKCHCRY.ttf";
-    char font_file_name[] = "../src/fonts/Canterbury.ttf";
+    char font_file_name[] = "../src/fonts/BLKCHCRY.ttf";
+    // char font_file_name[] = "../src/fonts/Canterbury.ttf";
     // char font_file_name[] = "../src/fonts/Inconsolata-Regular.ttf";
     // char font_file_name[] = "../src/fonts/Symbola.ttf";
     // char font_file_name[] = "../src/fonts/Scabber-q2Mn0.ttf";
@@ -78,9 +78,9 @@ enum Apl_Return_Types apl_setup(struct Apl_Window_State *ws)
         atr_dprintERROR("Failed to load font from file '%s'.", font_file_name);
         return APL_FAIL;
     }
-    for (size_t i = 0; i < font.tables.name.nameRecord_count; i++) {
-        atr_dprintINFO("platformID: %u | platformSpecificID: %u.", font.tables.name.nameRecord[i].platformID, font.tables.name.nameRecord[i].platformSpecificID);
-    }
+    // for (size_t i = 0; i < font.tables.name.nameRecord_count; i++) {
+    //     atr_dprintINFO("platformID: %u | platformSpecificID: %u.", font.tables.name.nameRecord[i].platformID, font.tables.name.nameRecord[i].platformSpecificID);
+    // }
 
     if (AMD_FAIL == amd_debug_mem()) {
         amd_dprintERROR("%s", "Corrupted memory detected.");
@@ -103,22 +103,15 @@ enum Apl_Return_Types apl_render(struct Apl_Window_State *ws)
     struct Adl_Pixel_Buffer pixels = apl_pixel_buffer_as_adl_pixel_buffer(ws->window_pixels_mat);
     struct Atr_Pixel_Buffer font_pixels = adl_pixel_buffer_as_atr_pixel_buffer(pixels);
 
-    // char str1[] = "the quick brown fox jumps over the lazy dog! @#$%^&*:\"{}[]?><\\/';.()_+-"
-    //               "THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG 0123456789";
+    char str1[] = "the quick brown fox jumps over the lazy dog! @#$%^&*:\"{}[]?><\\/';.()_+-"
+                  "THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG 0123456789";
     // char str1[] = "alphabet: abcdefghijklmnopqrstuvwxyz";
-    for (size_t index = 0; index < font.tables.name.nameRecord_count; index++) {
-        uint8_t *str1 = NULL;
-        size_t str1_length = 0;
-        if (ATR_FAIL == atr_name_record_get_text_utf8_malloc(&font.tables.name, index, &str1, &str1_length)) {
-            apl_dprintERROR("%s", "Failed to get text of name record.");
-            return APL_FAIL;
-        }
+    size_t str1_length = sizeof(str1) / sizeof(*str1) - 1;
 
-        atr_real top_left_x = 10, top_left_y = 10, letter_hight = 60, spacing = 0;
-        atr_text_line_draw(font_pixels, &font, (uint8_t *)str1, top_left_x, top_left_y + letter_hight * index, letter_hight, spacing, ADL_COLOR_WHITE_hexARGB, (int)str1_length, adl_offset_zoom_to_atr_offset_zoom(offzoom));
-
-        ATR_FREE(str1);
-    }
+    atr_real top_left_x = 10, top_left_y = 10, letter_hight = 80, spacing = 0;
+    struct Atr_Vec2 v1 = atr_text_line_draw(font_pixels, &font, (uint8_t *)str1, top_left_x, top_left_y, letter_hight, spacing, ADL_COLOR_WHITE_hexARGB, (int)str1_length, adl_offset_zoom_to_atr_offset_zoom(offzoom));
+    adl_rectangle_draw_min_max(pixels, top_left_x, top_left_x + v1.x, top_left_y, top_left_y + v1.y, ADL_COLOR_WHITE_hexARGB, offzoom);
+    atr_text_line_draw_no_antialiasing(font_pixels, &font, (uint8_t *)str1, top_left_x, top_left_y * 1 + v1.y, letter_hight, spacing, ADL_COLOR_WHITE_hexARGB, (int)str1_length, adl_offset_zoom_to_atr_offset_zoom(offzoom));
 
     // return APL_FAIL;
     ws->to_update = true;
