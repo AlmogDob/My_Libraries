@@ -11,40 +11,15 @@
 #define ALMOG_MEMORY_DEBUG_IMPLEMENTATION
 #include "includes/Almog_Memory_Debug.h"
 
-#define APL_SINGLE_PRECISION
-#define ALMOG_PLATFORM_LIBRARY_IMPLEMENTATION
-#include "includes/Almog_Platform_Library.h"
+#define APL_ATR_SINGLE_PRECISION
+#define APL_ATR_BRIDGE_IMPLEMENTATION
+#include "includes/APL_ATR_BRIDGE.h"
 
 #define ADL_ASSERT APL_ASSERT
 #define ADL_SINGLE_PRECISION
 #define ALMOG_DRAW_LIBRARY_IMPLEMENTATION
 #include "includes/Almog_Draw_Library.h"
 
-#define ATR_ASSERT APL_ASSERT
-#define ATR_SINGLE_PRECISION
-#define ALMOG_TEXT_RENDERING_IMPLEMENTATION
-#include "includes/Almog_Text_Rendering.h"
-
-struct Atr_Pixel_Buffer adl_pixel_buffer_as_atr_pixel_buffer(struct Adl_Pixel_Buffer adl_b) 
-{
-    struct Atr_Pixel_Buffer atr_b = {
-        .cols = adl_b.cols,
-        .rows = adl_b.rows,
-        .stride_r = adl_b.stride_r,
-        .elements = adl_b.elements,
-    };
-
-    return atr_b;
-}
-
-struct Atr_Offset_Zoom adl_offset_zoom_to_atr_offset_zoom(struct Adl_Offset_Zoom adl_offzoom)
-{
-    return (struct Atr_Offset_Zoom){
-        .offset_x = adl_offzoom.offset_x,
-        .offset_y = adl_offzoom.offset_y,
-        .zoom_multiplier = adl_offzoom.zoom_multiplier,
-    };
-}
 
 struct Adl_Pixel_Buffer apl_pixel_buffer_as_adl_pixel_buffer(struct Apl_Pixel_Buffer apl_b) 
 {
@@ -101,7 +76,12 @@ enum Apl_Return_Types apl_update(struct Apl_Window_State *ws)
 enum Apl_Return_Types apl_render(struct Apl_Window_State *ws)
 {
     struct Adl_Pixel_Buffer pixels = apl_pixel_buffer_as_adl_pixel_buffer(ws->window_pixels_mat);
-    struct Atr_Pixel_Buffer font_pixels = adl_pixel_buffer_as_atr_pixel_buffer(pixels);
+    struct Atr_Pixel_Buffer font_pixels = apl_pixel_buffer_as_atr_pixel_buffer(ws->window_pixels_mat);
+    struct Atr_Offset_Zoom atr_offzoom = {
+        .offset_x = offzoom.offset_x,
+        .offset_y = offzoom.offset_y,
+        .zoom_multiplier = offzoom.zoom_multiplier,
+    };
 
     char str1[] = "the quick brown fox jumps over the lazy dog! @#$%^&*:\"{}[]?><\\/';.()_+-"
                   "THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG 0123456789";
@@ -109,9 +89,9 @@ enum Apl_Return_Types apl_render(struct Apl_Window_State *ws)
     size_t str1_length = sizeof(str1) / sizeof(*str1) - 1;
 
     atr_real top_left_x = 10, top_left_y = 10, letter_hight = 80, spacing = 0;
-    struct Atr_Vec2 v1 = atr_text_line_draw(font_pixels, &font, (uint8_t *)str1, top_left_x, top_left_y, letter_hight, spacing, ADL_COLOR_WHITE_hexARGB, (int)str1_length, adl_offset_zoom_to_atr_offset_zoom(offzoom));
+    struct Atr_Vec2 v1 = atr_text_line_draw(font_pixels, &font, (uint8_t *)str1, top_left_x, top_left_y, letter_hight, spacing, ADL_COLOR_WHITE_hexARGB, (int)str1_length, atr_offzoom);
     adl_rectangle_draw_min_max(pixels, top_left_x, top_left_x + v1.x, top_left_y, top_left_y + v1.y, ADL_COLOR_WHITE_hexARGB, offzoom);
-    atr_text_line_draw_no_antialiasing(font_pixels, &font, (uint8_t *)str1, top_left_x, top_left_y * 1 + v1.y, letter_hight, spacing, ADL_COLOR_WHITE_hexARGB, (int)str1_length, adl_offset_zoom_to_atr_offset_zoom(offzoom));
+    atr_text_line_draw_no_antialiasing(font_pixels, &font, (uint8_t *)str1, top_left_x, top_left_y * 1 + v1.y, letter_hight, spacing, ADL_COLOR_WHITE_hexARGB, (int)str1_length, atr_offzoom);
 
     // return APL_FAIL;
     ws->to_update = true;

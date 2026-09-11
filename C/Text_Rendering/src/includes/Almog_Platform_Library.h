@@ -194,14 +194,42 @@ enum Apl_Return_Types {
 #ifndef apl_real
     #if defined(APL_SINGLE_PRECISION)
         typedef float apl_real_type;
-        #define APL_REAL_MAX FLT_MAX
-        #define apl_fmax fmaxf
+        #define APL_INFINITY FLT_MAX
+        #define APL_EPS   FLT_EPSILON
+        #define apl_fabs  fabsf
+        #define apl_floor floorf
+        #define apl_ceil  ceilf
+        #define apl_round roundf
+        #define apl_sqrt  sqrtf
+        #define apl_cbrt  cbrtf
+        #define apl_cos   cosf
+        #define apl_sin   sinf
+        #define apl_atan2 atan2f
+        #define apl_fmod  fmodf
+        #define apl_fmax  fmaxf
+        #define apl_fmin  fminf
     #else 
         typedef double apl_real_type;
-        #define APL_REAL_MAX DBL_MAX
-        #define apl_fmax fmax
+        #define APL_INFINITY DBL_MAX
+        #define APL_EPS   DBL_EPSILON
+        #define apl_fabs  fabs
+        #define apl_floor floor
+        #define apl_ceil  ceil
+        #define apl_round round
+        #define apl_sqrt  sqrt
+        #define apl_cbrt  cbrt
+        #define apl_cos   cos
+        #define apl_sin   sin
+        #define apl_atan2 atan2
+        #define apl_fmod  fmod
+        #define apl_fmax  fmax
+        #define apl_fmin  fmin
     #endif
     #define apl_real apl_real_type
+#endif
+
+#ifndef APL_PI
+    #define APL_PI (apl_real)3.14159265358979323846
 #endif
 
 /**
@@ -434,7 +462,7 @@ APL_DEF void                apl_print_stack_trace(void);
 APL_DEF void apl_depth_buffer_copy_to_screen(struct Apl_Pixel_Buffer screen_mat, struct Apl_Depth_Buffer inv_z_buffer)
 {
     apl_real max_inv_z = 0;
-    apl_real min_inv_z = APL_REAL_MAX;
+    apl_real min_inv_z = APL_INFINITY;
     for (size_t i = 0; i < inv_z_buffer.rows; i++) {
         for (size_t j = 0; j < inv_z_buffer.cols; j++) {
             if (APL_BUFFER_AT(inv_z_buffer, i, j) > max_inv_z) {
