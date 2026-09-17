@@ -1299,6 +1299,8 @@ ATR_DEF enum Atr_Return_Types atr_font_load_from_file_name(struct Atr_Font *font
      */
     atr_font_free(font);
     *font = loaded;
+    // ATR_FREE(font->file.elements);
+    // font->file.capacity = 0;
 
     return ATR_SUCCESS;
 
