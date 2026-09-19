@@ -42,7 +42,7 @@
     /* For explanation see https://github.com/AlmogDob/My_Libraries/tree/master/C/Dynamic_Array*/
 
     #ifndef ATR_ADA_INIT_CAPACITY
-    #define ATR_ADA_INIT_CAPACITY 10
+    #define ATR_ADA_INIT_CAPACITY 1
     #endif /*ATR_ADA_INIT_CAPACITY*/
 
     #ifndef ATR_ADA_MALLOC
@@ -335,6 +335,13 @@ struct Atr_Glyph_Point_Dynamic_Array {
     struct Atr_Glyph_Point *elements;
 };
 
+struct Atr_Glyph_Transform {
+    atr_real scale_x;
+    atr_real scale_y;
+    atr_real translate_x;
+    atr_real translate_y;
+};
+
 enum Atr_Glyph_Compound_Components_Flag {
     ATR_GCCF_ARG_1_AND_2_ARE_WORDS    = 0b00000000001,
     ATR_GCCF_ARGS_ARE_XY_VALUES       = 0b00000000010,
@@ -390,14 +397,12 @@ struct Atr_Glyph {
             int16_t  *xCoordinates;
             int16_t  *yCoordinates;
             struct Atr_Glyph_Point_Dynamic_Array points;
-            struct Atr_Glyph_Point_Dynamic_Array points_temp_for_resizing;
         } simple;
         struct {
             enum Atr_Glyph_Parse_State parse_state;
             struct Atr_Glyph_Compound_Components_Dynamic_Array compound_components_array;
             struct Atr_Glyph_Point_Dynamic_Array raw_points;
             struct Atr_Glyph_Point_Dynamic_Array points;
-            struct Atr_Glyph_Point_Dynamic_Array points_temp_for_resizing;
         } compound;
     };
 };
@@ -582,6 +587,8 @@ struct Atr_Table_OS_2 {
 struct Atr_Font {
     struct Atr_Byte_String file;
     struct Atr_Offset_Subtable offset_subtable;
+    bool TrueType;
+    bool OpenType;
     struct {
         size_t length;
         struct Atr_Table_Header *elements;
@@ -704,10 +711,10 @@ ATR_DEF enum Atr_Return_Types       atr_offset_subtable_parse(struct Atr_Font *f
 
 ATR_DEF void                        atr_pixel_draw(struct Atr_Pixel_Buffer screen, atr_real x, atr_real y, uint32_t color, struct Atr_Offset_Zoom offzoom);
 
-ATR_DEF enum Atr_Return_Types       atr_quadratic_bezier_array_fill(struct Atr_Pixel_Buffer screen, struct Atr_Glyph_Point *points, size_t points_count, uint32_t color, struct Atr_Offset_Zoom offzoom);
-ATR_DEF enum Atr_Return_Types       atr_quadratic_bezier_array_fill_no_antialiasing(struct Atr_Pixel_Buffer screen, struct Atr_Glyph_Point *points, size_t points_count, uint32_t color, struct Atr_Offset_Zoom offzoom);
+ATR_DEF enum Atr_Return_Types       atr_quadratic_bezier_array_fill(struct Atr_Pixel_Buffer screen, struct Atr_Glyph_Point *points, size_t points_count, struct Atr_Glyph_Transform transform, uint32_t color, struct Atr_Offset_Zoom offzoom);
+ATR_DEF enum Atr_Return_Types       atr_quadratic_bezier_array_fill_no_antialiasing(struct Atr_Pixel_Buffer screen, struct Atr_Glyph_Point *points, size_t points_count, struct Atr_Glyph_Transform transform, uint32_t color, struct Atr_Offset_Zoom offzoom);
 ATR_DEF void                        atr_quadratic_bezier_draw(struct Atr_Pixel_Buffer pixels, struct Atr_Glyph_Point start, struct Atr_Glyph_Point control, struct Atr_Glyph_Point end, uint32_t color, struct Atr_Offset_Zoom offzoom);
-ATR_DEF size_t                      atr_quadratic_bezier_get_xs_from_y(struct Atr_Glyph_Point start, struct Atr_Glyph_Point control, struct Atr_Glyph_Point end, atr_real y, atr_real *x1, atr_real *x2, atr_real *dy_dt1, atr_real *dy_dt2);
+ATR_DEF size_t                      atr_quadratic_bezier_get_xs_from_y(struct Atr_Glyph_Point start, struct Atr_Glyph_Point control, struct Atr_Glyph_Point end, atr_real y, atr_real y_scale, atr_real *x1, atr_real *x2, atr_real *dy_dt1, atr_real *dy_dt2);
 ATR_DEF bool                        atr_quadratic_bezier_root_is_crossing(bool at_start, bool at_end, atr_real dy_dt);
 
 ATR_DEF void                        atr_rectangle_draw_min_max(struct Atr_Pixel_Buffer screen, atr_real min_x, atr_real max_x, atr_real min_y, atr_real max_y, uint32_t color, struct Atr_Offset_Zoom offzoom);
@@ -1188,15 +1195,30 @@ ATR_DEF enum Atr_Return_Types atr_font_load_from_file_name(struct Atr_Font *font
     const struct Atr_Table_Header *hmtx_header = atr_table_header_find_by_tag_raw(&loaded, atr_4chars_to_uint32("hmtx"));
     const struct Atr_Table_Header *name_header = atr_table_header_find_by_tag_raw(&loaded, atr_4chars_to_uint32("name"));
     const struct Atr_Table_Header *post_header = atr_table_header_find_by_tag_raw(&loaded, atr_4chars_to_uint32("post"));
-    if (head_header == NULL || maxp_header == NULL ||
-        loca_header == NULL || glyf_header == NULL ||
-        cmap_header == NULL || hhea_header == NULL || 
-        hmtx_header == NULL || name_header == NULL ||
-        post_header == NULL) {
-        atr_dprintERROR("%s", "Font is missing one or more required TrueType tables.");
+    const struct Atr_Table_Header *OS_2_header = atr_table_header_find_by_tag_raw(&loaded, atr_4chars_to_uint32("OS/2"));
+
+    if (loaded.TrueType) {
+        if (head_header == NULL || maxp_header == NULL ||
+            loca_header == NULL || glyf_header == NULL ||
+            cmap_header == NULL || hhea_header == NULL || 
+            hmtx_header == NULL || name_header == NULL ||
+            post_header == NULL) {
+            atr_dprintERROR("%s", "Font is missing one or more required TrueType tables.");
+            goto fail;
+        }
+    } else if (loaded.OpenType) {
+        if (head_header == NULL || maxp_header == NULL ||
+            loca_header == NULL || glyf_header == NULL ||
+            cmap_header == NULL || hhea_header == NULL || 
+            hmtx_header == NULL || name_header == NULL ||
+            post_header == NULL || OS_2_header == NULL) {
+            atr_dprintERROR("%s", "Font is missing one or more required OpenType tables.");
+            goto fail;
+        }
+    } else {
+        atr_dprintERROR("%s", "Unrecognize font type.");
         goto fail;
     }
-    const struct Atr_Table_Header *OS_2_header = atr_table_header_find_by_tag_raw(&loaded, atr_4chars_to_uint32("OS/2"));
 
     /*
      * cmap does not depend on loca, head, or maxp. It can be
@@ -1299,6 +1321,8 @@ ATR_DEF enum Atr_Return_Types atr_font_load_from_file_name(struct Atr_Font *font
      */
     atr_font_free(font);
     *font = loaded;
+    // ATR_FREE(font->file.elements);
+    // font->file.capacity = 0;
 
     return ATR_SUCCESS;
 
@@ -1326,10 +1350,6 @@ ATR_DEF void atr_glyph_append_quadratic_bezier(struct Atr_Glyph *glyph, struct A
     atr_ada_append(struct Atr_Glyph_Point, glyph->simple.points, start);
     atr_ada_append(struct Atr_Glyph_Point, glyph->simple.points, control);
     atr_ada_append(struct Atr_Glyph_Point, glyph->simple.points, end);
-
-    atr_ada_append(struct Atr_Glyph_Point, glyph->simple.points_temp_for_resizing, start);
-    atr_ada_append(struct Atr_Glyph_Point, glyph->simple.points_temp_for_resizing, control);
-    atr_ada_append(struct Atr_Glyph_Point, glyph->simple.points_temp_for_resizing, end);
 }
 
 ATR_DEF struct Atr_Vec2 atr_glyph_compound_component_calc_anchor_translation(struct Atr_Glyph_Point compound_point, struct Atr_Glyph_Point components_point, atr_real a, atr_real b, atr_real c, atr_real d)
@@ -1380,10 +1400,6 @@ ATR_DEF void atr_glyph_free(struct Atr_Glyph *g)
         g->simple.points.elements = NULL;
         g->simple.points.length = 0;
         g->simple.points.capacity = 0;
-        ATR_FREE(g->simple.points_temp_for_resizing.elements);
-        g->simple.points_temp_for_resizing.elements = NULL;
-        g->simple.points_temp_for_resizing.length = 0;
-        g->simple.points_temp_for_resizing.capacity = 0;
     } else {
         ATR_FREE(g->compound.compound_components_array.elements);
         g->compound.compound_components_array.elements = NULL;
@@ -1394,9 +1410,6 @@ ATR_DEF void atr_glyph_free(struct Atr_Glyph *g)
         ATR_FREE(g->compound.points.elements);
         g->compound.points.elements = NULL;
         g->compound.points.length = 0;
-        ATR_FREE(g->compound.points_temp_for_resizing.elements);
-        g->compound.points_temp_for_resizing.elements = NULL;
-        g->compound.points_temp_for_resizing.length = 0;
     }
 }
 
@@ -1443,7 +1456,6 @@ ATR_DEF enum Atr_Return_Types atr_glyph_parse_compound(struct Atr_Table_glyf *gl
     struct Atr_Glyph_Compound_Components_Dynamic_Array *components = &(glyph->compound.compound_components_array);
     atr_ada_init_array(struct Atr_Glyph_Point, glyph->compound.raw_points);
     atr_ada_init_array(struct Atr_Glyph_Point, glyph->compound.points);
-    atr_ada_init_array(struct Atr_Glyph_Point, glyph->compound.points_temp_for_resizing);
 
     for (size_t components_index = 0; components_index < components->length; components_index++) {
         struct Atr_Glyph_Compound_Components *component = &components->elements[components_index];
@@ -1532,14 +1544,13 @@ ATR_DEF enum Atr_Return_Types atr_glyph_parse_compound(struct Atr_Table_glyf *gl
             child_points = &child->compound.points;
         }
 
-        for (size_t point_index = 0; point_index < child->simple.points.length; point_index++) {
+        for (size_t point_index = 0; point_index < child_points->length; point_index++) {
             struct Atr_Glyph_Point current_input_point = child_points->elements[point_index];
             struct Atr_Glyph_Point current_out_point = {
                 .flag = current_input_point.flag,
                 .pos = atr_vec2_linear_transform(current_input_point.pos, a, b, c, d, t.x, t.y)
             };
             atr_ada_append(struct Atr_Glyph_Point, glyph->compound.points, current_out_point);
-            atr_ada_append(struct Atr_Glyph_Point, glyph->compound.points_temp_for_resizing, current_out_point);
             if ((current_input_point.flag & ATR_GPF_GENERATED) == 0) {
                 atr_ada_append(struct Atr_Glyph_Point, glyph->compound.raw_points, current_out_point);
             }
@@ -1698,7 +1709,6 @@ ATR_DEF enum Atr_Return_Types atr_glyph_parse_simple(struct Atr_Glyph *glyph, st
     }
 
     atr_ada_init_array(struct Atr_Glyph_Point, glyph->simple.points);
-    atr_ada_init_array(struct Atr_Glyph_Point, glyph->simple.points_temp_for_resizing);
     for (size_t contour_index = 0; contour_index < (size_t)glyph->metadata.numberOfContours; ++contour_index) {
         size_t start_point_index = contour_index == 0 ? 0 : (size_t)glyph->simple.endPtsOfContours[contour_index - 1] + 1;
         size_t end_point_index = (size_t)glyph->simple.endPtsOfContours[contour_index];
@@ -1804,7 +1814,6 @@ ATR_DEF enum Atr_Return_Types atr_glyph_parse_simple(struct Atr_Glyph *glyph, st
         */
         if (glyph->simple.points.length > contour_output_start) {
             glyph->simple.points.elements[glyph->simple.points.length - 1].flag |= ATR_GPF_CONTOUR_END;
-            glyph->simple.points_temp_for_resizing.elements[glyph->simple.points_temp_for_resizing.length - 1].flag |= ATR_GPF_CONTOUR_END;
         }
 
     }
@@ -2286,12 +2295,15 @@ ATR_DEF enum Atr_Return_Types atr_offset_subtable_parse(struct Atr_Font *font)
     font->offset_subtable.rangeShift    = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
 
     /* Checks */
+    font->TrueType = false;
+    font->OpenType = false;
     if (!(atr_4chars_to_uint32_be("true") == font->offset_subtable.scaler_type || 0x00010000 == font->offset_subtable.scaler_type)) {
         if (atr_4chars_to_uint32_be("typ1") == font->offset_subtable.scaler_type) {
             atr_dprintERROR("%s", "Font type recognized as the old style of PostScript font housed in a sfnt wrapper. This type is not supported.");
             return ATR_FAIL;
         }
         if (atr_4chars_to_uint32_be("OTTO") == font->offset_subtable.scaler_type) {
+            font->OpenType = true;
             atr_dprintERROR("%s", "Font type recognized as an OpenType font with PostScript outlines. This type is not supported.");
             return ATR_FAIL;
         }
@@ -2301,6 +2313,8 @@ ATR_DEF enum Atr_Return_Types atr_offset_subtable_parse(struct Atr_Font *font)
             printf("%*.sExpected\n%*.s0xtrue or 0x00010000.\n", 8, "", 8, "");
         }
         return ATR_FAIL;
+    } else {
+        font->TrueType = true;
     }
 
     
@@ -2345,82 +2359,112 @@ ATR_DEF void atr_pixel_draw(struct Atr_Pixel_Buffer screen, atr_real x, atr_real
     }
 }
 
-ATR_DEF enum Atr_Return_Types atr_quadratic_bezier_array_fill(struct Atr_Pixel_Buffer screen, struct Atr_Glyph_Point *points, size_t points_count, uint32_t color, struct Atr_Offset_Zoom offzoom)
+ATR_DEF enum Atr_Return_Types atr_quadratic_bezier_array_fill(struct Atr_Pixel_Buffer screen, struct Atr_Glyph_Point *points, size_t points_count, struct Atr_Glyph_Transform transform, uint32_t color, struct Atr_Offset_Zoom offzoom)
 {
+    ATR_ASSERT(points);
     ATR_ASSERT(points_count % 3 == 0);
 
-    atr_real glyph_y_max = -ATR_INFINITY;
-    atr_real glyph_y_min = ATR_INFINITY;
+    if (points_count == 0) {
+        return ATR_SUCCESS;
+    }
+    if (ATR_IS_ZERO(transform.scale_y)) {
+        atr_dprintERROR("A horizontal scanline cannot be mapped back to the source curve if scale_y is zero. Got %f", transform.scale_y);
+        return ATR_FAIL;
+    }
 
-    // atr_dprintINFO("%zu", points_count);
-    for (size_t i = 0; i < points_count; i++) {
-        if (points[i].pos.y > glyph_y_max) {
-            glyph_y_max = points[i].pos.y;
+    /*
+     * Find the transformed vertical bounds.
+     *
+     * scale_y may be negative because TrueType coordinates usually increase
+     * upward while screen coordinates increase downward.
+     */
+    atr_real glyph_y_min = ATR_INFINITY;
+    atr_real glyph_y_max = -ATR_INFINITY;
+
+    for (size_t i = 0; i < points_count; ++i) {
+        struct Atr_Vec2 trans_point = atr_vec2_linear_transform(points[i].pos, transform.scale_x, 0, 0, transform.scale_y, transform.translate_x, transform.translate_y);
+        atr_real transformed_y = trans_point.y;
+        if (transformed_y < glyph_y_min) {
+            glyph_y_min = transformed_y;
         }
-        if (points[i].pos.y < glyph_y_min) {
-            glyph_y_min = points[i].pos.y;
+        if (transformed_y > glyph_y_max) {
+            glyph_y_max = transformed_y;
         }
     }
 
-    struct Atr_Real_Dynamic_Array intersection_xs = {0};
-    atr_ada_init_array(atr_real, intersection_xs);
-    struct Atr_Real_Dynamic_Array intersection_dy_dts = {0};
-    atr_ada_init_array(atr_real, intersection_dy_dts);
-    // atr_dprintINFO("[%f, %f]", glyph_y_min, glyph_y_max);
+    atr_real intersection_xs[256]; size_t intersection_xs_count = 0;
+    atr_real intersection_dy_dts[256]; size_t intersection_dy_dts_count = 0;
     int first_row = (int)atr_floor(glyph_y_min);
     int last_row = (int)atr_ceil(glyph_y_max);
     for (int iy = first_row; iy < last_row; ++iy) {
         atr_real scan_y = (atr_real)iy + (atr_real)0.5;
-        intersection_xs.length = 0;
-        intersection_dy_dts.length = 0;
+        /**
+         * Convert the destination scanline back into glyph coordinates:
+         *     screen_y = offset_y + scale_y * glyph_y
+         *     glyph_y = (screen_y - offset_y) / scale_y
+         */
+        atr_real source_scan_y = (scan_y - transform.translate_y) / transform.scale_y;
+        intersection_xs_count = 0;
+        intersection_dy_dts_count = 0;
         for (size_t i = 0; i + 2 < points_count; i += 3) {
             struct Atr_Glyph_Point start = points[i + 0];
             struct Atr_Glyph_Point control = points[i + 1];
             struct Atr_Glyph_Point end = points[i + 2];
-            atr_real x1, x2, der1, der2;
-            size_t intersection_count = atr_quadratic_bezier_get_xs_from_y(start, control, end, scan_y, &x1, &x2, &der1, &der2);
+            atr_real x1 = 0, x2 = 0, der1 = 0, der2 = 0;
+            size_t intersection_count = atr_quadratic_bezier_get_xs_from_y(start, control, end, source_scan_y, transform.scale_y, &x1, &x2, &der1, &der2);
             if (intersection_count >= 1) {
-                atr_ada_append(atr_real, intersection_xs, x1);
-                atr_ada_append(atr_real, intersection_dy_dts, der1);
+                x1 = transform.translate_x + transform.scale_x * x1;
+                if (intersection_xs_count >= 256) {
+                    atr_dprintERROR("Intersection count exceeds allocated amount (%u), increse this number.", 256);
+                    return ATR_FAIL;
+                }
+                intersection_xs[intersection_xs_count++] = x1;
+                intersection_dy_dts[intersection_dy_dts_count++] = der1;
             }
             if (intersection_count >= 2) {
-                atr_ada_append(atr_real, intersection_xs, x2);
-                atr_ada_append(atr_real, intersection_dy_dts, der2);
+                x2 = transform.translate_x + transform.scale_x * x2;
+                if (intersection_xs_count >= 256) {
+                    atr_dprintERROR("Intersection count exceeds allocated amount (%u), increse this number.", 256);
+                    return ATR_FAIL;
+                }
+                intersection_xs[intersection_xs_count++] = x2;
+                intersection_dy_dts[intersection_dy_dts_count++] = der2;
             }
         }
-        if (intersection_xs.length == 0) continue;
+        if (intersection_xs_count == 0) continue;
 
-        for (size_t i = 1; i < intersection_xs.length; i++) {
-            atr_real x = intersection_xs.elements[i];
-            atr_real derivative = intersection_dy_dts.elements[i];
+        for (size_t i = 1; i < intersection_xs_count; i++) {
+            atr_real x = intersection_xs[i];
+            atr_real derivative = intersection_dy_dts[i];
 
             size_t j = i;
-            while (j > 0 && intersection_xs.elements[j - 1] > x) {
-                intersection_xs.elements[j] = intersection_xs.elements[j - 1];
-                intersection_dy_dts.elements[j] = intersection_dy_dts.elements[j - 1];
+            while (j > 0 &&
+                intersection_xs[j - 1] > x) {
+                intersection_xs[j] = intersection_xs[j - 1];
+                intersection_dy_dts[j] = intersection_dy_dts[j - 1];
                 j--;
             }
 
-            intersection_xs.elements[j] = x;
-            intersection_dy_dts.elements[j] = derivative;
+            intersection_xs[j] = x;
+            intersection_dy_dts[j] = derivative;
         }
 
         int winding = 0;
         size_t x_index = 0;
 
-        while (x_index < intersection_xs.length) {
-            atr_real x_left = intersection_xs.elements[x_index];
-            while (x_index < intersection_xs.length && ATR_IS_ZERO(intersection_xs.elements[x_index] - x_left)) {
-                atr_real derivative = intersection_dy_dts.elements[x_index];
+        while (x_index < intersection_xs_count) {
+            atr_real x_left = intersection_xs[x_index];
+            while (x_index < intersection_xs_count && ATR_IS_ZERO(intersection_xs[x_index] - x_left)) {
+                atr_real derivative = intersection_dy_dts[x_index];
                 winding += derivative > 0 ? 1 : -1;
                 x_index++;
             }
 
-            if (x_index >= intersection_xs.length) {
+            if (x_index >= intersection_xs_count) {
                 break;
             }
 
-            atr_real x_right = intersection_xs.elements[x_index];
+            atr_real x_right = intersection_xs[x_index];
             if (winding != 0 && x_right > x_left) {
                 atr_line_horiz_draw(screen, x_left, x_right, scan_y, color, offzoom);
             }
@@ -2431,89 +2475,115 @@ ATR_DEF enum Atr_Return_Types atr_quadratic_bezier_array_fill(struct Atr_Pixel_B
         }
     }
 
-    ATR_FREE(intersection_xs.elements);
-    ATR_FREE(intersection_dy_dts.elements);
-
     return ATR_SUCCESS;
 }
 
-ATR_DEF enum Atr_Return_Types atr_quadratic_bezier_array_fill_no_antialiasing(struct Atr_Pixel_Buffer screen, struct Atr_Glyph_Point *points, size_t points_count, uint32_t color, struct Atr_Offset_Zoom offzoom)
+ATR_DEF enum Atr_Return_Types atr_quadratic_bezier_array_fill_no_antialiasing(struct Atr_Pixel_Buffer screen, struct Atr_Glyph_Point *points, size_t points_count, struct Atr_Glyph_Transform transform, uint32_t color, struct Atr_Offset_Zoom offzoom)
 {
+    ATR_ASSERT(points);
     ATR_ASSERT(points_count % 3 == 0);
 
-    atr_real glyph_y_max = -ATR_INFINITY;
-    atr_real glyph_y_min = ATR_INFINITY;
+    if (points_count == 0) {
+        return ATR_SUCCESS;
+    }
+    if (ATR_IS_ZERO(transform.scale_y)) {
+        atr_dprintERROR("A horizontal scanline cannot be mapped back to the source curve if scale_y is zero. Got %f", transform.scale_y);
+        return ATR_FAIL;
+    }
 
-    // atr_dprintINFO("%zu", points_count);
-    for (size_t i = 0; i < points_count; i++) {
-        if (points[i].pos.y > glyph_y_max) {
-            glyph_y_max = points[i].pos.y;
+    /*
+     * Find the transformed vertical bounds.
+     *
+     * scale_y may be negative because TrueType coordinates usually increase
+     * upward while screen coordinates increase downward.
+     */
+    atr_real glyph_y_min = ATR_INFINITY;
+    atr_real glyph_y_max = -ATR_INFINITY;
+
+    for (size_t i = 0; i < points_count; ++i) {
+        struct Atr_Vec2 trans_point = atr_vec2_linear_transform(points[i].pos, transform.scale_x, 0, 0, transform.scale_y, transform.translate_x, transform.translate_y);
+        atr_real transformed_y = trans_point.y;
+        if (transformed_y < glyph_y_min) {
+            glyph_y_min = transformed_y;
         }
-        if (points[i].pos.y < glyph_y_min) {
-            glyph_y_min = points[i].pos.y;
+        if (transformed_y > glyph_y_max) {
+            glyph_y_max = transformed_y;
         }
     }
 
-    struct Atr_Real_Dynamic_Array intersection_xs = {0};
-    atr_ada_init_array(atr_real, intersection_xs);
-    struct Atr_Real_Dynamic_Array intersection_dy_dts = {0};
-    atr_ada_init_array(atr_real, intersection_dy_dts);
-    // atr_dprintINFO("[%f, %f]", glyph_y_min, glyph_y_max);
+    atr_real intersection_xs[256]; size_t intersection_xs_count = 0;
+    atr_real intersection_dy_dts[256]; size_t intersection_dy_dts_count = 0;
     int first_row = (int)atr_floor(glyph_y_min);
     int last_row = (int)atr_ceil(glyph_y_max);
     for (int iy = first_row; iy < last_row; ++iy) {
         atr_real scan_y = (atr_real)iy + (atr_real)0.5;
-        intersection_xs.length = 0;
-        intersection_dy_dts.length = 0;
+        /**
+         * Convert the destination scanline back into glyph coordinates:
+         *     screen_y = offset_y + scale_y * glyph_y
+         *     glyph_y = (screen_y - offset_y) / scale_y
+         */
+        atr_real source_scan_y = (scan_y - transform.translate_y) / transform.scale_y;
+        intersection_xs_count = 0;
+        intersection_dy_dts_count = 0;
         for (size_t i = 0; i + 2 < points_count; i += 3) {
             struct Atr_Glyph_Point start = points[i + 0];
             struct Atr_Glyph_Point control = points[i + 1];
             struct Atr_Glyph_Point end = points[i + 2];
-            atr_real x1, x2, der1, der2;
-            size_t intersection_count = atr_quadratic_bezier_get_xs_from_y(start, control, end, scan_y, &x1, &x2, &der1, &der2);
+            atr_real x1 = 0, x2 = 0, der1 = 0, der2 = 0;
+            size_t intersection_count = atr_quadratic_bezier_get_xs_from_y(start, control, end, source_scan_y, transform.scale_y, &x1, &x2, &der1, &der2);
             if (intersection_count >= 1) {
-                atr_ada_append(atr_real, intersection_xs, x1);
-                atr_ada_append(atr_real, intersection_dy_dts, der1);
+                x1 = transform.translate_x + transform.scale_x * x1;
+                if (intersection_xs_count >= 256) {
+                    atr_dprintERROR("Intersection count exceeds allocated amount (%u), increse this number.", 256);
+                    return ATR_FAIL;
+                }
+                intersection_xs[intersection_xs_count++] = x1;
+                intersection_dy_dts[intersection_dy_dts_count++] = der1;
             }
             if (intersection_count >= 2) {
-                atr_ada_append(atr_real, intersection_xs, x2);
-                atr_ada_append(atr_real, intersection_dy_dts, der2);
+                x2 = transform.translate_x + transform.scale_x * x2;
+                if (intersection_xs_count >= 256) {
+                    atr_dprintERROR("Intersection count exceeds allocated amount (%u), increse this number.", 256);
+                    return ATR_FAIL;
+                }
+                intersection_xs[intersection_xs_count++] = x2;
+                intersection_dy_dts[intersection_dy_dts_count++] = der2;
             }
         }
-        if (intersection_xs.length == 0) continue;
+        if (intersection_xs_count == 0) continue;
 
-        for (size_t i = 1; i < intersection_xs.length; i++) {
-            atr_real x = intersection_xs.elements[i];
-            atr_real derivative = intersection_dy_dts.elements[i];
+        for (size_t i = 1; i < intersection_xs_count; i++) {
+            atr_real x = intersection_xs[i];
+            atr_real derivative = intersection_dy_dts[i];
 
             size_t j = i;
             while (j > 0 &&
-                intersection_xs.elements[j - 1] > x) {
-                intersection_xs.elements[j] = intersection_xs.elements[j - 1];
-                intersection_dy_dts.elements[j] = intersection_dy_dts.elements[j - 1];
+                intersection_xs[j - 1] > x) {
+                intersection_xs[j] = intersection_xs[j - 1];
+                intersection_dy_dts[j] = intersection_dy_dts[j - 1];
                 j--;
             }
 
-            intersection_xs.elements[j] = x;
-            intersection_dy_dts.elements[j] = derivative;
+            intersection_xs[j] = x;
+            intersection_dy_dts[j] = derivative;
         }
 
         int winding = 0;
         size_t x_index = 0;
 
-        while (x_index < intersection_xs.length) {
-            atr_real x_left = intersection_xs.elements[x_index];
-            while (x_index < intersection_xs.length && ATR_IS_ZERO(intersection_xs.elements[x_index] - x_left)) {
-                atr_real derivative = intersection_dy_dts.elements[x_index];
+        while (x_index < intersection_xs_count) {
+            atr_real x_left = intersection_xs[x_index];
+            while (x_index < intersection_xs_count && ATR_IS_ZERO(intersection_xs[x_index] - x_left)) {
+                atr_real derivative = intersection_dy_dts[x_index];
                 winding += derivative > 0 ? 1 : -1;
                 x_index++;
             }
 
-            if (x_index >= intersection_xs.length) {
+            if (x_index >= intersection_xs_count) {
                 break;
             }
 
-            atr_real x_right = intersection_xs.elements[x_index];
+            atr_real x_right = intersection_xs[x_index];
             if (winding != 0 && x_right > x_left) {
                 atr_line_horiz_draw_no_antialiasing(screen, x_left, x_right, scan_y, color, offzoom);
             }
@@ -2523,9 +2593,6 @@ ATR_DEF enum Atr_Return_Types atr_quadratic_bezier_array_fill_no_antialiasing(st
             return ATR_FAIL;
         }
     }
-
-    ATR_FREE(intersection_xs.elements);
-    ATR_FREE(intersection_dy_dts.elements);
 
     return ATR_SUCCESS;
 }
@@ -2567,7 +2634,7 @@ ATR_DEF void atr_quadratic_bezier_draw(struct Atr_Pixel_Buffer pixels, struct At
     atr_circle_fill_high_quality(pixels, control.pos.x, control.pos.y, 1, 0xFFFF0000, offzoom);
 }
 
-ATR_DEF size_t atr_quadratic_bezier_get_xs_from_y(struct Atr_Glyph_Point start, struct Atr_Glyph_Point control, struct Atr_Glyph_Point end, atr_real y, atr_real *x1, atr_real *x2, atr_real *dy_dt1, atr_real *dy_dt2)
+ATR_DEF size_t atr_quadratic_bezier_get_xs_from_y(struct Atr_Glyph_Point start, struct Atr_Glyph_Point control, struct Atr_Glyph_Point end, atr_real y, atr_real y_scale, atr_real *x1, atr_real *x2, atr_real *dy_dt1, atr_real *dy_dt2)
 {
     /* Fine tuning by AI */
     atr_real dx12 = control.pos.x - start.pos.x;
@@ -2651,24 +2718,26 @@ ATR_DEF size_t atr_quadratic_bezier_get_xs_from_y(struct Atr_Glyph_Point start, 
             continue;
         }
 
-        atr_real derivative = (atr_real)2 * a * t + b;
+        atr_real source_derivative = (atr_real)2 * a * t + b;
 
-        if ((at_start || at_end) && atr_fabs(derivative) <= root_tolerance) {
+        if ((at_start || at_end) && atr_fabs(source_derivative) <= root_tolerance) {
             /*
             * Use the one-sided direction when the endpoint has a horizontal
             * tangent.
             */
-            derivative = at_start ? a : -a;
+            source_derivative = at_start ? a : -a;
         }
 
-        if (!at_start && !at_end && derivative == (atr_real)0) {
+        if (!at_start && !at_end && source_derivative == (atr_real)0) {
             /*
             * A stationary interior root is a tangency rather than a crossing.
             */
             continue;
         }
 
-        if (!atr_quadratic_bezier_root_is_crossing(at_start, at_end, derivative)) {
+        atr_real destination_derivative = y_scale * source_derivative;
+
+        if (!atr_quadratic_bezier_root_is_crossing(at_start, at_end, destination_derivative)) {
             continue;
         }
 
@@ -2678,14 +2747,14 @@ ATR_DEF size_t atr_quadratic_bezier_get_xs_from_y(struct Atr_Glyph_Point start, 
                 *x1 = x;
             }
             if (dy_dt1 != NULL) {
-                *dy_dt1 = derivative;
+                *dy_dt1 = destination_derivative;
             }
         } else {
             if (x2 != NULL) {
                 *x2 = x;
             }
             if (dy_dt2 != NULL) {
-                *dy_dt2 = derivative;
+                *dy_dt2 = destination_derivative;
             }
         }
 
@@ -3905,26 +3974,24 @@ ATR_DEF struct Atr_Vec2 atr_text_line_draw(struct Atr_Pixel_Buffer screen, struc
         atr_real y_offset = pen_y;
 
         struct Atr_Glyph_Point_Dynamic_Array glyph_points = {0};
-        struct Atr_Glyph_Point_Dynamic_Array glyph_points_temp = {0};
         if (g.metadata.numberOfContours >= 0) {
             glyph_points = g.simple.points;
-            glyph_points_temp = g.simple.points_temp_for_resizing;
         } else {
             glyph_points = g.compound.points;
-            glyph_points_temp = g.compound.points_temp_for_resizing;
-        }
-        for (size_t i = 0; i <glyph_points.length; i++ ) {
-            struct Atr_Glyph_Point point = glyph_points.elements[i];
-            glyph_points_temp.elements[i] = (struct Atr_Glyph_Point){
-                .flag = point.flag,
-                .pos.x = x_origin + x_offset + point.pos.x * scale,
-                .pos.y = y_origin + y_offset - point.pos.y * scale,
-            };
         }
 
-        if (ATR_FAIL == atr_quadratic_bezier_array_fill(screen, glyph_points_temp.elements, glyph_points_temp.length, color, offzoom)) {
-            atr_dprintERROR("Failed to raseter the letter %c. x_origin = %10.10f, y_origin = %f", (char)c, x_origin, y_origin);
-            ATR_ASSERT(0);
+        struct Atr_Glyph_Transform transform = {
+            .scale_x =  scale,
+            .scale_y = -scale,
+            .translate_x = x_origin + x_offset,
+            .translate_y = y_origin + y_offset
+        };
+
+        if (glyph_points.length > 0) {
+            if (ATR_FAIL == atr_quadratic_bezier_array_fill(screen, glyph_points.elements, glyph_points.length, transform, color, offzoom)) {
+                atr_dprintERROR("Failed to raseter the letter %c. x_origin = %10.10f, y_origin = %f", (char)c, x_origin, y_origin);
+                ATR_ASSERT(0);
+            }
         }
 
         pen_x += letter_spacing + (advenceWidth) * scale;
@@ -3988,26 +4055,24 @@ ATR_DEF struct Atr_Vec2 atr_text_line_draw_no_antialiasing(struct Atr_Pixel_Buff
         atr_real y_offset = pen_y;
 
         struct Atr_Glyph_Point_Dynamic_Array glyph_points = {0};
-        struct Atr_Glyph_Point_Dynamic_Array glyph_points_temp = {0};
         if (g.metadata.numberOfContours >= 0) {
             glyph_points = g.simple.points;
-            glyph_points_temp = g.simple.points_temp_for_resizing;
         } else {
             glyph_points = g.compound.points;
-            glyph_points_temp = g.compound.points_temp_for_resizing;
-        }
-        for (size_t i = 0; i < glyph_points.length; i++ ) {
-            struct Atr_Glyph_Point point = glyph_points.elements[i];
-            glyph_points_temp.elements[i] = (struct Atr_Glyph_Point){
-                .flag = point.flag,
-                .pos.x = x_origin + x_offset + point.pos.x * scale,
-                .pos.y = y_origin + y_offset - point.pos.y * scale,
-            };
         }
 
-        if (ATR_FAIL == atr_quadratic_bezier_array_fill_no_antialiasing(screen, glyph_points_temp.elements, glyph_points_temp.length, color, offzoom)) {
-            atr_dprintERROR("Failed to raseter the letter %c. x_origin = %10.10f, y_origin = %f", (char)c, x_origin, y_origin);
-            ATR_ASSERT(0);
+        struct Atr_Glyph_Transform transform = {
+            .scale_x =  scale,
+            .scale_y = -scale,
+            .translate_x = x_origin + x_offset,
+            .translate_y = y_origin + y_offset
+        };
+
+        if (glyph_points.length > 0) {
+            if (ATR_FAIL == atr_quadratic_bezier_array_fill_no_antialiasing(screen, glyph_points.elements, glyph_points.length, transform, color, offzoom)) {
+                atr_dprintERROR("Failed to raseter the letter %c. x_origin = %10.10f, y_origin = %f", (char)c, x_origin, y_origin);
+                ATR_ASSERT(0);
+            }
         }
 
         pen_x += letter_spacing + (advenceWidth) * scale;
@@ -4073,24 +4138,25 @@ ATR_DEF struct Atr_Vec2 atr_text_line_draw_outline(struct Atr_Pixel_Buffer scree
         struct Atr_Glyph_Point_Dynamic_Array glyph_points_temp = {0};
         if (g.metadata.numberOfContours >= 0) {
             glyph_points = g.simple.points;
-            glyph_points_temp = g.simple.points_temp_for_resizing;
         } else {
             glyph_points = g.compound.points;
-            glyph_points_temp = g.compound.points_temp_for_resizing;
-        }
-        for (size_t i = 0; i < glyph_points.length; i++ ) {
-            struct Atr_Glyph_Point point = glyph_points.elements[i];
-            glyph_points_temp.elements[i] = (struct Atr_Glyph_Point){
-                .flag = point.flag,
-                .pos.x = x_origin + x_offset + point.pos.x * scale,
-                .pos.y = y_origin + y_offset - point.pos.y * scale,
-            };
         }
 
+        struct Atr_Glyph_Transform transform = {
+            .scale_x =  scale,
+            .scale_y = -scale,
+            .translate_x = x_origin + x_offset,
+            .translate_y = y_origin + y_offset
+        };
+
         for (size_t i = 0; i + 2 < glyph_points_temp.length; i += 3) {
-            struct Atr_Glyph_Point start = glyph_points_temp.elements[i + 0];
-            struct Atr_Glyph_Point control = glyph_points_temp.elements[i + 1];
-            struct Atr_Glyph_Point end = glyph_points_temp.elements[i + 2];
+            struct Atr_Glyph_Point start = glyph_points.elements[i + 0];
+            start.pos = atr_vec2_linear_transform(start.pos, transform.scale_x, 0, 0, transform.scale_y, transform.translate_x, transform.translate_y);
+            struct Atr_Glyph_Point control = glyph_points.elements[i + 0];
+            control.pos = atr_vec2_linear_transform(control.pos, transform.scale_x, 0, 0, transform.scale_y, transform.translate_x, transform.translate_y);
+            struct Atr_Glyph_Point end = glyph_points.elements[i + 0];
+            end.pos = atr_vec2_linear_transform(start.pos, transform.scale_x, 0, 0, transform.scale_y, transform.translate_x, transform.translate_y);
+        
             atr_quadratic_bezier_draw(screen, start, control, end, color, offzoom);
         }
 
