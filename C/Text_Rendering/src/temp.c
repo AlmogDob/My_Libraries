@@ -7,7 +7,7 @@
 #define APL_INPUT
 #define APL_DESTROY
 
-#define AMD_MEMORY_DEBUG
+// #define AMD_MEMORY_DEBUG
 #define ALMOG_MEMORY_DEBUG_IMPLEMENTATION
 #include "includes/Almog_Memory_Debug.h"
 
@@ -39,9 +39,6 @@ enum Apl_Return_Types apl_setup(struct Apl_Window_State *ws)
         atr_dprintERROR("Failed to load font from file '%s'.", font_file_name);
         return APL_FAIL;
     }
-    // for (size_t i = 0; i < font.tables.name.nameRecord_count; i++) {
-    //     atr_dprintINFO("platformID: %u | platformSpecificID: %u.", font.tables.name.nameRecord[i].platformID, font.tables.name.nameRecord[i].platformSpecificID);
-    // }
 
     if (AMD_FAIL == amd_debug_mem()) {
         amd_dprintERROR("%s", "Corrupted memory detected.");
