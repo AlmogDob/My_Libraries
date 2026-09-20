@@ -635,6 +635,7 @@ static uint8_t atr_bytes_for_utf8[] = {
 
 #define atr_min(a, b) ((a) < (b) ? (a) : (b))
 #define atr_max(a, b) ((a) > (b) ? (a) : (b))
+#define atr_clamp(x, min, max) (atr_max(atr_min((x), (max)), (min)))
 #define ATR_IS_ZERO(x) (atr_fabs(x) < ATR_EPS)
 #define ATR_BUFFER_AT(m, i, j) (m).elements[(ATR_ASSERT((i) < (m).rows && (j) < (m).cols), (i) * (m).stride_r + (j))]
 #define ATR_UNUSED(x) ((void)x)
@@ -713,6 +714,7 @@ ATR_DEF void                        atr_pixel_draw(struct Atr_Pixel_Buffer scree
 
 ATR_DEF enum Atr_Return_Types       atr_quadratic_bezier_array_fill(struct Atr_Pixel_Buffer screen, struct Atr_Glyph_Point *points, size_t points_count, struct Atr_Glyph_Transform transform, uint32_t color, struct Atr_Offset_Zoom offzoom);
 ATR_DEF enum Atr_Return_Types       atr_quadratic_bezier_array_fill_no_antialiasing(struct Atr_Pixel_Buffer screen, struct Atr_Glyph_Point *points, size_t points_count, struct Atr_Glyph_Transform transform, uint32_t color, struct Atr_Offset_Zoom offzoom);
+ATR_DEF void                        atr_quadratic_bezier_get_bbox(struct Atr_Glyph_Point start, struct Atr_Glyph_Point control, struct Atr_Glyph_Point end, struct Atr_Vec2 *top_left, struct Atr_Vec2 *bottom_right);
 ATR_DEF void                        atr_quadratic_bezier_draw(struct Atr_Pixel_Buffer pixels, struct Atr_Glyph_Point start, struct Atr_Glyph_Point control, struct Atr_Glyph_Point end, uint32_t color, struct Atr_Offset_Zoom offzoom);
 ATR_DEF size_t                      atr_quadratic_bezier_get_xs_from_y(struct Atr_Glyph_Point start, struct Atr_Glyph_Point control, struct Atr_Glyph_Point end, atr_real y, atr_real y_scale, atr_real *x1, atr_real *x2, atr_real *dy_dt1, atr_real *dy_dt2);
 ATR_DEF bool                        atr_quadratic_bezier_root_is_crossing(bool at_start, bool at_end, atr_real dy_dt);
@@ -2597,6 +2599,26 @@ ATR_DEF enum Atr_Return_Types atr_quadratic_bezier_array_fill_no_antialiasing(st
     return ATR_SUCCESS;
 }
 
+ATR_DEF void atr_quadratic_bezier_get_bbox(struct Atr_Glyph_Point start, struct Atr_Glyph_Point control, struct Atr_Glyph_Point end, struct Atr_Vec2 *top_left, struct Atr_Vec2 *bottom_right)
+{
+    /* from: https://iquilezles.org/articles/bezierbbox/ */
+
+    struct Atr_Vec2 p0 = start.pos, p1 = control.pos, p2 = end.pos;
+    atr_real ax = p0.x - (atr_real)2 * p1.x + p2.x;
+    atr_real bx = p1.x - p0.x;
+    atr_real tx = atr_clamp(- bx / ax, (atr_real)0, (atr_real)1);
+    atr_real qx = p0.x + tx * ((atr_real)2 * bx + tx * ax); 
+    if (top_left) top_left->x = atr_min(atr_min(p0.x, p2.x), qx);
+    if (bottom_right) bottom_right->x = atr_max(atr_max(p0.x, p2.x), qx);
+
+    atr_real ay = p0.y - (atr_real)2 * p1.y + p2.y;
+    atr_real by = p1.y - p0.y;
+    atr_real ty = atr_clamp(- by / ay, (atr_real)0, (atr_real)1);
+    atr_real qy = p0.y + ty * ((atr_real)2 * by + ty * ay); 
+    if (top_left) top_left->y = atr_min(atr_min(p0.y, p2.y), qy);
+    if (bottom_right) bottom_right->y = atr_max(atr_max(p0.y, p2.y), qy);
+}
+
 ATR_DEF void atr_quadratic_bezier_draw(struct Atr_Pixel_Buffer pixels, struct Atr_Glyph_Point start, struct Atr_Glyph_Point control, struct Atr_Glyph_Point end, uint32_t color, struct Atr_Offset_Zoom offzoom)
 {
     /*
@@ -2636,6 +2658,15 @@ ATR_DEF void atr_quadratic_bezier_draw(struct Atr_Pixel_Buffer pixels, struct At
 
 ATR_DEF size_t atr_quadratic_bezier_get_xs_from_y(struct Atr_Glyph_Point start, struct Atr_Glyph_Point control, struct Atr_Glyph_Point end, atr_real y, atr_real y_scale, atr_real *x1, atr_real *x2, atr_real *dy_dt1, atr_real *dy_dt2)
 {
+    struct Atr_Vec2 top_left, bottom_right;
+    atr_quadratic_bezier_get_bbox(start, control, end, &top_left, &bottom_right);
+    if (y < top_left.y) {
+        return 0;
+    }
+    if (y > bottom_right.y) {
+        return 0;
+    }
+
     /* Fine tuning by AI */
     atr_real dx12 = control.pos.x - start.pos.x;
     atr_real dx23 = end.pos.x     - control.pos.x;
@@ -3772,9 +3803,9 @@ ATR_DEF enum Atr_Return_Types atr_table_OS_2_parse(struct Atr_Font *font, struct
     br.file.cursor = OS_2_header.offset;
 
     font->tables.OS_2.header = OS_2_header;
-    atr_dprintINT(font->tables.OS_2.header.length);
+    // atr_dprintINT(font->tables.OS_2.header.length);
     font->tables.OS_2.version                             = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2)); 
-    atr_dprintINFO("OS/2 table version: %u", font->tables.OS_2.version);
+    // atr_dprintINFO("OS/2 table version: %u", font->tables.OS_2.version);
     if (font->tables.OS_2.version == 0) {
         font->tables.OS_2.version_0.xAvgCharWidth         = (int16_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2)); 
         font->tables.OS_2.version_0.usWeightClass         = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2)); 
