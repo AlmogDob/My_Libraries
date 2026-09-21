@@ -9,15 +9,15 @@
 
 // #define AMD_MEMORY_DEBUG
 #define ALMOG_MEMORY_DEBUG_IMPLEMENTATION
-#include "includes/Almog_Memory_Debug.h"
+#include "../includes/Almog_Memory_Debug.h"
 
 #define APL_ATR_SINGLE_PRECISION
 #define APL_ATR_BRIDGE_IMPLEMENTATION
-#include "includes/APL_ATR_BRIDGE.h"
+#include "../includes/APL_ATR_BRIDGE.h"
 #define ALMOG_PLATFORM_LIBRARY_IMPLEMENTATION
-#include "includes/Almog_Platform_Library.h"
+#include "../includes/Almog_Platform_Library.h"
 #define ALMOG_TEXT_RENDERING_IMPLEMENTATION
-#include "includes/Almog_Text_Rendering.h"
+#include "../includes/Almog_Text_Rendering.h"
 
 
 struct Atr_Offset_Zoom offzoom = {0};
@@ -31,8 +31,8 @@ enum Apl_Return_Types apl_setup(struct Apl_Window_State *ws)
     offzoom = ATR_DEFAULT_OFFSET_ZOOM;
 
     /* english */
-    // char font_file_name[] = "../src/fonts/BLKCHCRY.ttf";
-    char font_file_name[] = "../src/fonts/Canterbury.ttf";
+    char font_file_name[] = "../src/fonts/BLKCHCRY.ttf";
+    // char font_file_name[] = "../src/fonts/Canterbury.ttf";
     // char font_file_name[] = "../src/fonts/Inconsolata-Regular.ttf";
     // char font_file_name[] = "../src/fonts/Symbola.ttf";
 
@@ -71,10 +71,10 @@ enum Apl_Return_Types apl_render(struct Apl_Window_State *ws)
     atr_text_line_draw_no_antialiasing(font_pixels, &font, (uint8_t *)str1, top_left_x, top_left_y * 1 + v1.y, letter_hight, spacing, 0xFFFFFFFF, (int)str1_length, offzoom);
     atr_text_line_draw_outline(font_pixels, &font, (uint8_t *)str1, top_left_x, top_left_y * 1 + v1.y * 2, letter_hight, spacing, 0xFFFFFFFF, (int)str1_length, offzoom);
     struct Atr_Vec2 br = atr_text_line_get_bottom_right(&font, (uint8_t *)str1, top_left_x, top_left_y + v1.y * 2, letter_hight, spacing, (int)str1_length);
-    atr_line_draw(font_pixels, top_left_x, top_left_y, br.x, top_left_y, 0xFFFFFF00, offzoom);
-    atr_line_draw(font_pixels, top_left_x, top_left_y, top_left_x, br.y, 0xFFFFFF00, offzoom);
-    atr_line_draw(font_pixels, br.x, br.y, top_left_x, br.y, 0xFFFFFF00, offzoom);
-    atr_line_draw(font_pixels, br.x, br.y, br.x, top_left_y, 0xFFFFFF00, offzoom);
+    atr_line_draw_no_antialiasing(font_pixels, top_left_x, top_left_y, br.x, top_left_y, 0xFFFFFF00, offzoom);
+    atr_line_draw_no_antialiasing(font_pixels, top_left_x, top_left_y, top_left_x, br.y, 0xFFFFFF00, offzoom);
+    atr_line_draw_no_antialiasing(font_pixels, br.x, br.y, top_left_x, br.y, 0xFFFFFF00, offzoom);
+    atr_line_draw_no_antialiasing(font_pixels, br.x, br.y, br.x, top_left_y, 0xFFFFFF00, offzoom);
 
     // return APL_FAIL;
     ws->to_update = true;

@@ -749,6 +749,7 @@ ATR_DEF enum Atr_Return_Types       atr_table_post_parse(struct Atr_Font *font, 
 ATR_DEF struct Atr_Vec2             atr_text_line_draw(struct Atr_Pixel_Buffer screen, struct Atr_Font *font, uint8_t *text, atr_real top_left_x, atr_real top_left_y, atr_real letter_hight, atr_real letter_spacing, uint32_t color, int length, struct Atr_Offset_Zoom offzoom);
 ATR_DEF struct Atr_Vec2             atr_text_line_draw_no_antialiasing(struct Atr_Pixel_Buffer screen, struct Atr_Font *font, uint8_t *text, atr_real top_left_x, atr_real top_left_y, atr_real letter_hight, atr_real letter_spacing, uint32_t color, int length, struct Atr_Offset_Zoom offzoom);
 ATR_DEF struct Atr_Vec2             atr_text_line_draw_outline(struct Atr_Pixel_Buffer screen, struct Atr_Font *font, uint8_t *text, atr_real top_left_x, atr_real top_left_y, atr_real letter_hight, atr_real letter_spacing, uint32_t color, int length, struct Atr_Offset_Zoom offzoom);
+ATR_DEF struct Atr_Vec2             atr_text_line_get_bottom_right(struct Atr_Font *font, uint8_t *text, atr_real top_left_x, atr_real top_left_y, atr_real letter_hight, atr_real letter_spacing, int length);
 
 ATR_DEF uint8_t                     atr_u8_clamp_int(int x);
                                     #define atr_uint16_print_binary(value, bit_count) atr_dprintINFO("%s = ", #value); printf("%*.s", 7, ""); atr_uint16_print_binary_imp((value), (bit_count))
@@ -3962,33 +3963,10 @@ ATR_DEF struct Atr_Vec2 atr_text_line_draw(struct Atr_Pixel_Buffer screen, struc
         length = (int)utf8_len;
     }
 
-    atr_real glyph_y_max = -ATR_INFINITY;
-    atr_real glyph_y_min = ATR_INFINITY;
-    bool has_drawable_glyph = false;
-    size_t consumed = 0;
-    for (size_t text_index = 0, char_index = 0; text_index < text_byte_count && char_index < length; text_index += consumed, char_index++) {
-        uint32_t c = atr_utf8_decode_next_code_point(text + text_index, text_byte_count - text_index, &consumed);
-        // if (c == ' ') {
-        //     continue;
-        // }
-        struct Atr_Glyph g = font->tables.glyf.glyphs[atr_glyphIndex_get(font, c)];
-        if (g.metadata.yMax > glyph_y_max) {
-            glyph_y_max = g.metadata.yMax;
-        }
-        if (g.metadata.yMin < glyph_y_min) {
-            glyph_y_min = g.metadata.yMin;
-        }
-        has_drawable_glyph = true;
-    }
-    if (!has_drawable_glyph) {
-        return (struct Atr_Vec2){.x = 0, .y = 0};
-    }
-
     atr_real scale = atr_scale_get_for_em(font, letter_hight);
     atr_real pen_x = 0;
     atr_real pen_y = font->tables.hhea.ascent * scale;
-    // atr_dprintINFO("glyph y max: %f | ascent: %u", glyph_y_max, font->tables.hhea.ascent);
-    for (size_t text_index = 0, char_index = 0; text_index < text_byte_count && char_index < length; text_index += consumed, char_index++) {
+    for (size_t text_index = 0, char_index = 0, consumed = 0; text_index < text_byte_count && char_index < length; text_index += consumed, char_index++) {
         uint32_t c = atr_utf8_decode_next_code_point(text + text_index, text_byte_count - text_index, &consumed);
         uint32_t glyph_index = atr_glyphIndex_get(font, c);
 
@@ -4000,9 +3978,9 @@ ATR_DEF struct Atr_Vec2 atr_text_line_draw(struct Atr_Pixel_Buffer screen, struc
 
         struct Atr_Glyph g = font->tables.glyf.glyphs[glyph_index];
         atr_real x_origin = top_left_x + pen_x;
-        atr_real y_origin = top_left_y;
+        atr_real y_origin = top_left_y + pen_y;
         atr_real x_offset = 0;
-        atr_real y_offset = pen_y;
+        atr_real y_offset = 0;
 
         struct Atr_Glyph_Point_Dynamic_Array glyph_points = {0};
         if (g.metadata.numberOfContours >= 0) {
@@ -4028,7 +4006,6 @@ ATR_DEF struct Atr_Vec2 atr_text_line_draw(struct Atr_Pixel_Buffer screen, struc
         pen_x += letter_spacing + (advenceWidth) * scale;
     }
 
-
     return (struct Atr_Vec2){
         .x = pen_x,
         .y = (font->tables.hhea.ascent - font->tables.hhea.descent + font->tables.hhea.lineGap) * scale,
@@ -4046,30 +4023,10 @@ ATR_DEF struct Atr_Vec2 atr_text_line_draw_no_antialiasing(struct Atr_Pixel_Buff
         length = (int)utf8_len;
     }
 
-    atr_real glyph_y_max = -ATR_INFINITY;
-    atr_real glyph_y_min = ATR_INFINITY;
-    bool has_drawable_glyph = false;
-    size_t consumed = 0;
-    for (size_t text_index = 0, char_index = 0; text_index < text_byte_count && char_index < length; text_index += consumed, char_index++) {
-        uint32_t c = atr_utf8_decode_next_code_point(text + text_index, text_byte_count - text_index, &consumed);
-        size_t glyph_index = atr_glyphIndex_get(font, c);
-        struct Atr_Glyph g = font->tables.glyf.glyphs[glyph_index];
-        if (g.metadata.yMax > glyph_y_max) {
-            glyph_y_max = g.metadata.yMax;
-        }
-        if (g.metadata.yMin < glyph_y_min) {
-            glyph_y_min = g.metadata.yMin;
-        }
-        has_drawable_glyph = true;
-    }
-    if (!has_drawable_glyph) {
-        return (struct Atr_Vec2){.x = 0, .y = 0};
-    }
-
     atr_real scale = atr_scale_get_for_em(font, letter_hight);
     atr_real pen_x = 0;
     atr_real pen_y = font->tables.hhea.ascent * scale;
-    for (size_t text_index = 0, char_index = 0; text_index < text_byte_count && char_index < length; text_index += consumed, char_index++) {
+    for (size_t text_index = 0, char_index = 0, consumed = 0; text_index < text_byte_count && char_index < length; text_index += consumed, char_index++) {
         uint32_t c = atr_utf8_decode_next_code_point(text + text_index, text_byte_count - text_index, &consumed);
         uint32_t glyph_index = atr_glyphIndex_get(font, c);
 
@@ -4081,9 +4038,9 @@ ATR_DEF struct Atr_Vec2 atr_text_line_draw_no_antialiasing(struct Atr_Pixel_Buff
 
         struct Atr_Glyph g = font->tables.glyf.glyphs[glyph_index];
         atr_real x_origin = top_left_x + pen_x;
-        atr_real y_origin = top_left_y;
+        atr_real y_origin = top_left_y + pen_y;
         atr_real x_offset = 0;
-        atr_real y_offset = pen_y;
+        atr_real y_offset = 0;
 
         struct Atr_Glyph_Point_Dynamic_Array glyph_points = {0};
         if (g.metadata.numberOfContours >= 0) {
@@ -4109,7 +4066,6 @@ ATR_DEF struct Atr_Vec2 atr_text_line_draw_no_antialiasing(struct Atr_Pixel_Buff
         pen_x += letter_spacing + (advenceWidth) * scale;
     }
 
-
     return (struct Atr_Vec2){
         .x = pen_x,
         .y = (font->tables.hhea.ascent - font->tables.hhea.descent + font->tables.hhea.lineGap) * scale,
@@ -4127,29 +4083,10 @@ ATR_DEF struct Atr_Vec2 atr_text_line_draw_outline(struct Atr_Pixel_Buffer scree
         length = (int)utf8_len;
     }
 
-    atr_real glyph_y_max = -ATR_INFINITY;
-    atr_real glyph_y_min = ATR_INFINITY;
-    bool has_drawable_glyph = false;
-    size_t consumed = 0;
-    for (size_t text_index = 0; text_index < text_byte_count; text_index += consumed) {
-        uint32_t c = atr_utf8_decode_next_code_point(text + text_index, text_byte_count - text_index, &consumed);
-        struct Atr_Glyph g = font->tables.glyf.glyphs[atr_glyphIndex_get(font, c)];
-        if (g.metadata.yMax > glyph_y_max) {
-            glyph_y_max = g.metadata.yMax;
-        }
-        if (g.metadata.yMin < glyph_y_min) {
-            glyph_y_min = g.metadata.yMin;
-        }
-        has_drawable_glyph = true;
-    }
-    if (!has_drawable_glyph) {
-        return (struct Atr_Vec2){.x = 0, .y = 0};
-    }
-
     atr_real scale = atr_scale_get_for_em(font, letter_hight);
     atr_real pen_x = 0;
     atr_real pen_y = font->tables.hhea.ascent * scale;
-    for (size_t text_index = 0, char_index = 0; text_index < text_byte_count && char_index < length; text_index += consumed, char_index++) {
+    for (size_t text_index = 0, char_index = 0, consumed = 0; text_index < text_byte_count && char_index < length; text_index += consumed, char_index++) {
         uint32_t c = atr_utf8_decode_next_code_point(text + text_index, text_byte_count - text_index, &consumed);
         uint32_t glyph_index = atr_glyphIndex_get(font, c);
 
@@ -4161,12 +4098,11 @@ ATR_DEF struct Atr_Vec2 atr_text_line_draw_outline(struct Atr_Pixel_Buffer scree
 
         struct Atr_Glyph g = font->tables.glyf.glyphs[glyph_index];
         atr_real x_origin = top_left_x + pen_x;
-        atr_real y_origin = top_left_y;
+        atr_real y_origin = top_left_y + pen_y;
         atr_real x_offset = 0;
-        atr_real y_offset = pen_y;
+        atr_real y_offset = 0;
 
         struct Atr_Glyph_Point_Dynamic_Array glyph_points = {0};
-        struct Atr_Glyph_Point_Dynamic_Array glyph_points_temp = {0};
         if (g.metadata.numberOfContours >= 0) {
             glyph_points = g.simple.points;
         } else {
@@ -4180,13 +4116,13 @@ ATR_DEF struct Atr_Vec2 atr_text_line_draw_outline(struct Atr_Pixel_Buffer scree
             .translate_y = y_origin + y_offset
         };
 
-        for (size_t i = 0; i + 2 < glyph_points_temp.length; i += 3) {
+        for (size_t i = 0; i + 2 < glyph_points.length; i += 3) {
             struct Atr_Glyph_Point start = glyph_points.elements[i + 0];
             start.pos = atr_vec2_linear_transform(start.pos, transform.scale_x, 0, 0, transform.scale_y, transform.translate_x, transform.translate_y);
-            struct Atr_Glyph_Point control = glyph_points.elements[i + 0];
+            struct Atr_Glyph_Point control = glyph_points.elements[i + 1];
             control.pos = atr_vec2_linear_transform(control.pos, transform.scale_x, 0, 0, transform.scale_y, transform.translate_x, transform.translate_y);
-            struct Atr_Glyph_Point end = glyph_points.elements[i + 0];
-            end.pos = atr_vec2_linear_transform(start.pos, transform.scale_x, 0, 0, transform.scale_y, transform.translate_x, transform.translate_y);
+            struct Atr_Glyph_Point end = glyph_points.elements[i + 2];
+            end.pos = atr_vec2_linear_transform(end.pos, transform.scale_x, 0, 0, transform.scale_y, transform.translate_x, transform.translate_y);
         
             atr_quadratic_bezier_draw(screen, start, control, end, color, offzoom);
         }
@@ -4197,6 +4133,37 @@ ATR_DEF struct Atr_Vec2 atr_text_line_draw_outline(struct Atr_Pixel_Buffer scree
     return (struct Atr_Vec2){
         .x = pen_x,
         .y = (font->tables.hhea.ascent - font->tables.hhea.descent + font->tables.hhea.lineGap) * scale,
+    };
+}
+
+ATR_DEF struct Atr_Vec2 atr_text_line_get_bottom_right(struct Atr_Font *font, uint8_t *text, atr_real top_left_x, atr_real top_left_y, atr_real letter_hight, atr_real letter_spacing, int length)
+{
+    size_t text_byte_count = strlen((const char *)text);
+    size_t utf8_len = atr_utf8_length(text, text_byte_count);
+    if (utf8_len < length) {
+        length = (int)utf8_len;
+    }
+    if (length == -1) {
+        length = (int)utf8_len;
+    }
+
+    atr_real scale = atr_scale_get_for_em(font, letter_hight);
+    atr_real pen_x = 0;
+    for (size_t text_index = 0, char_index = 0, consumed = 0; text_index < text_byte_count && char_index < length; text_index += consumed, char_index++) {
+        uint32_t c = atr_utf8_decode_next_code_point(text + text_index, text_byte_count - text_index, &consumed);
+        uint32_t glyph_index = atr_glyphIndex_get(font, c);
+
+        uint16_t advenceWidth = 0;
+        if (ATR_FAIL == atr_hmtx_get_by_glyphIndex(font, glyph_index, &advenceWidth, NULL)) {
+            atr_dprintWARNING("Failed to get advence width and left side bearing for glyph at index %u", glyph_index);
+        }
+
+        pen_x += letter_spacing + (advenceWidth) * scale;
+    }
+
+    return (struct Atr_Vec2){
+        .x = top_left_x + pen_x,
+        .y = top_left_y + (font->tables.hhea.ascent - font->tables.hhea.descent + font->tables.hhea.lineGap) * scale,
     };
 }
 
