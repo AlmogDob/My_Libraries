@@ -61,7 +61,7 @@ enum Apl_Return_Types apl_setup(struct Apl_Window_State *ws)
 
 struct Apng_PNG_Image image = {0};
 size_t image_index = 0;
-const char *file_name[] = {
+char *file_name[] = {
     "../src/test_images/PngSuite/Basic-formats/basn0g01.png",
     "../src/test_images/PngSuite/Basic-formats/basn0g02.png",
     "../src/test_images/PngSuite/Basic-formats/basn0g04.png",
@@ -97,7 +97,7 @@ enum Apl_Return_Types apl_update(struct Apl_Window_State *ws)
     APL_UNUSED(ws);
 
     apng_png_free(&image);
-    if (APNG_FAIL == apng_png_load(file_name[image_index], &image, print_info)) {
+    if (APNG_FAIL == apng_png_load_from_file(file_name[image_index], &image, print_info)) {
         return APL_FAIL;
     }
     print_info = false;
@@ -115,7 +115,7 @@ enum Apl_Return_Types apl_render(struct Apl_Window_State *ws)
         for (size_t j = 0; j < image_pixels.cols; j++) {
             for (size_t u = 0; u < factor; u++) {
                 for (size_t v = 0; v < factor; v++) {
-                    adl_point_draw(window_pixels, (float)(j * factor + v), (float)(i * factor + u), MAT2D_AT_UINT32(image_pixels, i, j), ADL_DEFAULT_OFFSET_ZOOM);
+                    adl_point_draw(window_pixels, (float)(j * factor + v), (float)(i * factor + u), MAT2D_AT(image_pixels, i, j), ADL_DEFAULT_OFFSET_ZOOM);
                 }
             }
         }
@@ -143,14 +143,14 @@ enum Apl_Return_Types apl_input(struct Apl_Window_State *ws)
         // apl_dprintFLOAT(factor);
         ws->to_render = true;
     } else if (ws->buttons.up_is_pressed) {
-        apl_sleep(100e3);
+        apl_sleep((size_t)100e3);
         if (image_index < num_of_images - 1) {
             image_index++;
             print_info = true;
             ws->to_render = true;
         }
     } else if (ws->buttons.down_is_pressed) {
-        apl_sleep(100e3);
+        apl_sleep((size_t)100e3);
         if (image_index > 0) {
             image_index--;
             print_info = true;
