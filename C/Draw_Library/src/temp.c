@@ -6,12 +6,10 @@
 #define APL_UPDATE
 #define APL_RENDER
 
+#define ALMOG_DRAW_LIBRARY_IMPLEMENTATION
+#define ALMOG_PLATFORM_LIBRARY_IMPLEMENTATION
 #define APL_ADL_BRIDGE_IMPLEMENTATION
 #include "includes/APL_ADL_Bridge.h"
-#define ALMOG_DRAW_LIBRARY_IMPLEMENTATION
-#include "includes/Almog_Draw_Library.h"
-#define ALMOG_PLATFORM_LIBRARY_IMPLEMENTATION
-#include "includes/Almog_Platform_Library.h"
 
 
 struct Adl_Offset_Zoom offzoom = {0};
@@ -33,13 +31,15 @@ enum Apl_Return_Types apl_update(struct Apl_Window_State *ws)
     return APL_SUCCESS;
 }
 
+adl_real xe = 0, ye = 0, r = 1;
+
 enum Apl_Return_Types apl_render(struct Apl_Window_State *ws)
 {
     struct Adl_Pixel_Buffer pixels = apl_pixel_buffer_as_adl_pixel_buffer(ws->window_pixels_mat);
 
-    adl_real x = 200, y = 200, r = 150;
-
-    adl_circle_fill(pixels, x, y, r, ADL_COLOR_WHITE_hexARGB, offzoom);
+    // adl_line_draw_no_antialiasing(pixels, 400, 200, 100, 100, ADL_COLOR_CYAN_hexARGB, offzoom);
+    // adl_line_draw(pixels, 400, 300, 100, 200, ADL_COLOR_CYAN_hexARGB, offzoom);
+    adl_line_draw_width_rect(pixels, 400, 200, xe, ye, r, ADL_COLOR_CYAN_hexARGB, offzoom);
 
     return APL_SUCCESS;
 }
@@ -67,8 +67,14 @@ enum Apl_Return_Types apl_input(struct Apl_Window_State *ws)
     } else if (ws->buttons.w_is_pressed) {
         offzoom.offset_y += 1 / offzoom.zoom_multiplier * ws->window_pixels_mat.rows / 100;
         ws->to_render = true;
+    } else if (ws->buttons.up_is_pressed) {
+        r++;
+    } else if (ws->buttons.down_is_pressed) {
+        r--;
+        r = adl_max(r, 1);
     }
-    APL_UNUSED(ws);
+    xe = ws->mouse.mouse_x;
+    ye = ws->mouse.mouse_y;
 
     return APL_SUCCESS;
 }
