@@ -17,6 +17,7 @@ struct Adl_Offset_Zoom offzoom = {0};
 enum Apl_Return_Types apl_setup(struct Apl_Window_State *ws)
 {
     ws->to_limit_fps = true;
+    // ws->to_limit_fps = false;
     ws->wanted_fps = 60;
     offzoom = ADL_DEFAULT_OFFSET_ZOOM;
 
@@ -37,9 +38,9 @@ enum Apl_Return_Types apl_render(struct Apl_Window_State *ws)
 {
     struct Adl_Pixel_Buffer pixels = apl_pixel_buffer_as_adl_pixel_buffer(ws->window_pixels_mat);
 
-    // adl_line_draw_no_antialiasing(pixels, 400, 200, 100, 100, ADL_COLOR_CYAN_hexARGB, offzoom);
-    // adl_line_draw(pixels, 400, 300, 100, 200, ADL_COLOR_CYAN_hexARGB, offzoom);
-    adl_line_draw_width_rect(pixels, 400, 200, xe, ye, r, ADL_COLOR_CYAN_hexARGB, offzoom);
+    adl_line_draw_no_antialiasing(pixels, 50, 50, xe, ye, ADL_COLOR_CYAN_hexARGB, offzoom);
+    adl_line_draw(pixels, 600, 100, xe, ye, ADL_COLOR_CYAN_hexARGB, offzoom);
+    adl_line_draw_width(pixels, 400, 500, xe, ye, r, ADL_COLOR_CYAN_hexARGB, offzoom);
 
     return APL_SUCCESS;
 }
