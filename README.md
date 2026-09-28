@@ -9,7 +9,7 @@ I looked at a lot of YouTube videos and books, and I tried to give recognition.
 | Engine              | Almog_Engine.h              | AE      |
 | HTTP_Parser         | Almog_HTTP_Parser.h         | AHP     |
 | Huffman             | Almog_Huffman.h             | AH      |
-| PNG                 | Almog_Image_Manipulation.h  | AIM     |
+| Image_Manipulation  | Almog_Image_Manipulation.h  | AIM     |
 | JSON_Parser         | Almog_JSON_Parser.h         | AJP     |
 | Lexer               | Almog_Lexer.h               | AL      |
 | Matrix              | Almog_Linear_Algebra.h      | ALA     |
