@@ -11,7 +11,7 @@ int main(void)
     char file_name[] = "../src/test_images/test-png1.png";
 
     struct Apng_PNG_Image image = {0};
-    apng_png_load_from_file(file_name, &image, true);
+    apng_png_load_from_file_name(file_name, &image, true);
 
 
     apng_png_free(&image);

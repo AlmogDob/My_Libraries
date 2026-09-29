@@ -61,112 +61,40 @@
 #endif
 
 // #include "include/Almog_Dynamic_Array.h"
-/**
- * @def APNG_MALLOC
- * @brief Allocation function used by the PNG library.
- *
- * Define APNG_MALLOC before including this file to override the default
- * allocator.
- */
 #ifndef APNG_MALLOC
 #include <stdlib.h>
 #define APNG_MALLOC malloc
 #endif
-
 #ifndef APNG_REALLOC
 #include <stdlib.h>
 #define APNG_REALLOC realloc
 #endif
-
-/**
- * @def APNG_FREE
- * @brief Deallocation function used by the PNG library.
- *
- * Define APNG_FREE before including this file to override the default
- * deallocator.
- */
 #ifndef APNG_FREE
 #include <stdlib.h>
 #define APNG_FREE free
 #endif
-
-/**
- * @def APNG_ASSERT
- * @brief Assertion macro used by the PNG library.
- *
- * Define APNG_ASSERT before including this file to override the default
- * assertion facility.
- */
 #ifndef APNG_ASSERT
 #include <assert.h>
 #define APNG_ASSERT assert
 #endif
 
 
-/**
- * @def APNG_ADA_INIT_CAPACITY
- * @brief Default initial capacity used by apng_ada_init_array.
- *
- * You may override this by defining APNG_ADA_INIT_CAPACITY before including this file.
- */
 #ifndef APNG_ADA_INIT_CAPACITY
 #define APNG_ADA_INIT_CAPACITY 10
 #endif /*APNG_ADA_INIT_CAPACITY*/
 
-/**
- * @def APNG_ADA_MALLOC
- * @brief Allocation function used by this header (defaults to malloc).
- *
- * Define APNG_ADA_MALLOC to a compatible allocator before including this file to
- * override the default.
- */
 #ifndef APNG_ADA_MALLOC
 #define APNG_ADA_MALLOC APNG_MALLOC
 #endif /*APNG_ADA_MALLOC*/
 
-/**
- * @def APNG_ADA_REALLOC
- * @brief Reallocation function used by this header (defaults to realloc).
- *
- * Define APNG_ADA_REALLOC to a compatible reallocator before including this file to
- * override the default.
- */
 #ifndef APNG_ADA_REALLOC
 #define APNG_ADA_REALLOC APNG_REALLOC
 #endif /*APNG_ADA_REALLOC*/
 
-/**
- * @def APNG_ADA_ASSERT
- * @brief Assertion macro used by this header (defaults to assert).
- *
- * Define APNG_ADA_ASSERT before including this file to override. When NDEBUG is
- * defined, standard assert() is disabled.
- */
 #ifndef APNG_ADA_ASSERT
 #define APNG_ADA_ASSERT APNG_ASSERT
 #endif /*APNG_ADA_ASSERT*/
 
-/* typedef struct {
-    size_t length;
-    size_t capacity;
-    int* elements;
-} apng_ada_int_array; */
-
-/**
- * @def apng_ada_init_array(type, header)
- * @brief Initialize an array header and allocate its initial storage.
- *
- * @param type   Element type stored in the array (e.g., int).
- * @param header Lvalue of the header struct containing fields:
- *               length, capacity, and elements.
- *
- * @pre header is a modifiable lvalue; header.elements is uninitialized or
- *      ignored and will be overwritten.
- * @post header.length == 0, header.capacity == INIT_CAPACITY,
- *       header.elements != NULL (or APNG_ADA_ASSERT fails).
- *
- * @note Allocation uses APNG_ADA_MALLOC and is checked via APNG_ADA_ASSERT.
- */
 #define apng_ada_init_array(type, header) do {                                          \
         (header).capacity = APNG_ADA_INIT_CAPACITY;                                     \
         (header).length = 0;                                                            \
@@ -174,22 +102,6 @@
         APNG_ADA_ASSERT((header).elements != NULL);                                     \
     } while (0)
 
-    /**
- * @def apng_ada_resize(type, header, new_capacity)
- * @brief Resize the underlying storage to hold new_capacity elements.
- *
- * @param type         Element type stored in the array.
- * @param header       Lvalue of the header struct.
- * @param new_capacity New capacity in number of elements.
- *
- * @pre new_capacity >= header.length (otherwise elements beyond new_capacity
- *      are lost and length will not be adjusted).
- * @post header.capacity == new_capacity and header.elements points to a block
- *       large enough for new_capacity elements.
- *
- * @warning On allocation failure, this macro asserts
- * @note Reallocation uses APNG_ADA_REALLOC and is also checked via APNG_ADA_ASSERT.
- */
 #define apng_ada_resize(type, header, new_capacity) do {                                                                \
         type *apng_ada_temp_pointer = (type *)APNG_ADA_REALLOC((void *)((header).elements), new_capacity*sizeof(type)); \
         APNG_ADA_ASSERT(apng_ada_temp_pointer != NULL);                                                                 \
@@ -198,22 +110,6 @@
         (header).capacity = new_capacity;                                                                               \
     } while (0)
 
-/**
- * @def apng_ada_appand(type, header, value)
- * @brief Append a value to the end of the array, growing if necessary.
- *
- * @param type   Element type stored in the array.
- * @param header Lvalue of the header struct.
- * @param value  Value to append.
- *
- * @post header.length is incremented by 1; the last element equals value.
- *
- * @note Growth factor is (int)(header.capacity * 1.5). Because of truncation,
- *       very small capacities may not grow (e.g., from 1 to 1). With the
- *       default INIT_CAPACITY=10 this is typically not an issue unless you
- *       manually shrink capacity. Ensure growth always increases capacity by
- *       at least 1 if you customize this macro.
- */
 #define apng_ada_appand(type, header, value) do {                                                   \
         if ((header).length >= (header).capacity) {                                                 \
             apng_ada_resize(type, (header), (int)((header).capacity + (header).capacity/2 + 1));    \
@@ -222,25 +118,6 @@
         (header).length++;                                                                          \
     } while (0)
 
-/**
- * @def apng_ada_insert(type, header, value, index)
- * @brief Insert value at position index, preserving order (O(n)).
- *
- * @param type   Element type stored in the array.
- * @param header Lvalue of the header struct.
- * @param value  Value to insert.
- * @param index  Destination index in the range [0, header.length].
- *
- * @pre 0 <= index <= header.length.
- * @pre header.length > 0 if index == header.length (this macro reads the last
- *      element internally). For inserting into an empty array, use
- *      apng_ada_appand or apng_ada_insert_unordered.
- * @post Element is inserted at index; subsequent elements are shifted right;
- *       header.length is incremented by 1.
- *
- * @note This macro asserts index is non-negative and an integer value using
- *       APNG_ADA_ASSERT. No explicit upper-bound assert is performed.
- */
 #define apng_ada_insert(type, header, value, index) do {                                                                        \
     APNG_ADA_ASSERT((int)(index) >= 0);                                                                                         \
     APNG_ADA_ASSERT((float)(index) - (int)(index) == 0);                                                                        \
@@ -251,22 +128,6 @@
     (header).elements[(index)] = value;                                                                                         \
 } while (0)
 
-
-/**
- * @def apng_ada_insert_unordered(type, header, value, index)
- * @brief Insert value at index without preserving order (O(1) amortized).
- *
- * If index == header.length, this behaves like an append. Otherwise, the
- * current element at index is moved to the end, and value is written at index.
- *
- * @param type   Element type stored in the array.
- * @param header Lvalue of the header struct.
- * @param value  Value to insert.
- * @param index  Index in the range [0, header.length].
- *
- * @pre 0 <= index <= header.length.
- * @post header.length is incremented by 1; array order is not preserved.
- */
 #define apng_ada_insert_unordered(type, header, value, index) do {      \
     APNG_ADA_ASSERT((int)(index) >= 0);                                 \
     APNG_ADA_ASSERT((float)(index) - (int)(index) == 0);                \
@@ -278,19 +139,6 @@
     }                                                                   \
 } while (0)
 
-/**
- * @def apng_ada_remove(type, header, index)
- * @brief Remove element at index, preserving order (O(n)).
- *
- * @param type   Element type stored in the array.
- * @param header Lvalue of the header struct.
- * @param index  Index in the range [0, header.length - 1].
- *
- * @pre 0 <= index < header.length.
- * @post header.length is decremented by 1; subsequent elements are shifted
- *       left by one position. The element beyond the new length is left
- *       uninitialized.
- */
 #define apng_ada_remove(type, header, index) do {                                                                               \
     APNG_ADA_ASSERT((int)(index) >= 0);                                                                                         \
     ADA_ASSERT((float)(index) - (int)(index) == 0);                                                                             \
@@ -300,18 +148,6 @@
     (header).length--;                                                                                                          \
 } while (0)
 
-/**
- * @def apng_ada_remove_unordered(type, header, index)
- * @brief Remove element at index by moving the last element into its place
- *        (O(1)); order is not preserved.
- *
- * @param type   Element type stored in the array.
- * @param header Lvalue of the header struct.
- * @param index  Index in the range [0, header.length - 1].
- *
- * @pre 0 <= index < header.length and header.length > 0.
- * @post header.length is decremented by 1; array order is not preserved.
- */
 #define apng_ada_remove_unordered(type, header, index) do {             \
     APNG_ADA_ASSERT((int)(index) >= 0);                                 \
     APNG_ADA_ASSERT((float)(index) - (int)(index) == 0);                \
@@ -324,10 +160,6 @@ enum Apng_Return_Types {
     APNG_SUCCESS,
     APNG_FAIL,
 };
-/**
- * @def APNG_OK
- * @brief Alias for APNG_SUCCESS.
- */
 #define APNG_OK APNG_SUCCESS
 
 struct Apng_Pixel_Buffer {
@@ -351,16 +183,12 @@ struct Apng_Bit_Reader {
     uint8_t bits_left;
 };
 
+#define APNG_HUFFMAN_CODE_MAX_LENGTH 15
 struct Apng_Huffman_Entry {
     uint16_t symbol;
     uint16_t code;
     uint8_t code_length;
 };
-/**
- * @def APNG_HUFFMAN_CODE_MAX_LENGTH
- * @brief Maximum Huffman code length supported by this implementation.
- */
-#define APNG_HUFFMAN_CODE_MAX_LENGTH 15
 
 struct Apng_Huffman_Entrys_Table {
     size_t capacity;
@@ -398,11 +226,6 @@ struct Apng_PNG_Header {
     uint8_t *signature;
 };
 
-/**
- * @def APNG_CHUNK_HEADER_SIZE
- * @brief Size, in bytes, of a PNG chunk header
- *        (length + type = 4 + 4).
- */
 #define APNG_CHUNK_HEADER_SIZE 8
 struct Apng_Chunk_Header {
     size_t size;
@@ -416,11 +239,6 @@ struct Apng_Chunk_Header {
     enum Apng_Chunk_Type type;
 };
 
-/**
- * @def APNG_CHUNK_FOOTER_SIZE
- * @brief Size, in bytes, of a PNG chunk footer
- *        (CRC = 4 bytes).
- */
 #define APNG_CHUNK_FOOTER_SIZE 4
 struct Apng_Chunk_Footer {
     size_t size;
@@ -447,10 +265,6 @@ struct Apng_PLTE_Chunk {
     uint8_t *body;   
 };
 
-/**
- * @def APNG_IDAT_ZLIB_HEADER_SIZE
- * @brief Size, in bytes, of the zlib header at the beginning of IDAT data.
- */
 #define APNG_IDAT_ZLIB_HEADER_SIZE 2
 struct Apng_IDAT_Header {
     size_t size;
@@ -473,10 +287,6 @@ struct Apng_IDAT_Chunk {
     size_t LZ77_window_size;
 };
 
-/**
- * @def APNG_IDAT_FOOTER_SIZE
- * @brief Size, in bytes, of the Adler-32 checksum at the end of zlib data.
- */
 #define APNG_IDAT_FOOTER_SIZE 4
 struct Apng_IDAT_Footer {
     size_t size;
@@ -601,236 +411,43 @@ struct Apng_PNG_Image {
 
 #ifndef APNG_DEF
     #ifdef APNG_DEF_STATIC
-        /**
-         * @def APNG_DEF
-         * @brief Storage-class specifier used by the single-header API.
-         *
-         * When APNG_DEF_STATIC is defined, all declarations become static.
-         * Otherwise they default to extern.
-         */
         #define APNG_DEF static
     #else
-        /**
-         * @def APNG_DEF
-         * @brief Storage-class specifier used by the single-header API.
-         *
-         * When APNG_DEF_STATIC is not defined, all declarations default to
-         * extern.
-         */
         #define APNG_DEF extern
     #endif
 #endif
-/**
- * @def APNG_UNUSED
- * @brief Mark a parameter or local value as intentionally unused.
- */
 #define APNG_UNUSED(x) ((void)x)
 
-/**
- * @name Debug-print helpers
- * @brief Convenience macros for diagnostic output.
- *
- * The typed variants print to stdout. The INFO/WARNING/ERROR variants print to
- * stderr and include file, line, and function information.
- */
 #define apng_dprintSTRING(expr) printf("[Info] %s:%d:\n" #expr " = %s\n", __FILE__, __LINE__, expr)
-/**
- * @name Debug-print helpers
- * @brief Convenience macros for diagnostic output.
- *
- * The typed variants print to stdout. The INFO/WARNING/ERROR variants print to
- * stderr and include file, line, and function information.
- */
 #define apng_dprintCHAR(expr) printf("[Info] %s:%d:\n" #expr " = %c\n", __FILE__, __LINE__, expr)
-/**
- * @name Debug-print helpers
- * @brief Convenience macros for diagnostic output.
- *
- * The typed variants print to stdout. The INFO/WARNING/ERROR variants print to
- * stderr and include file, line, and function information.
- */
 #define apng_dprintINT(expr) printf("[Info] %s:%d:\n" #expr " = %d\n", __FILE__, __LINE__, expr)
-/**
- * @name Debug-print helpers
- * @brief Convenience macros for diagnostic output.
- *
- * The typed variants print to stdout. The INFO/WARNING/ERROR variants print to
- * stderr and include file, line, and function information.
- */
 #define apng_dprintFLOAT(expr) printf("[Info] %s:%d:\n" #expr " = %#g\n", __FILE__, __LINE__, expr)
-/**
- * @name Debug-print helpers
- * @brief Convenience macros for diagnostic output.
- *
- * The typed variants print to stdout. The INFO/WARNING/ERROR variants print to
- * stderr and include file, line, and function information.
- */
 #define apng_dprintDOUBLE(expr) printf("[Info] %s:%d:\n" #expr " = %#g\n", __FILE__, __LINE__, expr)
-/**
- * @name Debug-print helpers
- * @brief Convenience macros for diagnostic output.
- *
- * The typed variants print to stdout. The INFO/WARNING/ERROR variants print to
- * stderr and include file, line, and function information.
- */
 #define apng_dprintSIZE_T(expr) printf("[Info] %s:%d:\n" #expr " = %zu\n", __FILE__, __LINE__, expr)
-/**
- * @name Debug-print helpers
- * @brief Convenience macros for diagnostic output.
- *
- * The typed variants print to stdout. The INFO/WARNING/ERROR variants print to
- * stderr and include file, line, and function information.
- */
-#define apng_dprintINFO(fmt, ...) \
-    fprintf(stderr, "[Info] %s:%d:\n%*sIn function '%s':\n%*s" fmt "\n", __FILE__, __LINE__, 7, "", __func__, 7, "", __VA_ARGS__)
-/**
- * @name Debug-print helpers
- * @brief Convenience macros for diagnostic output.
- *
- * The typed variants print to stdout. The INFO/WARNING/ERROR variants print to
- * stderr and include file, line, and function information.
- */
-#define apng_dprintWARNING(fmt, ...) \
-    fprintf(stderr, "[Warning] %s:%d:\n%*sIn function '%s':\n%*s" fmt "\n", __FILE__, __LINE__, 10, "", __func__, 10, "", __VA_ARGS__)
-/**
- * @name Debug-print helpers
- * @brief Convenience macros for diagnostic output.
- *
- * The typed variants print to stdout. The INFO/WARNING/ERROR variants print to
- * stderr and include file, line, and function information.
- */
-#define apng_dprintERROR(fmt, ...) \
-    fprintf(stderr, "[Error] %s:%d:\n%*sIn function '%s':\n%*s" fmt "\n", __FILE__, __LINE__, 8, "", __func__, 8, "", __VA_ARGS__)
+#define apng_dprintINFO(fmt, ...) fprintf(stdout, "[Info] %s:%d:\n%*sIn function '%s':\n%*s" fmt "\n", __FILE__, __LINE__, 7, "", __func__, 7, "", __VA_ARGS__)
+#define apng_dprintWARNING(fmt, ...) fprintf(stdout, "[Warning] %s:%d:\n%*sIn function '%s':\n%*s" fmt "\n", __FILE__, __LINE__, 10, "", __func__, 10, "", __VA_ARGS__)
+#define apng_dprintERROR(fmt, ...) fprintf(stderr, "[Error] %s:%d:\n%*sIn function '%s':\n%*s" fmt "\n", __FILE__, __LINE__, 8, "", __func__, 8, "", __VA_ARGS__)
 
-/**
- * @def apng_min
- * @brief Return the smaller of two values.
- *
- * @warning This macro evaluates its arguments more than once.
- */
 #define apng_min(a, b) ((a) < (b) ? (a) : (b))
-/**
- * @def apng_max
- * @brief Return the larger of two values.
- *
- * @warning This macro evaluates its arguments more than once.
- */
 #define apng_max(a, b) ((a) > (b) ? (a) : (b))
-/**
- * @def APNG_PIXEL_BUFFER_AT
- * @brief Access a pixel in a pixel buffer by row and column.
- *
- * Expands to an lvalue expression. In debug builds it asserts that the
- * requested indices are within bounds.
- */
 #define APNG_PIXEL_BUFFER_AT(m, i, j) (m).elements[(APNG_ASSERT((i) < (m).rows && (j) < (m).cols), (i) * (m).stride_r + (j))]
-/**
- * @def APNG_HexARGB_TO_RGBA_VAR
- * @brief Unpack a 32-bit 0xAARRGGBB value into separate RGBA variables.
- *
- * The arguments r, g, b, and a must be modifiable lvalues.
- */
-#define APNG_HexARGB_TO_RGBA_VAR(x, r, g, b, a) r = ((x)>>(8*2)&0xFF); g = ((x)>>(8*1)&0xFF); b = ((x)>>(8*0)&0xFF); a = ((x)>>(8*3)&0xFF)
-/**
- * @def APNG_HexARGB_TO_RGB_VAR
- * @brief Unpack a 32-bit 0xAARRGGBB value into separate RGB variables.
- *
- * The arguments r, g, and b must be modifiable lvalues.
- */
-#define APNG_HexARGB_TO_RGB_VAR(x, r, g, b) r = ((x)>>(8*2)&0xFF); g = ((x)>>(8*1)&0xFF); b = ((x)>>(8*0)&0xFF)
-/**
- * @def APNG_RGBA_TO_hexARGB
- * @brief Pack RGBA channels into a 32-bit 0xAARRGGBB integer.
- *
- * Alpha is clamped to 255. RGB inputs are used as provided.
- */
-#define APNG_RGBA_TO_hexARGB(r, g, b, a) (int)(0x01000000l*(unsigned int)(apng_max(0, apng_min(a, 255))) + 0x010000*(int)(apng_max(0, apng_min(r, 255))) + 0x000100*(int)(apng_max(0, apng_min(g, 255))) + 0x000001*(int)(apng_max(0, apng_min(b, 255))))
-/**
- * @def APNG_STATIC_ARRAY_LEN
- * @brief Return the number of elements in a compile-time array.
- *
- * @warning This macro must be used with an actual array, not a pointer.
- */
 #define APNG_STATIC_ARRAY_LEN(x) (sizeof(x)/sizeof(x[0]))
-/**
- * @name DEFLATE field sizes, offsets, and fixed-table limits
- * @brief Constants used while parsing and decoding DEFLATE blocks.
- */
+
 #define APNG_HLIT_OFFSET 257
-/**
- * @name DEFLATE field sizes, offsets, and fixed-table limits
- * @brief Constants used while parsing and decoding DEFLATE blocks.
- */
-#define APNG_HDIST_OFFSET 1
-/**
- * @name DEFLATE field sizes, offsets, and fixed-table limits
- * @brief Constants used while parsing and decoding DEFLATE blocks.
- */
-#define APNG_HCLEN_OFFSET 4
-/**
- * @name DEFLATE field sizes, offsets, and fixed-table limits
- * @brief Constants used while parsing and decoding DEFLATE blocks.
- */
-#define APNG_MAX_NUM_OF_CODE_LENGTH_CODE_LENGTH 19
-/**
- * @name DEFLATE field sizes, offsets, and fixed-table limits
- * @brief Constants used while parsing and decoding DEFLATE blocks.
- */
-#define APNG_CODE_LENGTH_CODE_LENGTH_LENGTH 3
-/**
- * @name DEFLATE field sizes, offsets, and fixed-table limits
- * @brief Constants used while parsing and decoding DEFLATE blocks.
- */
-#define APNG_BFINAL_SIZE 1
-/**
- * @name DEFLATE field sizes, offsets, and fixed-table limits
- * @brief Constants used while parsing and decoding DEFLATE blocks.
- */
-#define APNG_BTYPE_SIZE 2
-/**
- * @name DEFLATE field sizes, offsets, and fixed-table limits
- * @brief Constants used while parsing and decoding DEFLATE blocks.
- */
-#define APNG_LEN_SIZE 16
-/**
- * @name DEFLATE field sizes, offsets, and fixed-table limits
- * @brief Constants used while parsing and decoding DEFLATE blocks.
- */
-#define APNG_NLEN_SIZE 16
-/**
- * @name DEFLATE field sizes, offsets, and fixed-table limits
- * @brief Constants used while parsing and decoding DEFLATE blocks.
- */
 #define APNG_HLIT_SIZE 5
-/**
- * @name DEFLATE field sizes, offsets, and fixed-table limits
- * @brief Constants used while parsing and decoding DEFLATE blocks.
- */
+#define APNG_HDIST_OFFSET 1
 #define APNG_HDIST_SIZE 5
-/**
- * @name DEFLATE field sizes, offsets, and fixed-table limits
- * @brief Constants used while parsing and decoding DEFLATE blocks.
- */
+#define APNG_HCLEN_OFFSET 4
 #define APNG_HCLEN_SIZE 4
-/**
- * @name DEFLATE field sizes, offsets, and fixed-table limits
- * @brief Constants used while parsing and decoding DEFLATE blocks.
- */
+#define APNG_MAX_NUM_OF_CODE_LENGTH_CODE_LENGTH 19
+#define APNG_CODE_LENGTH_CODE_LENGTH_LENGTH 3
+#define APNG_BFINAL_SIZE 1
+#define APNG_BTYPE_SIZE 2
+#define APNG_LEN_SIZE 16
+#define APNG_NLEN_SIZE 16
 #define APNG_LIT_LEN_CODE_LENGTH_MAX_COUNT 286
-/**
- * @name DEFLATE field sizes, offsets, and fixed-table limits
- * @brief Constants used while parsing and decoding DEFLATE blocks.
- */
 #define APNG_DIST_CODE_LENGTH_MAX_COUNT 32
-/**
- * @name DEFLATE field sizes, offsets, and fixed-table limits
- * @brief Constants used while parsing and decoding DEFLATE blocks.
- */
 #define APNG_FIX_HUFFMAN_HLIT 288
-/**
- * @name DEFLATE field sizes, offsets, and fixed-table limits
- * @brief Constants used while parsing and decoding DEFLATE blocks.
- */
 #define APNG_FIX_HUFFMAN_HDIST 32
 
 APNG_DEF enum Apng_Return_Types             apng_adler32_check(uint32_t original_adler32, uint8_t *buffer, size_t buffer_length);
@@ -849,11 +466,12 @@ APNG_DEF void *                             apng_consume_bytes(struct Apng_Byte_
 APNG_DEF enum Apng_Return_Types             apng_crc32_check(struct Apng_Chunk_Header header, void *chunk_data, struct Apng_Chunk_Footer footer);
 APNG_DEF uint32_t                           apng_crc32_update(uint32_t crc, uint8_t *buf, size_t buf_len);
 
-APNG_DEF uint32_t                           apng_endian_swap_uint32(uint32_t x);
 APNG_DEF uint16_t                           apng_endian_swap_uint16(uint16_t x);
+APNG_DEF uint32_t                           apng_endian_swap_uint32(uint32_t x);
 
 APNG_DEF uint32_t                           apng_four_char_to_uint32_t(const char *str);
 
+APNG_DEF void                               apng_hexargb_to_rgba(uint32_t color, uint8_t *r, uint8_t *g, uint8_t *b, uint8_t *a);
 APNG_DEF enum Apng_Return_Types             apng_huffman_decode_symbol(struct Apng_Huffman_Entrys_Table table, struct Apng_Bit_Reader *br, uint16_t *symbol);
 APNG_DEF void                               apng_huffman_entry_print(struct Apng_Huffman_Entry entry);
 APNG_DEF struct Apng_Huffman_Entrys_Table   apng_huffman_entry_table_create(uint32_t *code_length_array, size_t code_length_array_len);
@@ -867,11 +485,15 @@ APNG_DEF enum Apng_Return_Types             apng_png_decode(struct Apng_Byte_Str
 APNG_DEF void                               apng_png_free(struct Apng_PNG_Image *image);
 APNG_DEF struct Apng_PNG_Header             apng_png_header_get(struct Apng_Byte_String *bs);
 APNG_DEF enum Apng_Return_Types             apng_png_header_signature_correct(struct Apng_PNG_Header h);
-APNG_DEF enum Apng_Return_Types             apng_png_load_from_file(char *file_name, struct Apng_PNG_Image *image, bool print_info);
+APNG_DEF enum Apng_Return_Types             apng_png_load_from_file_name(char *file_name, struct Apng_PNG_Image *image, bool print_info);
+APNG_DEF enum Apng_Return_Types             apng_png_save_to_file_name(char *file_name, struct Apng_PNG_Image *image);
+
+APNG_DEF uint32_t                           apng_rgba_to_hexargb(int r, int g, int b, int a);
 
 APNG_DEF enum Apng_Chunk_Type               apng_type_get_from_type_raw(uint32_t raw_type);
 APNG_DEF const char *                       apng_type_name_get(enum Apng_Chunk_Type type);
 
+APNG_DEF uint8_t                            apng_u8_clamp_int(int x);
 APNG_DEF uint16_t                           apng_uint16_bits_reverse(uint16_t value, uint8_t bit_count);
 APNG_DEF void                               apng_uint16_print_binary(uint16_t value, uint8_t bit_count);
 
@@ -1261,6 +883,16 @@ APNG_DEF uint32_t apng_crc32_update(uint32_t crc, uint8_t *buf, size_t buf_len)
 }
 
 /**
+ * @brief Swap the byte order of a 16-bit unsigned integer.
+ * @param x Input value.
+ * @return Byte-swapped value.
+ */
+APNG_DEF uint16_t apng_endian_swap_uint16(uint16_t x)
+{
+    return ((x << 8) | (x >> 8));
+}
+
+/**
  * @brief Swap the byte order of a 32-bit unsigned integer.
  * @param x Input value.
  * @return Byte-swapped value.
@@ -1274,16 +906,6 @@ APNG_DEF uint32_t apng_endian_swap_uint32(uint32_t x)
 }
 
 /**
- * @brief Swap the byte order of a 16-bit unsigned integer.
- * @param x Input value.
- * @return Byte-swapped value.
- */
-APNG_DEF uint16_t apng_endian_swap_uint16(uint16_t x)
-{
-    return ((x << 8) | (x >> 8));
-}
-
-/**
  * @brief Pack four characters into a uint32_t in library-defined order.
  * @param str Pointer to at least four characters.
  * @return Packed 32-bit value suitable for chunk-type comparisons.
@@ -1291,6 +913,14 @@ APNG_DEF uint16_t apng_endian_swap_uint16(uint16_t x)
 APNG_DEF uint32_t apng_four_char_to_uint32_t(const char * str)
 {
     return ((uint32_t)(((uint32_t)((str)[0]) << 0) | ((uint32_t)((str)[1]) << 8) | ((uint32_t)((str)[2]) << 16) | ((uint32_t)((str)[3]) << 24)));
+}
+
+APNG_DEF void apng_hexargb_to_rgba(uint32_t color, uint8_t *r, uint8_t *g, uint8_t *b, uint8_t *a)
+{
+    if (a) *a = (uint8_t)((color >> 24) & 0xFF);
+    if (r) *r = (uint8_t)((color >> 16) & 0xFF);
+    if (g) *g = (uint8_t)((color >> 8) & 0xFF);
+    if (b) *b = (uint8_t)((color >> 0) & 0xFF);
 }
 
 /**
@@ -1785,7 +1415,7 @@ APNG_DEF enum Apng_Return_Types apng_png_header_signature_correct(struct Apng_PN
  *       information, and a populated pixel buffer.
  * @note The caller must later call apng_png_free() on image.
  */
-APNG_DEF enum Apng_Return_Types apng_png_load_from_file(char *file_name, struct Apng_PNG_Image *image, bool print_info)
+APNG_DEF enum Apng_Return_Types apng_png_load_from_file_name(char *file_name, struct Apng_PNG_Image *image, bool print_info)
 {
     struct Apng_Byte_String file = apng_bin_file_read(file_name);
     if (file.name == NULL) {
@@ -1798,6 +1428,16 @@ APNG_DEF enum Apng_Return_Types apng_png_load_from_file(char *file_name, struct 
     }
 
     return APNG_SUCCESS;
+}
+
+APNG_DEF uint32_t apng_rgba_to_hexargb(int r, int g, int b, int a)
+{
+    uint32_t ru = apng_u8_clamp_int(r);
+    uint32_t gu = apng_u8_clamp_int(g);
+    uint32_t bu = apng_u8_clamp_int(b);
+    uint32_t au = apng_u8_clamp_int(a);
+
+    return (au << 24) | (ru << 16) | (gu << 8) | bu;
 }
 
 /**
@@ -1942,6 +1582,17 @@ APNG_DEF const char * apng_type_name_get(enum Apng_Chunk_Type type)
             exit(1);
         } break;
     }
+}
+
+APNG_DEF uint8_t apng_u8_clamp_int(int x)
+{
+    if (x < 0) {
+        return 0;
+    }
+    if (x > 255) {
+        return 255;
+    }
+    return (uint8_t)x;
 }
 
 /**
@@ -2164,18 +1815,18 @@ APNG_DEF enum Apng_Return_Types apng_IDAT_decode(struct Apng_PNG_Image *image)
                 uint8_t g = unfiltered_bs.elements[idx + 1];
                 uint8_t b = unfiltered_bs.elements[idx + 2];
                 uint8_t a = unfiltered_bs.elements[idx + 3];
-                APNG_PIXEL_BUFFER_AT(image->pixels, i, j) = APNG_RGBA_TO_hexARGB(r, g, b, a);
+                APNG_PIXEL_BUFFER_AT(image->pixels, i, j) = apng_rgba_to_hexargb(r, g, b, a);
             } else if (image->chunks.IHDR_chunk.color_type == 4) {
                 size_t idx = i * bytes_per_row + j * bytes_per_pixel;
                 uint8_t value = unfiltered_bs.elements[idx + 0];
                 uint8_t a = unfiltered_bs.elements[idx + 1];
-                APNG_PIXEL_BUFFER_AT(image->pixels, i, j) = APNG_RGBA_TO_hexARGB(value, value, value, a);
+                APNG_PIXEL_BUFFER_AT(image->pixels, i, j) = apng_rgba_to_hexargb(value, value, value, a);
             } else if (image->chunks.IHDR_chunk.color_type == 2) {
                 size_t idx = i * bytes_per_row + j * bytes_per_pixel;
                 uint8_t r = unfiltered_bs.elements[idx + 0];
                 uint8_t g = unfiltered_bs.elements[idx + 1];
                 uint8_t b = unfiltered_bs.elements[idx + 2];
-                APNG_PIXEL_BUFFER_AT(image->pixels, i, j) = APNG_RGBA_TO_hexARGB(r, g, b, 255);
+                APNG_PIXEL_BUFFER_AT(image->pixels, i, j) = apng_rgba_to_hexargb(r, g, b, 255);
             } else if (image->chunks.IHDR_chunk.color_type == 0) {
                 uint8_t *row = &unfiltered_bs.elements[i * bytes_per_row];
                 if (bit_per_channel == 1) {
@@ -2183,21 +1834,21 @@ APNG_DEF enum Apng_Return_Types apng_IDAT_decode(struct Apng_PNG_Image *image)
                     uint8_t bit_index = (uint8_t)(7 - (j % 8));
                     uint8_t sample = (packed >> bit_index) & 0x01;
                     uint8_t value = sample ? 255 : 0;
-                    APNG_PIXEL_BUFFER_AT(image->pixels, i, j) = APNG_RGBA_TO_hexARGB(value, value, value, 255);
+                    APNG_PIXEL_BUFFER_AT(image->pixels, i, j) = apng_rgba_to_hexargb(value, value, value, 255);
                 } else if (bit_per_channel == 2) {
                     uint8_t packed = row[j / 4];
                     uint8_t bit_index = (uint8_t)(6 - 2 * (j % 4));
                     uint8_t sample = (packed >> bit_index) & 0x03;
                     uint8_t value = (uint8_t)((sample * 255) / 3);
-                    APNG_PIXEL_BUFFER_AT(image->pixels, i, j) = APNG_RGBA_TO_hexARGB(value, value, value, 255);
+                    APNG_PIXEL_BUFFER_AT(image->pixels, i, j) = apng_rgba_to_hexargb(value, value, value, 255);
                 } else if (bit_per_channel == 4) {
                     uint8_t packed = row[j / 2];
                     uint8_t sample = (j % 2) ? (packed & 0x0F) : (packed >> 4);
                     uint8_t value = (uint8_t)((sample * 255) / 15);
-                    APNG_PIXEL_BUFFER_AT(image->pixels, i, j) = APNG_RGBA_TO_hexARGB(value, value, value, 255);
+                    APNG_PIXEL_BUFFER_AT(image->pixels, i, j) = apng_rgba_to_hexargb(value, value, value, 255);
                 } else if (bit_per_channel == 8) {
                     uint8_t value = row[j];
-                    APNG_PIXEL_BUFFER_AT(image->pixels, i, j) = APNG_RGBA_TO_hexARGB(value, value, value, 255);
+                    APNG_PIXEL_BUFFER_AT(image->pixels, i, j) = apng_rgba_to_hexargb(value, value, value, 255);
                 } else {
                     apng_dprintERROR("Unsupported grayscale bit depth: %zu", bit_per_channel);
                     rt = APNG_FAIL;
