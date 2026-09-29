@@ -1430,6 +1430,21 @@ APNG_DEF enum Apng_Return_Types apng_png_load_from_file_name(char *file_name, st
     return APNG_SUCCESS;
 }
 
+APNG_DEF enum Apng_Return_Types apng_png_save_to_file_name(char *file_name, struct Apng_PNG_Image *image)
+{
+    // struct Apng_Byte_String file = apng_bin_file_read(file_name);
+    // if (file.name == NULL) {
+    //     apng_dprintERROR("Failed to open file at '%s'.", file_name);
+    //     return APNG_FAIL;
+    // }
+    // if (APNG_FAIL == apng_png_encode(file, image, print_info)) {
+    //     apng_dprintERROR("Failed to save png image from '%s' to '%s'.", image->file.name, file_name);
+    //     return APNG_FAIL;
+    // }
+
+    return APNG_SUCCESS;
+}
+
 APNG_DEF uint32_t apng_rgba_to_hexargb(int r, int g, int b, int a)
 {
     uint32_t ru = apng_u8_clamp_int(r);
