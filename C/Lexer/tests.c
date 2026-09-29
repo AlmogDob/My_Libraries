@@ -19,74 +19,141 @@
 static const char *kind_name(enum Token_Kind k)
 {
     switch (k) {
-        case TOKEN_EOF: return "TOKEN_EOF";
-        case TOKEN_INVALID: return "TOKEN_INVALID";
-        case TOKEN_PP_DIRECTIVE: return "TOKEN_PP_DIRECTIVE";
-        case TOKEN_COMMENT: return "TOKEN_COMMENT";
-        case TOKEN_STRING_LIT: return "TOKEN_STRING_LIT";
-        case TOKEN_CHAR_LIT: return "TOKEN_CHAR_LIT";
-        case TOKEN_NUMBER: return "TOKEN_NUMBER";
-        case TOKEN_KEYWORD: return "TOKEN_KEYWORD";
-        case TOKEN_IDENTIFIER: return "TOKEN_IDENTIFIER";
+        case TOKEN_EOF:
+            return "TOKEN_EOF";
+        case TOKEN_INVALID:
+            return "TOKEN_INVALID";
+        case TOKEN_PP_DIRECTIVE:
+            return "TOKEN_PP_DIRECTIVE";
+        case TOKEN_COMMENT:
+            return "TOKEN_COMMENT";
+        case TOKEN_STRING_LIT:
+            return "TOKEN_STRING_LIT";
+        case TOKEN_CHAR_LIT:
+            return "TOKEN_CHAR_LIT";
+        case TOKEN_INT_LIT_BIN:
+            return "TOKEN_INT_LIT_BIN";
+        case TOKEN_INT_LIT_OCT:
+            return "TOKEN_INT_LIT_OCT";
+        case TOKEN_INT_LIT_DEC:
+            return "TOKEN_INT_LIT_DEC";
+        case TOKEN_INT_LIT_HEX:
+            return "TOKEN_INT_LIT_HEX";
+        case TOKEN_FLOAT_LIT_DEC:
+            return "TOKEN_FLOAT_LIT_DEC";
+        case TOKEN_FLOAT_LIT_HEX:
+            return "TOKEN_FLOAT_LIT_HEX";
+        case TOKEN_KEYWORD:
+            return "TOKEN_KEYWORD";
+        case TOKEN_IDENTIFIER:
+            return "TOKEN_IDENTIFIER";
 
-        case TOKEN_LPAREN: return "TOKEN_LPAREN";
-        case TOKEN_RPAREN: return "TOKEN_RPAREN";
-        case TOKEN_LBRACKET: return "TOKEN_LBRACKET";
-        case TOKEN_RBRACKET: return "TOKEN_RBRACKET";
-        case TOKEN_LBRACE: return "TOKEN_LBRACE";
-        case TOKEN_RBRACE: return "TOKEN_RBRACE";
+        case TOKEN_LPAREN:
+            return "TOKEN_LPAREN";
+        case TOKEN_RPAREN:
+            return "TOKEN_RPAREN";
+        case TOKEN_LBRACKET:
+            return "TOKEN_LBRACKET";
+        case TOKEN_RBRACKET:
+            return "TOKEN_RBRACKET";
+        case TOKEN_LBRACE:
+            return "TOKEN_LBRACE";
+        case TOKEN_RBRACE:
+            return "TOKEN_RBRACE";
 
-        case TOKEN_DOT: return "TOKEN_DOT";
-        case TOKEN_COMMA: return "TOKEN_COMMA";
-        case TOKEN_SEMICOLON: return "TOKEN_SEMICOLON";
-        case TOKEN_BSLASH: return "TOKEN_BSLASH";
-        case TOKEN_HASH: return "TOKEN_HASH";
+        case TOKEN_DOT:
+            return "TOKEN_DOT";
+        case TOKEN_COMMA:
+            return "TOKEN_COMMA";
+        case TOKEN_SEMICOLON:
+            return "TOKEN_SEMICOLON";
+        case TOKEN_BSLASH:
+            return "TOKEN_BSLASH";
+        case TOKEN_HASH:
+            return "TOKEN_HASH";
 
-        case TOKEN_QUESTION: return "TOKEN_QUESTION";
-        case TOKEN_COLON: return "TOKEN_COLON";
+        case TOKEN_QUESTION:
+            return "TOKEN_QUESTION";
+        case TOKEN_COLON:
+            return "TOKEN_COLON";
 
-        case TOKEN_EQ: return "TOKEN_EQ";
-        case TOKEN_EQEQ: return "TOKEN_EQEQ";
-        case TOKEN_NE: return "TOKEN_NE";
-        case TOKEN_BANG: return "TOKEN_BANG";
+        case TOKEN_EQ:
+            return "TOKEN_EQ";
+        case TOKEN_EQEQ:
+            return "TOKEN_EQEQ";
+        case TOKEN_NE:
+            return "TOKEN_NE";
+        case TOKEN_BANG:
+            return "TOKEN_BANG";
 
-        case TOKEN_LT: return "TOKEN_LT";
-        case TOKEN_GT: return "TOKEN_GT";
-        case TOKEN_LE: return "TOKEN_LE";
-        case TOKEN_GE: return "TOKEN_GE";
+        case TOKEN_LT:
+            return "TOKEN_LT";
+        case TOKEN_GT:
+            return "TOKEN_GT";
+        case TOKEN_LE:
+            return "TOKEN_LE";
+        case TOKEN_GE:
+            return "TOKEN_GE";
 
-        case TOKEN_BITAND: return "TOKEN_BITAND";
-        case TOKEN_ANDAND: return "TOKEN_ANDAND";
-        case TOKEN_BITOR: return "TOKEN_BITOR";
-        case TOKEN_OROR: return "TOKEN_OROR";
-        case TOKEN_CARET: return "TOKEN_CARET";
-        case TOKEN_TILDE: return "TOKEN_TILDE";
+        case TOKEN_BITAND:
+            return "TOKEN_BITAND";
+        case TOKEN_ANDAND:
+            return "TOKEN_ANDAND";
+        case TOKEN_BITOR:
+            return "TOKEN_BITOR";
+        case TOKEN_OROR:
+            return "TOKEN_OROR";
+        case TOKEN_CARET:
+            return "TOKEN_CARET";
+        case TOKEN_TILDE:
+            return "TOKEN_TILDE";
 
-        case TOKEN_LSHIFT: return "TOKEN_LSHIFT";
-        case TOKEN_RSHIFT: return "TOKEN_RSHIFT";
+        case TOKEN_LSHIFT:
+            return "TOKEN_LSHIFT";
+        case TOKEN_RSHIFT:
+            return "TOKEN_RSHIFT";
 
-        case TOKEN_PLUSPLUS: return "TOKEN_PLUSPLUS";
-        case TOKEN_MINUSMINUS: return "TOKEN_MINUSMINUS";
+        case TOKEN_PLUSPLUS:
+            return "TOKEN_PLUSPLUS";
+        case TOKEN_MINUSMINUS:
+            return "TOKEN_MINUSMINUS";
 
-        case TOKEN_PLUS: return "TOKEN_PLUS";
-        case TOKEN_MINUS: return "TOKEN_MINUS";
-        case TOKEN_STAR: return "TOKEN_STAR";
-        case TOKEN_SLASH: return "TOKEN_SLASH";
-        case TOKEN_PERCENT: return "TOKEN_PERCENT";
+        case TOKEN_PLUS:
+            return "TOKEN_PLUS";
+        case TOKEN_MINUS:
+            return "TOKEN_MINUS";
+        case TOKEN_STAR:
+            return "TOKEN_STAR";
+        case TOKEN_SLASH:
+            return "TOKEN_SLASH";
+        case TOKEN_PERCENT:
+            return "TOKEN_PERCENT";
 
-        case TOKEN_PLUSEQ: return "TOKEN_PLUSEQ";
-        case TOKEN_MINUSEQ: return "TOKEN_MINUSEQ";
-        case TOKEN_STAREQ: return "TOKEN_STAREQ";
-        case TOKEN_SLASHEQ: return "TOKEN_SLASHEQ";
-        case TOKEN_PERCENTEQ: return "TOKEN_PERCENTEQ";
-        case TOKEN_ANDEQ: return "TOKEN_ANDEQ";
-        case TOKEN_OREQ: return "TOKEN_OREQ";
-        case TOKEN_XOREQ: return "TOKEN_XOREQ";
-        case TOKEN_LSHIFTEQ: return "TOKEN_LSHIFTEQ";
-        case TOKEN_RSHIFTEQ: return "TOKEN_RSHIFTEQ";
+        case TOKEN_PLUSEQ:
+            return "TOKEN_PLUSEQ";
+        case TOKEN_MINUSEQ:
+            return "TOKEN_MINUSEQ";
+        case TOKEN_STAREQ:
+            return "TOKEN_STAREQ";
+        case TOKEN_SLASHEQ:
+            return "TOKEN_SLASHEQ";
+        case TOKEN_PERCENTEQ:
+            return "TOKEN_PERCENTEQ";
+        case TOKEN_ANDEQ:
+            return "TOKEN_ANDEQ";
+        case TOKEN_OREQ:
+            return "TOKEN_OREQ";
+        case TOKEN_XOREQ:
+            return "TOKEN_XOREQ";
+        case TOKEN_LSHIFTEQ:
+            return "TOKEN_LSHIFTEQ";
+        case TOKEN_RSHIFTEQ:
+            return "TOKEN_RSHIFTEQ";
 
-        case TOKEN_ARROW: return "TOKEN_ARROW";
-        case TOKEN_ELLIPSIS: return "TOKEN_ELLIPSIS";
+        case TOKEN_ARROW:
+            return "TOKEN_ARROW";
+        case TOKEN_ELLIPSIS:
+            return "TOKEN_ELLIPSIS";
     }
     return "TOKEN_<unknown>";
 }
@@ -105,17 +172,24 @@ static void fail_token(
     if (exp_text) {
         fprintf(stderr, ", text=\"%s\" (len=%zu)", exp_text, strlen(exp_text));
     }
-    if (exp_line) fprintf(stderr, ", line=%zu", exp_line);
-    if (exp_col) fprintf(stderr, ", col=%zu", exp_col);
+    if (exp_line) {
+        fprintf(stderr, ", line=%zu", exp_line);
+    }
+    if (exp_col) {
+        fprintf(stderr, ", col=%zu", exp_col);
+    }
     fprintf(stderr, "\n");
 
-    fprintf(stderr, "  got:      kind=%s, text_len=%zu, line=%zu, col=%zu, text=\"%.*s\"\n",
-            kind_name(got.kind),
-            got.text_len,
-            got.location.line_num,
-            got.location.col,
-            (int)got.text_len,
-            got.text ? got.text : "");
+    fprintf(
+        stderr,
+        "  got:      kind=%s, text_len=%zu, line=%zu, col=%zu, text=\"%.*s\"\n",
+        kind_name(got.kind),
+        got.text_len,
+        got.location.line_num,
+        got.location.col,
+        (int)got.text_len,
+        got.text ? got.text : ""
+    );
     exit(1);
 }
 
@@ -163,7 +237,7 @@ static void test_basic_program(void)
     expect_tok(name, &l, TOKEN_RPAREN, ")", 0, 0);
     expect_tok(name, &l, TOKEN_LBRACE, "{", 0, 0);
     expect_tok(name, &l, TOKEN_KEYWORD, "return", 0, 0);
-    expect_tok(name, &l, TOKEN_NUMBER, "0", 0, 0);
+    expect_tok(name, &l, TOKEN_INT_LIT_DEC, "0", 0, 0);
     expect_tok(name, &l, TOKEN_SEMICOLON, ";", 0, 0);
     expect_tok(name, &l, TOKEN_RBRACE, "}", 0, 0);
     expect_tok(name, &l, TOKEN_EOF, NULL, 0, 0);
@@ -214,7 +288,6 @@ static void test_comments(void)
         struct Lexer l = al_lexer_alloc(src, strlen(src));
 
         expect_tok(name, &l, TOKEN_COMMENT, "/*x\ny*/", 1, 1);
-        /* After the newline inside the comment, 'z' should be on line 2. */
         expect_tok(name, &l, TOKEN_IDENTIFIER, "z", 2, 4);
         expect_tok(name, &l, TOKEN_EOF, NULL, 0, 0);
     }
@@ -226,13 +299,24 @@ static void test_string_and_char_literals(void)
     const char *src = "\"abc\" 'x' \"unterminated\n";
     struct Lexer l = al_lexer_alloc(src, strlen(src));
 
-    expect_tok(name, &l, TOKEN_STRING_LIT, "\"abc\"", 0, 0);
-    expect_tok(name, &l, TOKEN_CHAR_LIT, "'x'", 0, 0);
+    /*
+     * Current lexer behavior:
+     * - token kind is STRING_LIT / CHAR_LIT
+     * - token.text points inside the quotes
+     * - token.text_len excludes quotes
+     */
+    expect_tok(name, &l, TOKEN_STRING_LIT, "abc", 0, 0);
+    expect_tok(name, &l, TOKEN_CHAR_LIT, "x", 0, 0);
 
-    /* Lexer stops string literal on '\n' if not closed. Still TOKEN_STRING_LIT. */
-    expect_tok(name, &l, TOKEN_STRING_LIT, "\"unterminated", 0, 0);
+    /*
+     * Unterminated string stops at '\n'.
+     * The returned text is the full payload up to the newline,
+     * excluding the opening quote and excluding the newline.
+     */
+    expect_tok(name, &l, TOKEN_STRING_LIT, "unterminated", 0, 0);
     expect_tok(name, &l, TOKEN_EOF, NULL, 0, 0);
 }
+
 
 static void test_literal_operators_longest_match(void)
 {
@@ -317,38 +401,37 @@ static void test_numbers_valid_and_invalid(void)
         ". .0";
     struct Lexer l = al_lexer_alloc(src, strlen(src));
 
-    expect_tok(name, &l, TOKEN_NUMBER, "0", 0, 0);
-    expect_tok(name, &l, TOKEN_NUMBER, "123", 0, 0);
-    expect_tok(name, &l, TOKEN_NUMBER, "1.", 0, 0);
-    expect_tok(name, &l, TOKEN_NUMBER, ".5", 0, 0);
-    expect_tok(name, &l, TOKEN_NUMBER, "1.5", 0, 0);
+    expect_tok(name, &l, TOKEN_INT_LIT_DEC, "0", 0, 0);
+    expect_tok(name, &l, TOKEN_INT_LIT_DEC, "123", 0, 0);
+    expect_tok(name, &l, TOKEN_FLOAT_LIT_DEC, "1.", 0, 0);
+    expect_tok(name, &l, TOKEN_FLOAT_LIT_DEC, ".5", 0, 0);
+    expect_tok(name, &l, TOKEN_FLOAT_LIT_DEC, "1.5", 0, 0);
 
-    expect_tok(name, &l, TOKEN_NUMBER, "1e3", 0, 0);
-    expect_tok(name, &l, TOKEN_NUMBER, "1e+3", 0, 0);
-    expect_tok(name, &l, TOKEN_NUMBER, "1e-3", 0, 0);
+    expect_tok(name, &l, TOKEN_FLOAT_LIT_DEC, "1e3", 0, 0);
+    expect_tok(name, &l, TOKEN_FLOAT_LIT_DEC, "1e+3", 0, 0);
+    expect_tok(name, &l, TOKEN_FLOAT_LIT_DEC, "1e-3", 0, 0);
     expect_tok(name, &l, TOKEN_INVALID, "1e", 0, 0);
     expect_tok(name, &l, TOKEN_INVALID, "1e+", 0, 0);
 
-    expect_tok(name, &l, TOKEN_NUMBER, "0xFF", 0, 0);
-    expect_tok(name, &l, TOKEN_NUMBER, "0x1.fp3", 0, 0);
+    expect_tok(name, &l, TOKEN_INT_LIT_HEX, "0xFF", 0, 0);
+    expect_tok(name, &l, TOKEN_FLOAT_LIT_HEX, "0x1.fp3", 0, 0);
     expect_tok(name, &l, TOKEN_INVALID, "0x1.fp", 0, 0);
     expect_tok(name, &l, TOKEN_INVALID, "0x", 0, 0);
 
-    expect_tok(name, &l, TOKEN_NUMBER, "0b1011", 0, 0);
+    expect_tok(name, &l, TOKEN_INT_LIT_BIN, "0b1011", 0, 0);
     expect_tok(name, &l, TOKEN_INVALID, "0b", 0, 0);
 
-    expect_tok(name, &l, TOKEN_NUMBER, "0o77", 0, 0);
+    expect_tok(name, &l, TOKEN_INT_LIT_OCT, "0o77", 0, 0);
     expect_tok(name, &l, TOKEN_INVALID, "0o", 0, 0);
 
-    expect_tok(name, &l, TOKEN_NUMBER, "42u", 0, 0);
-    expect_tok(name, &l, TOKEN_NUMBER, "42ULL", 0, 0);
+    expect_tok(name, &l, TOKEN_INT_LIT_DEC, "42u", 0, 0);
+    expect_tok(name, &l, TOKEN_INT_LIT_DEC, "42ULL", 0, 0);
 
-    expect_tok(name, &l, TOKEN_NUMBER, "3.14f", 0, 0);
-    expect_tok(name, &l, TOKEN_NUMBER, "2.0L", 0, 0);
+    expect_tok(name, &l, TOKEN_FLOAT_LIT_DEC, "3.14f", 0, 0);
+    expect_tok(name, &l, TOKEN_FLOAT_LIT_DEC, "2.0L", 0, 0);
 
-    /* '.' alone should be DOT, but '.0' should be NUMBER. */
     expect_tok(name, &l, TOKEN_DOT, ".", 0, 0);
-    expect_tok(name, &l, TOKEN_NUMBER, ".0", 0, 0);
+    expect_tok(name, &l, TOKEN_FLOAT_LIT_DEC, ".0", 0, 0);
 
     expect_tok(name, &l, TOKEN_EOF, NULL, 0, 0);
 }
@@ -399,9 +482,9 @@ static void test_hash_not_pp_directive_when_not_column1(void)
     expect_tok(name, &l, TOKEN_HASH, "#", 1, 3);
     expect_tok(name, &l, TOKEN_IDENTIFIER, "define", 1, 4);
     expect_tok(name, &l, TOKEN_IDENTIFIER, "X", 1, 11);
-    expect_tok(name, &l, TOKEN_NUMBER, "1", 1, 13);
+    expect_tok(name, &l, TOKEN_INT_LIT_DEC, "1", 1, 13);
 
-    /* This one is at col 1 and should be treated as a directive (includes '\n'). */
+    /* This one is at col 1 and should be treated as a directive. */
     expect_tok(name, &l, TOKEN_PP_DIRECTIVE, "#define Y 2\n", 2, 1);
     expect_tok(name, &l, TOKEN_EOF, NULL, 0, 0);
 }
@@ -412,7 +495,6 @@ static void test_unterminated_block_comment(void)
     const char *src = "/* unterminated";
     struct Lexer l = al_lexer_alloc(src, strlen(src));
 
-    /* Lexer consumes to EOF and still returns TOKEN_COMMENT. */
     expect_tok(name, &l, TOKEN_COMMENT, "/* unterminated", 1, 1);
     expect_tok(name, &l, TOKEN_EOF, NULL, 0, 0);
 }
@@ -420,25 +502,20 @@ static void test_unterminated_block_comment(void)
 static void test_hex_float_variants(void)
 {
     const char *name = "hex_float_variants";
-    const char *src =
-        "0x1p2 0x1p+2 0x1p-2 0x.1p1 0x.p1 0xp1 0x1.0p0 0x1.0 0x1";
+    const char *src = "0x1p2 0x1p+2 0x1p-2 0x.1p1 0x.p1 0xp1 0x1.0p0 0x1.0 0x1";
     struct Lexer l = al_lexer_alloc(src, strlen(src));
 
-    expect_tok(name, &l, TOKEN_NUMBER, "0x1p2", 0, 0);
-    expect_tok(name, &l, TOKEN_NUMBER, "0x1p+2", 0, 0);
-    expect_tok(name, &l, TOKEN_NUMBER, "0x1p-2", 0, 0);
-    expect_tok(name, &l, TOKEN_NUMBER, "0x.1p1", 0, 0);
+    expect_tok(name, &l, TOKEN_FLOAT_LIT_HEX, "0x1p2", 0, 0);
+    expect_tok(name, &l, TOKEN_FLOAT_LIT_HEX, "0x1p+2", 0, 0);
+    expect_tok(name, &l, TOKEN_FLOAT_LIT_HEX, "0x1p-2", 0, 0);
+    expect_tok(name, &l, TOKEN_FLOAT_LIT_HEX, "0x.1p1", 0, 0);
 
-    /* Invalid: dot in hex mantissa but no digits before/after the dot */
     expect_tok(name, &l, TOKEN_INVALID, "0x.p1", 0, 0);
-    /* Invalid: no mantissa digits (even though exponent is present) */
     expect_tok(name, &l, TOKEN_INVALID, "0xp1", 0, 0);
 
-    expect_tok(name, &l, TOKEN_NUMBER, "0x1.0p0", 0, 0);
-    /* Invalid: '.' in hex mantissa requires p/P exponent in this lexer */
+    expect_tok(name, &l, TOKEN_FLOAT_LIT_HEX, "0x1.0p0", 0, 0);
     expect_tok(name, &l, TOKEN_INVALID, "0x1.0", 0, 0);
-    /* Plain hex integer is valid */
-    expect_tok(name, &l, TOKEN_NUMBER, "0x1", 0, 0);
+    expect_tok(name, &l, TOKEN_INT_LIT_HEX, "0x1", 0, 0);
 
     expect_tok(name, &l, TOKEN_EOF, NULL, 0, 0);
 }
@@ -450,14 +527,14 @@ static void test_number_stops_on_invalid_digit_in_base(void)
     struct Lexer l = al_lexer_alloc(src, strlen(src));
 
     /*
-        Current behavior: it tokenizes the longest valid prefix for the base.
-        This test documents that behavior (rather than forcing it to be invalid).
-    */
-    expect_tok(name, &l, TOKEN_NUMBER, "0b10", 0, 0);
-    expect_tok(name, &l, TOKEN_NUMBER, "2", 0, 0);
+     * Current behavior: tokenize the longest valid prefix for the base,
+     * then continue lexing the remaining characters separately.
+     */
+    expect_tok(name, &l, TOKEN_INT_LIT_BIN, "0b10", 0, 0);
+    expect_tok(name, &l, TOKEN_INT_LIT_DEC, "2", 0, 0);
 
-    expect_tok(name, &l, TOKEN_NUMBER, "0o7", 0, 0);
-    expect_tok(name, &l, TOKEN_NUMBER, "8", 0, 0);
+    expect_tok(name, &l, TOKEN_INT_LIT_OCT, "0o7", 0, 0);
+    expect_tok(name, &l, TOKEN_INT_LIT_DEC, "8", 0, 0);
 
     expect_tok(name, &l, TOKEN_EOF, NULL, 0, 0);
 }
@@ -467,7 +544,6 @@ static void test_helpers_direct(void)
     const char *name = "helpers_direct";
     AL_UNUSED(name);
 
-    /* al_is_identifier / al_is_identifier_start */
     assert(al_is_identifier_start('_'));
     assert(al_is_identifier('_'));
     assert(al_is_identifier('a'));
@@ -475,7 +551,6 @@ static void test_helpers_direct(void)
     assert(al_is_identifier('9'));
     assert(!al_is_identifier_start('9'));
 
-    /* al_lexer_start_with: empty prefix path */
     {
         struct Lexer l = al_lexer_alloc("abc123", 6);
         assert(al_lexer_start_with(&l, ""));
@@ -483,7 +558,6 @@ static void test_helpers_direct(void)
         assert(!al_lexer_start_with(&l, "abcd"));
     }
 
-    /* al_lexer_chop_while + al_lexer_peek */
     {
         struct Lexer l = al_lexer_alloc("abc123", 6);
         al_lexer_chop_while(&l, asm_isalpha);
@@ -492,13 +566,12 @@ static void test_helpers_direct(void)
         assert(al_lexer_peek(&l, 100) == '\0');
     }
 
-    /* al_lexer_chop_char newline bookkeeping */
     {
         struct Lexer l = al_lexer_alloc("x\ny", 3);
         assert(l.line_num == 0);
         assert(l.begining_of_line == 0);
-        (void)al_lexer_chop_char(&l); /* 'x' */
-        (void)al_lexer_chop_char(&l); /* '\n' */
+        (void)al_lexer_chop_char(&l);
+        (void)al_lexer_chop_char(&l);
         assert(l.line_num == 1);
         assert(l.begining_of_line == 2);
     }

@@ -19,6 +19,9 @@
 #include "Almog_String_Manipulation.h"
 #include "Almog_Dynamic_Array.h"
 
+#include <string.h>
+#include <errno.h>
+
 /**
  * @def AL_ASSERT
  * @brief Assertion macro used by the lexer (defaults to @c assert()).
@@ -351,13 +354,86 @@ static const char * const keywords[] = {
  */
 #define AL_UNUSED(x) (void)x
 
+/**
+ * @name Debug-print helpers
+ * @brief Convenience macros for diagnostic output.
+ *
+ * The typed variants print to stdout. The INFO/WARNING/ERROR variants print to
+ * stderr and include file, line, and function information.
+ */
+#define al_dprintSTRING(expr) printf("[Info] %s:%d:\n%*s" #expr " = %s\n", __FILE__, __LINE__, 7, "", expr)
+/**
+ * @name Debug-print helpers
+ * @brief Convenience macros for diagnostic output.
+ *
+ * The typed variants print to stdout. The INFO/WARNING/ERROR variants print to
+ * stderr and include file, line, and function information.
+ */
+#define al_dprintCHAR(expr) printf("[Info] %s:%d:\n%*s" #expr " = %c\n", __FILE__, __LINE__, 7, "", expr)
+/**
+ * @name Debug-print helpers
+ * @brief Convenience macros for diagnostic output.
+ *
+ * The typed variants print to stdout. The INFO/WARNING/ERROR variants print to
+ * stderr and include file, line, and function information.
+ */
+#define al_dprintINT(expr) printf("[Info] %s:%d:\n%*s" #expr " = %d\n", __FILE__, __LINE__, 7, "", expr)
+/**
+ * @name Debug-print helpers
+ * @brief Convenience macros for diagnostic output.
+ *
+ * The typed variants print to stdout. The INFO/WARNING/ERROR variants print to
+ * stderr and include file, line, and function information.
+ */
+#define al_dprintFLOAT(expr) printf("[Info] %s:%d:\n%*s" #expr " = %#f\n", __FILE__, __LINE__, 7, "", expr)
+/**
+ * @name Debug-print helpers
+ * @brief Convenience macros for diagnostic output.
+ *
+ * The typed variants print to stdout. The INFO/WARNING/ERROR variants print to
+ * stderr and include file, line, and function information.
+ */
+#define al_dprintDOUBLE(expr) printf("[Info] %s:%d:\n%*s" #expr " = %#g\n", __FILE__, __LINE__, 7, "", expr)
+/**
+ * @name Debug-print helpers
+ * @brief Convenience macros for diagnostic output.
+ *
+ * The typed variants print to stdout. The INFO/WARNING/ERROR variants print to
+ * stderr and include file, line, and function information.
+ */
+#define al_dprintSIZE_T(expr) printf("[Info] %s:%d:\n%*s" #expr " = %zu\n", __FILE__, __LINE__, 7, "", expr)
+/**
+ * @name Debug-print helpers
+ * @brief Convenience macros for diagnostic output.
+ *
+ * The typed variants print to stdout. The INFO variants print to
+ * stdout and include file, line, and function information.
+ */
+#define al_dprintINFO(fmt, ...) \
+    fprintf(stdout, "[Info] %s:%d:\n%*sIn function '%s':\n%*s" fmt "\n", __FILE__, __LINE__, 7, "", __func__, 7, "", __VA_ARGS__)
+/**
+ * @name Debug-print helpers
+ * @brief Convenience macros for diagnostic output.
+ *
+ * The typed variants print to stdout. The WARNING/ERROR variants print to
+ * stderr and include file, line, and function information.
+ */
+#define al_dprintWARNING(fmt, ...) \
+    fprintf(stderr, "[Warning] %s:%d:\n%*sIn function '%s':\n%*s" fmt "\n", __FILE__, __LINE__, 10, "", __func__, 10, "", __VA_ARGS__)
+/**
+ * @name Debug-print helpers
+ * @brief Convenience macros for diagnostic output.
+ *
+ * The typed variants print to stdout. The WARNING/ERROR variants print to
+ * stderr and include file, line, and function information.
+ */
 #define al_dprintERROR(fmt, ...) \
-    fprintf(stderr, "\n%s:%d:\n[Error] in function '%s':\n        " \
-    fmt "\n\n", __FILE__, __LINE__, __func__, __VA_ARGS__)
+    fprintf(stderr, "[Error] %s:%d:\n%*sIn function '%s':\n%*s" fmt "\n", __FILE__, __LINE__, 8, "", __func__, 8, "", __VA_ARGS__)
 
 bool            al_is_identifier(char c);
 bool            al_is_identifier_start(char c);
 struct Tokens   al_lex_entire_file(char *file_path);
+bool            al_lexer_hash_starts_pp_directive(const struct Lexer *l);
 struct Lexer    al_lexer_alloc(const char *content, size_t len);
 char            al_lexer_chop_char(struct Lexer *l);
 void            al_lexer_chop_while(struct Lexer *l, bool (*pred)(char));
@@ -367,6 +443,7 @@ void            al_lexer_trim_left(struct Lexer *l);
 char            al_lexer_peek(const struct Lexer *l, size_t off);
 void            al_token_print(struct Token tok);
 const char *    al_token_kind_name(enum Token_Kind kind);
+bool            al_token_text_equals_str(struct Token token, const char *str);
 struct Tokens   al_tokens_alloc(void);
 void            al_tokens_free(struct Tokens tokens);
 
@@ -406,7 +483,8 @@ struct Tokens al_lex_entire_file(char *file_path)
 {
     FILE *fp = fopen(file_path, "r");
     if (!fp) {
-        al_dprintERROR("Could not open file '%s'\n", file_path);
+        int err = errno;
+        al_dprintERROR( "Cannot open file %s: %s", file_path, strerror(err));
         exit(1);
     }
 
@@ -416,11 +494,16 @@ struct Tokens al_lex_entire_file(char *file_path)
     char temp_str[ASM_MAX_LEN];
     int len = 0;
     while ((len = asm_get_line(fp, temp_str)) != EOF) {
+        if (len == -2) {
+            al_dprintERROR("Line too long. Max length of a line can be %d. Try increasing the macro ASM_MAX_LEN.", ASM_MAX_LEN - 1);
+            exit(1);
+        }
         for (int i = 0; i < len; i++) {
             ada_appand(char, tokens.content, temp_str[i]);
         }
         ada_appand(char, tokens.content, '\n');
     }
+    fclose(fp);
 
     struct Lexer l = al_lexer_alloc(tokens.content.elements, tokens.content.length);
 
@@ -432,6 +515,31 @@ struct Tokens al_lex_entire_file(char *file_path)
     ada_appand(struct Token, tokens, t);
 
     return tokens;
+}
+
+/**
+ * @brief Return true if the current `#` begins a preprocessor directive.
+ *
+ * In C/C++, a preprocessing directive may be preceded on its line only by
+ * whitespace. This helper checks whether the current lexer cursor points at
+ * `#` and whether every character from the start of the current line up to
+ * the cursor is whitespace.
+ */
+bool al_lexer_hash_starts_pp_directive(const struct Lexer *l)
+{
+    if (l->cursor >= l->content_len || l->content[l->cursor] != '#') {
+        return false;
+    }
+
+    for (size_t i = l->begining_of_line; i < l->cursor; i++) {
+        char c = l->content[i];
+        if (c != ' ' && c != '\t' && c != '\v' && c != '\f' &&
+            c != '\r') {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 /**
@@ -551,12 +659,22 @@ struct Token al_lexer_next_token(struct Lexer *l)
 
     if (l->cursor >= l->content_len) {
         token.kind = TOKEN_EOF;
-    } else if (l->content[l->cursor] == '#' && token.location.col == 1) {
+    } else if (al_lexer_hash_starts_pp_directive(l)) {
         token.kind = TOKEN_PP_DIRECTIVE;
-        for (;l->cursor < l->content_len && l->content[l->cursor] != '\n';) {
-            al_lexer_chop_char(l);
-        }
-        if (l->cursor < l->content_len) {
+        for (;;) {
+            if (l->cursor >= l->content_len) {
+                break;
+            }
+            if (al_lexer_peek(l, 0) == '\\' &&
+                al_lexer_peek(l, 1) == '\n') {
+                al_lexer_chop_char(l);
+                al_lexer_chop_char(l);
+                continue;
+            }
+            if (al_lexer_peek(l, 0) == '\n') {
+                al_lexer_chop_char(l);
+                break;
+            }
             al_lexer_chop_char(l);
         }
     } else if (al_is_identifier_start(l->content[l->cursor])) {
@@ -577,27 +695,54 @@ struct Token al_lexer_next_token(struct Lexer *l)
     } else if (l->content[l->cursor] == '"') {
         token.kind = TOKEN_STRING_LIT;
         al_lexer_chop_char(l);
-        token.text++;
-        start = l->cursor+1;
+        token.text = &l->content[l->cursor];
+        start = l->cursor;
 
-        for ( ; (l->cursor < l->content_len) && (l->content[l->cursor] != '"') && (l->content[l->cursor] != '\n'); ) {
+        while (l->cursor < l->content_len && l->content[l->cursor] != '\n') {
+            if (l->content[l->cursor] == '\\') {
+                al_lexer_chop_char(l);
+                if (l->cursor < l->content_len &&
+                    l->content[l->cursor] != '\n') {
+                    al_lexer_chop_char(l);
+                }
+                continue;
+            }
+            if (l->content[l->cursor] == '"') {
+                break;
+            }
             al_lexer_chop_char(l);
         }
+        token.text_len = l->cursor - start;
         if ((l->cursor < l->content_len) && (l->content[l->cursor] == '"')) {
             al_lexer_chop_char(l);
         }
+        return token;
     } else if (l->content[l->cursor] == '\'') {
         token.kind = TOKEN_CHAR_LIT;
         al_lexer_chop_char(l);
-        token.text++;
-        start = l->cursor+1;
+        token.text = &l->content[l->cursor];
+        start = l->cursor;
 
-        for ( ; (l->cursor < l->content_len) && (l->content[l->cursor] != '\'') && (l->content[l->cursor] != '\n'); ) {
+        while (l->cursor < l->content_len &&
+               l->content[l->cursor] != '\n') {
+            if (l->content[l->cursor] == '\\') {
+                al_lexer_chop_char(l);
+                if (l->cursor < l->content_len &&
+                    l->content[l->cursor] != '\n') {
+                    al_lexer_chop_char(l);
+                }
+                continue;
+            }
+            if (l->content[l->cursor] == '\'') {
+                break;
+            }
             al_lexer_chop_char(l);
         }
+        token.text_len = l->cursor - start;
         if ((l->cursor < l->content_len) && (l->content[l->cursor] == '\'')) {
             al_lexer_chop_char(l);
         }
+        return token;
     } else if (al_lexer_start_with(l, "//")) {
         token.kind = TOKEN_COMMENT;
         for (;l->cursor < l->content_len && l->content[l->cursor] != '\n';) {
@@ -984,13 +1129,25 @@ const char *al_token_kind_name(enum Token_Kind kind)
     return NULL;
 }
 
+bool al_token_text_equals_str(struct Token token, const char *str)
+{
+    size_t s_len = asm_length(str);
+    return token.text_len == s_len && asm_strncmp(token.text, str, s_len);
+}
+
+
 struct Tokens al_tokens_alloc(void)
 {
     struct Tokens tokens = {0};
     ada_init_array(struct Token, tokens);
     ada_init_array(char, tokens.content);
     tokens.current_token = 0;
-    tokens.file_path = (char *)malloc(sizeof(char) * ASM_MAX_LEN);
+    tokens.file_path = (char *)AL_MALLOC(sizeof(char) * ASM_MAX_LEN);
+    if (tokens.file_path == NULL) {
+        al_dprintERROR("%s", "Allocation Failed.");
+        exit(1);
+    }
+    tokens.file_path[0] = '\0';
 
     return tokens;
 }

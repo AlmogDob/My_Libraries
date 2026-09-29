@@ -11,7 +11,7 @@
  * How to use:
  *   1) Define a header struct with length/capacity/elements fields.
  *   2) Initialize it with ada_init_array(T, header).
- *   3) Modify it with ada_appand (append), ada_insert, remove variants, etc.
+ *   3) Modify it with ada_append (append), ada_insert, remove variants, etc.
  *   4) When done, free(header.elements) (or your custom deallocator).
  *
  * Customization:
@@ -27,10 +27,9 @@
  *   - These are macros; arguments may be evaluated multiple times. Pass only
  *     simple lvalues (no side effects).
  *   - Index checks rely on ADA_ASSERT; with NDEBUG they may be compiled out.
- *   - ada_resize exits the process (exit(1)) if reallocation fails.
  *   - ada_insert reads header.elements[header.length - 1] internally; inserting
  *     into an empty array via ada_insert is undefined behavior. Use
- *     ada_appand or ada_insert_unordered for that case.
+ *     ada_append or ada_insert_unordered for that case.
  *   - No automatic shrinking; you may call ada_resize manually.
  *
  * Example:
@@ -42,7 +41,7 @@
  *
  *   ada_int_array arr;
  *   ada_init_array(int, arr);
- *   ada_appand(int, arr, 42);
+ *   ada_append(int, arr, 42);
  *   ada_insert(int, arr, 7, 0); // requires arr.length > 0
  *   ada_remove(int, arr, 1);
  *   free(arr.elements);
@@ -73,11 +72,6 @@
 #include <stdlib.h>
 #define ADA_MALLOC malloc
 #endif /*ADA_MALLOC*/
-
-#ifndef ADA_EXIT
-#include <stdlib.h>
-#define ADA_EXIT exit
-#endif /*ADA_EXIT*/
 
 /**
  * @def ADA_REALLOC
@@ -124,11 +118,11 @@
  *
  * @note Allocation uses ADA_MALLOC and is checked via ADA_ASSERT.
  */
-#define ada_init_array(type, header) do {                                       \
-        (header).capacity = ADA_INIT_CAPACITY;                                        \
-        (header).length = 0;                                                      \
+#define ada_init_array(type, header) do {                                           \
+        (header).capacity = ADA_INIT_CAPACITY;                                      \
+        (header).length = 0;                                                        \
         (header).elements = (type *)ADA_MALLOC(sizeof(type) * (header).capacity);   \
-        ADA_ASSERT((header).elements != NULL);                                    \
+        ADA_ASSERT((header).elements != NULL);                                      \
     } while (0)
 
     /**
@@ -144,21 +138,18 @@
  * @post header.capacity == new_capacity and header.elements points to a block
  *       large enough for new_capacity elements.
  *
- * @warning On allocation failure, this macro calls ADA_EXIT(1).
  * @note Reallocation uses ADA_REALLOC and is also checked via ADA_ASSERT.
  */
-#define ada_resize(type, header, new_capacity) do {                                                         \
-        type *ada_temp_pointer = (type *)ADA_REALLOC((void *)((header).elements), new_capacity*sizeof(type)); \
-        if (ada_temp_pointer == NULL) {                                                                     \
-            ADA_EXIT(1);                                                                                        \
-        }                                                                                                   \
-        (header).elements = ada_temp_pointer;                                                                 \
-        ADA_ASSERT((header).elements != NULL);                                                                \
-        (header).capacity = new_capacity;                                                                     \
+#define ada_resize(type, header, new_capacity) do {                                                             \
+        type *ada_temp_pointer = (type *)ADA_REALLOC((void *)((header).elements), new_capacity*sizeof(type));   \
+        ADA_ASSERT(ada_temp_pointer != NULL);                                                                   \
+        (header).elements = ada_temp_pointer;                                                                   \
+        ADA_ASSERT((header).elements != NULL);                                                                  \
+        (header).capacity = new_capacity;                                                                       \
     } while (0)
 
 /**
- * @def ada_appand(type, header, value)
+ * @def ada_append(type, header, value)
  * @brief Append a value to the end of the array, growing if necessary.
  *
  * @param type   Element type stored in the array.
@@ -173,12 +164,12 @@
  *       manually shrink capacity. Ensure growth always increases capacity by
  *       at least 1 if you customize this macro.
  */
-#define ada_appand(type, header, value) do {                                            \
+#define ada_append(type, header, value) do {                                                \
         if ((header).length >= (header).capacity) {                                         \
-            ada_resize(type, (header), (int)((header).capacity + (header).capacity/2 + 1));   \
-        }                                                                               \
+            ada_resize(type, (header), (int)((header).capacity + (header).capacity/2 + 1)); \
+        }                                                                                   \
         (header).elements[(header).length] = value;                                         \
-        (header).length++;                                                                \
+        (header).length++;                                                                  \
     } while (0)
 
 /**
@@ -193,21 +184,23 @@
  * @pre 0 <= index <= header.length.
  * @pre header.length > 0 if index == header.length (this macro reads the last
  *      element internally). For inserting into an empty array, use
- *      ada_appand or ada_insert_unordered.
+ *      ada_append or ada_insert_unordered.
  * @post Element is inserted at index; subsequent elements are shifted right;
  *       header.length is incremented by 1.
  *
  * @note This macro asserts index is non-negative and an integer value using
  *       ADA_ASSERT. No explicit upper-bound assert is performed.
  */
-#define ada_insert(type, header, value, index) do {                                                             \
-    ADA_ASSERT((int)(index) >= 0);                                                                              \
-    ADA_ASSERT((float)(index) - (int)(index) == 0);                                                             \
-    ada_appand(type, (header), (header).elements[(header).length-1]);                                                 \
-    for (int ada_for_loop_index = (header).length-2; ada_for_loop_index > (int)(index); ada_for_loop_index--) {   \
-        (header).elements[ada_for_loop_index] = (header).elements [ada_for_loop_index-1];                           \
-    }                                                                                                           \
-    (header).elements[(index)] = value;                                                                           \
+#define ada_insert(type, header, value, index) do {                                                                     \
+    ADA_ASSERT((int)(index) >= 0);                                                                                      \
+    ADA_ASSERT((float)(index) - (int)(index) == 0);                                                                     \
+    ADA_ASSERT((header).length > 0 && "You can not insert to an empty array.");                                         \
+    ADA_ASSERT(index <= (header).length);                                                                               \
+    ada_append(type, (header), (header).elements[(header).length-1]);                                                   \
+    for (int ada_for_loop_index = (int)((header).length)-2; ada_for_loop_index > (int)(index); ada_for_loop_index--) {  \
+        (header).elements[ada_for_loop_index] = (header).elements [ada_for_loop_index-1];                               \
+    }                                                                                                                   \
+    (header).elements[(index)] = value;                                                                                 \
 } while (0)
 
 
@@ -229,11 +222,12 @@
 #define ada_insert_unordered(type, header, value, index) do {   \
     ADA_ASSERT((int)(index) >= 0);                              \
     ADA_ASSERT((float)(index) - (int)(index) == 0);             \
-    if ((size_t)(index) == (header).length) {                     \
-        ada_appand(type, (header), value);                        \
+    ADA_ASSERT(index <= (header).length);                       \
+    if ((size_t)(index) == (header).length) {                   \
+        ada_append(type, (header), value);                      \
     } else {                                                    \
-        ada_appand(type, (header), (header).elements[(index)]);     \
-        (header).elements[(index)] = value;                       \
+        ada_append(type, (header), (header).elements[(index)]); \
+        (header).elements[(index)] = value;                     \
     }                                                           \
 } while (0)
 
@@ -250,13 +244,15 @@
  *       left by one position. The element beyond the new length is left
  *       uninitialized.
  */
-#define ada_remove(type, header, index) do {                                                                \
-    ADA_ASSERT((int)(index) >= 0);                                                                          \
-    ADA_ASSERT((float)(index) - (int)(index) == 0);                                                         \
-    for (size_t ada_for_loop_index = (index); ada_for_loop_index < (header).length-1; ada_for_loop_index++) { \
+#define ada_remove(type, header, index) do {                                                                    \
+    ADA_ASSERT((int)(index) >= 0);                                                                              \
+    ADA_ASSERT((header).length > 0 && "You can not remove from an empty array.");                               \
+    ADA_ASSERT((float)(index) - (int)(index) == 0);                                                             \
+    ADA_ASSERT(index < (header).length);                                                                        \
+    for (size_t ada_for_loop_index = (index); ada_for_loop_index < (header).length-1; ada_for_loop_index++) {   \
         (header).elements[ada_for_loop_index] = (header).elements[ada_for_loop_index+1];                        \
-    }                                                                                                       \
-    (header).length--;                                                                                        \
+    }                                                                                                           \
+    (header).length--;                                                                                          \
 } while (0)
 
 /**
@@ -271,11 +267,13 @@
  * @pre 0 <= index < header.length and header.length > 0.
  * @post header.length is decremented by 1; array order is not preserved.
  */
-#define ada_remove_unordered(type, header, index) do {          \
-    ADA_ASSERT((int)(index) >= 0);                              \
-    ADA_ASSERT((float)(index) - (int)(index) == 0);             \
-    (header).elements[index] = (header).elements[(header).length-1];  \
-    (header).length--;                                            \
+#define ada_remove_unordered(type, header, index) do {                              \
+    ADA_ASSERT((int)(index) >= 0);                                                  \
+    ADA_ASSERT((header).length > 0 && "You can not remove from an empty array.");   \
+    ADA_ASSERT(index < (header).length);                                            \
+    ADA_ASSERT((float)(index) - (int)(index) == 0);                                 \
+    (header).elements[index] = (header).elements[(header).length-1];                \
+    (header).length--;                                                              \
 } while (0)
 
 

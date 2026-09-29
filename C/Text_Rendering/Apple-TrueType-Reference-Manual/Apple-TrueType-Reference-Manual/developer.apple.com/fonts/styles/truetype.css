@@ -1,0 +1,50 @@
+ul.dot {
+	list-style: disc;
+}
+ul.circle {
+	list-style: circle;
+}
+ul.circle ul {
+	margin-bottom:8px;
+}
+ul.circle ul li {
+	margin-bottom:2px;
+}
+
+
+/* Grid */
+#main section.section {
+	padding-top: 4em;
+	padding-bottom: 4em;
+}
+#main section .section-content .row {
+	margin-left: 0;
+	margin-right: 0;
+}
+#main section .section-content .row > .column {
+	padding: 0;
+}
+
+@media only screen and (max-width: 1068px) {
+	#main section .section-content .row {
+		margin-left: 0;
+		margin-right: 0;
+	}
+	#main section .section-content .row > .column {
+		padding: 0;
+	}
+}
+
+@media only screen and (max-width: 735px) {
+	#main section.section {
+		padding-top: 2em;
+		padding-bottom: 2em;
+	}
+	#main section .section-content .row {
+		margin-left: 0;
+		margin-right: 0;
+	}
+	#main section .section-content .row > .column {
+		padding: 1em 0;
+	}
+}

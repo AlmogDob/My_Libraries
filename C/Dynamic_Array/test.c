@@ -52,7 +52,7 @@ int main()
     ada_init_array(int, a);
 
     for (int i = 0; i < 14; i++) {
-        ada_appand(int, a, i);
+        ada_append(int, a, i);
     }
     
     ADA_INT_PRINT(a);
@@ -67,7 +67,7 @@ int main()
     ada_init_array(float, b);
 
     for (int i = 0; i < 69; i++) {
-        ada_appand(float, b, i/2.0);
+        ada_append(float, b, i/2.0f);
     }
 
     ADA_FLOAT_PRINT(b);

@@ -1,0 +1,4555 @@
+/**
+ * Apple's reference manual is at: https://developer.apple.com/fonts/TrueType-Reference-Manual/.
+ */
+
+/** TODO:
+ *  - add support for OpenType.
+ */
+
+#ifndef ALMOG_TEXT_RENDERING_H_
+#define ALMOG_TEXT_RENDERING_H_
+
+#if defined(_WIN32) || defined(_WIN64) 
+    #pragma warning(disable : 4709)
+#endif
+
+#include <stdio.h>
+#include <errno.h>
+#include <stdint.h>
+#include <string.h>
+#include <stdbool.h>
+#include <math.h>
+#include <float.h>
+
+#ifndef ATR_ASSERT
+    #include <assert.h>
+    #define ATR_ASSERT assert
+#endif
+#ifndef ATR_MALLOC
+    #include <stdlib.h>
+    #define ATR_MALLOC malloc
+#endif
+#ifndef ATR_FREE
+    #include <stdlib.h>
+    #define ATR_FREE free
+#endif
+#ifndef ATR_REALLOC
+    #include <stdlib.h>
+    #define ATR_REALLOC realloc
+#endif
+
+/*{*/
+    /* For explanation see https://github.com/AlmogDob/My_Libraries/tree/master/C/Dynamic_Array*/
+
+    #ifndef ATR_ADA_INIT_CAPACITY
+    #define ATR_ADA_INIT_CAPACITY 1
+    #endif /*ATR_ADA_INIT_CAPACITY*/
+
+    #ifndef ATR_ADA_MALLOC
+    #define ATR_ADA_MALLOC ATR_MALLOC
+    #endif /*ATR_ADA_MALLOC*/
+
+    #ifndef ATR_ADA_REALLOC
+    #define ATR_ADA_REALLOC ATR_REALLOC
+    #endif /*ATR_ADA_REALLOC*/
+
+    #ifndef ATR_ADA_ASSERT
+    #define ATR_ADA_ASSERT ATR_ASSERT
+    #endif /*ATR_ADA_ASSERT*/
+
+    /* typedef struct {
+        size_t length;
+        size_t capacity;
+        int* elements;
+    } atr_ada_int_array; */
+
+    #define atr_ada_init_array(type, header) do {                                               \
+            (header).capacity = ATR_ADA_INIT_CAPACITY;                                          \
+            (header).length = 0;                                                                \
+            (header).elements = (type *)ATR_ADA_MALLOC(sizeof(type) * (header).capacity);       \
+            ATR_ADA_ASSERT((header).elements != NULL);                                          \
+        } while (0)
+
+    #define atr_ada_resize(type, header, new_capacity) do {                                                                 \
+            type *atr_ada_temp_pointer = (type *)ATR_ADA_REALLOC((void *)((header).elements), new_capacity*sizeof(type));   \
+            ATR_ADA_ASSERT(atr_ada_temp_pointer != NULL);                                                                   \
+            (header).elements = atr_ada_temp_pointer;                                                                       \
+            ATR_ADA_ASSERT((header).elements != NULL);                                                                      \
+            (header).capacity = new_capacity;                                                                               \
+        } while (0)
+
+    #define atr_ada_append(type, header, value) do {                                                \
+            if ((header).length >= (header).capacity) {                                             \
+                atr_ada_resize(type, (header), (int)((header).capacity + (header).capacity/2 + 1)); \
+            }                                                                                       \
+            (header).elements[(header).length] = value;                                             \
+            (header).length++;                                                                      \
+        } while (0)
+
+    #define atr_ada_insert(type, header, value, index) do {                                                                             \
+        ATR_ADA_ASSERT((int)(index) >= 0);                                                                                              \
+        ATR_ADA_ASSERT((float)(index) - (int)(index) == 0);                                                                             \
+        ATR_ADA_ASSERT((header).length > 0 && "You can not insert to an empty array.");                                                 \
+        ATR_ADA_ASSERT(index <= (header).length);                                                                                       \
+        atr_ada_append(type, (header), (header).elements[(header).length-1]);                                                           \
+        for (int atr_ada_for_loop_index = (int)((header).length)-2; atr_ada_for_loop_index > (int)(index); atr_ada_for_loop_index--) {  \
+            (header).elements[atr_ada_for_loop_index] = (header).elements [atr_ada_for_loop_index-1];                                   \
+        }                                                                                                                               \
+        (header).elements[(index)] = value;                                                                                             \
+    } while (0)
+
+    #define atr_ada_insert_unordered(type, header, value, index) do {   \
+        ATR_ADA_ASSERT((int)(index) >= 0);                              \
+        ATR_ADA_ASSERT((float)(index) - (int)(index) == 0);             \
+        ATR_ADA_ASSERT(index <= (header).length);                       \
+        if ((size_t)(index) == (header).length) {                       \
+            atr_ada_append(type, (header), value);                      \
+        } else {                                                        \
+            atr_ada_append(type, (header), (header).elements[(index)]); \
+            (header).elements[(index)] = value;                         \
+        }                                                               \
+    } while (0)
+
+    #define atr_ada_remove(type, header, index) do {                                                                            \
+        ATR_ADA_ASSERT((int)(index) >= 0);                                                                                      \
+        ATR_ADA_ASSERT((header).length > 0 && "You can not remove from an empty array.");                                       \
+        ATR_ADA_ASSERT((float)(index) - (int)(index) == 0);                                                                     \
+        ATR_ADA_ASSERT(index < (header).length);                                                                                \
+        for (size_t atr_ada_for_loop_index = (index); atr_ada_for_loop_index < (header).length-1; atr_ada_for_loop_index++) {   \
+            (header).elements[atr_ada_for_loop_index] = (header).elements[atr_ada_for_loop_index+1];                            \
+        }                                                                                                                       \
+        (header).length--;                                                                                                      \
+    } while (0)
+
+    #define atr_ada_remove_unordered(type, header, index) do {                              \
+        ATR_ADA_ASSERT((int)(index) >= 0);                                                  \
+        ATR_ADA_ASSERT((header).length > 0 && "You can not remove from an empty array.");   \
+        ATR_ADA_ASSERT(index < (header).length);                                            \
+        ATR_ADA_ASSERT((float)(index) - (int)(index) == 0);                                 \
+        (header).elements[index] = (header).elements[(header).length-1];                    \
+        (header).length--;                                                                  \
+    } while (0)
+/*}*/
+
+#ifndef atr_real
+    #if defined(ATR_SINGLE_PRECISION)
+        typedef float atr_real_type;
+        #define ATR_INFINITY FLT_MAX
+        #define ATR_EPS   FLT_EPSILON
+        #define atr_fabs  fabsf
+        #define atr_floor floorf
+        #define atr_ceil  ceilf
+        #define atr_round roundf
+        #define atr_sqrt  sqrtf
+        #define atr_cbrt  cbrtf
+        #define atr_cos   cosf
+        #define atr_sin   sinf
+        #define atr_atan2 atan2f
+        #define atr_fmod  fmodf
+    #else 
+        typedef double atr_real_type;
+        #define ATR_INFINITY DBL_MAX
+        #define ATR_EPS   DBL_EPSILON
+        #define atr_fabs  fabs
+        #define atr_floor floor
+        #define atr_ceil  ceil
+        #define atr_round round
+        #define atr_sqrt  sqrt
+        #define atr_cbrt  cbrt
+        #define atr_cos   cos
+        #define atr_sin   sin
+        #define atr_atan2 atan2
+        #define atr_fmod  fmod
+    #endif
+    #define atr_real atr_real_type
+#endif
+
+#ifndef ATR_PI
+    #define ATR_PI (atr_real)3.14159265358979323846
+#endif
+
+enum Atr_Return_Types {
+    ATR_FAIL,
+    ATR_SUCCESS,
+};
+
+struct Atr_Byte_String {
+    char *name;
+    size_t capacity;
+    size_t length;
+    size_t cursor;
+    uint8_t *elements;
+};
+
+struct Atr_Bit_Reader {
+    struct Atr_Byte_String file;
+    uint8_t current_byte;
+    uint8_t bits_left;
+};
+
+struct Atr_Offset_Zoom {
+    atr_real zoom_multiplier;
+    atr_real offset_x;
+    atr_real offset_y;
+};
+
+struct Atr_Pixel_Buffer {
+    size_t rows;
+    size_t cols;
+    size_t stride_r;
+    uint32_t *elements;
+};
+
+struct Atr_Offset_Subtable {
+    uint32_t scaler_type;
+    uint16_t numTables;
+    uint16_t searchRange;
+    uint16_t entrySelector;
+    uint16_t rangeShift;
+};
+
+struct Atr_Table_Header {
+    union {
+        uint32_t tag_raw;
+        char tag_str[4];
+        uint8_t tag_array[4];
+    };  
+    uint32_t checkSum;
+    uint32_t offset;
+    uint32_t length;
+};
+
+struct Atr_Table_cmap_Group {
+    uint32_t startCharCode;
+    uint32_t endCharCode;
+    uint32_t startGlyphCode;
+};
+
+enum Atr_cmap_Priority {
+    ATR_cmap_PRIORITY_NONE = 0,
+    ATR_cmap_PRIORITY_SYMBOL = 1,
+    ATR_cmap_PRIORITY_LAST_RESORT = 2,
+    ATR_cmap_PRIORITY_UNICODE_BMP = 3,
+    ATR_cmap_PRIORITY_UNICODE_FULL = 4,
+};
+
+struct Atr_Table_cmap_Subtable {
+    uint16_t platformID;
+    uint16_t platformSpecificID;
+    uint32_t relative_offset;
+    uint32_t absolute_offset;
+    uint16_t format;
+    union {
+        struct {
+            uint16_t length;
+            uint16_t language;
+            uint8_t  glyphIndexArray[256];
+        } format_0;
+        struct {
+            uint16_t length;
+            uint16_t language;
+            uint16_t segCountx2;
+            uint16_t searchRange;
+            uint16_t entrySelector;
+            uint16_t rangeShift;
+
+            uint16_t *endCode;
+            uint16_t *startCode;
+            uint16_t *idDelta;
+            uint16_t *idRangeOffset;
+
+            size_t    glyphIndexCount;
+            uint16_t *glyphIndexArray;
+        } format_4;
+        struct {
+            uint16_t length;
+            uint16_t language;
+            uint16_t firstCode;
+            uint16_t entryCount;
+            uint16_t *glyphIndexArray;
+        } format_6;
+        struct {
+            uint32_t length;
+            uint32_t language;
+            uint32_t startCharCode;
+            uint32_t numChars;
+            uint16_t *glyphs;
+        } format_10;
+        struct {
+            uint32_t length;
+            uint32_t language;
+            uint32_t nGroups;
+            struct Atr_Table_cmap_Group *groups;
+        } format_12;
+        struct {
+            uint32_t length;
+            uint32_t language;
+            uint32_t nGroups;
+            struct Atr_Table_cmap_Group *groups;
+        } format_13;
+    } data; /* 0 4 6 12 13 ?*/
+};
+
+struct Atr_Table_cmap {
+    struct Atr_Table_Header header;
+    uint16_t version;
+    uint16_t numberSubtables;
+    struct {
+        size_t length;
+        size_t capacity;
+        struct Atr_Table_cmap_Subtable *elements;
+    } subtables;
+    uint16_t chosen_subtable_index;
+    uint16_t variation_subtable_index;
+    bool has_variation_subtable;
+};
+
+enum Atr_Outline_Flag {
+    ATR_OUTLINE_FLAG_ON_CURVE       = 0b000001,
+    ATR_OUTLINE_FLAG_X_SHORT_VECTOR = 0b000010,
+    ATR_OUTLINE_FLAG_Y_SHORT_VECTOR = 0b000100,
+    ATR_OUTLINE_FLAG_REPEAT         = 0b001000,
+    ATR_OUTLINE_FLAG_THIS_X_IS_SAME = 0b010000,
+    ATR_OUTLINE_FLAG_THIS_Y_IS_SAME = 0b100000,
+};
+
+struct Atr_Vec2 {
+    atr_real x;
+    atr_real y;
+};
+
+enum Atr_Glyph_Point_Flag {
+    ATR_GPF_ON_CURVE    = 0b001,
+    ATR_GPF_CONTOUR_END = 0b010,
+    ATR_GPF_GENERATED   = 0b100,
+};
+
+struct Atr_Glyph_Point {
+    struct Atr_Vec2 pos;
+    enum Atr_Glyph_Point_Flag flag;
+};
+
+struct Atr_Glyph_Point_Dynamic_Array {
+    size_t capacity;
+    size_t length;
+    struct Atr_Glyph_Point *elements;
+};
+
+struct Atr_Glyph_Transform {
+    atr_real scale_x;
+    atr_real scale_y;
+    atr_real translate_x;
+    atr_real translate_y;
+};
+
+enum Atr_Glyph_Compound_Components_Flag {
+    ATR_GCCF_ARG_1_AND_2_ARE_WORDS    = 0b00000000001,
+    ATR_GCCF_ARGS_ARE_XY_VALUES       = 0b00000000010,
+    ATR_GCCF_ROUND_XY_TO_GRID         = 0b00000000100,
+    ATR_GCCF_WE_HAVE_A_SCALE          = 0b00000001000,
+    ATR_GCCF_OBSOLETE                 = 0b00000010000,
+    ATR_GCCF_MORE_COMPONENTS          = 0b00000100000,
+    ATR_GCCF_WE_HAVE_AN_X_AND_Y_SCALE = 0b00001000000,
+    ATR_GCCF_WE_HAVE_A_TWO_BY_TWO     = 0b00010000000,
+    ATR_GCCF_WE_HAVE_INSTRUCTIONS     = 0b00100000000,
+    ATR_GCCF_USE_MY_METRICES          = 0b01000000000,
+    ATR_GCCF_OVERLAP_COMPOUND         = 0b10000000000,
+};
+
+struct Atr_Glyph_Compound_Components {
+    uint16_t flags;
+    uint16_t glyphIndex;
+    int32_t  argument1;
+    int32_t  argument2;
+    size_t   transformation_count;
+    atr_real transformations[4];
+};
+
+struct Atr_Glyph_Compound_Components_Dynamic_Array {
+    size_t capacity;
+    size_t length;
+    struct Atr_Glyph_Compound_Components *elements;
+};
+
+enum Atr_Glyph_Parse_State {
+    ATR_GLYPH_NOT_PARSED,
+    ATR_GLYPH_BEING_PARSED,
+    ATR_GLYPH_PARSED
+};
+
+struct Atr_Glyph {
+    struct {
+        int16_t numberOfContours;
+        int16_t xMin;
+        int16_t yMin;
+        int16_t xMax;
+        int16_t yMax;
+    } metadata;
+    union {
+        struct {
+            uint16_t *endPtsOfContours;
+
+            uint16_t  instructionLength;
+            uint8_t  *instructions;
+
+            size_t    num_of_raw_points;
+            uint8_t  *flags;
+            int16_t  *xCoordinates;
+            int16_t  *yCoordinates;
+            struct Atr_Glyph_Point_Dynamic_Array points;
+        } simple;
+        struct {
+            enum Atr_Glyph_Parse_State parse_state;
+            struct Atr_Glyph_Compound_Components_Dynamic_Array compound_components_array;
+            struct Atr_Glyph_Point_Dynamic_Array raw_points;
+            struct Atr_Glyph_Point_Dynamic_Array points;
+        } compound;
+    };
+};
+
+struct Atr_Real_Dynamic_Array {
+    size_t capacity;
+    size_t length;
+    atr_real *elements;
+};
+
+struct Atr_Table_glyf {
+    struct Atr_Table_Header header;
+
+    size_t num_of_glyphs;
+    struct Atr_Glyph *glyphs;
+};
+
+struct Atr_Table_head {
+    struct Atr_Table_Header header;
+    uint16_t version_hole_part;
+    uint16_t version_frac_part;
+    uint16_t fontRevision_hole_part;
+    uint16_t fontRevision_frac_part;
+    uint32_t checkSumAdjustment;
+    uint32_t magicNumber;
+    uint16_t flags;
+    uint16_t unitsPerEm;
+    uint64_t created;
+    uint64_t modified;
+    int16_t  xMin;
+    int16_t  yMin;
+    int16_t  xMax;
+    int16_t  yMax;
+    uint16_t macStyle;
+    uint16_t lowestRecPPEM;
+    int16_t  fontDirectionHint;
+    int16_t  indexToLocFormat;
+    int16_t  glyphDataFormat;
+};
+
+struct Atr_Table_hhea {
+    struct Atr_Table_Header header;
+    int16_t  version_hole_part;
+    int16_t  version_frac_part;
+    int16_t  ascent;
+    int16_t  descent;
+    int16_t  lineGap;
+    uint16_t advanceWidthMax;
+    int16_t  minLeftSideBearing;
+    int16_t  minRightSideBearing;
+    int16_t  xMaxExtent;
+    int16_t  caretSlopeRise;
+    int16_t  caretSlopeRun;
+    int16_t  caretOffset;
+    int16_t  metricDataFormat;
+    uint16_t numOfLongHorMetrics;
+};
+
+struct Atr_LongHorMetric {
+    uint16_t advanceWidth;
+    int16_t  leftSideBearing;
+};
+
+struct Atr_Table_hmtx {
+    struct Atr_Table_Header header;
+    struct Atr_LongHorMetric *hMetrices;
+    size_t leftSideBearing_count;
+    int16_t *leftSideBearing;
+};
+
+struct Atr_Table_loca {
+    struct Atr_Table_Header header;
+    int16_t indexToLocFormat;
+    uint16_t numGlyphs;
+    size_t length;
+    uint32_t *offsets;
+};
+
+struct Atr_Table_maxp {
+    struct Atr_Table_Header header;
+    uint16_t version_hole_part;
+    uint16_t version_frac_part;
+    uint16_t numGlyphs;
+    uint16_t maxPoints;
+    uint16_t maxContours;
+    uint16_t maxComponentPoints;
+    uint16_t maxComponentContours;
+    uint16_t maxZones;
+    uint16_t maxTwilightPoints;
+    uint16_t maxStorage;
+    uint16_t maxFunctionDefs;
+    uint16_t maxInstructionDefs;
+    uint16_t maxStackElements;
+    uint16_t maxSizeOfInstructions;
+    uint16_t maxComponentElements;
+    uint16_t maxComponentDepth;
+};
+
+struct Atr_Name_Record {
+    uint16_t platformID;
+    uint16_t platformSpecificID;
+    uint16_t languageID;
+    uint16_t nameID;
+    uint16_t length;
+    uint16_t offset;
+};
+
+struct Atr_Table_name {
+    struct Atr_Table_Header header;
+    uint16_t format;
+    uint16_t nameRecord_count;
+    uint16_t stringOffset;
+    struct Atr_Name_Record *nameRecord;
+    size_t name_count;
+    uint8_t *name;
+};
+
+struct Atr_Pascal_String {
+    uint8_t length;
+    uint8_t elements[256];
+};
+
+struct Atr_Table_post {
+    struct Atr_Table_Header header;
+    int16_t format_hole_part;
+    int16_t format_frac_part;
+    atr_real format;
+    int16_t italicAngle_deg_hole_part;
+    int16_t italicAngle_deg_frac_part;
+    int16_t  underlinePosition;
+    int16_t  underlineThickness;
+    bool     is_monospaced;
+    uint32_t minMemType42;
+    uint32_t maxMemType42;
+    uint32_t minMemType1;
+    uint32_t maxMemType1;
+    union {
+        struct {
+            uint16_t numberOfGlyphs;
+            size_t   glyphNameIndex_count;
+            uint16_t *glyphNameIndex;
+            size_t   numberNewGlyphs;
+            struct Atr_Pascal_String *names;
+        } format2;
+        struct {
+            uint16_t numberOfGlyphs;
+            int8_t  *offset;
+        } format2_5;
+    };
+};
+
+struct Atr_Table_OS_2 {
+    struct Atr_Table_Header header;
+    uint16_t version;
+    union {
+        struct {
+            int16_t  xAvgCharWidth;
+            uint16_t usWeightClass;
+            uint16_t usWidthClass;
+            int16_t  fsType;
+            int16_t  ySubscriptXSize;
+            int16_t  ySubscriptYSize;
+            int16_t  ySubscriptXOffset;
+            int16_t  ySubscriptYOffset;
+            int16_t  ySuperscriptXSize;
+            int16_t  ySuperscriptYSize;
+            int16_t  ySuperscriptXOffset;
+            int16_t  ySuperscriptYOffset;
+            int16_t  yStrikeoutSize;
+            int16_t  yStrikeoutPosition;
+            int16_t  sFamilyClass;
+            uint8_t  panose[10];
+            uint32_t ulUnicodeRange[4];
+            int8_t   achVendID[4];
+            uint16_t fsSelection;
+            uint16_t fsFirstCharIndex;
+            uint16_t fsLastCharIndex;
+        } version_0;
+    };
+};
+
+struct Atr_Font {
+    struct Atr_Byte_String file;
+    struct Atr_Offset_Subtable offset_subtable;
+    bool TrueType;
+    bool OpenType;
+    struct {
+        size_t length;
+        struct Atr_Table_Header *elements;
+    } table_directory;
+    struct {
+        struct Atr_Table_cmap cmap;
+        struct Atr_Table_head head;
+        struct Atr_Table_maxp maxp;
+        struct Atr_Table_loca loca;
+        struct Atr_Table_glyf glyf;
+        struct Atr_Table_hhea hhea;
+        struct Atr_Table_hmtx hmtx;
+        struct Atr_Table_name name;
+        struct Atr_Table_post post;
+        struct Atr_Table_OS_2 OS_2;
+    } tables;
+};
+
+static uint8_t atr_bytes_for_utf8[] = {
+    1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+    1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+    1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+    1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+    1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+    1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
+    2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2, 2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,
+    3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3, 4,4,4,4,4,4,4,4,
+};
+#define atr_bytes_for_utf8_count (sizeof(atr_bytes_for_utf8) / sizeof(atr_bytes_for_utf8[0]))
+#define ATR_UTF8_REPLACEMENT_CHARACTER 0xFFFDu
+
+#define atr_dprintSTRING(expr) printf("[Info] %s:%d:\n%*s" #expr " = %s\n", __FILE__, __LINE__, 7, "", expr)
+#define atr_dprintCHAR(expr) printf("[Info] %s:%d:\n%*s" #expr " = %c\n", __FILE__, __LINE__, 7, "", expr)
+#define atr_dprintINT(expr) printf("[Info] %s:%d:\n%*s" #expr " = %d\n", __FILE__, __LINE__, 7, "", expr)
+#define atr_dprintFLOAT(expr) printf("[Info] %s:%d:\n%*s" #expr " = %#f\n", __FILE__, __LINE__, 7, "", expr)
+#define atr_dprintDOUBLE(expr) printf("[Info] %s:%d:\n%*s" #expr " = %#g\n", __FILE__, __LINE__, 7, "", expr)
+#define atr_dprintSIZE_T(expr) printf("[Info] %s:%d:\n%*s" #expr " = %zu\n", __FILE__, __LINE__, 7, "", expr)
+#define atr_dprintINFO(fmt, ...) \
+    fprintf(stderr, "[Info] %s:%d:\n%*sIn function '%s':\n%*s" fmt "\n", __FILE__, __LINE__, 7, "", __func__, 7, "", __VA_ARGS__)
+#define atr_dprintWARNING(fmt, ...) \
+    fprintf(stderr, "[Warning] %s:%d:\n%*sIn function '%s':\n%*s" fmt "\n", __FILE__, __LINE__, 10, "", __func__, 10, "", __VA_ARGS__)
+#define atr_dprintERROR(fmt, ...) \
+    fprintf(stderr, "[Error] %s:%d:\n%*sIn function '%s':\n%*s" fmt "\n", __FILE__, __LINE__, 8, "", __func__, 8, "", __VA_ARGS__)
+
+#define atr_min(a, b) ((a) < (b) ? (a) : (b))
+#define atr_max(a, b) ((a) > (b) ? (a) : (b))
+#define atr_clamp(x, min, max) (atr_max(atr_min((x), (max)), (min)))
+#define ATR_IS_ZERO(x) (atr_fabs(x) < ATR_EPS)
+#define ATR_BUFFER_AT(m, i, j) (m).elements[(ATR_ASSERT((i) < (m).rows && (j) < (m).cols), (i) * (m).stride_r + (j))]
+#define ATR_UNUSED(x) ((void)x)
+
+#define ATR_DEFAULT_OFFSET_ZOOM (struct Atr_Offset_Zoom){.zoom_multiplier = 1, .offset_x = 0, .offset_y = 0}
+#define ATR_TABLE_HEADER_SIZE 16
+#define ATR_OFFSET_SUBTABLE_SIZE 12
+
+#ifndef ATR_DEF
+    #ifdef ATR_DEF_STATIC
+        #define ATR_DEF static
+    #else
+        #define ATR_DEF extern
+    #endif
+#endif
+
+ATR_DEF uint32_t                    atr_4chars_to_uint32(const char *chars);
+ATR_DEF uint32_t                    atr_4chars_to_uint32_be(const char *chars);
+
+ATR_DEF uint32_t                    atr_alpha_blend(uint32_t dst, uint32_t src);
+
+ATR_DEF void                        atr_bit_reader_flush(struct Atr_Bit_Reader *br);
+ATR_DEF void                        atr_bit_reader_init(struct Atr_Bit_Reader *br, struct Atr_Byte_String file);
+ATR_DEF void                        atr_bit_reader_init_bounded(struct Atr_Bit_Reader *br, struct Atr_Byte_String file, size_t start_offset, size_t end_offset);
+ATR_DEF uint8_t                     atr_bit_reader_read_bit(struct Atr_Bit_Reader *br);
+ATR_DEF uint32_t                    atr_bit_reader_read_bits(struct Atr_Bit_Reader *br, size_t count);
+ATR_DEF uint8_t                     atr_bit_reader_read_byte(struct Atr_Bit_Reader *br);
+ATR_DEF uint32_t                    atr_bit_reader_read_bytes(struct Atr_Bit_Reader *br, size_t count);
+ATR_DEF enum Atr_Return_Types       atr_bit_reader_read_f2dot14(struct Atr_Bit_Reader *br, atr_real *value);
+
+ATR_DEF struct Atr_Byte_String      atr_byte_string_get_from_binary_file_name(char *file_name);
+ATR_DEF struct Atr_Byte_String      atr_byte_string_get_from_binary_file_pointer(FILE *fp, char *file_name);
+ATR_DEF void                        atr_byte_string_free(struct Atr_Byte_String *bs);
+
+ATR_DEF void                        atr_circle_fill(struct Atr_Pixel_Buffer screen, atr_real center_x, atr_real center_y, atr_real r, uint32_t color, struct Atr_Offset_Zoom offzoom);
+ATR_DEF void                        atr_circle_fill_high_quality(struct Atr_Pixel_Buffer screen, atr_real center_x, atr_real center_y, atr_real r, uint32_t color, struct Atr_Offset_Zoom offzoom);
+
+ATR_DEF uint16_t                    atr_endian_swap_uint16(uint16_t x);
+ATR_DEF uint32_t                    atr_endian_swap_uint32(uint32_t x);
+
+ATR_DEF void                        atr_font_free(struct Atr_Font *font);
+ATR_DEF enum Atr_Return_Types       atr_font_load_from_file_name(struct Atr_Font *font, char *file_name);
+
+ATR_DEF void                        atr_glyph_append_line(struct Atr_Glyph *glyph, struct Atr_Glyph_Point start, struct Atr_Glyph_Point end);
+ATR_DEF void                        atr_glyph_append_quadratic_bezier(struct Atr_Glyph *glyph, struct Atr_Glyph_Point start, struct Atr_Glyph_Point control, struct Atr_Glyph_Point end);
+ATR_DEF struct Atr_Vec2             atr_glyph_compound_component_calc_anchor_translation(struct Atr_Glyph_Point compound_point, struct Atr_Glyph_Point components_point, atr_real a, atr_real b, atr_real c, atr_real d);
+ATR_DEF struct Atr_Vec2             atr_glyph_compound_component_calc_xy_translation(struct Atr_Glyph_Compound_Components *component, atr_real a, atr_real b, atr_real c, atr_real d);
+ATR_DEF void                        atr_glyph_free(struct Atr_Glyph *g);
+ATR_DEF enum Atr_Return_Types       atr_glyph_parse(struct Atr_Glyph *glyph, struct Atr_Bit_Reader br);
+ATR_DEF enum Atr_Return_Types       atr_glyph_parse_compound(struct Atr_Table_glyf *glyf, struct Atr_Glyph *glyph);
+ATR_DEF enum Atr_Return_Types       atr_glyph_parse_compound_components(struct Atr_Glyph *glyph, struct Atr_Bit_Reader br);
+ATR_DEF enum Atr_Return_Types       atr_glyph_parse_simple(struct Atr_Glyph *glyph, struct Atr_Bit_Reader br);
+ATR_DEF struct Atr_Glyph_Point      atr_glyph_point_from_raw(const struct Atr_Glyph *glyph, size_t index);
+ATR_DEF bool                        atr_glyph_point_is_on_curve(const struct Atr_Glyph_Point *point);
+ATR_DEF struct Atr_Glyph_Point      atr_glyph_point_midpoint(struct Atr_Glyph_Point a, struct Atr_Glyph_Point b);
+ATR_DEF uint32_t                    atr_glyphIndex_get(struct Atr_Font *font, uint32_t code_point);
+ATR_DEF uint32_t                    atr_glyphIndex_get_cmap4(struct Atr_Table_cmap_Subtable *st, uint32_t code_point);
+
+ATR_DEF void                        atr_hexargb_to_rgba(uint32_t color, uint8_t *r, uint8_t *g, uint8_t *b, uint8_t *a);
+ATR_DEF enum Atr_Return_Types       atr_hmtx_get_by_glyphIndex(struct Atr_Font *font, uint32_t glyph_index, uint16_t *advance_width, int16_t *left_side_bearing);
+
+ATR_DEF atr_real                    atr_int16_int16_fixed_point_to_atr_real(int16_t integer_part, int16_t fractional_part);
+
+ATR_DEF void                        atr_line_draw(struct Atr_Pixel_Buffer screen, atr_real x1_input, atr_real y1_input, atr_real x2_input, atr_real y2_input, uint32_t color, struct Atr_Offset_Zoom offzoom);
+ATR_DEF void                        atr_line_draw_fix_width(struct Atr_Pixel_Buffer screen, atr_real x1_input, atr_real y1_input, atr_real x2_input, atr_real y2_input, uint32_t color, struct Atr_Offset_Zoom offzoom);
+ATR_DEF void                        atr_line_draw_no_antialiasing(struct Atr_Pixel_Buffer screen, atr_real x1_input, atr_real y1_input, atr_real x2_input, atr_real y2_input, uint32_t color, struct Atr_Offset_Zoom offzoom);
+ATR_DEF void                        atr_line_horiz_draw(struct Atr_Pixel_Buffer screen, atr_real x1_input, atr_real x2_input, atr_real y_input, uint32_t color, struct Atr_Offset_Zoom offzoom);
+ATR_DEF void                        atr_line_horiz_draw_no_antialiasing(struct Atr_Pixel_Buffer screen, atr_real x1_input, atr_real x2_input, atr_real y_input, uint32_t color, struct Atr_Offset_Zoom offzoom);
+
+ATR_DEF enum Atr_Return_Types       atr_name_record_get_bytes(const struct Atr_Table_name *name_table, size_t record_index, const uint8_t **bytes, size_t *length);
+ATR_DEF enum Atr_Return_Types       atr_name_record_get_text_utf8_malloc(const struct Atr_Table_name *name_table, size_t record_index, const uint8_t **text, size_t *length);
+
+ATR_DEF enum Atr_Return_Types       atr_offset_subtable_parse(struct Atr_Font *font);
+
+ATR_DEF void                        atr_pixel_draw(struct Atr_Pixel_Buffer screen, atr_real x, atr_real y, uint32_t color, struct Atr_Offset_Zoom offzoom);
+
+ATR_DEF enum Atr_Return_Types       atr_quadratic_bezier_array_fill(struct Atr_Pixel_Buffer screen, struct Atr_Glyph_Point *points, size_t points_count, struct Atr_Glyph_Transform transform, uint32_t color, struct Atr_Offset_Zoom offzoom);
+ATR_DEF enum Atr_Return_Types       atr_quadratic_bezier_array_fill_no_antialiasing(struct Atr_Pixel_Buffer screen, struct Atr_Glyph_Point *points, size_t points_count, struct Atr_Glyph_Transform transform, uint32_t color, struct Atr_Offset_Zoom offzoom);
+ATR_DEF void                        atr_quadratic_bezier_get_bbox(struct Atr_Glyph_Point start, struct Atr_Glyph_Point control, struct Atr_Glyph_Point end, struct Atr_Vec2 *top_left, struct Atr_Vec2 *bottom_right);
+ATR_DEF void                        atr_quadratic_bezier_draw(struct Atr_Pixel_Buffer pixels, struct Atr_Glyph_Point start, struct Atr_Glyph_Point control, struct Atr_Glyph_Point end, uint32_t color, struct Atr_Offset_Zoom offzoom);
+ATR_DEF size_t                      atr_quadratic_bezier_get_xs_from_y(struct Atr_Glyph_Point start, struct Atr_Glyph_Point control, struct Atr_Glyph_Point end, atr_real y, atr_real y_scale, atr_real *x1, atr_real *x2, atr_real *dy_dt1, atr_real *dy_dt2);
+ATR_DEF bool                        atr_quadratic_bezier_root_is_crossing(bool at_start, bool at_end, atr_real dy_dt);
+
+ATR_DEF void                        atr_rectangle_draw_min_max(struct Atr_Pixel_Buffer screen, atr_real min_x, atr_real max_x, atr_real min_y, atr_real max_y, uint32_t color, struct Atr_Offset_Zoom offzoom);
+ATR_DEF uint32_t                    atr_rgba_to_hexargb(int r, int g, int b, int a);
+
+ATR_DEF atr_real                    atr_scale_get_for_em(struct Atr_Font *font, atr_real pixels_per_em);
+
+ATR_DEF uint32_t                    atr_table_checkSum_calc(const uint8_t *bytes, size_t length, int zero_begin, int zero_end);
+ATR_DEF void                        atr_table_cmap_free(struct Atr_Font *font);
+ATR_DEF enum Atr_Return_Types       atr_table_cmap_parse(struct Atr_Font *font, struct Atr_Table_Header cmap_header);
+ATR_DEF enum Atr_Return_Types       atr_table_cmap_subtable_choose(struct Atr_Font *font);
+ATR_DEF enum Atr_cmap_Priority      atr_table_cmap_subtable_priority_score(struct Atr_Table_cmap_Subtable *subtable);
+ATR_DEF enum Atr_Return_Types       atr_table_directory_parse(struct Atr_Font *font);
+ATR_DEF void                        atr_table_glyf_free(struct Atr_Font *font);
+ATR_DEF enum Atr_Return_Types       atr_table_glyf_parse(struct Atr_Font *font, struct Atr_Table_Header glyf_header);
+ATR_DEF struct Atr_Table_Header *   atr_table_header_find_by_tag_raw(struct Atr_Font *font, uint32_t tag_raw);
+ATR_DEF struct Atr_Table_Header     atr_table_header_parse(struct Atr_Font *font, size_t offset);
+ATR_DEF enum Atr_Return_Types       atr_table_header_verify_checksum(struct Atr_Font *font, struct Atr_Table_Header header, int checkSumAdjustment_offset);
+ATR_DEF enum Atr_Return_Types       atr_table_head_parse(struct Atr_Font *font, struct Atr_Table_Header head_header);
+ATR_DEF enum Atr_Return_Types       atr_table_hhea_parse(struct Atr_Font *font, struct Atr_Table_Header hhea_header);
+ATR_DEF void                        atr_table_hmtx_free(struct Atr_Font *font);
+ATR_DEF enum Atr_Return_Types       atr_table_hmtx_parse(struct Atr_Font *font, struct Atr_Table_Header hmtx_header);
+ATR_DEF enum Atr_Return_Types       atr_table_loca_parse(struct Atr_Font *font, struct Atr_Table_Header loca_header);
+ATR_DEF enum Atr_Return_Types       atr_table_maxp_parse(struct Atr_Font *font, struct Atr_Table_Header maxp_header);
+ATR_DEF void                        atr_table_name_free(struct Atr_Font *font);
+ATR_DEF enum Atr_Return_Types       atr_table_name_parse(struct Atr_Font *font, struct Atr_Table_Header name_header);
+ATR_DEF enum Atr_Return_Types       atr_table_OS_2_parse(struct Atr_Font *font, struct Atr_Table_Header OS_2_header);
+ATR_DEF void                        atr_table_post_free(struct Atr_Font *font);
+ATR_DEF enum Atr_Return_Types       atr_table_post_parse(struct Atr_Font *font, struct Atr_Table_Header post_header);
+ATR_DEF struct Atr_Vec2             atr_text_line_draw(struct Atr_Pixel_Buffer screen, struct Atr_Font *font, uint8_t *text, atr_real top_left_x, atr_real top_left_y, atr_real letter_hight, atr_real letter_spacing, uint32_t color, int length, struct Atr_Offset_Zoom offzoom);
+ATR_DEF struct Atr_Vec2             atr_text_line_draw_no_antialiasing(struct Atr_Pixel_Buffer screen, struct Atr_Font *font, uint8_t *text, atr_real top_left_x, atr_real top_left_y, atr_real letter_hight, atr_real letter_spacing, uint32_t color, int length, struct Atr_Offset_Zoom offzoom);
+ATR_DEF struct Atr_Vec2             atr_text_line_draw_outline(struct Atr_Pixel_Buffer screen, struct Atr_Font *font, uint8_t *text, atr_real top_left_x, atr_real top_left_y, atr_real letter_hight, atr_real letter_spacing, uint32_t color, int length, struct Atr_Offset_Zoom offzoom);
+ATR_DEF struct Atr_Vec2             atr_text_line_get_bottom_right(struct Atr_Font *font, uint8_t *text, atr_real top_left_x, atr_real top_left_y, atr_real letter_hight, atr_real letter_spacing, int length);
+
+ATR_DEF uint8_t                     atr_u8_clamp_int(int x);
+                                    #define atr_uint16_print_binary(value, bit_count) atr_dprintINFO("%s = ", #value); printf("%*.s", 7, ""); atr_uint16_print_binary_imp((value), (bit_count))
+ATR_DEF void                        atr_uint16_print_binary_imp(uint16_t value, uint8_t bit_count);
+                                    #define atr_uint16_print_hex(value, bit_count) atr_dprintINFO("%s = ", #value); printf("%*.s", 7, ""); atr_uint16_print_hex_imp((value), (bit_count))
+ATR_DEF void                        atr_uint16_print_hex_imp(uint16_t value, uint8_t bit_count);
+                                    #define atr_uint32_print_binary(value, bit_count) atr_dprintINFO("%s = ", #value); printf("%*.s", 7, ""); atr_uint32_print_binary_imp((value), (bit_count))
+ATR_DEF void                        atr_uint32_print_binary_imp(uint32_t value, uint8_t bit_count);
+                                    #define atr_uint32_print_hex(value, bit_count) atr_dprintINFO("%s = ", #value); printf("%*.s", 7, ""); atr_uint32_print_hex_imp((value), (bit_count))
+ATR_DEF void                        atr_uint32_print_hex_imp(uint32_t value, uint8_t bit_count);
+ATR_DEF enum Atr_Return_Types       atr_utf8_append_code_point(uint8_t *dst, size_t capacity, size_t *length, uint32_t code_point);
+ATR_DEF uint32_t                    atr_utf8_code_point_get_from_raw_char_bytes(uint32_t raw_char_bytes);
+ATR_DEF uint32_t                    atr_utf8_decode_next_code_point(uint8_t *text, size_t byte_count, size_t *consumed);
+ATR_DEF uint32_t                    atr_utf8_get_next_char_bytes(uint8_t *str, size_t byte_count);
+ATR_DEF bool                        atr_utf8_is_continuation_byte(uint8_t byte);
+ATR_DEF size_t                      atr_utf8_length(uint8_t *str, size_t byte_count);
+ATR_DEF bool                        atr_utf16be_to_utf8_malloc(const uint8_t *src, size_t src_length, uint8_t **out, size_t *out_length);
+
+ATR_DEF struct Atr_Vec2             atr_vec2_linear_transform(struct Atr_Vec2 vec2, atr_real a, atr_real b, atr_real c, atr_real d, atr_real tx, atr_real ty);
+
+
+#endif /*ALMOG_TEXT_RENDERING_H_*/
+
+#ifdef ALMOG_TEXT_RENDERING_IMPLEMENTATION
+#undef ALMOG_TEXT_RENDERING_IMPLEMENTATION
+
+
+ATR_DEF uint32_t atr_4chars_to_uint32(const char *chars)
+{
+    return ((uint32_t)(((uint32_t)((chars)[0]) << 0) | ((uint32_t)((chars)[1]) << 8) | ((uint32_t)((chars)[2]) << 16) | ((uint32_t)((chars)[3]) << 24)));
+}
+
+ATR_DEF uint32_t atr_4chars_to_uint32_be(const char *chars)
+{
+    return ((uint32_t)(uint8_t)chars[0] << 24) |
+            ((uint32_t)(uint8_t)chars[1] << 16) |
+            ((uint32_t)(uint8_t)chars[2] << 8) |
+            ((uint32_t)(uint8_t)chars[3]);
+}
+ 
+ATR_DEF uint32_t atr_alpha_blend(uint32_t dst, uint32_t src)
+{
+    uint8_t sr, sg, sb, sa;
+    uint8_t dr, dg, db;
+
+    atr_hexargb_to_rgba(src, &sr, &sg, &sb, &sa);
+    atr_hexargb_to_rgba(dst, &dr, &dg, &db, NULL);
+
+    atr_real a = (atr_real)sa / 255.0f;
+
+    int r = (int)((atr_real)dr * (1.0f - a) + (atr_real)sr * a);
+    int g = (int)((atr_real)dg * (1.0f - a) + (atr_real)sg * a);
+    int b = (int)((atr_real)db * (1.0f - a) + (atr_real)sb * a);
+
+    return atr_rgba_to_hexargb(r, g, b, 255);
+}
+
+/**
+ * @brief Discard any unread bits cached in the bit reader.
+ * @param br Bit reader to reset to the next byte boundary.
+ */
+ATR_DEF void atr_bit_reader_flush(struct Atr_Bit_Reader *br)
+{
+    br->current_byte = 0;
+    br->bits_left = 0;
+}
+
+/**
+ * @brief Initialize a bit reader over a byte string.
+ * @param br Bit reader to initialize.
+ * @param file Source byte string.
+ */
+ATR_DEF void atr_bit_reader_init(struct Atr_Bit_Reader *br, struct Atr_Byte_String file)
+{
+    br->file = file;
+    br->current_byte = 0;
+    br->bits_left = 0;
+}
+
+ATR_DEF void atr_bit_reader_init_bounded(struct Atr_Bit_Reader *br, struct Atr_Byte_String file, size_t start_offset, size_t end_offset)
+{
+    ATR_ASSERT(br != NULL);
+    ATR_ASSERT(start_offset <= end_offset);
+    ATR_ASSERT(start_offset <= file.length);
+    ATR_ASSERT(end_offset <= file.length);
+
+    atr_bit_reader_init(br, file);
+
+    uint8_t *base = br->file.elements;
+    br->file.elements = base + start_offset;
+    br->file.length = end_offset - start_offset;
+    br->file.capacity = br->file.length;
+    br->file.cursor = 0;
+}
+
+/**
+ * @brief Read one bit from a byte stream.
+ *
+ * This bit reader consumes bits least-significant-bit first from each byte. When the cached byte is exhausted, it loads
+ * the next byte from the underlying byte string and continues reading.
+ *
+ * @param br Bit reader state.
+ * @return The next bit from the compressed stream, either 0 or 1.
+ *
+ * @pre br->file.cursor must not advance past the end of the underlying buffer.
+ * @post The reader state is advanced by one bit.
+ */
+ATR_DEF uint8_t atr_bit_reader_read_bit(struct Atr_Bit_Reader *br)
+{
+    if (br->bits_left == 0) {
+        ATR_ASSERT(br->file.cursor < br->file.length);
+        uint8_t c = br->file.elements[br->file.cursor++];
+        br->current_byte = c;
+        br->bits_left = 8;
+    }
+
+    uint8_t bit = (br->current_byte & 1) ? 1 : 0;
+    br->current_byte >>= 1;
+    br->bits_left--;
+    return bit;
+}
+
+/**
+ * @brief Read multiple bits.
+ *
+ * Reads count bits using atr_bit_reader_read_bit() and packs them into the low
+ * bits of the result in the same order they were read.
+ *
+ * @param br Bit reader state.
+ * @param count Number of bits to read, up to 32.
+ * @return A 32-bit value containing the requested bits.
+ */
+ATR_DEF uint32_t atr_bit_reader_read_bits(struct Atr_Bit_Reader *br, size_t count)
+{
+    ATR_ASSERT(count <= 32);
+
+    uint32_t res = 0;
+
+    for (size_t i = 0; i < count; i++) {
+        res |= ((uint32_t)atr_bit_reader_read_bit(br)) << i;
+    }
+
+    return res;
+}
+
+ATR_DEF uint8_t atr_bit_reader_read_byte(struct Atr_Bit_Reader *br)
+{
+    uint8_t res = 0;
+
+    for (size_t i = 0; i < 8; i++) {
+        res |= ((uint8_t)atr_bit_reader_read_bit(br)) << i;
+    }
+
+    return res;
+}
+
+ATR_DEF uint32_t atr_bit_reader_read_bytes(struct Atr_Bit_Reader *br, size_t count)
+{
+    ATR_ASSERT(count <= 4);
+
+    uint32_t res = 0;
+
+    for (size_t i = 0; i < count; i++) {
+        res |= ((uint32_t)atr_bit_reader_read_byte(br)) << (i * 8);
+    }
+
+    return res;
+}
+
+/**
+ * @brief Read a signed TrueType F2Dot14 fixed-point value.
+ *
+ * An F2Dot14 value is a signed, big-endian 16-bit integer with 14
+ * fractional bits. For example, 0x4000 represents 1.0.
+ *
+ * @param reader Reader positioned at a byte boundary.
+ * @param value Receives the converted value.
+ * @return true on success, or false if the reader is not byte-aligned or
+ *         fewer than two bytes remain.
+ */
+ATR_DEF enum Atr_Return_Types atr_bit_reader_read_f2dot14(struct Atr_Bit_Reader *br, atr_real *value)
+{
+    ATR_ASSERT(br != NULL);
+
+    /*
+     * TrueType table fields are byte-aligned. Do not silently discard
+     * partially consumed bits.
+     */
+    if (br->bits_left != 0) {
+        return ATR_FAIL;
+    }
+
+    if (br->file.cursor > br->file.length ||
+        br->file.length - br->file.cursor < 2) {
+        return ATR_FAIL;
+    }
+
+    uint8_t high = atr_bit_reader_read_byte(br);
+    uint8_t low = atr_bit_reader_read_byte(br);
+
+    uint16_t raw = ((uint16_t)high << 8) | (uint16_t)low;
+
+    /*
+     * Convert the unsigned bit pattern to its signed two's-complement
+     * value without depending on an implementation-defined uint16_t to
+     * int16_t conversion.
+     */
+    int32_t signed_raw = (int32_t)raw;
+
+    if ((raw & 0x8000u) != 0) {
+        signed_raw -= 0x10000;
+    }
+
+    if (value) *value = (atr_real)signed_raw / (atr_real)16384.0;
+    return ATR_SUCCESS;
+}
+
+/**
+ * @brief Read an entire binary file into a byte-string structure.
+ * @param file_name Path to the file to read.
+ * @return A byte string containing the file contents. On failure, the returned
+ *         structure is zero-initialized as much as possible.
+ *
+ * @note The returned object owns heap memory and must be released with
+ *       atr_byte_string_free().
+ */
+ATR_DEF struct Atr_Byte_String atr_byte_string_get_from_binary_file_name(char *file_name)
+{
+    struct Atr_Byte_String res = {0};
+    
+    FILE *fp = fopen(file_name, "rb");
+    if (fp == NULL) {
+        int err = errno;
+        atr_dprintERROR("Cannot open file %s: %s", file_name, strerror(err));
+        return res;
+    }
+
+    return atr_byte_string_get_from_binary_file_pointer(fp, file_name);
+}
+
+ATR_DEF struct Atr_Byte_String atr_byte_string_get_from_binary_file_pointer(FILE *fp, char *file_name)
+{
+    struct Atr_Byte_String res = {0};
+
+    char temp_file_name = '\0';
+    if (!file_name) file_name = &temp_file_name;
+
+    if (fseek(fp, 0, SEEK_END) != 0) {
+        int err = errno;
+        atr_dprintERROR( "Failed to seek to end of file %s: %s", file_name, strerror(err));
+        fclose(fp);
+        return res;
+    }
+
+    long size = ftell(fp);
+    if (size < 0) {
+        int err = errno;
+        atr_dprintERROR( "Failed to tell size of file %s: %s", file_name, strerror(err));
+        fclose(fp);
+        return res;
+    }
+
+    if (fseek(fp, 0, SEEK_SET) != 0) {
+        int err = errno;
+        atr_dprintERROR( "Failed to seek to start of file %s: %s", file_name, strerror(err));
+        fclose(fp);
+        return res;
+    }
+
+    res.name = ATR_MALLOC(sizeof(char) * (1 + strlen(file_name)));
+    if (res.name == NULL) {
+        atr_dprintERROR( "Memory allocation failed for file %s (%zu bytes).", file_name, strlen(file_name));
+        fclose(fp);
+        res.length = 0;
+        return res;
+    }
+    strncpy(res.name, file_name, strlen(file_name)+1);
+
+    res.length = (size_t)size;
+    res.capacity = (size_t)size;
+    res.elements = ATR_MALLOC(res.length);
+    if (res.elements == NULL) {
+        atr_dprintERROR("Memory allocation failed for file %s (%zu bytes).", file_name, res.length);
+        fclose(fp);
+        res.length = 0;
+        ATR_FREE(res.name);
+        return res;
+    }
+
+    size_t nread = fread(res.elements, 1, res.length, fp);
+    if (nread != res.length) {
+        if (ferror(fp)) {
+            int err = errno;
+            atr_dprintERROR( "Failed to read file %s: %s", file_name, strerror(err));
+        } else {
+            atr_dprintERROR(
+                "Unexpected end of file while reading %s "
+                "(expected %zu bytes, got %zu).", file_name, res.length, nread);
+        }
+        ATR_FREE(res.elements);
+        ATR_FREE(res.name);
+        res.elements = NULL;
+        res.length = 0;
+        fclose(fp);
+        return res;
+    }
+
+    if (fclose(fp) != 0) {
+        int err = errno;
+        atr_dprintERROR( "Failed to close file %s: %s", file_name, strerror(err));
+        ATR_FREE(res.elements);
+        ATR_FREE(res.name);
+        res.elements = NULL;
+        res.length = 0;
+        return res;
+    }
+
+    return res;
+}
+
+/**
+ * @brief Free the storage owned by a byte string and reset its fields.
+ * @param bs Byte string to release.
+ */
+ATR_DEF void atr_byte_string_free(struct Atr_Byte_String *bs)
+{
+    ATR_FREE(bs->elements);
+    ATR_FREE(bs->name);
+    bs->elements = NULL;
+    bs->name = NULL;
+    bs->capacity = 0;
+    bs->length = 0;
+    bs->cursor = 0;
+}
+
+ATR_DEF void atr_circle_fill(struct Atr_Pixel_Buffer screen, atr_real center_x, atr_real center_y, atr_real r, uint32_t color, struct Atr_Offset_Zoom offzoom)
+{
+    // if (center_x + r < 0 || center_x - r > screen.cols || center_y + r < 0 || center_y - r > screen.rows) {
+    //     return;
+    // } 
+    atr_real x = 0, y = -r, p = -r;
+    while (x < -y) {
+        if (p > 0) {
+            y += 1;
+            p += 2 * (x + y) + 1;
+            atr_line_draw_no_antialiasing(screen, center_x + x, center_y + y, center_x - x, center_y + y, color, offzoom);
+            atr_line_draw_no_antialiasing(screen, center_x + x, center_y - y, center_x - x, center_y - y, color, offzoom);
+        } else {
+            p += 2 * x + 1;
+        }
+        atr_line_draw_no_antialiasing(screen, center_x + y, center_y + x, center_x - y, center_y + x, color, offzoom);
+        atr_line_draw_no_antialiasing(screen, center_x + y, center_y - x, center_x - y, center_y - x, color, offzoom);
+        x += 1;
+    }
+}
+
+ATR_DEF void atr_circle_fill_high_quality(struct Atr_Pixel_Buffer screen, atr_real center_x, atr_real center_y, atr_real r, uint32_t color, struct Atr_Offset_Zoom offzoom)
+{
+    atr_real window_w = (atr_real)screen.cols;
+    atr_real window_h = (atr_real)screen.rows;
+    atr_real zoom = offzoom.zoom_multiplier;
+
+    atr_real center_x1 = (center_x - window_w/2.0f + offzoom.offset_x) * zoom + window_w/2.0f;
+    atr_real center_y1 = (center_y - window_h/2.0f + offzoom.offset_y) * zoom + window_h/2.0f;
+    atr_real r1        = r * zoom;
+
+    atr_circle_fill(screen, center_x1, center_y1, r1, color, ATR_DEFAULT_OFFSET_ZOOM);
+}
+
+/**
+ * @brief Swap the byte order of a 16-bit unsigned integer.
+ * @param x Input value.
+ * @return Byte-swapped value.
+ */
+ATR_DEF uint16_t atr_endian_swap_uint16(uint16_t x)
+{
+    return ((x << 8) | (x >> 8));
+}
+
+/**
+ * @brief Swap the byte order of a 32-bit unsigned integer.
+ * @param x Input value.
+ * @return Byte-swapped value.
+ */
+ATR_DEF uint32_t atr_endian_swap_uint32(uint32_t x)
+{
+    return ((x << 24) |
+            ((x & 0xFF00) << 8) |
+            ((x >> 8) & 0xFF00) |
+            (x >> 24));
+}
+
+ATR_DEF void atr_font_free(struct Atr_Font *font)
+{
+    ATR_ASSERT(font);
+
+    atr_byte_string_free(&(font->file));
+
+    ATR_FREE(font->table_directory.elements);
+    font->table_directory.elements = NULL;
+    font->table_directory.length = 0;
+
+    atr_table_cmap_free(font);
+
+    ATR_FREE(font->tables.loca.offsets);
+    font->tables.loca.offsets = NULL;
+    font->tables.loca.length = 0;
+
+    atr_table_glyf_free(font);
+
+    atr_table_hmtx_free(font);
+
+    atr_table_name_free(font);
+
+    atr_table_post_free(font);
+
+    *font = (struct Atr_Font){0};
+}
+
+ATR_DEF enum Atr_Return_Types atr_font_load_from_file_name(struct Atr_Font *font, char *file_name)
+{
+    struct Atr_Font loaded = {0};
+    if (font == NULL) {
+        return ATR_FAIL;
+    }
+    loaded.file = atr_byte_string_get_from_binary_file_name(file_name);
+    if (loaded.file.elements == NULL) {
+        return ATR_FAIL;
+    }
+    if (loaded.file.length < ATR_OFFSET_SUBTABLE_SIZE) {
+        atr_dprintERROR("%s", "File is too small to contain an sfnt header.");
+        goto fail;
+    }
+    if (atr_offset_subtable_parse(&loaded) == ATR_FAIL) {
+        goto fail;
+    }
+    if (atr_table_directory_parse(&loaded) == ATR_FAIL) {
+        goto fail;
+    }
+    const struct Atr_Table_Header *cmap_header = atr_table_header_find_by_tag_raw(&loaded, atr_4chars_to_uint32("cmap"));
+    const struct Atr_Table_Header *head_header = atr_table_header_find_by_tag_raw(&loaded, atr_4chars_to_uint32("head"));
+    const struct Atr_Table_Header *maxp_header = atr_table_header_find_by_tag_raw(&loaded, atr_4chars_to_uint32("maxp"));
+    const struct Atr_Table_Header *loca_header = atr_table_header_find_by_tag_raw(&loaded, atr_4chars_to_uint32("loca"));
+    const struct Atr_Table_Header *glyf_header = atr_table_header_find_by_tag_raw(&loaded, atr_4chars_to_uint32("glyf"));
+    const struct Atr_Table_Header *hhea_header = atr_table_header_find_by_tag_raw(&loaded, atr_4chars_to_uint32("hhea"));
+    const struct Atr_Table_Header *hmtx_header = atr_table_header_find_by_tag_raw(&loaded, atr_4chars_to_uint32("hmtx"));
+    const struct Atr_Table_Header *name_header = atr_table_header_find_by_tag_raw(&loaded, atr_4chars_to_uint32("name"));
+    const struct Atr_Table_Header *post_header = atr_table_header_find_by_tag_raw(&loaded, atr_4chars_to_uint32("post"));
+    const struct Atr_Table_Header *OS_2_header = atr_table_header_find_by_tag_raw(&loaded, atr_4chars_to_uint32("OS/2"));
+
+    if (loaded.TrueType) {
+        if (head_header == NULL || maxp_header == NULL ||
+            loca_header == NULL || glyf_header == NULL ||
+            cmap_header == NULL || hhea_header == NULL || 
+            hmtx_header == NULL || name_header == NULL ||
+            post_header == NULL) {
+            atr_dprintERROR("%s", "Font is missing one or more required TrueType tables.");
+            goto fail;
+        }
+    } else if (loaded.OpenType) {
+        if (head_header == NULL || maxp_header == NULL ||
+            loca_header == NULL || glyf_header == NULL ||
+            cmap_header == NULL || hhea_header == NULL || 
+            hmtx_header == NULL || name_header == NULL ||
+            post_header == NULL || OS_2_header == NULL) {
+            atr_dprintERROR("%s", "Font is missing one or more required OpenType tables.");
+            goto fail;
+        }
+    } else {
+        atr_dprintERROR("%s", "Unrecognize font type.");
+        goto fail;
+    }
+
+    /*
+     * cmap does not depend on loca, head, or maxp. It can be
+     * parsed after the required metadata tables.
+     */
+    if (atr_table_header_verify_checksum(&loaded, *cmap_header, -1) == ATR_FAIL) {
+        goto fail;
+    }
+    if (atr_table_cmap_parse(&loaded, *cmap_header) == ATR_FAIL) {
+        goto fail;
+    }
+    /*
+     * Parse head. loca depends on indexToLocFormat.
+     */
+    if (atr_table_header_verify_checksum(&loaded, *head_header, 8) == ATR_FAIL) {
+        goto fail;
+    }
+    if (atr_table_head_parse(&loaded, *head_header) == ATR_FAIL) {
+        goto fail;
+    }
+    /*
+     * Parse maxp. loca depends on numGlyphs.
+     */
+    if (atr_table_header_verify_checksum(&loaded, *maxp_header, -1) == ATR_FAIL) {
+        goto fail;
+    }
+    if (atr_table_maxp_parse(&loaded, *maxp_header) == ATR_FAIL) {
+        goto fail;
+    }
+    /*
+     * glyf has no fields to parse yet, but save its directory record.
+     * loca offsets are relative to the beginning of glyf.
+     */
+    if (atr_table_header_verify_checksum(&loaded, *glyf_header, -1) == ATR_FAIL) {
+        goto fail;
+    }
+    loaded.tables.glyf.header = *glyf_header;
+    /*
+     * loca is parsed only after head and maxp and glyf-header are available.
+     */
+    if (atr_table_header_verify_checksum(&loaded, *loca_header, -1) == ATR_FAIL) {
+        goto fail;
+    }
+    if (atr_table_loca_parse(&loaded, *loca_header) == ATR_FAIL) {
+        goto fail;
+    }
+    /*
+     * parse all the glyphs according to the loca table. */
+    if (atr_table_glyf_parse(&loaded, *glyf_header) == ATR_FAIL) {
+        goto fail;
+    }
+
+    /*
+     * post must be parsed before hmtx, hdmx, hhea and after maxp.
+     */
+    if (atr_table_header_verify_checksum(&loaded, *post_header, -1) == ATR_FAIL) {
+        goto fail;
+    }
+    if (atr_table_post_parse(&loaded, *post_header) == ATR_FAIL) {
+        goto fail;
+    }
+
+    if (atr_table_header_verify_checksum(&loaded, *hhea_header, -1) == ATR_FAIL) {
+        goto fail;
+    }
+    if (atr_table_hhea_parse(&loaded, *hhea_header) == ATR_FAIL) {
+        goto fail;
+    }
+    /*
+     * hmtx is parsed only after hhea and glyf is available.
+     */
+    if (atr_table_header_verify_checksum(&loaded, *hmtx_header, -1) == ATR_FAIL) {
+        goto fail;
+    }
+    if (atr_table_hmtx_parse(&loaded, *hmtx_header) == ATR_FAIL) {
+        goto fail;
+    }
+
+    if (atr_table_header_verify_checksum(&loaded, *name_header, -1) == ATR_FAIL) {
+        goto fail;
+    }
+    if (atr_table_name_parse(&loaded, *name_header) == ATR_FAIL) {
+        goto fail;
+    }
+
+    if (OS_2_header) {
+        if (atr_table_header_verify_checksum(&loaded, *OS_2_header, -1) == ATR_FAIL) {
+            goto fail;
+        }
+        if (atr_table_OS_2_parse(&loaded, *OS_2_header) == ATR_FAIL) {
+            atr_dprintWARNING("%s", "Failed to parse unrequired table 'OS/2'.");
+        }
+    }
+
+    /*
+     * Commit the successfully parsed font.
+     *
+     * The caller must have initialized *font to {0}, or have loaded
+     * it previously using this API.
+     */
+    atr_font_free(font);
+    *font = loaded;
+    // ATR_FREE(font->file.elements);
+    // font->file.capacity = 0;
+
+    return ATR_SUCCESS;
+
+    fail:
+        atr_font_free(&loaded);
+        return ATR_FAIL;
+}
+
+ATR_DEF void atr_glyph_append_line(struct Atr_Glyph *glyph, struct Atr_Glyph_Point start, struct Atr_Glyph_Point end)
+{
+    struct Atr_Glyph_Point control = atr_glyph_point_midpoint(start, end);
+
+    /*
+     * This is a line represented as a degenerate quadratic Bézier:
+     *
+     * start -> midpoint(start, end) -> end
+     */
+    control.flag = ATR_GPF_GENERATED;
+
+    atr_glyph_append_quadratic_bezier(glyph, start, control, end);
+}
+
+ATR_DEF void atr_glyph_append_quadratic_bezier(struct Atr_Glyph *glyph, struct Atr_Glyph_Point start, struct Atr_Glyph_Point control, struct Atr_Glyph_Point end)
+{
+    atr_ada_append(struct Atr_Glyph_Point, glyph->simple.points, start);
+    atr_ada_append(struct Atr_Glyph_Point, glyph->simple.points, control);
+    atr_ada_append(struct Atr_Glyph_Point, glyph->simple.points, end);
+}
+
+ATR_DEF struct Atr_Vec2 atr_glyph_compound_component_calc_anchor_translation(struct Atr_Glyph_Point compound_point, struct Atr_Glyph_Point components_point, atr_real a, atr_real b, atr_real c, atr_real d)
+{
+    struct Atr_Vec2 transformed_component = atr_vec2_linear_transform(components_point.pos, a, b, c, d, 0, 0);
+    return (struct Atr_Vec2){
+        .x = compound_point.pos.x - transformed_component.x,
+        .y = compound_point.pos.y - transformed_component.y,
+    };
+}
+
+ATR_DEF struct Atr_Vec2 atr_glyph_compound_component_calc_xy_translation(struct Atr_Glyph_Compound_Components *component, atr_real a, atr_real b, atr_real c, atr_real d)
+{
+    atr_real e = (atr_real)component->argument1;
+    atr_real f = (atr_real)component->argument2;
+    atr_real m0 = atr_max(atr_fabs(a), atr_fabs(b));
+    atr_real n0 = atr_max(atr_fabs(c), atr_fabs(d));
+    atr_real eps = (atr_real)33 / (atr_real)65536;
+    atr_real m = m0, n = n0;
+    if (atr_fabs(atr_fabs(a) - atr_fabs(c)) <= eps) {
+        m *= 2;
+    }
+    if (atr_fabs(atr_fabs(b) - atr_fabs(d)) <= eps) {
+        n *= 2;
+    }
+    
+    return (struct Atr_Vec2){
+        .x = m * e,
+        .y = n * f
+    };
+}
+
+ATR_DEF void atr_glyph_free(struct Atr_Glyph *g)
+{
+    ATR_ASSERT(g);
+    if (g->metadata.numberOfContours >= 0) {
+        ATR_FREE(g->simple.endPtsOfContours);
+        g->simple.endPtsOfContours = NULL;
+        ATR_FREE(g->simple.instructions);
+        g->simple.instructions = NULL;
+        ATR_FREE(g->simple.flags);
+        g->simple.flags = NULL;
+        ATR_FREE(g->simple.xCoordinates);
+        g->simple.xCoordinates = NULL;
+        ATR_FREE(g->simple.yCoordinates);
+        g->simple.yCoordinates = NULL;
+        ATR_FREE(g->simple.points.elements);
+        g->simple.points.elements = NULL;
+        g->simple.points.length = 0;
+        g->simple.points.capacity = 0;
+    } else {
+        ATR_FREE(g->compound.compound_components_array.elements);
+        g->compound.compound_components_array.elements = NULL;
+        g->compound.compound_components_array.length = 0;
+        ATR_FREE(g->compound.raw_points.elements);
+        g->compound.raw_points.elements = NULL;
+        g->compound.raw_points.length = 0;
+        ATR_FREE(g->compound.points.elements);
+        g->compound.points.elements = NULL;
+        g->compound.points.length = 0;
+    }
+}
+
+ATR_DEF enum Atr_Return_Types atr_glyph_parse(struct Atr_Glyph *glyph, struct Atr_Bit_Reader br)
+{
+    ATR_ASSERT(glyph);
+
+    glyph->metadata.numberOfContours          = (int16_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    glyph->metadata.xMin                      = (int16_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    glyph->metadata.yMin                      = (int16_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    glyph->metadata.xMax                      = (int16_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    glyph->metadata.yMax                      = (int16_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+
+    if (glyph->metadata.numberOfContours >= 0) {
+        if (ATR_FAIL == atr_glyph_parse_simple(glyph, br)) {
+            atr_dprintERROR("%s", "Failed to parse a simple glyph.");
+            return ATR_FAIL;
+        }
+    } else {
+        if (ATR_FAIL == atr_glyph_parse_compound_components(glyph, br)) {
+            atr_dprintERROR("%s", "Failed to parse a compound glyph.");
+            return ATR_FAIL;
+        }
+    }
+
+
+    return ATR_SUCCESS;
+}
+
+ATR_DEF enum Atr_Return_Types atr_glyph_parse_compound(struct Atr_Table_glyf *glyf, struct Atr_Glyph *glyph)
+{
+    ATR_ASSERT(glyf);
+    ATR_ASSERT(glyph);
+    if (glyph->compound.parse_state == ATR_GLYPH_BEING_PARSED) {
+        atr_dprintERROR("%s", "Cyclic compound glyph reference.");
+        return ATR_FAIL;
+    }
+    if (glyph->compound.parse_state == ATR_GLYPH_PARSED) {
+        atr_dprintERROR("%s", "Tried to parse a parsed compound glyph.");
+        return ATR_FAIL;
+    }
+    glyph->compound.parse_state = ATR_GLYPH_BEING_PARSED;
+
+    struct Atr_Glyph_Compound_Components_Dynamic_Array *components = &(glyph->compound.compound_components_array);
+    atr_ada_init_array(struct Atr_Glyph_Point, glyph->compound.raw_points);
+    atr_ada_init_array(struct Atr_Glyph_Point, glyph->compound.points);
+
+    for (size_t components_index = 0; components_index < components->length; components_index++) {
+        struct Atr_Glyph_Compound_Components *component = &components->elements[components_index];
+        if (component->glyphIndex >= glyf->num_of_glyphs) {
+            atr_dprintERROR("Invalid component glyph index %u >= %zu.", component->glyphIndex, glyf->num_of_glyphs);
+            return ATR_FAIL;
+        }
+        struct Atr_Glyph *child = &(glyf->glyphs[component->glyphIndex]);
+
+        if (child->metadata.numberOfContours < 0) {
+            if (child->compound.parse_state != ATR_GLYPH_PARSED) {
+                if (ATR_FAIL == atr_glyph_parse_compound(glyf, child)) {
+                    atr_dprintERROR("%s", "Failed to parse child compound glyph.");
+                    return ATR_FAIL;
+                }
+            }
+        }
+
+        atr_real a = 1, b = 0, c = 0, d = 1;
+
+        switch (component->transformation_count) {
+            case 0:
+                break;
+            case 1:
+                a = component->transformations[0];
+                d = component->transformations[0];
+                break;
+            case 2:
+                a = component->transformations[0];
+                d = component->transformations[1];
+                break;
+            case 4:
+                a = component->transformations[0];
+                b = component->transformations[1];
+                c = component->transformations[2];
+                d = component->transformations[3];
+                break;
+            default:
+                atr_dprintERROR("Invalid transformation count: %zu.", component->transformation_count);
+                return ATR_FAIL;
+        }
+
+        struct Atr_Vec2 t = {0};
+        if ((component->flags & ATR_GCCF_ARGS_ARE_XY_VALUES) != 0 ) {
+            t = atr_glyph_compound_component_calc_xy_translation(component, a, b, c, d);
+        } else {
+            size_t parent_index = (size_t)component->argument1;
+            size_t parent_point_count = glyph->compound.points.length;
+            size_t child_index  = (size_t)component->argument2;
+            size_t child_point_count = 0;
+            if (child->metadata.numberOfContours >= 0) {
+                child_point_count = child->simple.num_of_raw_points;
+            } else {
+                child_point_count = child->compound.raw_points.length;
+            }
+
+            if (parent_index >= parent_point_count) {
+                atr_dprintERROR("Parent anchor index %zu is out of range.", parent_index);
+                return ATR_FAIL;
+            }
+            if (child_index >= child_point_count) {
+                atr_dprintERROR("Child anchor index %zu is out of range.", child_index);
+                return ATR_FAIL;
+            }
+
+            struct Atr_Glyph_Point parent_point = glyph->compound.raw_points.elements[parent_index];
+            struct Atr_Glyph_Point child_point = {0};
+
+            if (child->metadata.numberOfContours >= 0) {
+                child_point = (struct Atr_Glyph_Point){
+                    .flag = child->simple.flags[child_index],
+                    .pos = {.x = child->simple.xCoordinates[child_index],
+                            .y = child->simple.yCoordinates[child_index]},
+                };
+            } else {
+                child_point = child->compound.raw_points.elements[child_index];
+            } 
+
+            t = atr_glyph_compound_component_calc_anchor_translation(parent_point, child_point, a, b, c, d);
+        }
+
+        struct Atr_Glyph_Point_Dynamic_Array *child_points = NULL;
+        if (child->metadata.numberOfContours >= 0) {
+            child_points = &child->simple.points;
+        } else {
+            child_points = &child->compound.points;
+        }
+
+        for (size_t point_index = 0; point_index < child_points->length; point_index++) {
+            struct Atr_Glyph_Point current_input_point = child_points->elements[point_index];
+            struct Atr_Glyph_Point current_out_point = {
+                .flag = current_input_point.flag,
+                .pos = atr_vec2_linear_transform(current_input_point.pos, a, b, c, d, t.x, t.y)
+            };
+            atr_ada_append(struct Atr_Glyph_Point, glyph->compound.points, current_out_point);
+            if ((current_input_point.flag & ATR_GPF_GENERATED) == 0) {
+                atr_ada_append(struct Atr_Glyph_Point, glyph->compound.raw_points, current_out_point);
+            }
+        }
+    }
+
+    glyph->compound.parse_state = ATR_GLYPH_PARSED;
+    return ATR_SUCCESS;
+}
+
+ATR_DEF enum Atr_Return_Types atr_glyph_parse_compound_components(struct Atr_Glyph *glyph, struct Atr_Bit_Reader br)
+{
+    atr_ada_init_array(struct Atr_Glyph_Compound_Components, glyph->compound.compound_components_array);
+    glyph->compound.parse_state = ATR_GLYPH_NOT_PARSED;
+    struct Atr_Glyph_Compound_Components gcc;
+    do {
+        gcc = (struct Atr_Glyph_Compound_Components){0};
+        gcc.flags = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+        gcc.glyphIndex = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+        bool words = (gcc.flags & ATR_GCCF_ARG_1_AND_2_ARE_WORDS) != 0;
+        bool xy_values = (gcc.flags & ATR_GCCF_ARGS_ARE_XY_VALUES) != 0;
+        if (words) {
+            uint16_t raw1 = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+            uint16_t raw2 = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+            if (xy_values) {
+                gcc.argument1 = (int32_t)(int16_t)raw1;
+                gcc.argument2 = (int32_t)(int16_t)raw2;
+            } else {
+                gcc.argument1 = (int32_t)raw1;
+                gcc.argument2 = (int32_t)raw2;
+            }
+        } else {
+            uint8_t raw1 = atr_bit_reader_read_byte(&br);
+            uint8_t raw2 = atr_bit_reader_read_byte(&br);
+            if (xy_values) {
+                gcc.argument1 = (int32_t)(int8_t)raw1;
+                gcc.argument2 = (int32_t)(int8_t)raw2;
+            } else {
+                gcc.argument1 = (int32_t)raw1;
+                gcc.argument2 = (int32_t)raw2;
+            }
+        }
+
+        if ((gcc.flags & ATR_GCCF_WE_HAVE_A_SCALE) != 0) {
+            gcc.transformation_count = 1;
+        } else if ((gcc.flags & ATR_GCCF_WE_HAVE_AN_X_AND_Y_SCALE) != 0) {
+            gcc.transformation_count = 2;
+        } else if ((gcc.flags & ATR_GCCF_WE_HAVE_A_TWO_BY_TWO) != 0) {
+            gcc.transformation_count = 4;
+        } else {
+            gcc.transformation_count = 0;
+        }
+
+        for (size_t i = 0; i < gcc.transformation_count; i++) {
+            if (ATR_FAIL == atr_bit_reader_read_f2dot14(&br, &gcc.transformations[i])) {
+                atr_dprintERROR("Could not read f2dot14 from file '%s', at offset %zu", br.file.name, br.file.cursor);
+                return ATR_FAIL;
+            }
+        }
+        atr_ada_append(struct Atr_Glyph_Compound_Components, glyph->compound.compound_components_array, gcc);
+    } while ((gcc.flags & ATR_GCCF_MORE_COMPONENTS) != 0);
+
+    return ATR_SUCCESS;
+}
+
+ATR_DEF enum Atr_Return_Types atr_glyph_parse_simple(struct Atr_Glyph *glyph, struct Atr_Bit_Reader br)
+{
+    glyph->simple.endPtsOfContours = ATR_MALLOC(sizeof(uint16_t) * glyph->metadata.numberOfContours);
+    if (glyph->simple.endPtsOfContours == NULL) {
+        atr_dprintERROR("%s", "Failed to allocate endPtsOfContours array.");
+        return ATR_FAIL;
+    }
+    for (size_t i = 0; i < glyph->metadata.numberOfContours; i++) {
+        glyph->simple.endPtsOfContours[i] = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    }
+    glyph->simple.num_of_raw_points = glyph->simple.endPtsOfContours[glyph->metadata.numberOfContours - 1] + 1;
+
+    glyph->simple.instructionLength       = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    glyph->simple.instructions = ATR_MALLOC(sizeof(uint8_t) * glyph->simple.instructionLength);
+    if (glyph->simple.instructions == NULL && glyph->simple.instructionLength > 0) {
+        atr_dprintERROR("%s", "Failed to allocate instructions array.");
+        return ATR_FAIL;
+    }
+    for (size_t i = 0; i < glyph->simple.instructionLength; i++) {
+        glyph->simple.instructions[i]     = (uint8_t)atr_bit_reader_read_bytes(&br, 1);
+    }
+
+    glyph->simple.flags = ATR_MALLOC(sizeof(uint8_t) * glyph->simple.num_of_raw_points);
+    if (glyph->simple.flags == NULL && glyph->simple.num_of_raw_points > 0) {
+        atr_dprintERROR("%s", "Failed to allocate flags array.");
+        return ATR_FAIL;
+    }
+
+    for (size_t i = 0; i < glyph->simple.num_of_raw_points;) {
+        uint8_t flag = (uint8_t)atr_bit_reader_read_bytes(&br, 1);
+        glyph->simple.flags[i++] = flag;
+
+        if ((flag & ATR_OUTLINE_FLAG_REPEAT) != 0) {
+            uint8_t repeat_count = (uint8_t)atr_bit_reader_read_bytes(&br, 1);
+            if ((size_t)repeat_count > glyph->simple.num_of_raw_points - i) {
+                atr_dprintERROR("Invalid flag repeat count: %u.", repeat_count);
+                return ATR_FAIL;
+            }
+            for (size_t j = 0; j < repeat_count; ++j) {
+                glyph->simple.flags[i++] = flag;
+            }
+        }
+    }
+    glyph->simple.xCoordinates = ATR_MALLOC(sizeof(*glyph->simple.xCoordinates) * glyph->simple.num_of_raw_points);
+    if (glyph->simple.xCoordinates == NULL && glyph->simple.num_of_raw_points > 0) {
+        atr_dprintERROR("%s", "Failed to allocate xCoordinates array.");
+        return ATR_FAIL;
+    }
+    int16_t x = 0;
+
+    for (size_t i = 0; i < glyph->simple.num_of_raw_points; ++i) {
+        uint8_t flag = glyph->simple.flags[i];
+
+        if ((flag & ATR_OUTLINE_FLAG_X_SHORT_VECTOR) != 0) {
+            uint8_t diff = (uint8_t)atr_bit_reader_read_bytes(&br, 1);
+            if ((flag & ATR_OUTLINE_FLAG_THIS_X_IS_SAME) != 0) {
+                x += (int16_t)diff;
+            } else {
+                x -= (int16_t)diff;
+            }
+        } else if ((flag & ATR_OUTLINE_FLAG_THIS_X_IS_SAME) == 0) {
+            int16_t diff = (int16_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+            x += diff;
+        }
+
+        glyph->simple.xCoordinates[i] = x;
+    }
+    glyph->simple.yCoordinates = ATR_MALLOC(sizeof(*glyph->simple.yCoordinates) * glyph->simple.num_of_raw_points);
+    if (glyph->simple.yCoordinates == NULL && glyph->simple.num_of_raw_points > 0) {
+        atr_dprintERROR("%s", "Failed to allocate yCoordinates array.");
+        return ATR_FAIL;
+    }
+    int16_t y = 0;
+
+    for (size_t i = 0; i < glyph->simple.num_of_raw_points; ++i) {
+        uint8_t flag = glyph->simple.flags[i];
+
+        if ((flag & ATR_OUTLINE_FLAG_Y_SHORT_VECTOR) != 0) {
+            uint8_t diff = (uint8_t)atr_bit_reader_read_bytes(&br, 1);
+            if ((flag & ATR_OUTLINE_FLAG_THIS_Y_IS_SAME) != 0) {
+                y += (int16_t)diff;
+            } else {
+                y -= (int16_t)diff;
+            }
+        } else if ((flag & ATR_OUTLINE_FLAG_THIS_Y_IS_SAME) == 0) {
+            int16_t diff = (int16_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+            y += diff;
+        }
+
+        glyph->simple.yCoordinates[i] = y;
+    }
+
+    atr_ada_init_array(struct Atr_Glyph_Point, glyph->simple.points);
+    for (size_t contour_index = 0; contour_index < (size_t)glyph->metadata.numberOfContours; ++contour_index) {
+        size_t start_point_index = contour_index == 0 ? 0 : (size_t)glyph->simple.endPtsOfContours[contour_index - 1] + 1;
+        size_t end_point_index = (size_t)glyph->simple.endPtsOfContours[contour_index];
+        size_t point_count = end_point_index - start_point_index + 1;
+
+        if (point_count == 0) {
+            atr_dprintERROR("%s", "Glyph contour has no points.");
+            return ATR_FAIL;
+        }
+
+        struct Atr_Glyph_Point first = atr_glyph_point_from_raw(glyph, start_point_index);
+        struct Atr_Glyph_Point last = atr_glyph_point_from_raw(glyph, end_point_index);
+
+        struct Atr_Glyph_Point current;
+        size_t start_walk_index;
+
+        /*
+        * A TrueType contour must begin at an on-curve point. If its first
+        * raw point is off-curve:
+        *
+        * - Use the last point if that point is on-curve.
+        * - Otherwise, create an implied on-curve point halfway between the
+        *   first and last off-curve points.
+        */
+        if (atr_glyph_point_is_on_curve(&first)) {
+            current = first;
+            start_walk_index = 1;
+        } else if (atr_glyph_point_is_on_curve(&last)) {
+            current = last;
+            start_walk_index = 0;
+        } else {
+            current = atr_glyph_point_midpoint(last, first);
+            start_walk_index = 0;
+        }
+
+        bool has_control = false;
+        struct Atr_Glyph_Point control = {0};
+        size_t contour_output_start = glyph->simple.points.length;
+
+        /*
+        * Walk all raw points circularly, starting immediately after the
+        * selected starting point.
+        */
+        for (size_t step = 0; step < point_count; ++step) {
+            size_t local_index = (start_walk_index + step) % point_count;
+            size_t raw_index = start_point_index + local_index;
+
+            struct Atr_Glyph_Point point = atr_glyph_point_from_raw(glyph, raw_index);
+
+            if (atr_glyph_point_is_on_curve(&point)) {
+                if (has_control) {
+                    /*
+                    * current -- control -- point
+                    */
+                    atr_glyph_append_quadratic_bezier(glyph, current, control, point);
+                    has_control = false;
+                } else {
+                    /*
+                    * Consecutive on-curve points define a line.
+                    */
+                    atr_glyph_append_line(glyph, current, point);
+                }
+
+                current = point;
+                continue;
+            }
+
+            /*
+            * An off-curve point is a quadratic control point.
+            */
+            if (!has_control) {
+                control = point;
+                has_control = true;
+                continue;
+            }
+
+            /*
+            * Two consecutive off-curve points imply an on-curve endpoint
+            * halfway between them.
+            */
+            struct Atr_Glyph_Point implied_end = atr_glyph_point_midpoint(control, point);
+
+            atr_glyph_append_quadratic_bezier(glyph, current, control, implied_end);
+
+            current = implied_end;
+            control = point;
+            has_control = true;
+        }
+
+        /*
+        * This occurs when the contour started with an implied midpoint and
+        * ended on an off-curve point. Close the final quadratic segment.
+        */
+        if (has_control) {
+            atr_glyph_append_quadratic_bezier(glyph, current, control,
+                atr_glyph_point_is_on_curve(&first) ? first : atr_glyph_point_midpoint(last, first)
+            );
+        }
+
+        /*
+        * Mark the final endpoint of this contour. Each emitted segment
+        * occupies three points, so the last item is always its endpoint.
+        */
+        if (glyph->simple.points.length > contour_output_start) {
+            glyph->simple.points.elements[glyph->simple.points.length - 1].flag |= ATR_GPF_CONTOUR_END;
+        }
+
+    }
+
+    return ATR_SUCCESS;
+}
+
+ATR_DEF struct Atr_Glyph_Point atr_glyph_point_from_raw(const struct Atr_Glyph *glyph, size_t index)
+{
+    return (struct Atr_Glyph_Point){
+        .flag = glyph->simple.flags[index],
+        .pos = {
+            .x = glyph->simple.xCoordinates[index],
+            .y = glyph->simple.yCoordinates[index],
+        },
+    };
+}
+
+ATR_DEF bool atr_glyph_point_is_on_curve(const struct Atr_Glyph_Point *point)
+{
+    return (point->flag & ATR_GPF_ON_CURVE) != 0;
+}
+
+ATR_DEF struct Atr_Glyph_Point atr_glyph_point_midpoint(struct Atr_Glyph_Point a, struct Atr_Glyph_Point b)
+{
+    return (struct Atr_Glyph_Point){
+        .flag = ATR_GPF_ON_CURVE | ATR_GPF_GENERATED,
+        .pos = {
+            .x = (int16_t)(((int32_t)a.pos.x + (int32_t)b.pos.x) / 2),
+            .y = (int16_t)(((int32_t)a.pos.y + (int32_t)b.pos.y) / 2),
+        },
+    };
+}
+
+ATR_DEF uint32_t atr_glyphIndex_get(struct Atr_Font *font, uint32_t code_point)
+{
+    struct Atr_Table_cmap_Subtable st = font->tables.cmap.subtables.elements[font->tables.cmap.chosen_subtable_index];
+    ATR_ASSERT(st.format != 14);
+
+    if (st.format == 0) {
+        if (code_point >= 256) {
+            return 0;
+        }
+        return st.data.format_0.glyphIndexArray[code_point];
+    } else if (st.format == 4) {
+        return atr_glyphIndex_get_cmap4(&st, code_point);
+    } else if (st.format == 6) {
+        size_t first_code  = st.data.format_6.firstCode;
+        size_t entry_count = st.data.format_6.entryCount;
+            if (first_code <= code_point) {
+                if (code_point < first_code + entry_count) {
+                    return st.data.format_6.glyphIndexArray[code_point - first_code];
+                }
+            }
+        return 0;
+    } else if (st.format == 10) {
+        size_t first_code  = st.data.format_10.startCharCode;
+        size_t entry_count = st.data.format_10.numChars;
+            if (first_code <= code_point) {
+                if (code_point < first_code + entry_count) {
+                    return st.data.format_10.glyphs[code_point - first_code];
+                }
+            }
+        return 0;
+    } else if (st.format == 12) {
+        /** TODO:
+         * Implement binary search for improved performance. The charCodes should be sorted.
+         */
+        for (size_t i = 0; i < st.data.format_12.nGroups; i++) {
+            struct Atr_Table_cmap_Group cg = st.data.format_12.groups[i];
+            if (cg.startCharCode <= code_point && code_point <= cg.endCharCode) {
+                return code_point - cg.startCharCode + cg.startGlyphCode;
+            }
+        }
+        return 0;
+    } else if (st.format == 13) {
+        for (size_t i = 0; i < st.data.format_13.nGroups; i++) {
+            struct Atr_Table_cmap_Group cg = st.data.format_13.groups[i];
+            if (cg.startCharCode <= code_point && code_point <= cg.endCharCode) {
+                return cg.startGlyphCode;
+            }
+        }
+        return 0;
+    } else {
+        return 0;
+    }
+}
+
+ATR_DEF uint32_t atr_glyphIndex_get_cmap4(struct Atr_Table_cmap_Subtable *st, uint32_t code_point)
+{
+    /* By AI */
+    if (code_point > UINT16_MAX) {
+        return 0;
+    }
+
+    const uint16_t character_code = (uint16_t)code_point;
+    const size_t seg_count = st->data.format_4.segCountx2 / 2;
+
+    if (seg_count == 0) {
+        return 0;
+    }
+
+    size_t low = 0;
+    size_t high = seg_count;
+    while (low < high) {
+        const size_t middle = low + (high - low) / 2;
+        if (st->data.format_4.endCode[middle] < character_code) {
+            low = middle + 1;
+        } else {
+            high = middle;
+        }
+    }
+    if (low == seg_count) {
+        return 0;
+    }
+
+    const size_t i = low;
+    if (character_code < st->data.format_4.startCode[i]) {
+        return 0;
+    }
+
+    const uint16_t range_offset = st->data.format_4.idRangeOffset[i];
+    const int16_t delta = st->data.format_4.idDelta[i];
+    /*
+     * idRangeOffset == 0:
+     *
+     * glyphIndex = (character_code + idDelta) mod 65536
+     */
+    if (range_offset == 0) {
+        return (uint16_t)(character_code + delta);
+    }
+
+    /*
+     * idRangeOffset is measured in bytes relative to the address of
+     * idRangeOffset[i].
+     *
+     * In the serialized cmap:
+     *
+     *   idRangeOffset[0 ... seg_count - 1]
+     *   glyphIndexArray[0 ...]
+     *
+     * Therefore, convert the pointer-relative location to an index relative
+     * to glyphIndexArray.
+     */
+    if ((range_offset & 1) != 0) {
+        /* A UInt16 offset must be aligned to two bytes. */
+        return 0;
+    }
+
+    const size_t character_offset = (size_t)character_code - st->data.format_4.startCode[i];
+
+    const size_t range_offset_words = range_offset / 2;
+    const size_t words_until_glyph_array = seg_count - i;
+
+    /*
+     * Prevent unsigned underflow and reject malformed tables where the
+     * offset points before glyphIndexArray.
+     */
+    if (range_offset_words + character_offset < words_until_glyph_array) {
+        return 0;
+    }
+
+    const size_t glyph_index_array_index = range_offset_words + character_offset - words_until_glyph_array;
+    if (glyph_index_array_index >= st->data.format_4.glyphIndexCount) {
+        return 0;
+    }
+
+    const uint16_t glyph_index = st->data.format_4.glyphIndexArray[glyph_index_array_index];
+
+    /*
+     * A zero glyph ID remains zero. Do not apply idDelta to it.
+     */
+    if (glyph_index == 0) {
+        return 0;
+    }
+
+    return (uint16_t)(glyph_index + delta);
+}
+
+ATR_DEF void atr_hexargb_to_rgba(uint32_t color, uint8_t *r, uint8_t *g, uint8_t *b, uint8_t *a)
+{
+    if (a) *a = (uint8_t)((color >> 24) & 0xFF);
+    if (r) *r = (uint8_t)((color >> 16) & 0xFF);
+    if (g) *g = (uint8_t)((color >> 8) & 0xFF);
+    if (b) *b = (uint8_t)((color >> 0) & 0xFF);
+}
+
+ATR_DEF enum Atr_Return_Types atr_hmtx_get_by_glyphIndex(struct Atr_Font *font, uint32_t glyph_index, uint16_t *advance_width, int16_t *left_side_bearing)
+{
+    ATR_ASSERT(font);
+
+    size_t glyph_count = font->tables.glyf.num_of_glyphs;
+    size_t long_metric_count = font->tables.hhea.numOfLongHorMetrics;
+
+    if (glyph_count == 0 || long_metric_count == 0 || long_metric_count > glyph_count || (size_t)glyph_index >= glyph_count) {
+        atr_dprintERROR("Invalid horizontal metrics request: glyph=%u, glyph_count=%zu, long_metric_count=%zu", glyph_index, glyph_count, long_metric_count);
+        return ATR_FAIL;
+    }
+
+    if ((size_t)glyph_index < long_metric_count) {
+        if (advance_width) *advance_width = font->tables.hmtx.hMetrices[glyph_index].advanceWidth;
+        if (left_side_bearing) *left_side_bearing = font->tables.hmtx.hMetrices[glyph_index].leftSideBearing;
+    } else {
+        if (advance_width) *advance_width = font->tables.hmtx.hMetrices[long_metric_count-1].advanceWidth;
+        if (left_side_bearing) *left_side_bearing = font->tables.hmtx.leftSideBearing[glyph_index - long_metric_count];
+    }
+
+    return ATR_SUCCESS;
+}
+
+ATR_DEF atr_real atr_int16_int16_fixed_point_to_atr_real(int16_t integer_part, int16_t fractional_part)
+{
+    /* By AI */
+    uint32_t raw = ((uint32_t)(uint16_t)integer_part << 16) | (uint16_t)fractional_part;
+    int32_t fixed_value;
+    memcpy(&fixed_value, &raw, sizeof(fixed_value));
+
+    return (atr_real)fixed_value / (atr_real)65536.0;
+}
+
+ATR_DEF void atr_line_draw(struct Atr_Pixel_Buffer screen, atr_real x1_input, atr_real y1_input, atr_real x2_input, atr_real y2_input, uint32_t color, struct Atr_Offset_Zoom offzoom)
+{
+    uint8_t r, g, b, a;
+    atr_hexargb_to_rgba(color, &r, &g, &b, &a);
+
+    if (atr_fabs(y2_input - y1_input) < atr_fabs(x2_input - x1_input)) {
+        if (x2_input < x1_input) {
+            atr_real temp = x2_input;
+            x2_input = x1_input;
+            x1_input = temp;
+
+            temp = y2_input;
+            y2_input = y1_input;
+            y1_input = temp;
+        }
+
+        atr_real dx = x2_input - x1_input;
+        atr_real dy = y2_input - y1_input;
+        atr_real m = dy / dx;
+
+        atr_real overlap = 1 - ((x1_input + (atr_real)0.5) - (int)(x1_input + (atr_real)0.5));
+        atr_real dis_start = y1_input - (int)y1_input;
+        atr_pixel_draw(screen, (atr_real)((int)(x1_input + (atr_real)0.5)), (atr_real)((int)(y1_input)), atr_rgba_to_hexargb(r, g, b, (int)(a * ((atr_real)1 - dis_start) * overlap)), offzoom);
+        atr_pixel_draw(screen, (atr_real)((int)(x1_input + (atr_real)0.5)), (atr_real)((int)(y1_input) + (atr_real)1), atr_rgba_to_hexargb(r, g, b, (int)(a * (dis_start) * overlap)), offzoom);
+        overlap = ((x2_input + (atr_real)0.5) - (int)(x2_input + (atr_real)0.5));
+        atr_real dis_end = y2_input - (int)y2_input;
+        atr_pixel_draw(screen, (atr_real)((int)(x2_input + (atr_real)0.5)), (atr_real)((int)(y2_input)), atr_rgba_to_hexargb(r, g, b, (int)(a * ((atr_real)1 - dis_end) * overlap)), offzoom);
+        atr_pixel_draw(screen, (atr_real)((int)(x2_input + (atr_real)0.5)), (atr_real)((int)(y2_input) + (atr_real)1), atr_rgba_to_hexargb(r, g, b, (int)(a * (dis_end) * overlap)), offzoom);
+
+        for (size_t i = 1; i < dx; i++) {
+            atr_real x = x1_input + (atr_real)i;
+            atr_real y = y1_input + (atr_real)i * m;
+            int ix = (int)x;
+            int iy = (int)y;
+            atr_real down_dis = y - iy;
+            atr_real up_dis   = 1 - down_dis;
+            atr_pixel_draw(screen, (atr_real)ix, (atr_real)iy, atr_rgba_to_hexargb(r, g, b, (int)(a * up_dis)), offzoom);
+            atr_pixel_draw(screen, (atr_real)ix, (atr_real)iy + (atr_real)1, atr_rgba_to_hexargb(r, g, b, (int)(a * down_dis)), offzoom);
+        }
+    } else {
+        if (y2_input < y1_input) {
+            atr_real temp = x2_input;
+            x2_input = x1_input;
+            x1_input = temp;
+
+            temp = y2_input;
+            y2_input = y1_input;
+            y1_input = temp;
+        }
+
+        atr_real dx = x2_input - x1_input;
+        atr_real dy = y2_input - y1_input;
+        atr_real m = dx / dy;
+
+        atr_real overlap = 1 - ((y1_input + (atr_real)0.5) - (int)(y1_input + (atr_real)0.5));
+        atr_real dis_start = y1_input - (int)y1_input;
+        atr_pixel_draw(screen, (atr_real)((int)(x1_input)), (atr_real)((int)(y1_input + (atr_real)0.5)), atr_rgba_to_hexargb(r, g, b, (int)(a * ((atr_real)1 - dis_start) * overlap)), offzoom);
+        atr_pixel_draw(screen, (atr_real)((int)(x1_input) + (atr_real)1), (atr_real)((int)(y1_input + (atr_real)0.5)), atr_rgba_to_hexargb(r, g, b, (int)(a * (dis_start) * overlap)), offzoom);
+        overlap = ((y2_input + (atr_real)0.5) - (int)(y2_input + (atr_real)0.5));
+        atr_real dis_end = y2_input - (int)y2_input;
+        atr_pixel_draw(screen, (atr_real)((int)(x2_input)), (atr_real)((int)(y2_input + (atr_real)0.5)), atr_rgba_to_hexargb(r, g, b, (int)(a * ((atr_real)1 - dis_end) * overlap)), offzoom);
+        atr_pixel_draw(screen, (atr_real)((int)(x2_input) + (atr_real)1), (atr_real)((int)(y2_input + (atr_real)0.5)), atr_rgba_to_hexargb(r, g, b, (int)(a * (dis_end) * overlap)), offzoom);
+
+        for (size_t i = 1; i < dy; i++) {
+            atr_real y = y1_input + (atr_real)i;
+            atr_real x = x1_input + (atr_real)i * m;
+            int ix = (int)x;
+            int iy = (int)y;
+            atr_real down_dis = x - ix;
+            atr_real up_dis   = 1 - down_dis;
+            atr_pixel_draw(screen, (atr_real)ix, (atr_real)iy, atr_rgba_to_hexargb(r, g, b, (int)(a * up_dis)), offzoom);
+            atr_pixel_draw(screen, (atr_real)ix + (atr_real)1, (atr_real)iy, atr_rgba_to_hexargb(r, g, b, (int)(a * down_dis)), offzoom);
+        }
+    }
+}
+
+ATR_DEF void atr_line_draw_fix_width(struct Atr_Pixel_Buffer screen, atr_real x1_input, atr_real y1_input, atr_real x2_input, atr_real y2_input, uint32_t color, struct Atr_Offset_Zoom offzoom)
+{
+    atr_real window_w = (atr_real)screen.cols;
+    atr_real window_h = (atr_real)screen.rows;
+    atr_real zoom = offzoom.zoom_multiplier;
+
+    atr_real x1 = (x1_input - window_w/2.0f + offzoom.offset_x) * zoom + window_w/2.0f;
+    atr_real y1 = (y1_input - window_h/2.0f + offzoom.offset_y) * zoom + window_h/2.0f;
+
+    atr_real x2 = (x2_input - window_w/2.0f + offzoom.offset_x) * zoom + window_w/2.0f;
+    atr_real y2 = (y2_input - window_h/2.0f + offzoom.offset_y) * zoom + window_h/2.0f;
+
+    atr_line_draw(screen, x1, y1, x2, y2, color, ATR_DEFAULT_OFFSET_ZOOM);
+}
+
+ATR_DEF void atr_line_draw_no_antialiasing(struct Atr_Pixel_Buffer screen, atr_real x1_input, atr_real y1_input, atr_real x2_input, atr_real y2_input, uint32_t color, struct Atr_Offset_Zoom offzoom)
+{
+    /* Bresenham draw line function */
+    atr_real x0 = atr_round(x1_input);
+    atr_real y0 = atr_round(y1_input);
+    atr_real x1 = atr_round(x2_input);
+    atr_real y1 = atr_round(y2_input);
+
+    int dx = (int)atr_fabs(x1 - x0);
+    int sx = x0 < x1 ? 1 : -1;
+    int dy = -(int)atr_fabs(y1 - y0);
+    int sy = y0 < y1 ? 1 : -1;
+    int error = dx + dy;
+
+    for (;;) {
+        atr_pixel_draw(screen, x0, y0, color, offzoom);
+        if (x0 == x1 && y0 == y1) {
+            break;
+        }
+
+        int error2 = error * 2;
+        if (error2 >= dy) {
+            error += dy;
+            x0 += sx;
+        }
+
+        if (error2 <= dx) {
+            error += dx;
+            y0 += sy;
+        }
+    }
+}
+
+ATR_DEF void atr_line_horiz_draw(struct Atr_Pixel_Buffer screen, atr_real x1_input, atr_real x2_input, atr_real y_input, uint32_t color, struct Atr_Offset_Zoom offzoom)
+{
+    if (x2_input < x1_input) {
+        atr_real temp = x1_input;
+        x1_input = x2_input;
+        x2_input = temp;
+    }
+
+    if (x2_input <= x1_input) {
+        return;
+    }
+
+    uint8_t r;
+    uint8_t g;
+    uint8_t b;
+    uint8_t a;
+
+    atr_hexargb_to_rgba(color, &r, &g, &b, &a);
+
+    int first_x = (int)atr_floor(x1_input);
+    int last_x = (int)atr_ceil(x2_input) - 1;
+
+    for (int ix = first_x; ix <= last_x; ++ix) {
+        atr_real pixel_left = (atr_real)ix;
+        atr_real pixel_right = (atr_real)ix + (atr_real)1;
+
+        atr_real covered_left = atr_max(x1_input, pixel_left);
+        atr_real covered_right = atr_min(x2_input, pixel_right);
+        atr_real coverage = covered_right - covered_left;
+
+        coverage = atr_max((atr_real)0, atr_min((atr_real)1, coverage));
+
+        if (coverage <= (atr_real)0) {
+            continue;
+        }
+
+        int covered_alpha = (int)((atr_real)a * coverage + (atr_real)0.5);
+
+        atr_pixel_draw(screen, (atr_real)ix, y_input, atr_rgba_to_hexargb(r, g, b, covered_alpha), offzoom);
+    }
+}
+
+ATR_DEF void atr_line_horiz_draw_no_antialiasing(struct Atr_Pixel_Buffer screen, atr_real x1_input, atr_real x2_input, atr_real y_input, uint32_t color, struct Atr_Offset_Zoom offzoom)
+{
+    if (x1_input > x2_input) {
+        atr_real temp = x1_input;
+        x1_input = x2_input;
+        x2_input = temp;
+    }
+
+    /*
+     * Fill pixels whose centers satisfy:
+     *
+     *     left <= ix + 0.5 < right
+     */
+    int ix_begin = (int)atr_ceil(x1_input - 0.5f);
+    int ix_end = (int)atr_ceil(x2_input - 0.5f);
+
+    for (int ix = ix_begin; ix < ix_end; ++ix) {
+        atr_pixel_draw(screen, (atr_real)ix, y_input, color, offzoom);
+    }
+}
+
+ATR_DEF enum Atr_Return_Types atr_name_record_get_bytes(const struct Atr_Table_name *name_table, size_t record_index, const uint8_t **bytes, size_t *length)
+{
+    /* By AI */
+    const struct Atr_Name_Record *record;
+
+    if (name_table == NULL ||
+        bytes == NULL ||
+        length == NULL ||
+        record_index >= name_table->nameRecord_count) {
+        return false;
+    }
+
+    record = &name_table->nameRecord[record_index];
+
+    if ((size_t)record->offset > name_table->name_count) {
+        return false;
+    }
+
+    if ((size_t)record->length >
+        name_table->name_count - (size_t)record->offset) {
+        return false;
+    }
+
+    *bytes = name_table->name + record->offset;
+    *length = record->length;
+
+    return true;
+}
+
+ATR_DEF enum Atr_Return_Types atr_name_record_get_text_utf8_malloc(const struct Atr_Table_name *name_table, size_t record_index, const uint8_t **text, size_t *length)
+{
+    struct Atr_Name_Record *record = &name_table->nameRecord[record_index];
+    const uint8_t *raw_name;
+    size_t raw_name_length;
+
+    if (record->platformID == 3 && record->platformSpecificID == 1) {
+        if (!atr_name_record_get_bytes(name_table, record_index, &raw_name, &raw_name_length)) {
+            atr_dprintERROR("Failed to get the raw bytes of name record at index %zu", record_index);
+            return ATR_FAIL;
+        }
+        if (!atr_utf16be_to_utf8_malloc(raw_name, raw_name_length, text, length)) {
+            atr_dprintERROR("Failed to decode name record %zu.", record_index);
+            return ATR_FAIL;
+        }
+    } else if (record->platformID == 1 && record->platformSpecificID == 0) {
+        if (!atr_name_record_get_bytes(name_table, record_index, &raw_name, &raw_name_length)) {
+            atr_dprintERROR("Failed to get the raw bytes of name record at index %zu", record_index);
+            return ATR_FAIL;
+        }
+        *text = ATR_MALLOC(sizeof(uint8_t) * raw_name_length);
+        if (*text == NULL && raw_name_length) {
+            atr_dprintERROR("%s", "Failed to allocate text.");
+            return ATR_FAIL;
+        }
+        memcpy((void *)*text, (const void *)raw_name, raw_name_length);
+        *length = raw_name_length;
+    }
+
+
+    return ATR_SUCCESS;
+}
+
+ATR_DEF enum Atr_Return_Types atr_offset_subtable_parse(struct Atr_Font *font)
+{
+    struct Atr_Bit_Reader br = {0};
+    atr_bit_reader_init(&br, font->file);
+
+    font->offset_subtable.scaler_type   = atr_endian_swap_uint32(atr_bit_reader_read_bytes(&br, 4));
+    font->offset_subtable.numTables     = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    font->offset_subtable.searchRange   = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    font->offset_subtable.entrySelector = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    font->offset_subtable.rangeShift    = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+
+    /* Checks */
+    font->TrueType = false;
+    font->OpenType = false;
+    if (!(atr_4chars_to_uint32_be("true") == font->offset_subtable.scaler_type || 0x00010000 == font->offset_subtable.scaler_type)) {
+        if (atr_4chars_to_uint32_be("typ1") == font->offset_subtable.scaler_type) {
+            atr_dprintERROR("%s", "Font type recognized as the old style of PostScript font housed in a sfnt wrapper. This type is not supported.");
+            return ATR_FAIL;
+        }
+        if (atr_4chars_to_uint32_be("OTTO") == font->offset_subtable.scaler_type) {
+            font->OpenType = true;
+            atr_dprintERROR("%s", "Font type recognized as an OpenType font with PostScript outlines. This type is not supported.");
+            return ATR_FAIL;
+        }
+        {
+            atr_dprintERROR("Font type not recognized. Only supports TrueType fonts.\n%*.sGot:", 8, "");
+            printf("%*.s", 8, ""); atr_uint32_print_hex_imp(font->offset_subtable.scaler_type, 32);
+            printf("%*.sExpected\n%*.s0xtrue or 0x00010000.\n", 8, "", 8, "");
+        }
+        return ATR_FAIL;
+    } else {
+        font->TrueType = true;
+    }
+
+    
+    return ATR_SUCCESS;
+}
+
+ATR_DEF void atr_pixel_draw(struct Atr_Pixel_Buffer screen, atr_real x, atr_real y, uint32_t color, struct Atr_Offset_Zoom offzoom)
+{
+    atr_real window_w = (atr_real)screen.cols;
+    atr_real window_h = (atr_real)screen.rows;
+    atr_real zoom = offzoom.zoom_multiplier;
+    
+    if (ATR_IS_ZERO(zoom - (atr_real)1)) {
+        int ix = (int)(x + offzoom.offset_x);
+        int iy = (int)(y + offzoom.offset_y);
+        if ((ix >= 0 && iy >= 0) && ((size_t)ix < screen.cols && (size_t)iy < screen.rows)) { /* vec2 is in screen */
+            ATR_BUFFER_AT(screen, iy, ix) = atr_alpha_blend(ATR_BUFFER_AT(screen, iy, ix), color);
+        }
+        return;
+    }
+
+    atr_real start_x0 = (x - window_w/2.0f + offzoom.offset_x) * zoom + window_w/2.0f;
+    atr_real start_y0 = (y - window_h/2.0f + offzoom.offset_y) * zoom + window_h/2.0f;
+    atr_real start_x1 = (x + 1 - window_w/2.0f + offzoom.offset_x) * zoom + window_w/2.0f;
+    atr_real start_y1 = (y + 1 - window_h/2.0f + offzoom.offset_y) * zoom + window_h/2.0f;
+
+    int ix0 = (int)atr_floor(atr_min(start_x0, start_x1));
+    int iy0 = (int)atr_floor(atr_min(start_y0, start_y1));
+    int ix1 = (int)atr_ceil(atr_max(start_x0, start_x1));
+    int iy1 = (int)atr_ceil(atr_max(start_y0, start_y1));
+
+    if (offzoom.zoom_multiplier <= 0) return;
+    int block = (int)(zoom + (atr_real)0.5);
+    if (block < 1) block = 1;
+
+    for (int ix = ix0; ix < ix1; ix++) {
+        for (int iy = iy0; iy < iy1; iy++) {
+            if ((ix >= 0 && iy >= 0) && ((size_t)ix < screen.cols && (size_t)iy < screen.rows)) { /* vec2 is in screen */
+                ATR_BUFFER_AT(screen, iy, ix) = atr_alpha_blend(ATR_BUFFER_AT(screen, iy, ix), color);
+            }
+        }
+    }
+}
+
+ATR_DEF enum Atr_Return_Types atr_quadratic_bezier_array_fill(struct Atr_Pixel_Buffer screen, struct Atr_Glyph_Point *points, size_t points_count, struct Atr_Glyph_Transform transform, uint32_t color, struct Atr_Offset_Zoom offzoom)
+{
+    ATR_ASSERT(points);
+    ATR_ASSERT(points_count % 3 == 0);
+
+    if (points_count == 0) {
+        return ATR_SUCCESS;
+    }
+    if (ATR_IS_ZERO(transform.scale_y)) {
+        atr_dprintERROR("A horizontal scanline cannot be mapped back to the source curve if scale_y is zero. Got %f", transform.scale_y);
+        return ATR_FAIL;
+    }
+
+    /*
+     * Find the transformed vertical bounds.
+     *
+     * scale_y may be negative because TrueType coordinates usually increase
+     * upward while screen coordinates increase downward.
+     */
+    atr_real glyph_y_min = ATR_INFINITY;
+    atr_real glyph_y_max = -ATR_INFINITY;
+
+    for (size_t i = 0; i < points_count; ++i) {
+        struct Atr_Vec2 trans_point = atr_vec2_linear_transform(points[i].pos, transform.scale_x, 0, 0, transform.scale_y, transform.translate_x, transform.translate_y);
+        atr_real transformed_y = trans_point.y;
+        if (transformed_y < glyph_y_min) {
+            glyph_y_min = transformed_y;
+        }
+        if (transformed_y > glyph_y_max) {
+            glyph_y_max = transformed_y;
+        }
+    }
+
+    atr_real intersection_xs[256]; size_t intersection_xs_count = 0;
+    atr_real intersection_dy_dts[256]; size_t intersection_dy_dts_count = 0;
+    int first_row = (int)atr_floor(glyph_y_min);
+    int last_row = (int)atr_ceil(glyph_y_max);
+    for (int iy = first_row; iy < last_row; ++iy) {
+        atr_real scan_y = (atr_real)iy + (atr_real)0.5;
+        /**
+         * Convert the destination scanline back into glyph coordinates:
+         *     screen_y = offset_y + scale_y * glyph_y
+         *     glyph_y = (screen_y - offset_y) / scale_y
+         */
+        atr_real source_scan_y = (scan_y - transform.translate_y) / transform.scale_y;
+        intersection_xs_count = 0;
+        intersection_dy_dts_count = 0;
+        for (size_t i = 0; i + 2 < points_count; i += 3) {
+            struct Atr_Glyph_Point start = points[i + 0];
+            struct Atr_Glyph_Point control = points[i + 1];
+            struct Atr_Glyph_Point end = points[i + 2];
+            atr_real x1 = 0, x2 = 0, der1 = 0, der2 = 0;
+            size_t intersection_count = atr_quadratic_bezier_get_xs_from_y(start, control, end, source_scan_y, transform.scale_y, &x1, &x2, &der1, &der2);
+            if (intersection_count >= 1) {
+                x1 = transform.translate_x + transform.scale_x * x1;
+                if (intersection_xs_count >= 256) {
+                    atr_dprintERROR("Intersection count exceeds allocated amount (%u), increse this number.", 256);
+                    return ATR_FAIL;
+                }
+                intersection_xs[intersection_xs_count++] = x1;
+                intersection_dy_dts[intersection_dy_dts_count++] = der1;
+            }
+            if (intersection_count >= 2) {
+                x2 = transform.translate_x + transform.scale_x * x2;
+                if (intersection_xs_count >= 256) {
+                    atr_dprintERROR("Intersection count exceeds allocated amount (%u), increse this number.", 256);
+                    return ATR_FAIL;
+                }
+                intersection_xs[intersection_xs_count++] = x2;
+                intersection_dy_dts[intersection_dy_dts_count++] = der2;
+            }
+        }
+        if (intersection_xs_count == 0) continue;
+
+        for (size_t i = 1; i < intersection_xs_count; i++) {
+            atr_real x = intersection_xs[i];
+            atr_real derivative = intersection_dy_dts[i];
+
+            size_t j = i;
+            while (j > 0 &&
+                intersection_xs[j - 1] > x) {
+                intersection_xs[j] = intersection_xs[j - 1];
+                intersection_dy_dts[j] = intersection_dy_dts[j - 1];
+                j--;
+            }
+
+            intersection_xs[j] = x;
+            intersection_dy_dts[j] = derivative;
+        }
+
+        int winding = 0;
+        size_t x_index = 0;
+
+        while (x_index < intersection_xs_count) {
+            atr_real x_left = intersection_xs[x_index];
+            while (x_index < intersection_xs_count && ATR_IS_ZERO(intersection_xs[x_index] - x_left)) {
+                atr_real derivative = intersection_dy_dts[x_index];
+                winding += derivative > 0 ? 1 : -1;
+                x_index++;
+            }
+
+            if (x_index >= intersection_xs_count) {
+                break;
+            }
+
+            atr_real x_right = intersection_xs[x_index];
+            if (winding != 0 && x_right > x_left) {
+                atr_line_horiz_draw(screen, x_left, x_right, scan_y, color, offzoom);
+            }
+        }
+        if (winding != 0) {
+            atr_dprintERROR("%s", "incorrect winding number.");
+            return ATR_FAIL;
+        }
+    }
+
+    return ATR_SUCCESS;
+}
+
+ATR_DEF enum Atr_Return_Types atr_quadratic_bezier_array_fill_no_antialiasing(struct Atr_Pixel_Buffer screen, struct Atr_Glyph_Point *points, size_t points_count, struct Atr_Glyph_Transform transform, uint32_t color, struct Atr_Offset_Zoom offzoom)
+{
+    ATR_ASSERT(points);
+    ATR_ASSERT(points_count % 3 == 0);
+
+    if (points_count == 0) {
+        return ATR_SUCCESS;
+    }
+    if (ATR_IS_ZERO(transform.scale_y)) {
+        atr_dprintERROR("A horizontal scanline cannot be mapped back to the source curve if scale_y is zero. Got %f", transform.scale_y);
+        return ATR_FAIL;
+    }
+
+    /*
+     * Find the transformed vertical bounds.
+     *
+     * scale_y may be negative because TrueType coordinates usually increase
+     * upward while screen coordinates increase downward.
+     */
+    atr_real glyph_y_min = ATR_INFINITY;
+    atr_real glyph_y_max = -ATR_INFINITY;
+
+    for (size_t i = 0; i < points_count; ++i) {
+        struct Atr_Vec2 trans_point = atr_vec2_linear_transform(points[i].pos, transform.scale_x, 0, 0, transform.scale_y, transform.translate_x, transform.translate_y);
+        atr_real transformed_y = trans_point.y;
+        if (transformed_y < glyph_y_min) {
+            glyph_y_min = transformed_y;
+        }
+        if (transformed_y > glyph_y_max) {
+            glyph_y_max = transformed_y;
+        }
+    }
+
+    atr_real intersection_xs[256]; size_t intersection_xs_count = 0;
+    atr_real intersection_dy_dts[256]; size_t intersection_dy_dts_count = 0;
+    int first_row = (int)atr_floor(glyph_y_min);
+    int last_row = (int)atr_ceil(glyph_y_max);
+    for (int iy = first_row; iy < last_row; ++iy) {
+        atr_real scan_y = (atr_real)iy + (atr_real)0.5;
+        /**
+         * Convert the destination scanline back into glyph coordinates:
+         *     screen_y = offset_y + scale_y * glyph_y
+         *     glyph_y = (screen_y - offset_y) / scale_y
+         */
+        atr_real source_scan_y = (scan_y - transform.translate_y) / transform.scale_y;
+        intersection_xs_count = 0;
+        intersection_dy_dts_count = 0;
+        for (size_t i = 0; i + 2 < points_count; i += 3) {
+            struct Atr_Glyph_Point start = points[i + 0];
+            struct Atr_Glyph_Point control = points[i + 1];
+            struct Atr_Glyph_Point end = points[i + 2];
+            atr_real x1 = 0, x2 = 0, der1 = 0, der2 = 0;
+            size_t intersection_count = atr_quadratic_bezier_get_xs_from_y(start, control, end, source_scan_y, transform.scale_y, &x1, &x2, &der1, &der2);
+            if (intersection_count >= 1) {
+                x1 = transform.translate_x + transform.scale_x * x1;
+                if (intersection_xs_count >= 256) {
+                    atr_dprintERROR("Intersection count exceeds allocated amount (%u), increse this number.", 256);
+                    return ATR_FAIL;
+                }
+                intersection_xs[intersection_xs_count++] = x1;
+                intersection_dy_dts[intersection_dy_dts_count++] = der1;
+            }
+            if (intersection_count >= 2) {
+                x2 = transform.translate_x + transform.scale_x * x2;
+                if (intersection_xs_count >= 256) {
+                    atr_dprintERROR("Intersection count exceeds allocated amount (%u), increse this number.", 256);
+                    return ATR_FAIL;
+                }
+                intersection_xs[intersection_xs_count++] = x2;
+                intersection_dy_dts[intersection_dy_dts_count++] = der2;
+            }
+        }
+        if (intersection_xs_count == 0) continue;
+
+        for (size_t i = 1; i < intersection_xs_count; i++) {
+            atr_real x = intersection_xs[i];
+            atr_real derivative = intersection_dy_dts[i];
+
+            size_t j = i;
+            while (j > 0 &&
+                intersection_xs[j - 1] > x) {
+                intersection_xs[j] = intersection_xs[j - 1];
+                intersection_dy_dts[j] = intersection_dy_dts[j - 1];
+                j--;
+            }
+
+            intersection_xs[j] = x;
+            intersection_dy_dts[j] = derivative;
+        }
+
+        int winding = 0;
+        size_t x_index = 0;
+
+        while (x_index < intersection_xs_count) {
+            atr_real x_left = intersection_xs[x_index];
+            while (x_index < intersection_xs_count && ATR_IS_ZERO(intersection_xs[x_index] - x_left)) {
+                atr_real derivative = intersection_dy_dts[x_index];
+                winding += derivative > 0 ? 1 : -1;
+                x_index++;
+            }
+
+            if (x_index >= intersection_xs_count) {
+                break;
+            }
+
+            atr_real x_right = intersection_xs[x_index];
+            if (winding != 0 && x_right > x_left) {
+                atr_line_horiz_draw_no_antialiasing(screen, x_left, x_right, scan_y, color, offzoom);
+            }
+        }
+        if (winding != 0) {
+            atr_dprintERROR("%s", "incorrect winding number.");
+            return ATR_FAIL;
+        }
+    }
+
+    return ATR_SUCCESS;
+}
+
+ATR_DEF void atr_quadratic_bezier_get_bbox(struct Atr_Glyph_Point start, struct Atr_Glyph_Point control, struct Atr_Glyph_Point end, struct Atr_Vec2 *top_left, struct Atr_Vec2 *bottom_right)
+{
+    /* from: https://iquilezles.org/articles/bezierbbox/ */
+
+    struct Atr_Vec2 p0 = start.pos, p1 = control.pos, p2 = end.pos;
+    atr_real ax = p0.x - (atr_real)2 * p1.x + p2.x;
+    atr_real bx = p1.x - p0.x;
+    atr_real tx = atr_clamp(- bx / ax, (atr_real)0, (atr_real)1);
+    atr_real qx = p0.x + tx * ((atr_real)2 * bx + tx * ax); 
+    if (top_left) top_left->x = atr_min(atr_min(p0.x, p2.x), qx);
+    if (bottom_right) bottom_right->x = atr_max(atr_max(p0.x, p2.x), qx);
+
+    atr_real ay = p0.y - (atr_real)2 * p1.y + p2.y;
+    atr_real by = p1.y - p0.y;
+    atr_real ty = atr_clamp(- by / ay, (atr_real)0, (atr_real)1);
+    atr_real qy = p0.y + ty * ((atr_real)2 * by + ty * ay); 
+    if (top_left) top_left->y = atr_min(atr_min(p0.y, p2.y), qy);
+    if (bottom_right) bottom_right->y = atr_max(atr_max(p0.y, p2.y), qy);
+}
+
+ATR_DEF void atr_quadratic_bezier_draw(struct Atr_Pixel_Buffer pixels, struct Atr_Glyph_Point start, struct Atr_Glyph_Point control, struct Atr_Glyph_Point end, uint32_t color, struct Atr_Offset_Zoom offzoom)
+{
+    /*
+     * Increase this if curves look visibly segmented at high zoom.
+     * A more advanced renderer would adapt this based on curve length.
+     */
+    const size_t steps = 5;
+
+    for (size_t i = 0; i < steps; ++i) {
+        atr_real t_i = (atr_real)i / (atr_real)steps;
+        atr_real t_ip1 = (atr_real)(i + 1) / (atr_real)steps;
+
+        atr_real inverse_t_i = (atr_real)1 - t_i;
+        atr_real inverse_t_ip1 = (atr_real)1 - t_ip1;
+
+        atr_real x_i = inverse_t_i * inverse_t_i * start.pos.x +
+            (atr_real)2 * inverse_t_i * t_i * control.pos.x +
+            t_i * t_i * end.pos.x;
+        atr_real x_ip1 = inverse_t_ip1 * inverse_t_ip1 * start.pos.x +
+            (atr_real)2 * inverse_t_ip1 * t_ip1 * control.pos.x +
+            t_ip1 * t_ip1 * end.pos.x;
+
+        atr_real y_i = inverse_t_i * inverse_t_i * start.pos.y +
+            (atr_real)2 * inverse_t_i * t_i * control.pos.y +
+            t_i * t_i * end.pos.y;
+        atr_real y_ip1 = inverse_t_ip1 * inverse_t_ip1 * start.pos.y +
+            (atr_real)2 * inverse_t_ip1 * t_ip1 * control.pos.y +
+            t_ip1 * t_ip1 * end.pos.y;
+
+        atr_line_draw_fix_width(pixels, x_i, y_i, x_ip1, y_ip1, color, offzoom);
+    }
+
+    atr_circle_fill_high_quality(pixels, start.pos.x, start.pos.y, 1, 0xFF00FFFF, offzoom);
+    atr_circle_fill_high_quality(pixels, end.pos.x, end.pos.y, 1, 0xFF00FFFF, offzoom);
+    atr_circle_fill_high_quality(pixels, control.pos.x, control.pos.y, 1, 0xFFFF0000, offzoom);
+}
+
+ATR_DEF size_t atr_quadratic_bezier_get_xs_from_y(struct Atr_Glyph_Point start, struct Atr_Glyph_Point control, struct Atr_Glyph_Point end, atr_real y, atr_real y_scale, atr_real *x1, atr_real *x2, atr_real *dy_dt1, atr_real *dy_dt2)
+{
+    struct Atr_Vec2 top_left, bottom_right;
+    atr_quadratic_bezier_get_bbox(start, control, end, &top_left, &bottom_right);
+    if (y < top_left.y) {
+        return 0;
+    }
+    if (y > bottom_right.y) {
+        return 0;
+    }
+
+    /* Fine tuning by AI */
+    atr_real dx12 = control.pos.x - start.pos.x;
+    atr_real dx23 = end.pos.x     - control.pos.x;
+    atr_real dy12 = control.pos.y - start.pos.y;
+    atr_real dy23 = end.pos.y     - control.pos.y;
+
+    /** formula:
+     * atr_real x     = (dx23 - dx12) * t * t + 2 * dx12 * t + start.pos.x
+     * atr_real y     = (dy23 - dy12) * t * t + 2 * dy12 * t + start.pos.y
+     * atr_real dy/dt = 2 * (dy23 - dy12) * t + 2 * dy12
+     */
+
+    atr_real a = (dy23 - dy12);
+    atr_real b = 2 * dy12;
+    atr_real c = start.pos.y - y;
+
+    atr_real roots[2];
+    size_t root_count = 0;
+
+    if (ATR_IS_ZERO(a)) {
+        if (ATR_IS_ZERO(b)) {
+            return 0;
+        }
+
+        roots[root_count++] = -c / b;
+    } else {
+        atr_real d = b * b - (atr_real)4 * a * c;
+
+        atr_real d_scale = atr_fabs(b * b) + atr_fabs((atr_real)4 * a * c) + (atr_real)1;
+        atr_real d_tolerance = (atr_real)16 * (atr_real)ATR_EPS * d_scale;
+
+        if (d < -d_tolerance) {
+            return 0;
+        }
+
+        if (d < (atr_real)0) {
+            d = (atr_real)0;
+        }
+
+        if (d == (atr_real)0) {
+            roots[root_count++] = -b / ((atr_real)2 * a);
+        } else {
+            atr_real sqrt_d = atr_sqrt(d);
+            atr_real q;
+
+            /*
+            * Choose the sign that avoids subtracting nearly equal values.
+            */
+            if (b >= (atr_real)0) {
+                q = (atr_real)-0.5 * (b + sqrt_d);
+            } else {
+                q = (atr_real)-0.5 * (b - sqrt_d);
+            }
+
+            if (q == (atr_real)0) {
+                roots[root_count++] = -b / ((atr_real)2 * a);
+            } else {
+                roots[root_count++] = q / a;
+                roots[root_count++] = c / q;
+            }
+        }
+    }
+
+    const atr_real root_tolerance = (atr_real)8 * (atr_real)ATR_EPS;
+
+    size_t count = 0;
+
+    for (size_t i = 0; i < root_count; ++i) {
+        atr_real t = roots[i];
+        bool at_start = false;
+        bool at_end = false;
+
+        if (start.pos.y == y && atr_fabs(t) <= root_tolerance) {
+            t = (atr_real)0;
+            at_start = true;
+        } else if (end.pos.y == y && atr_fabs(t - (atr_real)1) <= root_tolerance) {
+            t = (atr_real)1;
+            at_end = true;
+        } else if (t <= (atr_real)0 || t >= (atr_real)1) {
+            continue;
+        }
+
+        atr_real source_derivative = (atr_real)2 * a * t + b;
+
+        if ((at_start || at_end) && atr_fabs(source_derivative) <= root_tolerance) {
+            /*
+            * Use the one-sided direction when the endpoint has a horizontal
+            * tangent.
+            */
+            source_derivative = at_start ? a : -a;
+        }
+
+        if (!at_start && !at_end && source_derivative == (atr_real)0) {
+            /*
+            * A stationary interior root is a tangency rather than a crossing.
+            */
+            continue;
+        }
+
+        atr_real destination_derivative = y_scale * source_derivative;
+
+        if (!atr_quadratic_bezier_root_is_crossing(at_start, at_end, destination_derivative)) {
+            continue;
+        }
+
+        atr_real x = (dx23 - dx12) * t * t + (atr_real)2 * dx12 * t + start.pos.x;
+        if (count == 0) {
+            if (x1 != NULL) {
+                *x1 = x;
+            }
+            if (dy_dt1 != NULL) {
+                *dy_dt1 = destination_derivative;
+            }
+        } else {
+            if (x2 != NULL) {
+                *x2 = x;
+            }
+            if (dy_dt2 != NULL) {
+                *dy_dt2 = destination_derivative;
+            }
+        }
+
+        ++count;
+    }
+
+    return count;
+}
+
+ATR_DEF bool atr_quadratic_bezier_root_is_crossing(bool at_start, bool at_end, atr_real dy_dt)
+{
+    /* By AI */
+    if (at_start) {
+        return dy_dt > (atr_real)0;
+    }
+
+    if (at_end) {
+        return dy_dt < (atr_real)0;
+    }
+
+    return true;
+}
+
+
+ATR_DEF void atr_rectangle_draw_min_max(struct Atr_Pixel_Buffer screen, atr_real min_x, atr_real max_x, atr_real min_y, atr_real max_y, uint32_t color, struct Atr_Offset_Zoom offzoom)
+{
+    atr_line_draw_no_antialiasing(screen, min_x, min_y, max_x, min_y, color, offzoom);
+    atr_line_draw_no_antialiasing(screen, max_x, min_y, max_x, max_y, color, offzoom);
+    atr_line_draw_no_antialiasing(screen, max_x, max_y, min_x, max_y, color, offzoom);
+    atr_line_draw_no_antialiasing(screen, min_x, max_y, min_x, min_y, color, offzoom);
+}
+
+ATR_DEF uint32_t atr_rgba_to_hexargb(int r, int g, int b, int a)
+{
+    uint32_t ru = atr_u8_clamp_int(r);
+    uint32_t gu = atr_u8_clamp_int(g);
+    uint32_t bu = atr_u8_clamp_int(b);
+    uint32_t au = atr_u8_clamp_int(a);
+
+    return (au << 24) | (ru << 16) | (gu << 8) | bu;
+}
+
+ATR_DEF atr_real atr_scale_get_for_em(struct Atr_Font *font, atr_real pixels_per_em)
+{
+    atr_real units_per_em = font->tables.head.unitsPerEm;
+    return pixels_per_em / units_per_em;
+}
+
+ATR_DEF uint32_t atr_table_checkSum_calc(const uint8_t *bytes, size_t length, int zero_begin, int zero_end)
+{
+    /* By AI */
+    uint32_t sum = 0;
+
+    for (size_t i = 0; i < length; i += 4) {
+        uint32_t word = 0;
+        for (size_t j = 0; j < 4; j++) {
+            size_t index = i + j;
+            uint8_t byte = 0;
+            if (index < length &&
+                !(index >= zero_begin && index < zero_end)) {
+                byte = bytes[index];
+            }
+            /*
+             * TrueType/OpenType checksums use big-endian words.
+             * Missing bytes at the end are zero-padding.
+             */
+            word |= (uint32_t)byte << (24 - j * 8);
+        }
+
+        sum += word;
+    }
+
+    return sum;
+}
+
+ATR_DEF void atr_table_cmap_free(struct Atr_Font *font)
+{
+    ATR_ASSERT(font);
+    struct Atr_Table_cmap *cmap = &font->tables.cmap;
+    for (size_t i = 0; i < cmap->subtables.length; i++) {
+        struct Atr_Table_cmap_Subtable *st = &cmap->subtables.elements[i];
+        if (st->format == 4) {
+            ATR_FREE(st->data.format_4.endCode);
+            ATR_FREE(st->data.format_4.glyphIndexArray);
+            ATR_FREE(st->data.format_4.idDelta);
+            ATR_FREE(st->data.format_4.idRangeOffset);
+            ATR_FREE(st->data.format_4.startCode);
+        }
+        if (st->format == 12) {
+            ATR_FREE(st->data.format_12.groups);
+        }
+        if (st->format == 13) {
+            ATR_FREE(st->data.format_13.groups);
+        }
+    }
+
+    ATR_FREE(cmap->subtables.elements);
+    *cmap = (struct Atr_Table_cmap){0};
+}
+
+ATR_DEF enum Atr_Return_Types atr_table_cmap_parse(struct Atr_Font *font, struct Atr_Table_Header cmap_header)
+{
+    struct Atr_Bit_Reader br = {0};
+    atr_bit_reader_init(&br, font->file);
+    br.file.cursor = cmap_header.offset;
+
+    struct Atr_Bit_Reader br_st = {0};
+    atr_bit_reader_init(&br_st, font->file);
+
+    atr_ada_init_array(struct Atr_Table_cmap_Subtable, font->tables.cmap.subtables);
+    font->tables.cmap.header          = cmap_header;
+    font->tables.cmap.version         = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    font->tables.cmap.numberSubtables = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+
+    for (size_t i = 0; i < font->tables.cmap.numberSubtables; i++) {
+        struct Atr_Table_cmap_Subtable st = {
+            .platformID         = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2)),
+            .platformSpecificID = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2)),
+            .relative_offset    = atr_endian_swap_uint32(atr_bit_reader_read_bytes(&br, 4)),
+        };
+        if (st.relative_offset >= cmap_header.length) {
+            atr_dprintERROR("%s", "cmap subtable offset is invalid.");
+            return ATR_FAIL;
+        }
+        st.absolute_offset    = cmap_header.offset + st.relative_offset,
+        br_st.file.cursor = st.absolute_offset;
+        st.format = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br_st, 2));
+
+        /* Parse different cmap subtable formats */
+        if (st.format == 0) {
+            st.data.format_0.length   = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br_st, 2));
+            if (st.data.format_0.length != 262) {
+                atr_dprintERROR("Error while parsing cmap subtable with format 0. Got length of %u, but expected length of 262", st.data.format_0.length);
+                return ATR_FAIL;
+            }
+            st.data.format_0.language = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br_st, 2));
+            for (size_t gi = 0; gi < 256; gi++) {
+                st.data.format_0.glyphIndexArray[gi] = atr_bit_reader_read_byte(&br_st);
+            }
+            st.data.format_0.length = 256;
+        } else if (st.format == 4) {
+            st.data.format_4.length                 = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br_st, 2));
+            st.data.format_4.language               = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br_st, 2));
+             
+            st.data.format_4.segCountx2             = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br_st, 2));
+            st.data.format_4.searchRange            = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br_st, 2));
+            st.data.format_4.entrySelector          = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br_st, 2));
+            st.data.format_4.rangeShift             = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br_st, 2));
+
+            st.data.format_4.endCode                = ATR_MALLOC(sizeof(uint16_t) * st.data.format_4.segCountx2 / 2);
+            if (st.data.format_4.endCode == NULL && (st.data.format_4.segCountx2 / 2) > 0) {
+                atr_dprintERROR("%s", "Failed to allocate endCode array.");
+                return ATR_FAIL;
+            }
+            for (size_t gi = 0; gi < st.data.format_4.segCountx2 / 2; gi++) {
+                st.data.format_4.endCode[gi]        = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br_st, 2));
+            }
+            atr_bit_reader_read_bytes(&br_st, 2); /* reserved */
+            st.data.format_4.startCode              = ATR_MALLOC(sizeof(uint16_t) * st.data.format_4.segCountx2 / 2);
+            if (st.data.format_4.startCode == NULL && (st.data.format_4.segCountx2 / 2)) {
+                atr_dprintERROR("%s", "Failed to allocate startCode array.");
+                return ATR_FAIL;
+            }
+            for (size_t gi = 0; gi < st.data.format_4.segCountx2 / 2; gi++) {
+                st.data.format_4.startCode[gi]      = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br_st, 2));
+            }
+            st.data.format_4.idDelta                = ATR_MALLOC(sizeof(uint16_t) * st.data.format_4.segCountx2 / 2);
+            if (st.data.format_4.idDelta == NULL && (st.data.format_4.segCountx2 / 2)) {
+                atr_dprintERROR("%s", "Failed to allocate idDelta array.");
+                return ATR_FAIL;
+            }
+            for (size_t gi = 0; gi < st.data.format_4.segCountx2 / 2; gi++) {
+                st.data.format_4.idDelta[gi]        = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br_st, 2));
+            }
+            st.data.format_4.idRangeOffset          = ATR_MALLOC(sizeof(uint16_t) * st.data.format_4.segCountx2 / 2);
+            if (st.data.format_4.idRangeOffset == NULL && (st.data.format_4.segCountx2 / 2)) {
+                atr_dprintERROR("%s", "Failed to allocate idRangeOffset array.");
+                return ATR_FAIL;
+            }
+            for (size_t gi = 0; gi < st.data.format_4.segCountx2 / 2; gi++) {
+                st.data.format_4.idRangeOffset[gi]  = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br_st, 2));
+            }
+            size_t fixed_size = 16 + 4 * st.data.format_4.segCountx2;
+            if (fixed_size > st.data.format_4.length) {
+                atr_dprintERROR("%s", "Error while parsing cmap subtable with format 4.");
+                return ATR_FAIL;
+            }
+            size_t glyph_id_bytes = st.data.format_4.length - fixed_size;
+            if (glyph_id_bytes % 2 != 0) {
+                atr_dprintERROR("%s", "Error while parsing cmap subtable with format 4. Glyph id byte count is not even.");
+                return ATR_FAIL;
+            }
+            st.data.format_4.glyphIndexCount = glyph_id_bytes / sizeof(uint16_t);
+            st.data.format_4.glyphIndexArray         = ATR_MALLOC(sizeof(uint16_t) * st.data.format_4.glyphIndexCount);
+            if (st.data.format_4.glyphIndexArray == NULL && st.data.format_4.glyphIndexCount > 0) {
+                atr_dprintERROR("%s", "Failed to allocate glyphIndexArray array.");
+                return ATR_FAIL;
+            }
+            for (size_t gi = 0; gi < st.data.format_4.glyphIndexCount; gi++) {
+                st.data.format_4.glyphIndexArray[gi] = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br_st, 2));
+            }
+        } else if (st.format == 6) {
+            st.data.format_6.length                  = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br_st, 2));
+            st.data.format_6.language                = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br_st, 2));
+            st.data.format_6.firstCode               = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br_st, 2));
+            st.data.format_6.entryCount              = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br_st, 2));
+            st.data.format_6.glyphIndexArray         = ATR_MALLOC(sizeof(uint16_t) * st.data.format_6.entryCount);
+            if (st.data.format_6.glyphIndexArray == NULL && st.data.format_6.entryCount > 0) {
+                atr_dprintERROR("%s", "Failed to allocate glyphIndexArray array.");
+                return ATR_FAIL;
+            }
+            for (size_t gi = 0; gi < st.data.format_6.entryCount; gi++) {
+                st.data.format_6.glyphIndexArray[gi] = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br_st, 2));
+            }
+        } else if (st.format == 10) {
+            atr_bit_reader_read_bytes(&br_st, 2); /* reserved */
+            st.data.format_10.length        = atr_endian_swap_uint32(atr_bit_reader_read_bytes(&br_st, 4));
+            st.data.format_10.language      = atr_endian_swap_uint32(atr_bit_reader_read_bytes(&br_st, 4));
+            st.data.format_10.startCharCode = atr_endian_swap_uint32(atr_bit_reader_read_bytes(&br_st, 4));
+            st.data.format_10.numChars      = atr_endian_swap_uint32(atr_bit_reader_read_bytes(&br_st, 4));
+            st.data.format_10.glyphs        = ATR_MALLOC(sizeof(uint16_t) * st.data.format_10.numChars);
+            if (st.data.format_10.glyphs == NULL && st.data.format_10.numChars > 0) {
+                atr_dprintERROR("%s", "Failed to allocate glyphs array.");
+                return ATR_FAIL;
+            }
+            for (size_t gi = 0; gi < st.data.format_10.numChars; gi++) {
+                st.data.format_10.glyphs[gi] = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br_st, 2));
+            }
+        } else if (st.format == 12) {
+            atr_bit_reader_read_bytes(&br_st, 2); /* reserved */
+            st.data.format_12.length   = atr_endian_swap_uint32(atr_bit_reader_read_bytes(&br_st, 4));
+            st.data.format_12.language = atr_endian_swap_uint32(atr_bit_reader_read_bytes(&br_st, 4));
+            st.data.format_12.nGroups  = atr_endian_swap_uint32(atr_bit_reader_read_bytes(&br_st, 4));
+            st.data.format_12.groups   = ATR_MALLOC(sizeof(struct Atr_Table_cmap_Group) * st.data.format_12.nGroups);
+            if (st.data.format_12.groups == NULL && st.data.format_12.nGroups > 0) {
+                atr_dprintERROR("%s", "Failed to allocate groups array.");
+                return ATR_FAIL;
+            }
+            for (size_t gi = 0; gi < st.data.format_12.nGroups; gi++) {
+                st.data.format_12.groups[gi].startCharCode  = atr_endian_swap_uint32(atr_bit_reader_read_bytes(&br_st, 4));
+                st.data.format_12.groups[gi].endCharCode    = atr_endian_swap_uint32(atr_bit_reader_read_bytes(&br_st, 4));
+                st.data.format_12.groups[gi].startGlyphCode = atr_endian_swap_uint32(atr_bit_reader_read_bytes(&br_st, 4));
+            }
+        } else if (st.format == 13) {
+            atr_bit_reader_read_bytes(&br_st, 2); /* reserved */
+            st.data.format_13.length   = atr_endian_swap_uint32(atr_bit_reader_read_bytes(&br_st, 4));
+            st.data.format_13.language = atr_endian_swap_uint32(atr_bit_reader_read_bytes(&br_st, 4));
+            st.data.format_13.nGroups  = atr_endian_swap_uint32(atr_bit_reader_read_bytes(&br_st, 4));
+            st.data.format_13.groups   = ATR_MALLOC(sizeof(struct Atr_Table_cmap_Group) * st.data.format_13.nGroups);
+            if (st.data.format_13.groups == NULL && st.data.format_13.nGroups > 0) {
+                atr_dprintERROR("%s", "Failed to allocate groups array.");
+                return ATR_FAIL;
+            }
+            for (size_t gi = 0; gi < st.data.format_13.nGroups; gi++) {
+                st.data.format_13.groups[gi].startCharCode  = atr_endian_swap_uint32(atr_bit_reader_read_bytes(&br_st, 4));
+                st.data.format_13.groups[gi].endCharCode    = atr_endian_swap_uint32(atr_bit_reader_read_bytes(&br_st, 4));
+                st.data.format_13.groups[gi].startGlyphCode = atr_endian_swap_uint32(atr_bit_reader_read_bytes(&br_st, 4));
+            }
+        } else {
+            ; /* Unsupported format */
+        }
+        atr_ada_append(struct Atr_Table_cmap_Subtable, font->tables.cmap.subtables, st);
+    }
+
+    if (ATR_FAIL == atr_table_cmap_subtable_choose(font)) {
+        atr_dprintERROR("%s", "Could not find a supported cmap subtable. Unable to continue to parse the font. Only supports formats: 0/4/6/12/13.");
+        return ATR_FAIL;
+    }
+
+    /* Checks */
+    if (font->tables.cmap.version != 0) {
+        atr_dprintERROR("cmap version is incorrect. Got %u but expected 0.", font->tables.cmap.version);
+        return ATR_FAIL;
+    }
+
+    /*
+    atr_dprintINT(font->tables.cmap.version);
+    atr_dprintINT(font->tables.cmap.numberSubtables);
+    for (size_t i = 0; i < font->tables.cmap.numberSubtables; i++) {
+        atr_dprintINFO("subtable index: %zu", i);
+        atr_dprintINT(font->tables.cmap.subtables.elements[i].platformID);
+        atr_dprintINT(font->tables.cmap.subtables.elements[i].platformSpecificID);
+        atr_dprintINT(font->tables.cmap.subtables.elements[i].relative_offset);
+        atr_dprintINT(font->tables.cmap.subtables.elements[i].format);
+        if (font->tables.cmap.subtables.elements[i].format == 12) {
+            atr_dprintINT(font->tables.cmap.subtables.elements[i].data.format_12.nGroups);
+        }
+        if (font->tables.cmap.subtables.elements[i].format == 13) {
+            atr_dprintINT(font->tables.cmap.subtables.elements[i].data.format_13.nGroups);
+        }
+    }
+    atr_dprintINT(font->tables.cmap.chosen_subtable_index);
+    */
+
+    return ATR_SUCCESS;
+}
+
+ATR_DEF enum Atr_Return_Types atr_table_cmap_subtable_choose(struct Atr_Font *font)
+{
+    struct Atr_Table_cmap *cmap = &font->tables.cmap;
+    uint16_t best_index = 0;
+    int best_score = 0;
+    bool primary_found = false;
+    bool variation_found = false;
+
+    for (uint16_t i = 0; i < cmap->subtables.length; ++i) {
+        struct Atr_Table_cmap_Subtable *subtable = &cmap->subtables.elements[i];
+
+        /** 
+         * Format 14 is supplemental. Do not consider it as the
+         * primary character-to-glyph mapping.
+         */
+        if (subtable->platformID == 0 && subtable->platformSpecificID == 5 && subtable->format == 14) {
+            cmap->variation_subtable_index = i;
+            variation_found = true;
+            continue;
+        }
+
+        enum Atr_cmap_Priority score = atr_table_cmap_subtable_priority_score(subtable);
+
+        /**
+         * Using '>' means the first equally ranked encoding wins.
+         * This is deterministic because cmap records have a required sorting order.
+         */
+        if (score > best_score) {
+            best_score = score;
+            best_index = i;
+            primary_found = true;
+        }
+    }
+
+    if (!primary_found) {
+        return ATR_FAIL;
+    }
+    cmap->chosen_subtable_index = best_index;
+
+    /**
+     * Format 14 can supplement only a Unicode format 4 or 12 cmap.
+     */
+    const struct Atr_Table_cmap_Subtable *primary = &cmap->subtables.elements[best_index];
+    bool primary_supports_variations = primary->format == 4 || primary->format == 12;
+    cmap->has_variation_subtable = variation_found && primary_supports_variations;
+
+    return ATR_SUCCESS;
+}
+
+ATR_DEF enum Atr_cmap_Priority atr_table_cmap_subtable_priority_score(struct Atr_Table_cmap_Subtable *subtable)
+{
+    /* By AI */
+    uint16_t platform = subtable->platformID;
+    uint16_t encoding = subtable->platformSpecificID;
+    uint16_t format = subtable->format;
+
+    /**
+     * Full-repertoire Unicode.
+     *
+     * Formats 10 and 12 can represent Unicode code points outside the BMP.
+     * No ordering is defined between 0/4 and 3/10; the first encountered
+     * subtable with this score wins.
+     */
+    if (format == 10 || format == 12) {
+        if (platform == 0 && encoding == 4) {
+            return ATR_cmap_PRIORITY_UNICODE_FULL;
+        }
+
+        if (platform == 3 && encoding == 10) {
+            return ATR_cmap_PRIORITY_UNICODE_FULL;
+        }
+    }
+
+    /**
+     * BMP-only Unicode.
+     *
+     * Formats 4 and 6 map 16-bit character codes only. No ordering is
+     * defined between 0/3 and 3/1.
+     */
+    if (format == 4 || format == 6) {
+        if (platform == 0 && encoding == 3) {
+            return ATR_cmap_PRIORITY_UNICODE_BMP;
+        }
+
+        if (platform == 3 && encoding == 1) {
+            return ATR_cmap_PRIORITY_UNICODE_BMP;
+        }
+    }
+
+    /**
+     * Format 13 is a specialized last-resort mapping.
+     */
+    if (platform == 0 && encoding == 6 && format == 13) {
+        return ATR_cmap_PRIORITY_LAST_RESORT;
+    }
+
+    /**
+     * Windows Symbol is non-Unicode and is only a fallback.
+     */
+    if (platform == 3 && encoding == 0 && format == 4) {
+        return ATR_cmap_PRIORITY_SYMBOL;
+    }
+
+    return ATR_cmap_PRIORITY_NONE;
+}
+
+ATR_DEF enum Atr_Return_Types atr_table_directory_parse(struct Atr_Font *font)
+{
+    /* By AI */
+    size_t count = font->offset_subtable.numTables;
+    size_t directory_size = ATR_OFFSET_SUBTABLE_SIZE + count * ATR_TABLE_HEADER_SIZE;
+
+    if (directory_size > font->file.length) {
+        atr_dprintERROR("%s", "Table directory lies outside the file.");
+        return ATR_FAIL;
+    }
+
+    font->table_directory.elements = ATR_MALLOC(sizeof(struct Atr_Table_Header) * count);
+    if (font->table_directory.elements == NULL && count > 0) {
+        atr_dprintERROR("%s", "Failed to allocate table directory.");
+        return ATR_FAIL;
+    }
+    font->table_directory.length = count;
+
+    for (size_t i = 0; i < count; i++) {
+        size_t offset = ATR_OFFSET_SUBTABLE_SIZE + i * ATR_TABLE_HEADER_SIZE;
+        struct Atr_Table_Header header = atr_table_header_parse(font, offset);
+
+        if (header.offset > font->file.length || header.length > font->file.length - header.offset) {
+            atr_dprintERROR("Table %.4s lies outside the font file.", header.tag_str);
+            return ATR_FAIL;
+        }
+
+        for (size_t previous = 0; previous < i; previous++) {
+            if (font->table_directory.elements[previous].tag_raw == header.tag_raw) {
+                atr_dprintERROR("Duplicate table tag %.4s.", header.tag_str);
+                return ATR_FAIL;
+            }
+        }
+
+        font->table_directory.elements[i] = header;
+    }
+
+    return ATR_SUCCESS;
+}
+
+ATR_DEF void atr_table_glyf_free(struct Atr_Font *font)
+{
+    ATR_ASSERT(font);
+
+    struct Atr_Table_glyf *g = &font->tables.glyf;
+    for (size_t i = 0; i < g->num_of_glyphs; i ++) {
+        atr_glyph_free(&g->glyphs[i]);
+    }
+    ATR_FREE(g->glyphs);
+    g->glyphs = NULL;
+}
+
+ATR_DEF enum Atr_Return_Types atr_table_glyf_parse(struct Atr_Font *font, struct Atr_Table_Header glyf_header)
+{
+    ATR_ASSERT(font);
+
+    struct Atr_Table_glyf parsed = {0};
+    size_t glyph_count = font->tables.maxp.numGlyphs;
+
+    parsed.header = glyf_header;
+    parsed.num_of_glyphs = glyph_count;
+
+    if (glyph_count != 0) {
+        parsed.glyphs = ATR_MALLOC(sizeof(*parsed.glyphs) * glyph_count);
+        if (parsed.glyphs == NULL) {
+            atr_dprintERROR("%s", "Failed to allocate glyph array.");
+            return ATR_FAIL;
+        }
+        for (size_t i = 0; i < glyph_count; ++i) {
+            parsed.glyphs[i] = (struct Atr_Glyph){0};
+        }
+    }
+
+    struct Atr_Bit_Reader gbr = {0};
+    for (size_t i = 0; i < glyph_count; ++i) {
+        uint32_t start = font->tables.loca.offsets[i];
+        uint32_t end = font->tables.loca.offsets[i + 1];
+        if (start > end || end > glyf_header.length) {
+            atr_dprintERROR("Invalid loca range for glyph %zu: [%u, %u).", i, start, end);
+            goto fail;
+        }
+        if (start == end) {
+            continue;
+        }
+        atr_bit_reader_init_bounded(&gbr, font->file, start + glyf_header.offset, end + glyf_header.offset);
+        if (ATR_FAIL == atr_glyph_parse(&parsed.glyphs[i], gbr)) {
+            atr_dprintERROR("Failed to parse glyph %zu.", i);
+            goto fail;
+        }
+    }
+    for (size_t i = 0; i < glyph_count; ++i) {
+        struct Atr_Glyph *g = &parsed.glyphs[i];
+        if (g->metadata.numberOfContours < 0) {
+            if (parsed.glyphs[i].compound.parse_state == ATR_GLYPH_NOT_PARSED) {
+                if (ATR_FAIL == atr_glyph_parse_compound(&parsed, &parsed.glyphs[i])) {
+                    atr_dprintERROR("Failed to parse compound glyph with glyph index %zu.", i);
+                    goto fail;
+                }
+            }
+        }
+    }
+    #if 0
+    atr_dprintINFO("Num of glyphs: %zu", parsed.num_of_glyphs);
+    size_t comp_glyph_count = 0;
+    for (size_t i = 0; i < parsed.num_of_glyphs; i++) {
+        struct Atr_Glyph g = parsed.glyphs[i];
+        if (g.metadata.numberOfContours < 0) {
+            comp_glyph_count++;
+            size_t num_of_compounents = g.compound.compound_components_array.length;
+            printf("%zu: comp glyph count: %zu | num of compounents: %zu ", i, comp_glyph_count, num_of_compounents);
+            for(size_t j = 0; j < num_of_compounents; j++) {
+                printf("| compounent %zu glyph index: %u", j, g.compound.compound_components_array.elements[j].glyphIndex);
+            }
+            printf("\n");
+        } else {
+            printf("%zu: simple glyph\n", i);
+        }
+    }
+    #endif
+    /** TODO: 
+     * parse all compound glyphs after parsing all the simple glyphs and the components of the compound glyphs 
+     */
+
+    atr_table_glyf_free(font);
+    font->tables.glyf = parsed;
+    return ATR_SUCCESS;
+
+    fail:
+        for (size_t i = 0; i < glyph_count; ++i) {
+            atr_glyph_free(&parsed.glyphs[i]);
+        }
+        ATR_FREE(parsed.glyphs);
+        return ATR_FAIL;
+}
+
+ATR_DEF struct Atr_Table_Header * atr_table_header_find_by_tag_raw(struct Atr_Font *font, uint32_t tag_raw)
+{
+    ATR_ASSERT(font);
+
+    for (size_t i = 0; i < font->table_directory.length; i++) {
+        struct Atr_Table_Header *header = &font->table_directory.elements[i];
+        if (header->tag_raw == tag_raw) {
+            return header;
+        }
+    }
+
+    return NULL;
+}
+
+ATR_DEF struct Atr_Table_Header atr_table_header_parse(struct Atr_Font *font, size_t offset_byte)
+{
+    ATR_ASSERT(font);
+
+    struct Atr_Bit_Reader br = {0};
+    atr_bit_reader_init(&br, font->file);
+    br.file.cursor = offset_byte;
+
+    struct Atr_Table_Header th = {0};
+    th.tag_raw  = atr_bit_reader_read_bytes(&br, 4);
+    th.checkSum = atr_endian_swap_uint32(atr_bit_reader_read_bytes(&br, 4));
+    th.offset   = atr_endian_swap_uint32(atr_bit_reader_read_bytes(&br, 4));
+    th.length   = atr_endian_swap_uint32(atr_bit_reader_read_bytes(&br, 4));
+
+    return th;
+}
+
+ATR_DEF enum Atr_Return_Types atr_table_header_verify_checksum(struct Atr_Font *font, struct Atr_Table_Header header, int checkSumAdjustment_offset)
+{
+    ATR_ASSERT(font);
+
+    /* By AI */
+    if (header.offset > font->file.length ||
+        header.length > font->file.length - header.offset) {
+        atr_dprintERROR("%s", "table lies outside the font file.");
+        return ATR_FAIL;
+    }
+
+    if (checkSumAdjustment_offset >= 0) {
+        if (checkSumAdjustment_offset >= 0) {
+            size_t adjustment = (size_t)checkSumAdjustment_offset;
+            if (adjustment > header.length || header.length - adjustment < 4) {
+                atr_dprintERROR("%s", "Checksum-adjustment field lies outside the table.");
+                return ATR_FAIL;
+            }
+        }
+    }
+
+    const uint8_t *table = font->file.elements + header.offset;
+
+    uint32_t calculated = atr_table_checkSum_calc(table, header.length, checkSumAdjustment_offset, checkSumAdjustment_offset + 4);
+
+    if (calculated != header.checkSum) {
+        atr_dprintERROR("Invalid table checksum. Got %X, expected %X.", calculated, header.checkSum);
+        return ATR_FAIL;
+    }
+
+    return ATR_SUCCESS;
+}
+
+ATR_DEF enum Atr_Return_Types atr_table_head_parse(struct Atr_Font *font, struct Atr_Table_Header head_header)
+{
+    ATR_ASSERT(font);
+
+    struct Atr_Bit_Reader br = {0};
+    atr_bit_reader_init(&br, font->file);
+    br.file.cursor = head_header.offset;
+
+    font->tables.head.header = head_header;
+    font->tables.head.version_hole_part      = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    font->tables.head.version_frac_part      = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    font->tables.head.fontRevision_hole_part = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    font->tables.head.fontRevision_frac_part = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    font->tables.head.checkSumAdjustment     = atr_endian_swap_uint32(atr_bit_reader_read_bytes(&br, 4));
+    font->tables.head.magicNumber            = atr_endian_swap_uint32(atr_bit_reader_read_bytes(&br, 4));
+    font->tables.head.flags                  = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    font->tables.head.unitsPerEm             = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    /* skipping datetime fildes */
+    atr_bit_reader_read_bytes(&br, 4);
+    atr_bit_reader_read_bytes(&br, 4);
+    atr_bit_reader_read_bytes(&br, 4);
+    atr_bit_reader_read_bytes(&br, 4);
+    /* done skipping */
+    font->tables.head.xMin                   = (int16_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    font->tables.head.yMin                   = (int16_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    font->tables.head.xMax                   = (int16_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    font->tables.head.yMax                   = (int16_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    font->tables.head.macStyle               = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    font->tables.head.lowestRecPPEM          = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    font->tables.head.fontDirectionHint      = (int16_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    font->tables.head.indexToLocFormat       = (int16_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    font->tables.head.glyphDataFormat        = (int16_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+
+    /* Checks */
+    if (0x5f0f3cf5 != font->tables.head.magicNumber) {
+        atr_dprintERROR("Magic number is incorrect. Got %u but expected 0x5F0F3CF5.", font->tables.head.magicNumber);
+        return ATR_FAIL;
+    }
+    if ((font->tables.head.flags & (1u << 5)) != 0) {
+        atr_dprintERROR("%s", "Corrupted flags. The sixth bit is not zero.");
+        return ATR_FAIL;
+    }
+    if (font->tables.head.unitsPerEm < 64 || font->tables.head.unitsPerEm > 16384) {
+        atr_dprintERROR("Unacceptable unitsPerEm. Got %u and expected a value in the range [64, 16384].", font->tables.head.unitsPerEm);
+        return ATR_FAIL;
+    }
+    if (font->tables.head.xMin > font->tables.head.xMax) {
+        atr_dprintERROR("%s", "Unacceptable x range. Got xMin > xMax");
+        return ATR_FAIL;
+    }
+    if (font->tables.head.yMin > font->tables.head.yMax) {
+        atr_dprintERROR("%s", "Unacceptable y range. Got yMin > yMax");
+        return ATR_FAIL;
+    }
+    if (font->tables.head.macStyle & 0xFF80u) {
+        atr_dprintERROR("Reserved macStyle bits are set: 0x%04X.", font->tables.head.macStyle);
+        return ATR_FAIL;
+    }
+    int d = font->tables.head.fontDirectionHint;
+    if (d != -2 && d != -1 && d != 0 && d != 1 && d != 2) {
+        atr_dprintERROR("fontDirectionHint value is incorrect. Got %d, expected -2/-1/0/1/2.", d);
+        return ATR_FAIL;
+    }
+    d = font->tables.head.indexToLocFormat;
+    if (d != 0 && d != 1) {
+        atr_dprintERROR("Invalid indexToLocFormat: %d.", font->tables.head.indexToLocFormat);
+        return ATR_FAIL;
+    }
+    if (font->tables.head.glyphDataFormat != 0) {
+        atr_dprintERROR("Incorrect glyphDataFormat. Got %d, expected 0.", font->tables.head.glyphDataFormat);
+        return ATR_FAIL;
+    }
+    if (br.file.cursor != head_header.offset + head_header.length) {
+        atr_dprintERROR("%s", "Something went wrong will parsing the head table.");
+        return ATR_FAIL;
+    }
+
+    /*
+    atr_dprintINT(font->tables.head.version_hole_part);
+    atr_dprintINT(font->tables.head.version_frac_part);
+    atr_dprintINT(font->tables.head.fontRevision_hole_part);
+    atr_dprintINT(font->tables.head.fontRevision_frac_part);
+    atr_dprintINT(font->tables.head.checkSumAdjustment);
+    atr_uint32_print_hex(font->tables.head.magicNumber, 32);
+    atr_dprintINT(font->tables.head.unitsPerEm);
+    atr_dprintINT(font->tables.head.xMin);
+    atr_dprintINT(font->tables.head.yMin);
+    atr_dprintINT(font->tables.head.xMax);
+    atr_dprintINT(font->tables.head.yMax);
+    atr_dprintINT(font->tables.head.macStyle);
+    atr_dprintINT(font->tables.head.lowestRecPPEM);
+    atr_dprintINT(font->tables.head.fontDirectionHint);
+    atr_dprintINT(font->tables.head.indexToLocFormat);
+    atr_dprintINT(font->tables.head.glyphDataFormat);
+    */
+
+    return ATR_SUCCESS;
+}
+
+ATR_DEF enum Atr_Return_Types atr_table_hhea_parse(struct Atr_Font *font, struct Atr_Table_Header hhea_header)
+{
+    ATR_ASSERT(font);
+
+    struct Atr_Bit_Reader br = {0};
+    atr_bit_reader_init(&br, font->file);
+    br.file.cursor = hhea_header.offset;
+
+    font->tables.hhea.header = hhea_header;
+    font->tables.hhea.version_hole_part   = (int16_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    font->tables.hhea.version_frac_part   = (int16_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    font->tables.hhea.ascent              = (int16_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    font->tables.hhea.descent             = (int16_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    font->tables.hhea.lineGap             = (int16_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    font->tables.hhea.advanceWidthMax     = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    font->tables.hhea.minLeftSideBearing  = (int16_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    font->tables.hhea.minRightSideBearing = (int16_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    font->tables.hhea.xMaxExtent          = (int16_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    font->tables.hhea.caretSlopeRise      = (int16_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    font->tables.hhea.caretSlopeRun       = (int16_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    font->tables.hhea.caretOffset         = (int16_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    /* skipping reserved fildes */
+    atr_bit_reader_read_bytes(&br, 2);
+    atr_bit_reader_read_bytes(&br, 2);
+    atr_bit_reader_read_bytes(&br, 2);
+    atr_bit_reader_read_bytes(&br, 2);
+    /* done skipping */
+    font->tables.hhea.metricDataFormat    = (int16_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    font->tables.hhea.numOfLongHorMetrics = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+
+    /* Checks */
+    if (1 != font->tables.hhea.version_hole_part || 0 != font->tables.hhea.version_frac_part) {
+        atr_dprintERROR("Got worng version number. Got %u.%u but expected 1.0", font->tables.hhea.version_hole_part, font->tables.hhea.version_frac_part);
+        return ATR_FAIL;
+    }
+    if (0 != font->tables.hhea.metricDataFormat) {
+        atr_dprintERROR("Currently supports only format 0. Got format %u.", font->tables.hhea.metricDataFormat);
+        return ATR_FAIL;
+    }
+    if (0 == font->tables.hhea.caretSlopeRise && 0 == font->tables.hhea.caretSlopeRun) {
+        atr_dprintERROR("%s", "caret slope run and caret slope rise can not be both 0.");
+        return ATR_FAIL;
+    }
+
+    /*
+    atr_dprintINT(font->tables.hhea.version_hole_part);
+    atr_dprintINT(font->tables.hhea.version_frac_part);
+    atr_dprintINT(font->tables.hhea.ascent);
+    atr_dprintINT(font->tables.hhea.descent);
+    atr_dprintINT(font->tables.hhea.lineGap);
+    atr_dprintINT(font->tables.hhea.advanceWidthMax);
+    atr_dprintINT(font->tables.hhea.minLeftSideBearing);
+    atr_dprintINT(font->tables.hhea.minRightSideBearing);
+    atr_dprintINT(font->tables.hhea.xMaxExtent);
+    atr_dprintINT(font->tables.hhea.caretSlopeRise);
+    atr_dprintINT(font->tables.hhea.caretSlopeRun);
+    atr_dprintINT(font->tables.hhea.caretOffset);
+    atr_dprintINT(font->tables.hhea.metricDataFormat);
+    atr_dprintINT(font->tables.hhea.numOfLongHorMetrics);
+    */
+
+    return ATR_SUCCESS;
+}
+
+ATR_DEF void atr_table_hmtx_free(struct Atr_Font *font)
+{
+    ATR_ASSERT(font);
+
+    ATR_FREE(font->tables.hmtx.hMetrices);
+    font->tables.hmtx.hMetrices = NULL;
+    ATR_FREE(font->tables.hmtx.leftSideBearing);
+    font->tables.hmtx.leftSideBearing = NULL;
+    font->tables.hmtx.leftSideBearing_count = 0;
+}
+
+ATR_DEF enum Atr_Return_Types atr_table_hmtx_parse(struct Atr_Font *font, struct Atr_Table_Header hmtx_header)
+{
+    ATR_ASSERT(font);
+
+    struct Atr_Bit_Reader br = {0};
+    atr_bit_reader_init(&br, font->file);
+    br.file.cursor = hmtx_header.offset;
+
+    font->tables.hmtx.header = hmtx_header;
+
+    size_t numOfLongHorMetrices = font->tables.hhea.numOfLongHorMetrics;
+    font->tables.hmtx.leftSideBearing_count = font->tables.glyf.num_of_glyphs - numOfLongHorMetrices;
+    font->tables.hmtx.hMetrices = ATR_MALLOC(sizeof(font->tables.hmtx.hMetrices) * numOfLongHorMetrices);
+    if (font->tables.hmtx.hMetrices == NULL && numOfLongHorMetrices > 0) {
+        atr_dprintERROR("%s", "Failed to allocate hMetrices array.");
+        return ATR_FAIL;
+    }
+    for (size_t i = 0; i < numOfLongHorMetrices; i++) {
+        struct Atr_LongHorMetric temp = {
+            .advanceWidth = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2)),
+            .leftSideBearing = (int16_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2)),
+        };
+        font->tables.hmtx.hMetrices[i] = temp;
+    }
+    font->tables.hmtx.leftSideBearing = ATR_MALLOC(sizeof(font->tables.hmtx.leftSideBearing) * font->tables.hmtx.leftSideBearing_count);
+    if (font->tables.hmtx.leftSideBearing == NULL && font->tables.hmtx.leftSideBearing_count > 0) {
+        atr_dprintERROR("%s", "Failed to allocate leftSideBearing array.");
+        return ATR_FAIL;
+    }
+    for (size_t i = 0; i < font->tables.hmtx.leftSideBearing_count; i++) {
+        font->tables.hmtx.leftSideBearing[i] = (int16_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    }
+
+
+    return ATR_SUCCESS;
+}
+
+ATR_DEF enum Atr_Return_Types atr_table_loca_parse(struct Atr_Font *font, struct Atr_Table_Header loca_header)
+{
+    /* By AI */
+    struct Atr_Table_loca *loca = &font->tables.loca;
+    size_t num_glyphs = (size_t)font->tables.maxp.numGlyphs;
+    int16_t format = font->tables.head.indexToLocFormat;
+    size_t entry_size;
+
+    if (format == 0) {
+        entry_size = sizeof(uint16_t);
+    } else if (format == 1) {
+        entry_size = sizeof(uint32_t);
+    } else {
+        atr_dprintERROR("Unexpected indexToLocFormat. Got %d, expected 0 or 1.", format);
+        return ATR_FAIL;
+    }
+
+    /*
+     * loca contains numGlyphs + 1 offsets, including the final
+     * offset marking the end of the last glyph.
+     */
+    size_t offset_count = num_glyphs + 1;
+    size_t expected_length = offset_count * entry_size;
+    if ((size_t)loca_header.length != expected_length) {
+        atr_dprintERROR("Invalid loca length. Got %u, expected %zu.", loca_header.length, expected_length);
+        return ATR_FAIL;
+    }
+
+    /*
+     * This requires glyf.header to have been set before loca is parsed.
+     */
+    uint32_t glyf_length = font->tables.glyf.header.length;
+
+    uint32_t *offsets = ATR_MALLOC(sizeof(*offsets) * offset_count);
+    if (offsets == NULL) {
+        atr_dprintERROR("%s", "Failed to allocate loca offsets.");
+        return ATR_FAIL;
+    }
+
+    struct Atr_Bit_Reader br = {0};
+    atr_bit_reader_init(&br, font->file);
+    br.file.cursor = loca_header.offset;
+
+    for (size_t i = 0; i < offset_count; i++) {
+        uint32_t offset;
+        if (format == 0) {
+            uint16_t short_offset = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+            /*
+             * Short loca offsets are stored divided by two.
+             */
+            offset = (uint32_t)short_offset * 2u;
+        } else {
+            offset = atr_endian_swap_uint32(atr_bit_reader_read_bytes(&br, 4));
+        }
+
+        if (i > 0 && offset < offsets[i - 1]) {
+            atr_dprintERROR("loca offset at index %zu is less than the previous offset.", i);
+            ATR_FREE(offsets);
+            return ATR_FAIL;
+        }
+
+        if (offset > glyf_length) {
+            atr_dprintERROR("loca offset %u exceeds glyf length %u.", offset, glyf_length);
+            ATR_FREE(offsets);
+            return ATR_FAIL;
+        }
+
+        offsets[i] = offset;
+    }
+
+    /*
+     * Replace any previously parsed loca data only after successful
+     * parsing.
+     */
+    ATR_FREE(loca->offsets);
+
+    loca->header = loca_header;
+    loca->numGlyphs = font->tables.maxp.numGlyphs;
+    loca->indexToLocFormat = format;
+    loca->offsets = offsets;
+    loca->length = offset_count;
+
+    return ATR_SUCCESS;
+}
+
+ATR_DEF enum Atr_Return_Types atr_table_maxp_parse(struct Atr_Font *font, struct Atr_Table_Header maxp_header)
+{
+    struct Atr_Bit_Reader br = {0};
+    atr_bit_reader_init(&br, font->file);
+    br.file.cursor = maxp_header.offset;
+
+    font->tables.maxp.header                = maxp_header;
+    font->tables.maxp.version_hole_part     = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    font->tables.maxp.version_frac_part     = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    font->tables.maxp.numGlyphs             = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    font->tables.maxp.maxPoints             = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    font->tables.maxp.maxContours           = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    font->tables.maxp.maxComponentPoints    = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    font->tables.maxp.maxComponentContours  = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    font->tables.maxp.maxZones              = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    font->tables.maxp.maxTwilightPoints     = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    font->tables.maxp.maxStorage            = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    font->tables.maxp.maxFunctionDefs       = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    font->tables.maxp.maxInstructionDefs    = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    font->tables.maxp.maxStackElements      = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    font->tables.maxp.maxSizeOfInstructions = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    font->tables.maxp.maxComponentElements  = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    font->tables.maxp.maxComponentDepth     = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+
+    /* Checks */
+    if (font->tables.maxp.maxZones < 1 || font->tables.maxp.maxZones > 2) {
+        atr_dprintWARNING("Invalid maxZones value %u; expected 1 or 2.", font->tables.maxp.maxZones);
+    }
+
+    /*
+    atr_dprintINT(font->tables.maxp.version_hole_part    );
+    atr_dprintINT(font->tables.maxp.version_frac_part    );
+    atr_dprintINT(font->tables.maxp.numGlyphs            );
+    atr_dprintINT(font->tables.maxp.maxPoints            );
+    atr_dprintINT(font->tables.maxp.maxContours          );
+    atr_dprintINT(font->tables.maxp.maxComponentPoints   );
+    atr_dprintINT(font->tables.maxp.maxComponentContours );
+    atr_dprintINT(font->tables.maxp.maxZones             );
+    atr_dprintINT(font->tables.maxp.maxTwilightPoints    );
+    atr_dprintINT(font->tables.maxp.maxStorage           );
+    atr_dprintINT(font->tables.maxp.maxFunctionDefs      );
+    atr_dprintINT(font->tables.maxp.maxInstructionDefs   );
+    atr_dprintINT(font->tables.maxp.maxStackElements     );
+    atr_dprintINT(font->tables.maxp.maxSizeOfInstructions);
+    atr_dprintINT(font->tables.maxp.maxComponentElements );
+    atr_dprintINT(font->tables.maxp.maxComponentDepth    );
+    */
+
+    return ATR_SUCCESS;
+}
+
+ATR_DEF void atr_table_name_free(struct Atr_Font *font)
+{
+    ATR_ASSERT(font);
+
+    ATR_FREE(font->tables.name.nameRecord);
+    font->tables.name.nameRecord = NULL;
+    ATR_FREE(font->tables.name.name);
+    font->tables.name.name = NULL;
+}
+
+ATR_DEF enum Atr_Return_Types atr_table_name_parse(struct Atr_Font *font, struct Atr_Table_Header name_header)
+{
+    struct Atr_Bit_Reader br = {0};
+    atr_bit_reader_init(&br, font->file);
+    br.file.cursor = name_header.offset;
+
+    font->tables.name.header = name_header;
+    font->tables.name.format                               = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    if (font->tables.name.format != 0) {
+        atr_dprintERROR("Unsupported format for the name table. Currently supports only TrueType format (0) but got format %u.", font->tables.name.format);
+        return ATR_FAIL;
+    }
+    font->tables.name.nameRecord_count                     = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    font->tables.name.stringOffset                         = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    font->tables.name.nameRecord = ATR_MALLOC(sizeof(*font->tables.name.nameRecord) * font->tables.name.nameRecord_count);
+    if (font->tables.name.nameRecord == NULL && font->tables.name.nameRecord_count > 0) {
+        atr_dprintERROR("%s", "Failed to allocate nameRecord array.");
+        return ATR_FAIL;
+    }
+    for (size_t i = 0; i < font->tables.name.nameRecord_count; i++) {
+        font->tables.name.nameRecord[i].platformID         = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+        font->tables.name.nameRecord[i].platformSpecificID = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+        font->tables.name.nameRecord[i].languageID         = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+        font->tables.name.nameRecord[i].nameID             = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+        font->tables.name.nameRecord[i].length             = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+        font->tables.name.nameRecord[i].offset             = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+
+        /* Checks */
+        if (font->tables.name.nameRecord[i].platformID == 0 && font->tables.name.nameRecord[i].languageID != 0) {
+            atr_dprintERROR("For names with a Unicode platformID (0), the language code is unused and should be set to 0. Got %u", font->tables.name.nameRecord[i].languageID);
+            return ATR_FAIL;
+        } 
+    }
+    if (font->tables.name.stringOffset >= name_header.length) {
+            atr_dprintERROR("%s", "Error parsing name table. stringOffset is incorrect.");
+        return ATR_FAIL;
+    }
+    font->tables.name.name_count = name_header.length - font->tables.name.stringOffset;
+    font->tables.name.name = ATR_MALLOC(sizeof(*font->tables.name.name) * font->tables.name.name_count);
+    if (font->tables.name.name == NULL && font->tables.name.name_count > 0) {
+        atr_dprintERROR("%s", "Failed to allocate name array.");
+        return ATR_FAIL;
+    }
+    for (size_t i = 0; i < font->tables.name.name_count; i++) {
+        font->tables.name.name[i]                          = atr_bit_reader_read_byte(&br);
+    }
+
+
+    return ATR_SUCCESS;
+}
+
+ATR_DEF enum Atr_Return_Types atr_table_OS_2_parse(struct Atr_Font *font, struct Atr_Table_Header OS_2_header)
+{
+    struct Atr_Bit_Reader br = {0};
+    atr_bit_reader_init(&br, font->file);
+    br.file.cursor = OS_2_header.offset;
+
+    font->tables.OS_2.header = OS_2_header;
+    // atr_dprintINT(font->tables.OS_2.header.length);
+    font->tables.OS_2.version                             = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2)); 
+    // atr_dprintINFO("OS/2 table version: %u", font->tables.OS_2.version);
+    if (font->tables.OS_2.version == 0) {
+        font->tables.OS_2.version_0.xAvgCharWidth         = (int16_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2)); 
+        font->tables.OS_2.version_0.usWeightClass         = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2)); 
+        font->tables.OS_2.version_0.usWidthClass          = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2)); 
+        font->tables.OS_2.version_0.fsType                = (int16_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2)); 
+        font->tables.OS_2.version_0.ySubscriptXSize       = (int16_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2)); 
+        font->tables.OS_2.version_0.ySubscriptYSize       = (int16_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2)); 
+        font->tables.OS_2.version_0.ySubscriptXOffset     = (int16_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2)); 
+        font->tables.OS_2.version_0.ySubscriptYOffset     = (int16_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2)); 
+        font->tables.OS_2.version_0.ySuperscriptXSize     = (int16_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2)); 
+        font->tables.OS_2.version_0.ySuperscriptYSize     = (int16_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2)); 
+        font->tables.OS_2.version_0.ySuperscriptXOffset   = (int16_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2)); 
+        font->tables.OS_2.version_0.ySuperscriptYOffset   = (int16_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2)); 
+        font->tables.OS_2.version_0.yStrikeoutSize        = (int16_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2)); 
+        font->tables.OS_2.version_0.yStrikeoutPosition    = (int16_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2)); 
+        font->tables.OS_2.version_0.sFamilyClass          = (int16_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2)); 
+        for (size_t i = 0; i < 10; i++) {
+            font->tables.OS_2.version_0.panose[i]         = atr_bit_reader_read_byte(&br); 
+        }
+        for (size_t i = 0; i < 4; i++) {
+            font->tables.OS_2.version_0.ulUnicodeRange[i] = atr_endian_swap_uint32(atr_bit_reader_read_bytes(&br, 4)); 
+        }
+        for (size_t i = 0; i < 4; i++) {
+            font->tables.OS_2.version_0.achVendID[i]      = atr_bit_reader_read_byte(&br); 
+        }
+        font->tables.OS_2.version_0.fsSelection           = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2)); 
+        font->tables.OS_2.version_0.fsFirstCharIndex      = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2)); 
+        font->tables.OS_2.version_0.fsLastCharIndex       = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2)); 
+    } else {
+        atr_dprintWARNING("Got unsupported OS/2 table version (%u). Currently supports only version 0.", font->tables.OS_2.version);
+        return ATR_FAIL;
+    }
+
+    return ATR_SUCCESS;
+}
+
+ATR_DEF void atr_table_post_free(struct Atr_Font *font)
+{
+    ATR_ASSERT(font);
+
+    if (font->tables.post.format == (atr_real)2) {
+        ATR_FREE(font->tables.post.format2.glyphNameIndex);
+        font->tables.post.format2.glyphNameIndex = NULL;
+        font->tables.post.format2.glyphNameIndex_count = 0;
+        ATR_FREE(font->tables.post.format2.names);
+        font->tables.post.format2.names = NULL;
+        font->tables.post.format2.numberNewGlyphs = 0;
+    } else if (font->tables.post.format == (atr_real)2.5) {
+        ATR_FREE(font->tables.post.format2_5.offset);
+        font->tables.post.format2_5.offset = NULL;
+        font->tables.post.format2_5.numberOfGlyphs = 0;
+    }
+}
+
+ATR_DEF enum Atr_Return_Types atr_table_post_parse(struct Atr_Font *font, struct Atr_Table_Header post_header)
+{
+    struct Atr_Bit_Reader br = {0};
+    atr_bit_reader_init(&br, font->file);
+    br.file.cursor = post_header.offset;
+
+    font->tables.post.header = post_header;
+    font->tables.post.format_hole_part          = (int16_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    font->tables.post.format_frac_part          = (int16_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    font->tables.post.format = atr_int16_int16_fixed_point_to_atr_real(font->tables.post.format_hole_part, font->tables.post.format_frac_part);
+    font->tables.post.italicAngle_deg_hole_part = (int16_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    font->tables.post.italicAngle_deg_frac_part = (int16_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    font->tables.post.underlinePosition         = (int16_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    font->tables.post.underlineThickness        = (int16_t)atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+    uint32_t temp                               = atr_endian_swap_uint32(atr_bit_reader_read_bytes(&br, 4));
+    font->tables.post.is_monospaced = temp != 0;
+    font->tables.post.minMemType42              = atr_endian_swap_uint32(atr_bit_reader_read_bytes(&br, 4));
+    font->tables.post.maxMemType42              = atr_endian_swap_uint32(atr_bit_reader_read_bytes(&br, 4));
+    font->tables.post.minMemType1               = atr_endian_swap_uint32(atr_bit_reader_read_bytes(&br, 4));
+    font->tables.post.maxMemType1               = atr_endian_swap_uint32(atr_bit_reader_read_bytes(&br, 4));
+
+    // atr_dprintINFO("Format of post table: %f.", atr_int16_int16_fixed_point_to_atr_real(font->tables.post.format_hole_part, font->tables.post.format_frac_part));
+    if (font->tables.post.format == 1) {
+        if (font->tables.maxp.numGlyphs != 258) {
+            atr_dprintERROR("post format 1 requires 258 glyphs, but font has %u.", font->tables.maxp.numGlyphs);
+            return ATR_FAIL;
+        }
+    } else if (font->tables.post.format == (atr_real)2) {
+        font->tables.post.format2.numberOfGlyphs = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+        if (font->tables.post.format2.numberOfGlyphs != font->tables.maxp.numGlyphs) {
+            atr_dprintERROR("Number of glyphs in the post table (%u) is different from the number of glyphs in the maxp table (%u).", font->tables.post.format2.numberOfGlyphs, font->tables.maxp.numGlyphs);
+            return ATR_FAIL;
+        }
+        font->tables.post.format2.glyphNameIndex_count = font->tables.post.format2.numberOfGlyphs;
+        font->tables.post.format2.glyphNameIndex = ATR_MALLOC(sizeof(*font->tables.post.format2.glyphNameIndex) * font->tables.post.format2.glyphNameIndex_count);
+        if (font->tables.post.format2.glyphNameIndex == NULL && font->tables.post.format2.glyphNameIndex_count > 0) {
+            atr_dprintERROR("%s", "Failed to allocate glyphNameIndex array.");
+            return ATR_FAIL;
+        }
+        font->tables.post.format2.numberNewGlyphs = 0;
+        for (size_t i = 0; i < font->tables.post.format2.glyphNameIndex_count; i++) {
+            uint16_t index = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+            if (index >= 32768) {
+                atr_dprintERROR("Reserved glyph name index %u in post format 2.", index);
+                return ATR_FAIL;
+            }
+            font->tables.post.format2.glyphNameIndex[i] = index;
+            if (index > font->tables.post.format2.numberNewGlyphs) {
+                font->tables.post.format2.numberNewGlyphs = index;
+            }
+        }
+        if (font->tables.post.format2.numberNewGlyphs < 257) {
+            font->tables.post.format2.numberNewGlyphs = 0;
+        } else {
+            font->tables.post.format2.numberNewGlyphs -= 257;
+        }
+        font->tables.post.format2.names = ATR_MALLOC(sizeof(*font->tables.post.format2.names) * font->tables.post.format2.numberNewGlyphs);
+        if (font->tables.post.format2.names == NULL && font->tables.post.format2.numberNewGlyphs > 0) {
+            atr_dprintERROR("%s", "Failed to allocate names array.");
+            return ATR_FAIL;
+        }
+        for (size_t i = 0; i < font->tables.post.format2.numberNewGlyphs; i++) {
+            struct Atr_Pascal_String ps = {
+                .length = atr_bit_reader_read_byte(&br),
+            };
+            size_t j;
+            for (j = 0; j < ps.length; j++) {
+                ps.elements[j] = atr_bit_reader_read_byte(&br);
+            }
+            ps.elements[j] = '\0';
+            font->tables.post.format2.names[i] = ps;
+        }
+    } else if (font->tables.post.format == (atr_real)2.5) {
+        font->tables.post.format2_5.numberOfGlyphs = atr_endian_swap_uint16((uint16_t)atr_bit_reader_read_bytes(&br, 2));
+        font->tables.post.format2_5.offset = ATR_MALLOC(sizeof(*font->tables.post.format2_5.offset) * font->tables.post.format2_5.numberOfGlyphs);
+        if (font->tables.post.format2_5.offset == NULL && font->tables.post.format2_5.numberOfGlyphs > 0) {
+            atr_dprintERROR("%s", "Failed to allocate offset array.");
+            return ATR_FAIL;
+        }
+        for (size_t i = 0; i < font->tables.post.format2_5.numberOfGlyphs; i++) {
+            font->tables.post.format2_5.offset[i] = (int8_t)atr_bit_reader_read_byte(&br);
+        }
+    } else if (font->tables.post.format == (atr_real)3) {
+        ;
+    } else if (font->tables.post.format == (atr_real)4) {
+        ;
+    }
+
+    return ATR_SUCCESS;
+}
+
+ATR_DEF struct Atr_Vec2 atr_text_line_draw(struct Atr_Pixel_Buffer screen, struct Atr_Font *font, uint8_t *text, atr_real top_left_x, atr_real top_left_y, atr_real letter_hight, atr_real letter_spacing, uint32_t color, int length, struct Atr_Offset_Zoom offzoom)
+{
+    size_t text_byte_count = strlen((const char *)text);
+    size_t utf8_len = atr_utf8_length(text, text_byte_count);
+    if (utf8_len < length) {
+        length = (int)utf8_len;
+    }
+    if (length == -1) {
+        length = (int)utf8_len;
+    }
+
+    atr_real scale = atr_scale_get_for_em(font, letter_hight);
+    atr_real pen_x = 0;
+    atr_real pen_y = font->tables.hhea.ascent * scale;
+    for (size_t text_index = 0, char_index = 0, consumed = 0; text_index < text_byte_count && char_index < length; text_index += consumed, char_index++) {
+        uint32_t c = atr_utf8_decode_next_code_point(text + text_index, text_byte_count - text_index, &consumed);
+        uint32_t glyph_index = atr_glyphIndex_get(font, c);
+
+        uint16_t advenceWidth = 0;
+        int16_t  leftSideBearing = 0;
+        if (ATR_FAIL == atr_hmtx_get_by_glyphIndex(font, glyph_index, &advenceWidth, &leftSideBearing)) {
+            atr_dprintWARNING("Failed to get advence width and left side bearing for glyph at index %u", glyph_index);
+        }
+
+        struct Atr_Glyph g = font->tables.glyf.glyphs[glyph_index];
+        atr_real x_origin = top_left_x + pen_x;
+        atr_real y_origin = top_left_y + pen_y;
+        atr_real x_offset = 0;
+        atr_real y_offset = 0;
+
+        struct Atr_Glyph_Point_Dynamic_Array glyph_points = {0};
+        if (g.metadata.numberOfContours >= 0) {
+            glyph_points = g.simple.points;
+        } else {
+            glyph_points = g.compound.points;
+        }
+
+        struct Atr_Glyph_Transform transform = {
+            .scale_x =  scale,
+            .scale_y = -scale,
+            .translate_x = x_origin + x_offset,
+            .translate_y = y_origin + y_offset
+        };
+
+        if (glyph_points.length > 0) {
+            if (ATR_FAIL == atr_quadratic_bezier_array_fill(screen, glyph_points.elements, glyph_points.length, transform, color, offzoom)) {
+                atr_dprintERROR("Failed to raseter the letter %c. x_origin = %10.10f, y_origin = %f", (char)c, x_origin, y_origin);
+                ATR_ASSERT(0);
+            }
+        }
+
+        pen_x += letter_spacing + (advenceWidth) * scale;
+    }
+
+    return (struct Atr_Vec2){
+        .x = pen_x,
+        .y = (font->tables.hhea.ascent - font->tables.hhea.descent + font->tables.hhea.lineGap) * scale,
+    };
+}
+
+ATR_DEF struct Atr_Vec2 atr_text_line_draw_no_antialiasing(struct Atr_Pixel_Buffer screen, struct Atr_Font *font, uint8_t *text, atr_real top_left_x, atr_real top_left_y, atr_real letter_hight, atr_real letter_spacing, uint32_t color, int length, struct Atr_Offset_Zoom offzoom)
+{
+    size_t text_byte_count = strlen((const char *)text);
+    size_t utf8_len = atr_utf8_length(text, text_byte_count);
+    if (utf8_len < length) {
+        length = (int)utf8_len;
+    }
+    if (length == -1) {
+        length = (int)utf8_len;
+    }
+
+    atr_real scale = atr_scale_get_for_em(font, letter_hight);
+    atr_real pen_x = 0;
+    atr_real pen_y = font->tables.hhea.ascent * scale;
+    for (size_t text_index = 0, char_index = 0, consumed = 0; text_index < text_byte_count && char_index < length; text_index += consumed, char_index++) {
+        uint32_t c = atr_utf8_decode_next_code_point(text + text_index, text_byte_count - text_index, &consumed);
+        uint32_t glyph_index = atr_glyphIndex_get(font, c);
+
+        uint16_t advenceWidth = 0;
+        int16_t  leftSideBearing = 0;
+        if (ATR_FAIL == atr_hmtx_get_by_glyphIndex(font, glyph_index, &advenceWidth, &leftSideBearing)) {
+            atr_dprintWARNING("Failed to get advence width and left side bearing for glyph at index %u", glyph_index);
+        }
+
+        struct Atr_Glyph g = font->tables.glyf.glyphs[glyph_index];
+        atr_real x_origin = top_left_x + pen_x;
+        atr_real y_origin = top_left_y + pen_y;
+        atr_real x_offset = 0;
+        atr_real y_offset = 0;
+
+        struct Atr_Glyph_Point_Dynamic_Array glyph_points = {0};
+        if (g.metadata.numberOfContours >= 0) {
+            glyph_points = g.simple.points;
+        } else {
+            glyph_points = g.compound.points;
+        }
+
+        struct Atr_Glyph_Transform transform = {
+            .scale_x =  scale,
+            .scale_y = -scale,
+            .translate_x = x_origin + x_offset,
+            .translate_y = y_origin + y_offset
+        };
+
+        if (glyph_points.length > 0) {
+            if (ATR_FAIL == atr_quadratic_bezier_array_fill_no_antialiasing(screen, glyph_points.elements, glyph_points.length, transform, color, offzoom)) {
+                atr_dprintERROR("Failed to raseter the letter %c. x_origin = %10.10f, y_origin = %f", (char)c, x_origin, y_origin);
+                ATR_ASSERT(0);
+            }
+        }
+
+        pen_x += letter_spacing + (advenceWidth) * scale;
+    }
+
+    return (struct Atr_Vec2){
+        .x = pen_x,
+        .y = (font->tables.hhea.ascent - font->tables.hhea.descent + font->tables.hhea.lineGap) * scale,
+    };
+}
+
+ATR_DEF struct Atr_Vec2 atr_text_line_draw_outline(struct Atr_Pixel_Buffer screen, struct Atr_Font *font, uint8_t *text, atr_real top_left_x, atr_real top_left_y, atr_real letter_hight, atr_real letter_spacing, uint32_t color, int length, struct Atr_Offset_Zoom offzoom)
+{
+    size_t text_byte_count = strlen((const char *)text);
+    size_t utf8_len = atr_utf8_length(text, text_byte_count);
+    if (utf8_len < length) {
+        length = (int)utf8_len;
+    }
+    if (length == -1) {
+        length = (int)utf8_len;
+    }
+
+    atr_real scale = atr_scale_get_for_em(font, letter_hight);
+    atr_real pen_x = 0;
+    atr_real pen_y = font->tables.hhea.ascent * scale;
+    for (size_t text_index = 0, char_index = 0, consumed = 0; text_index < text_byte_count && char_index < length; text_index += consumed, char_index++) {
+        uint32_t c = atr_utf8_decode_next_code_point(text + text_index, text_byte_count - text_index, &consumed);
+        uint32_t glyph_index = atr_glyphIndex_get(font, c);
+
+        uint16_t advenceWidth = 0;
+        int16_t  leftSideBearing = 0;
+        if (ATR_FAIL == atr_hmtx_get_by_glyphIndex(font, glyph_index, &advenceWidth, &leftSideBearing)) {
+            atr_dprintWARNING("Failed to get advence width and left side bearing for glyph at index %u", glyph_index);
+        }
+
+        struct Atr_Glyph g = font->tables.glyf.glyphs[glyph_index];
+        atr_real x_origin = top_left_x + pen_x;
+        atr_real y_origin = top_left_y + pen_y;
+        atr_real x_offset = 0;
+        atr_real y_offset = 0;
+
+        struct Atr_Glyph_Point_Dynamic_Array glyph_points = {0};
+        if (g.metadata.numberOfContours >= 0) {
+            glyph_points = g.simple.points;
+        } else {
+            glyph_points = g.compound.points;
+        }
+
+        struct Atr_Glyph_Transform transform = {
+            .scale_x =  scale,
+            .scale_y = -scale,
+            .translate_x = x_origin + x_offset,
+            .translate_y = y_origin + y_offset
+        };
+
+        for (size_t i = 0; i + 2 < glyph_points.length; i += 3) {
+            struct Atr_Glyph_Point start = glyph_points.elements[i + 0];
+            start.pos = atr_vec2_linear_transform(start.pos, transform.scale_x, 0, 0, transform.scale_y, transform.translate_x, transform.translate_y);
+            struct Atr_Glyph_Point control = glyph_points.elements[i + 1];
+            control.pos = atr_vec2_linear_transform(control.pos, transform.scale_x, 0, 0, transform.scale_y, transform.translate_x, transform.translate_y);
+            struct Atr_Glyph_Point end = glyph_points.elements[i + 2];
+            end.pos = atr_vec2_linear_transform(end.pos, transform.scale_x, 0, 0, transform.scale_y, transform.translate_x, transform.translate_y);
+        
+            atr_quadratic_bezier_draw(screen, start, control, end, color, offzoom);
+        }
+
+        pen_x += letter_spacing + (advenceWidth) * scale;
+    }
+
+    return (struct Atr_Vec2){
+        .x = pen_x,
+        .y = (font->tables.hhea.ascent - font->tables.hhea.descent + font->tables.hhea.lineGap) * scale,
+    };
+}
+
+ATR_DEF struct Atr_Vec2 atr_text_line_get_bottom_right(struct Atr_Font *font, uint8_t *text, atr_real top_left_x, atr_real top_left_y, atr_real letter_hight, atr_real letter_spacing, int length)
+{
+    size_t text_byte_count = strlen((const char *)text);
+    size_t utf8_len = atr_utf8_length(text, text_byte_count);
+    if (utf8_len < length) {
+        length = (int)utf8_len;
+    }
+    if (length == -1) {
+        length = (int)utf8_len;
+    }
+
+    atr_real scale = atr_scale_get_for_em(font, letter_hight);
+    atr_real pen_x = 0;
+    for (size_t text_index = 0, char_index = 0, consumed = 0; text_index < text_byte_count && char_index < length; text_index += consumed, char_index++) {
+        uint32_t c = atr_utf8_decode_next_code_point(text + text_index, text_byte_count - text_index, &consumed);
+        uint32_t glyph_index = atr_glyphIndex_get(font, c);
+
+        uint16_t advenceWidth = 0;
+        if (ATR_FAIL == atr_hmtx_get_by_glyphIndex(font, glyph_index, &advenceWidth, NULL)) {
+            atr_dprintWARNING("Failed to get advence width and left side bearing for glyph at index %u", glyph_index);
+        }
+
+        pen_x += letter_spacing + (advenceWidth) * scale;
+    }
+
+    return (struct Atr_Vec2){
+        .x = top_left_x + pen_x,
+        .y = top_left_y + (font->tables.hhea.ascent - font->tables.hhea.descent + font->tables.hhea.lineGap) * scale,
+    };
+}
+
+ATR_DEF uint8_t atr_u8_clamp_int(int x)
+{
+    if (x < 0) {
+        return 0;
+    }
+    if (x > 255) {
+        return 255;
+    }
+    return (uint8_t)x;
+}
+
+/**
+ * @brief Print the lowest bit_count bits of a uint16_t in binary.
+ * @param value Value to print.
+ * @param bit_count Number of bits to print.
+ */
+ATR_DEF void atr_uint16_print_binary_imp(uint16_t value, uint8_t bit_count)
+{
+    ATR_ASSERT(bit_count <= 16);
+    printf("b");
+    for (int i = (int)bit_count - 1; i >= 0; i--) {
+        printf("%c", (value & (1u << i)) ? '1' : '0');
+    }
+    printf("\n");
+}
+
+ATR_DEF void atr_uint16_print_hex_imp(uint16_t value, uint8_t bit_count)
+{
+    ATR_ASSERT(bit_count <= 16);
+
+    /* Ignore bits above bit_count, including for partial nibbles. */
+    if (bit_count < 16) {
+        value &= (1u << bit_count) - 1u;
+    }
+
+    const uint8_t hex_digit_count = (uint8_t)((bit_count + 3u) / 4u);
+
+    printf("0x");
+    for (int i = (int)hex_digit_count - 1; i >= 0; i--) {
+        unsigned int digit = (unsigned int)((value >> (i * 4)) & 0xFu);
+        printf("%X", digit);
+    }
+    printf("\n");
+}
+
+/**
+ * @brief Print the lowest bit_count bits of a uint32_t in binary.
+ * @param value Value to print.
+ * @param bit_count Number of bits to print.
+ */
+ATR_DEF void atr_uint32_print_binary_imp(uint32_t value, uint8_t bit_count)
+{
+    ATR_ASSERT(bit_count <= 32);
+    printf("b");
+    for (int i = (int)bit_count - 1; i >= 0; i--) {
+        printf("%c", (value & (1u << i)) ? '1' : '0');
+    }
+    printf("\n");
+}
+
+ATR_DEF void atr_uint32_print_hex_imp(uint32_t value, uint8_t bit_count)
+{
+    ATR_ASSERT(bit_count <= 32);
+
+    /* Ignore bits above bit_count, including for partial nibbles. */
+    if (bit_count < 32) {
+        value &= (1u << bit_count) - 1u;
+    }
+
+    const uint8_t hex_digit_count = (uint8_t)((bit_count + 3u) / 4u);
+
+    printf("0x");
+    for (int i = (int)hex_digit_count - 1; i >= 0; i--) {
+        unsigned int digit = (unsigned int)((value >> (i * 4)) & 0xFu);
+        printf("%X", digit);
+    }
+    printf("\n");
+}
+
+ATR_DEF enum Atr_Return_Types atr_utf8_append_code_point(uint8_t *dst, size_t capacity, size_t *length, uint32_t code_point)
+{
+    if (code_point <= 0x7Fu) {
+        if (*length + 1 >= capacity) {
+            return ATR_FAIL;
+        }
+
+        dst[(*length)++] = (uint8_t)code_point;
+        return ATR_SUCCESS;
+    }
+
+    if (code_point <= 0x7FFu) {
+        if (*length + 2 >= capacity) {
+            return ATR_FAIL;
+        }
+
+        dst[(*length)++] =
+            (uint8_t)(0xC0u | (code_point >> 6));
+
+        dst[(*length)++] =
+            (uint8_t)(0x80u | (code_point & 0x3Fu));
+
+        return ATR_SUCCESS;
+    }
+
+    if (code_point <= 0xFFFFu) {
+        if (*length + 3 >= capacity) {
+            return ATR_FAIL;
+        }
+
+        dst[(*length)++] =
+            (uint8_t)(0xE0u | (code_point >> 12));
+
+        dst[(*length)++] =
+            (uint8_t)(0x80u | ((code_point >> 6) & 0x3Fu));
+
+        dst[(*length)++] =
+            (uint8_t)(0x80u | (code_point & 0x3Fu));
+
+        return ATR_SUCCESS;
+    }
+
+    if (code_point <= 0x10FFFFu) {
+        if (*length + 4 >= capacity) {
+            return ATR_FAIL;
+        }
+
+        dst[(*length)++] =
+            (uint8_t)(0xF0u | (code_point >> 18));
+
+        dst[(*length)++] =
+            (uint8_t)(0x80u | ((code_point >> 12) & 0x3Fu));
+
+        dst[(*length)++] =
+            (uint8_t)(0x80u | ((code_point >> 6) & 0x3Fu));
+
+        dst[(*length)++] =
+            (uint8_t)(0x80u | (code_point & 0x3Fu));
+
+        return ATR_SUCCESS;
+    }
+
+    return ATR_FAIL;
+}
+
+/* This solution for utf-8 is not a full support for utf-8 */
+ATR_DEF uint32_t atr_utf8_code_point_get_from_raw_char_bytes(uint32_t raw_char_bytes)
+{
+    /* By AI */
+    uint8_t first_byte = (uint8_t)((raw_char_bytes >> 0) & 0xFFu);
+    uint8_t second_byte = (uint8_t)((raw_char_bytes >> 8) & 0xFFu);
+    uint8_t third_byte = (uint8_t)((raw_char_bytes >> 16) & 0xFFu);
+    uint8_t fourth_byte = (uint8_t)((raw_char_bytes >> 24) & 0xFFu);
+
+    if (first_byte <= 0x7Fu) {
+        /* 0xxxxxxx */
+        return (uint32_t)first_byte;
+    }
+
+    if (first_byte >= 0xC2u && first_byte <= 0xDFu) {
+        /* 110xxxxx 10xxxxxx */
+
+        if ((second_byte & 0xC0u) != 0x80u) {
+            return ATR_UTF8_REPLACEMENT_CHARACTER;
+        }
+
+        return ((uint32_t)(first_byte & 0x1Fu) << 6) |
+               ((uint32_t)(second_byte & 0x3Fu) << 0);
+    }
+
+    if (first_byte >= 0xE0u && first_byte <= 0xEFu) {
+        /* 1110xxxx 10xxxxxx 10xxxxxx */
+
+        if ((second_byte & 0xC0u) != 0x80u ||
+            (third_byte & 0xC0u) != 0x80u) {
+            return ATR_UTF8_REPLACEMENT_CHARACTER;
+        }
+
+        uint32_t code_point = ((uint32_t)(first_byte & 0x0Fu) << 12) |
+                              ((uint32_t)(second_byte & 0x3Fu) << 6) |
+                              ((uint32_t)(third_byte & 0x3Fu) << 0);
+
+        /*
+         * Reject:
+         * - overlong sequences, such as E0 80 80 for U+0000
+         * - surrogate code points, U+D800 through U+DFFF
+         */
+        if (code_point < 0x800u ||
+            (code_point >= 0xD800u && code_point <= 0xDFFFu)) {
+            return ATR_UTF8_REPLACEMENT_CHARACTER;
+        }
+
+        return code_point;
+    }
+
+    if (first_byte >= 0xF0u && first_byte <= 0xF4u) {
+        /* 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx */
+
+        if ((second_byte & 0xC0u) != 0x80u ||
+            (third_byte & 0xC0u) != 0x80u ||
+            (fourth_byte & 0xC0u) != 0x80u) {
+            return ATR_UTF8_REPLACEMENT_CHARACTER;
+        }
+
+        uint32_t code_point = ((uint32_t)(first_byte & 0x07u) << 18) |
+                              ((uint32_t)(second_byte & 0x3Fu) << 12) |
+                              ((uint32_t)(third_byte & 0x3Fu) << 6) |
+                              ((uint32_t)(fourth_byte & 0x3Fu) << 0);
+
+        /*
+         * Reject:
+         * - overlong sequences, such as F0 80 80 80 for U+0000
+         * - code points above Unicode's U+10FFFF limit
+         */
+        if (code_point < 0x10000u || code_point > 0x10FFFFu) {
+            return ATR_UTF8_REPLACEMENT_CHARACTER;
+        }
+
+        return code_point;
+    }
+
+    /*
+     * Rejects:
+     *
+     * 80..BF: continuation bytes used as a leading byte
+     * C0..C1: overlong two-byte forms
+     * F5..FF: invalid in modern UTF-8
+     */
+    return ATR_UTF8_REPLACEMENT_CHARACTER;
+}
+
+ATR_DEF uint32_t atr_utf8_decode_next_code_point(uint8_t *text, size_t byte_count, size_t *consumed)
+{
+    ATR_ASSERT(text);
+    if (consumed) *consumed = atr_bytes_for_utf8[*text]; 
+    return atr_utf8_code_point_get_from_raw_char_bytes(atr_utf8_get_next_char_bytes(text, byte_count));
+}
+
+ATR_DEF uint32_t atr_utf8_get_next_char_bytes(uint8_t *str, size_t byte_count)
+{
+    uint32_t result = 0;
+
+    if (str == NULL || byte_count == 0) {
+        return 0;
+    }
+    if (str[0] == '\0') {
+        return 0;
+    }
+
+    uint8_t char_byte_count = atr_bytes_for_utf8[(uint8_t)str[0]];
+    ATR_ASSERT(char_byte_count <= byte_count && "'str' is not long enough to read full utf8 character.");
+    
+    for (size_t i = 0; i < char_byte_count; i++) {
+        uint8_t b = str[i];
+        result |= (uint32_t)b << (i * 8);
+    }
+
+    return result;
+}
+
+ATR_DEF bool atr_utf8_is_continuation_byte(uint8_t byte)
+{
+    return (byte & 0xC0) == 0x80;
+}
+
+ATR_DEF size_t atr_utf8_length(uint8_t *str, size_t byte_count)
+{
+    size_t i = 0;
+    size_t count = 0;
+
+    while (i < byte_count && str[i] != '\0') {
+        uint8_t lead = str[i];
+        if (lead >= atr_bytes_for_utf8_count) {
+            i++;
+            count++;
+            continue;
+        }
+
+        size_t char_bytes = atr_bytes_for_utf8[lead];
+        if (char_bytes == 0 || char_bytes > byte_count - i) {
+            i++;
+            count++;
+            continue;
+        }
+
+        i += char_bytes;
+        count++;
+    }
+
+    return count;
+}
+
+ATR_DEF bool atr_utf16be_to_utf8_malloc(const uint8_t *src, size_t src_length, uint8_t **out, size_t *out_length)
+{
+    /* By AI */
+    size_t capacity;
+    size_t src_index = 0;
+    size_t dst_index = 0;
+    uint8_t *dst;
+
+    if (src == NULL || out == NULL || out_length == NULL) {
+        return ATR_FAIL;
+    }
+
+    if ((src_length & 1u) != 0) {
+        return ATR_FAIL;
+    }
+
+    /*
+     * Every UTF-16 code unit can produce at most three UTF-8 bytes.
+     * A surrogate pair produces four UTF-8 bytes, which is still less
+     * than six bytes for the two code units.
+     *
+     * Add one byte for the null terminator.
+     */
+    if (src_length > (SIZE_MAX - 1) / 3) {
+        return ATR_FAIL;
+    }
+
+    capacity = src_length * 3 + 1;
+    dst = ATR_MALLOC(capacity);
+
+    if (dst == NULL) {
+        return ATR_FAIL;
+    }
+
+    while (src_index < src_length) {
+        uint16_t first;
+        uint32_t code_point;
+
+        first = ((uint16_t)src[src_index] << 8) | (uint16_t)src[src_index + 1];
+
+        src_index += 2;
+
+        if (first >= 0xD800u && first <= 0xDBFFu) {
+            /*
+             * High surrogate: it must be followed by a low surrogate.
+             */
+            uint16_t second;
+
+            if (src_index + 1 >= src_length) {
+                code_point = ATR_UTF8_REPLACEMENT_CHARACTER;
+            } else {
+                second = ((uint16_t)src[src_index] << 8) | (uint16_t)src[src_index + 1];
+                if (second < 0xDC00u || second > 0xDFFFu) {
+                    code_point = ATR_UTF8_REPLACEMENT_CHARACTER;
+                } else {
+                    src_index += 2;
+                    code_point = 0x10000u + (((uint32_t)first - 0xD800u) << 10) + ((uint32_t)second - 0xDC00u);
+                }
+            }
+        } else if (first >= 0xDC00u && first <= 0xDFFFu) {
+            /*
+             * A low surrogate without a preceding high surrogate.
+             */
+            code_point = ATR_UTF8_REPLACEMENT_CHARACTER;
+        } else {
+            code_point = first;
+        }
+
+        if (!atr_utf8_append_code_point(dst, capacity, &dst_index, code_point)) {
+            ATR_FREE(dst);
+            return ATR_FAIL;
+        }
+    }
+
+    dst[dst_index] = '\0';
+
+    *out = dst;
+    *out_length = dst_index;
+
+    return ATR_SUCCESS;
+}
+
+ATR_DEF struct Atr_Vec2 atr_vec2_linear_transform(struct Atr_Vec2 vec2, atr_real a, atr_real b, atr_real c, atr_real d, atr_real tx, atr_real ty)
+{
+    atr_real x = vec2.x;
+    atr_real y = vec2.y;
+
+    return (struct Atr_Vec2){
+        .x = a * x + c * y + tx,
+        .y = b * x + d * y + ty,
+    };
+}
+
+
+#endif /*ALMOG_TEXT_RENDERING_IMPLEMENTATION*/
