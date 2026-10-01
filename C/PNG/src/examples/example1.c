@@ -13,6 +13,10 @@ int main(void)
     struct Apng_PNG_Image image = {0};
     apng_png_load_from_file_name(file_name, &image, true);
 
+    apng_pixel_buffer_save_as_png_to_file_name("../output.png", image.pixels);
+    apng_pixel_buffer_save_as_png_to_file_name("../output_16bit.png", image.pixels,
+                                               .colour_type = APNG_COLOUR_TYPE_GREYSCALE, 
+                                               .bit_depth = 16);
     apng_pixel_buffer_save_as_png_to_file_name("../output_8bit.png", image.pixels,
                                                .colour_type = APNG_COLOUR_TYPE_GREYSCALE, 
                                                .bit_depth = 8);
