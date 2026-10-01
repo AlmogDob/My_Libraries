@@ -408,6 +408,7 @@ enum Apng_Colour_Types {
 struct Apng_Pixel_Buffer_Save_As_PNG_Opt {
     uint8_t bit_depth;
     enum Apng_Colour_Types colour_type;
+    bool print_info;
 };
 
 #ifndef APNG_DEF
@@ -468,6 +469,7 @@ APNG_DEF void                               apng_chunk_append(struct Apng_Byte_S
 APNG_DEF struct Apng_Chunk_Footer           apng_chunk_footer_get(struct Apng_Byte_String *bs);
 APNG_DEF struct Apng_Chunk_Header           apng_chunk_header_get(struct Apng_Byte_String *bs);
 APNG_DEF uint8_t                            apng_color_channel_redivide_into_count_sections(uint8_t color_channel, uint8_t count);
+APNG_DEF uint8_t                            apng_color_type_value_get_from_color_type(enum Apng_Colour_Types ct);
 APNG_DEF void *                             apng_consume_bytes(struct Apng_Byte_String *bs, size_t amount);
 APNG_DEF enum Apng_Return_Types             apng_crc32_check(struct Apng_Chunk_Header header, void *chunk_data, struct Apng_Chunk_Footer footer);
 APNG_DEF uint32_t                           apng_crc32_update(uint32_t crc, uint8_t *buf, size_t buf_len);
@@ -491,7 +493,7 @@ APNG_DEF void                               apng_IDAT_encode(struct Apng_Byte_St
 APNG_DEF void                               apng_IDAT_filter(struct Apng_Byte_String *filtered_IDAT, struct Apng_Pixel_Buffer src, uint8_t filter_method, uint8_t bit_depth, enum Apng_Colour_Types colour_type);
 APNG_DEF enum Apng_Return_Types             apng_IDAT_unfilter(uint8_t *unfiltered_data, uint8_t *decompressed_data, size_t width, size_t height, size_t num_of_channels, size_t bit_per_channel);
 APNG_DEF enum Apng_Return_Types             apng_IHDR_chunk_parse(struct Apng_IHDR_Chunk *chunk);
-APNG_DEF void                               apng_IHDR_encode(struct Apng_Byte_String *encoded_IHDR, struct Apng_Pixel_Buffer src, uint8_t bit_depth, uint8_t colour_type);
+APNG_DEF void                               apng_IHDR_encode(struct Apng_Byte_String *encoded_IHDR, struct Apng_Pixel_Buffer src, uint8_t bit_depth, enum Apng_Colour_Types colour_type);
 
 APNG_DEF enum Apng_Return_Types             apng_lit_len_dist_code_length_decode(struct Apng_Huffman_Entrys_Table dict_huffman, struct Apng_Bit_Reader *br, uint32_t HLIT, uint32_t HDIST, uint32_t *lit_len_dist_code_length);
 
@@ -896,6 +898,31 @@ APNG_DEF uint8_t apng_color_channel_redivide_into_count_sections(uint8_t color_c
     }
 
     return (uint8_t)(((uint16_t)color_channel * (count - 1) + 127u) / 255u);
+}
+
+APNG_DEF uint8_t apng_color_type_value_get_from_color_type(enum Apng_Colour_Types ct)
+{
+    switch (ct) {
+        case APNG_COLOUR_TYPE_GREYSCALE:
+            return 0;
+        case APNG_COLOUR_TYPE_TRUECOLOUR:
+            return 2;
+            break;
+        case APNG_COLOUR_TYPE_INDEXED_COLOUR:
+            return 3;
+            break;
+        case APNG_COLOUR_TYPE_GREYSCALE_WITH_ALPHA:
+            return 4;
+            break;
+        case APNG_COLOUR_TYPE_DEFAULT:
+            /* fall through */
+        case APNG_COLOUR_TYPE_TRUECOLOUR_WITH_ALPHA:
+            return 6;
+            break;
+        default:
+            APNG_ASSERT(0 && "Unsupported encoder colour type");
+            return 6;
+    }
 }
 
 /**
@@ -1766,6 +1793,22 @@ APNG_DEF void apng_IDAT_filter(struct Apng_Byte_String *filtered_IDAT, struct Ap
                 }
             }
         } break;
+        case APNG_COLOUR_TYPE_TRUECOLOUR:
+        {
+            if (bit_depth == 8) {
+                for (size_t row = 0; row < src.rows; row++) {
+                    apng_ada_append(uint8_t, *filtered_IDAT, filter_type);
+                    for (size_t col = 0; col < src.cols; col++) {
+                        uint8_t r, g, b;
+                        apng_hexargb_to_rgba(APNG_PIXEL_BUFFER_AT(src, row, col), &r, &g, &b, NULL);
+
+                        apng_ada_append(uint8_t, *filtered_IDAT, r);
+                        apng_ada_append(uint8_t, *filtered_IDAT, g);
+                        apng_ada_append(uint8_t, *filtered_IDAT, b);
+                    }
+                }
+            }
+        } break;
         case APNG_COLOUR_TYPE_GREYSCALE_WITH_ALPHA:
         {
             if (bit_depth == 8) {
@@ -1992,24 +2035,7 @@ APNG_DEF void apng_IHDR_encode(struct Apng_Byte_String *encoded_IHDR, struct Apn
     uint8_t  compression_method = 0;
     uint8_t  filter_method      = 0;
     uint8_t  interlace_method   = 0;
-    uint8_t png_colour_type;
-    switch (colour_type) {
-        case APNG_COLOUR_TYPE_GREYSCALE:
-            png_colour_type = 0;
-            break;
-        case APNG_COLOUR_TYPE_GREYSCALE_WITH_ALPHA:
-            png_colour_type = 4;
-            break;
-        case APNG_COLOUR_TYPE_DEFAULT:
-            /* fall through */
-        case APNG_COLOUR_TYPE_TRUECOLOUR_WITH_ALPHA:
-            png_colour_type = 6;
-            break;
-        default:
-            APNG_ASSERT(0 && "Unsupported encoder colour type");
-            return;
-    }
-
+    uint8_t png_colour_type = apng_color_type_value_get_from_color_type(colour_type);
     bool supported = false;
     switch (png_colour_type) {
         case 0:
@@ -2027,7 +2053,6 @@ APNG_DEF void apng_IHDR_encode(struct Apng_Byte_String *encoded_IHDR, struct Apn
         case 6:
             supported = bit_depth == 8;
             break;
-
     }
     if (!supported) {
         apng_dprintERROR("Unsupported color type / bit depth: %u / %u", (unsigned)png_colour_type, (unsigned)bit_depth);
@@ -2134,39 +2159,76 @@ APNG_DEF struct Apng_Pixel_Buffer apng_pixel_buffer_malloc(size_t rows, size_t c
 
 APNG_DEF enum Apng_Return_Types _apng_pixel_buffer_save_as_png_to_file_name(char *file_name, struct Apng_Pixel_Buffer pixels, struct Apng_Pixel_Buffer_Save_As_PNG_Opt opt)
 {
+
+    if (opt.print_info) apng_dprintINFO("Saving pixel buffer as a PNG image to file: '%s'.", file_name);
+
     if (opt.bit_depth == 0) {
         opt.bit_depth = 8;
     }
-
     if (opt.colour_type == APNG_COLOUR_TYPE_DEFAULT) {
         opt.colour_type = APNG_COLOUR_TYPE_TRUECOLOUR_WITH_ALPHA;
     } else if (opt.colour_type != APNG_COLOUR_TYPE_GREYSCALE &&
                opt.colour_type != APNG_COLOUR_TYPE_GREYSCALE_WITH_ALPHA &&
+               opt.colour_type != APNG_COLOUR_TYPE_TRUECOLOUR &&
                opt.colour_type != APNG_COLOUR_TYPE_TRUECOLOUR_WITH_ALPHA) {
-        apng_dprintWARNING("Currently only supports colour type of 0, 4, and 6 but got %u. using default color type 6.", opt.colour_type - 1);
+        apng_dprintWARNING("Currently only supports colour type of 0, 2, 4, and 6 but got %u. using default color type 6.", opt.colour_type - 1);
         opt.colour_type = APNG_COLOUR_TYPE_TRUECOLOUR_WITH_ALPHA;
+    }
+    bool supported;
+    if (opt.colour_type == APNG_COLOUR_TYPE_GREYSCALE) {
+        supported =
+            opt.bit_depth == 1 ||
+            opt.bit_depth == 2 ||
+            opt.bit_depth == 4 ||
+            opt.bit_depth == 8 ||
+            opt.bit_depth == 16;
+    } else {
+        supported = opt.bit_depth == 8;
+    }
+    if (!supported) {
+        apng_dprintERROR("Unsupported encoder colour type / bit depth: %u / %u", (unsigned)opt.colour_type, (unsigned)opt.bit_depth);
+        return APNG_FAIL;
     }
 
     struct Apng_Byte_String file = apng_bin_file_open_to_write(file_name);
-    enum Apng_Return_Types rt = APNG_SUCCESS;
     if (file.name == NULL) {
         apng_dprintERROR("Failed to open file at '%s'.", file_name);
-        rt = APNG_FAIL;
+        apng_byte_string_free(&file);
+        fclose(file.fp);
+        return APNG_FAIL;
     }
     if (APNG_FAIL == apng_png_encode(&file, pixels, opt.bit_depth, opt.colour_type)) {
         apng_dprintERROR("%s", "Failed to decode pixel buffer to a png image.");
-        rt = APNG_FAIL;
+        apng_byte_string_free(&file);
+        fclose(file.fp);
+        return APNG_FAIL;
     }
 
     size_t count = fwrite(file.elements, 1, file.length, file.fp);
     if (count != file.length) {
         apng_dprintERROR("Failed to save png image to '%s'.", file_name);
-        rt = APNG_FAIL;
+        apng_byte_string_free(&file);
+        fclose(file.fp);
+        return APNG_FAIL;
     }
 
-    apng_byte_string_free(&file);
-    fclose(file.fp);
-    return rt;
+
+
+    /* printing INFO */
+    float compression_ratio = 0;
+    if (apng_color_type_value_get_from_color_type(opt.colour_type) == 6) {
+        compression_ratio = file.length / (pixels.cols * pixels.rows * 4.0f);
+    } else if (apng_color_type_value_get_from_color_type(opt.colour_type) == 2) {
+        compression_ratio = file.length / (pixels.cols * pixels.rows * 3.0f);
+    } else if (apng_color_type_value_get_from_color_type(opt.colour_type) == 0) {
+        compression_ratio = file.length / (pixels.cols * pixels.rows * 1.0f);
+    } else if (apng_color_type_value_get_from_color_type(opt.colour_type) == 4) {
+        compression_ratio = file.length / (pixels.cols * pixels.rows * 2.0f);
+    }
+    if (opt.print_info) apng_dprintINFO("Saved image of size %zu x %zu || The color type was %u and the bit depth was %u || The compression ratio is %f.",
+        pixels.cols, pixels.rows, apng_color_type_value_get_from_color_type(opt.colour_type), opt.bit_depth, compression_ratio);
+
+    return APNG_SUCCESS;
 }
 
 /**
