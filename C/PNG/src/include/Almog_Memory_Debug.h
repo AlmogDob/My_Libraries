@@ -361,6 +361,7 @@ AMD_DEF void amd_debug_mem_print(size_t min_allocs)
 {
     amd_dprintINFO("%s", "Memory report:");
     printf("\33[A");
+    size_t not_freed_count = 0;
     for (size_t i = 0; i < mem_alloc_lines_count; i++) {
         if (min_allocs <= mem_alloc_lines[i].allocations_over_all) {
             printf("%*.s%s:%zu\n", 7, "", mem_alloc_lines[i].file, mem_alloc_lines[i].line);
@@ -368,8 +369,11 @@ AMD_DEF void amd_debug_mem_print(size_t min_allocs)
             printf("%*.s - Frees: %zu\n", 7, "", mem_alloc_lines[i].freed);
             printf("%*.s - Bytes allocated over all: %zu\n", 7, "", mem_alloc_lines[i].bytes_allocated_over_all);
             printf("%*.s - Bytes remained not freed: %zu\n", 7, "", mem_alloc_lines[i].size);
+            not_freed_count += mem_alloc_lines[i].size;
         }
     }
+    printf("%*.s------------------------------\n", 7, "");
+    printf("%*.sBytes remained not freed: %zu\n", 7, "", not_freed_count);
 }
 
 AMD_DEF void *amd_debug_mem_realloc(void *p, size_t size, char *file, size_t line)
