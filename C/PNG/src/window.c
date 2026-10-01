@@ -34,6 +34,7 @@ enum Apl_Return_Types apl_setup(struct Apl_Window_State *ws)
     if (APNG_FAIL == apng_png_load_from_file_name(file_name[image_index], &image, print_info)) {
         return APL_FAIL;
     }
+    _apng_pixel_buffer_save_as_png_to_file_name(("../output.png"), (image.pixels), (struct Apng_Pixel_Buffer_Save_As_PNG_Opt){.colour_type = APNG_COLOUR_TYPE_DEFAULT});
     print_info = false;
 
     return APL_SUCCESS;

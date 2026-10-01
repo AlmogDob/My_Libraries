@@ -11,10 +11,10 @@
 #define ALMOG_PNG_IMPLEMENTATION
 
 #define APL_ADL_BRIDGE_IMPLEMENTATION
-#include "include/APL_ADL_Bridge.h"
+#include "../include/APL_ADL_Bridge.h"
 
 #define APL_APNG_BRIDGE_IMPLEMENTATION
-#include "include/APL_APNG_Bridge.h"
+#include "../include/APL_APNG_Bridge.h"
 
 
 struct Apng_PNG_Image image = {0};
