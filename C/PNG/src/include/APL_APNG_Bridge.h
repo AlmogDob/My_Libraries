@@ -49,11 +49,11 @@ struct Apl_Apng_Copy_Pixel_Offset_Zoom {
 
 #define APL_IS_ZERO(x) (apl_fabs(x) < APL_EPS)
 
-uint32_t    apl_apng_alpha_blend(uint32_t dst, uint32_t src);
-void        _apl_apng_apng_pixel_buffer_copy_to_apl_pixel_buffer(struct Apl_Pixel_Buffer des, struct Apng_Pixel_Buffer src, struct Apl_Apng_Copy_Pixel_Offset_Zoom offzoom);
-#define     apl_apng_apng_pixel_buffer_copy_to_apl_pixel_buffer(des, src, ...) _apl_apng_apng_pixel_buffer_copy_to_apl_pixel_buffer((des), (src), (struct Apl_Apng_Copy_Pixel_Offset_Zoom){__VA_ARGS__})
-void        apl_apng_pixel_draw(struct Apl_Pixel_Buffer screen, apl_real x, apl_real y, uint32_t color, apl_real offset_x, apl_real offset_y, apl_real zoom);
-
+uint32_t                    apl_apng_alpha_blend(uint32_t dst, uint32_t src);
+void                       _apl_apng_apng_pixel_buffer_copy_to_apl_pixel_buffer(struct Apl_Pixel_Buffer des, struct Apng_Pixel_Buffer src, struct Apl_Apng_Copy_Pixel_Offset_Zoom offzoom);
+#define                     apl_apng_apng_pixel_buffer_copy_to_apl_pixel_buffer(des, src, ...) _apl_apng_apng_pixel_buffer_copy_to_apl_pixel_buffer((des), (src), (struct Apl_Apng_Copy_Pixel_Offset_Zoom){__VA_ARGS__})
+void                        apl_apng_pixel_draw(struct Apl_Pixel_Buffer screen, apl_real x, apl_real y, uint32_t color, apl_real offset_x, apl_real offset_y, apl_real zoom);
+struct Apng_Pixel_Buffer    apl_apng_apl_pixel_buffer_as_apng_pixel_buffer(struct Apl_Pixel_Buffer apl_b);
 
 #endif /*APL_APNG_BRIDGE_H_*/
 #ifdef APL_APNG_BRIDGE_IMPLEMENTATION
@@ -125,6 +125,19 @@ void apl_apng_pixel_draw(struct Apl_Pixel_Buffer screen, apl_real x, apl_real y,
     }
 
 }
+
+struct Apng_Pixel_Buffer apl_apng_apl_pixel_buffer_as_apng_pixel_buffer(struct Apl_Pixel_Buffer apl_b)
+{
+    struct Apng_Pixel_Buffer apng_b = {
+        .cols = apl_b.cols,
+        .rows = apl_b.rows,
+        .stride_r = apl_b.stride_r,
+        .elements = apl_b.elements,
+    };
+
+    return apng_b;
+}
+
 
 
 #endif /*APL_APNG_BRIDGE_IMPLEMENTATION*/
