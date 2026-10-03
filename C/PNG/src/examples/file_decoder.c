@@ -1,9 +1,9 @@
 // #define AMD_MEMORY_DEBUG
 #define ALMOG_MEMORY_DEBUG_IMPLEMENTATION
-#include "include/Almog_Memory_Debug.h"
+#include "../include/Almog_Memory_Debug.h"
 
 #define ALMOG_PNG_IMPLEMENTATION
-#include "include/Almog_PNG.h"
+#include "../include/Almog_PNG.h"
 
 
 int main(void)
@@ -15,7 +15,6 @@ int main(void)
     apng_ada_init_array(uint8_t, code_chunk_data);
 
     struct Apng_PNG_Image image = {0};
-    // if (APNG_FAIL == apng_png_load_from_file_name(file_name, &image, true)) {
     if (APNG_FAIL == apng_png_load_from_file_name_get_cODE_chunk_data(file_name, &image, true, &code_chunk_data)) {
         apng_dprintERROR("Failed to load PNG from file '%s'.", file_name);
         return -1;
