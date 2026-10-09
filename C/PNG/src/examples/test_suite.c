@@ -24,17 +24,17 @@ char *file_name[] = {
     "../src/test_images/PngSuite/Basic-formats/basn0g02.png",
     "../src/test_images/PngSuite/Basic-formats/basn0g04.png",
     "../src/test_images/PngSuite/Basic-formats/basn0g08.png",
-    // "../src/test_images/PngSuite/Basic-formats/basn0g16.png", /* unsupported */
+    "../src/test_images/PngSuite/Basic-formats/basn0g16.png",
     "../src/test_images/PngSuite/Basic-formats/basn2c08.png",
-    // "../src/test_images/PngSuite/Basic-formats/basn2c16.png", /* unsupported */
-    // "../src/test_images/PngSuite/Basic-formats/basn3p01.png", /* unsupported */
-    // "../src/test_images/PngSuite/Basic-formats/basn3p02.png", /* unsupported */
-    // "../src/test_images/PngSuite/Basic-formats/basn3p04.png", /* unsupported */
-    // "../src/test_images/PngSuite/Basic-formats/basn3p08.png", /* unsupported */
+    "../src/test_images/PngSuite/Basic-formats/basn2c16.png",
+    "../src/test_images/PngSuite/Basic-formats/basn3p01.png",
+    "../src/test_images/PngSuite/Basic-formats/basn3p02.png",
+    "../src/test_images/PngSuite/Basic-formats/basn3p04.png",
+    "../src/test_images/PngSuite/Basic-formats/basn3p08.png",
     "../src/test_images/PngSuite/Basic-formats/basn4a08.png",
-    // "../src/test_images/PngSuite/Basic-formats/basn4a16.png", /* unsupported */
+    "../src/test_images/PngSuite/Basic-formats/basn4a16.png",
     "../src/test_images/PngSuite/Basic-formats/basn6a08.png",
-    // "../src/test_images/PngSuite/Basic-formats/basn6a16.png", /* unsupported */
+    "../src/test_images/PngSuite/Basic-formats/basn6a16.png",
     "../src/test_images/PngSuite/Image-filtering/f00n0g08.png",
     "../src/test_images/PngSuite/Image-filtering/f00n2c08.png",
     "../src/test_images/PngSuite/Image-filtering/f01n0g08.png",
