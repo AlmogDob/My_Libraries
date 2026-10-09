@@ -73,7 +73,7 @@ uint32_t apl_apng_alpha_blend(uint32_t dst, uint32_t src)
     int g = (int)((apl_real)dg * (1.0f - a) + (apl_real)sg * a);
     int b = (int)((apl_real)db * (1.0f - a) + (apl_real)sb * a);
 
-    return apng_rgba_to_hexargb(r, g, b, 255);
+    return apng_rgba_to_packed_argb(r, g, b, 255);
 }
 
 void _apl_apng_apng_pixel_buffer_copy_to_apl_pixel_buffer(struct Apl_Pixel_Buffer des, struct Apng_Pixel_Buffer src, struct Apl_Apng_Copy_Pixel_Offset_Zoom offzoom)
