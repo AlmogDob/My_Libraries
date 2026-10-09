@@ -20,6 +20,8 @@
 struct Apng_PNG_Image image = {0};
 size_t image_index = 0;
 char *file_name[] = {
+    "../src/test_images/PngSuite/PngSuite.png",
+
     "../src/test_images/PngSuite/Basic-formats/basn0g01.png",
     "../src/test_images/PngSuite/Basic-formats/basn0g02.png",
     "../src/test_images/PngSuite/Basic-formats/basn0g04.png",
