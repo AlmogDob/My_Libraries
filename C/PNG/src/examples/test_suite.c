@@ -35,6 +35,103 @@ char *file_name[] = {
     "../src/test_images/PngSuite/Basic-formats/basn4a16.png",
     "../src/test_images/PngSuite/Basic-formats/basn6a08.png",
     "../src/test_images/PngSuite/Basic-formats/basn6a16.png",
+
+    // "../src/test_images/PngSuite/Interlacing/basi0g01.png", /* not supported */
+    // "../src/test_images/PngSuite/Interlacing/basi0g02.png", /* not supported */
+    // "../src/test_images/PngSuite/Interlacing/basi0g04.png", /* not supported */
+    // "../src/test_images/PngSuite/Interlacing/basi0g08.png", /* not supported */
+    // "../src/test_images/PngSuite/Interlacing/basi0g16.png", /* not supported */
+    // "../src/test_images/PngSuite/Interlacing/basi2c08.png", /* not supported */
+    // "../src/test_images/PngSuite/Interlacing/basi2c16.png", /* not supported */
+    // "../src/test_images/PngSuite/Interlacing/basi3p01.png", /* not supported */
+    // "../src/test_images/PngSuite/Interlacing/basi3p02.png", /* not supported */
+    // "../src/test_images/PngSuite/Interlacing/basi3p04.png", /* not supported */
+    // "../src/test_images/PngSuite/Interlacing/basi3p08.png", /* not supported */
+    // "../src/test_images/PngSuite/Interlacing/basi4a08.png", /* not supported */
+    // "../src/test_images/PngSuite/Interlacing/basi4a16.png", /* not supported */
+    // "../src/test_images/PngSuite/Interlacing/basi6a08.png", /* not supported */
+    // "../src/test_images/PngSuite/Interlacing/basi6a16.png", /* not supported */
+
+    "../src/test_images/PngSuite/Odd-Sizes/s01n3p01.png",
+    "../src/test_images/PngSuite/Odd-Sizes/s02n3p01.png",
+    "../src/test_images/PngSuite/Odd-Sizes/s03n3p01.png",
+    "../src/test_images/PngSuite/Odd-Sizes/s04n3p01.png",
+    "../src/test_images/PngSuite/Odd-Sizes/s05n3p02.png",
+    "../src/test_images/PngSuite/Odd-Sizes/s06n3p02.png",
+    "../src/test_images/PngSuite/Odd-Sizes/s07n3p02.png",
+    "../src/test_images/PngSuite/Odd-Sizes/s08n3p02.png",
+    "../src/test_images/PngSuite/Odd-Sizes/s09n3p02.png",
+    "../src/test_images/PngSuite/Odd-Sizes/s32n3p04.png",
+    "../src/test_images/PngSuite/Odd-Sizes/s33n3p04.png",
+    "../src/test_images/PngSuite/Odd-Sizes/s34n3p04.png",
+    "../src/test_images/PngSuite/Odd-Sizes/s35n3p04.png",
+    "../src/test_images/PngSuite/Odd-Sizes/s36n3p04.png",
+    "../src/test_images/PngSuite/Odd-Sizes/s37n3p04.png",
+    "../src/test_images/PngSuite/Odd-Sizes/s38n3p04.png",
+    "../src/test_images/PngSuite/Odd-Sizes/s39n3p04.png",
+    "../src/test_images/PngSuite/Odd-Sizes/s40n3p04.png",
+    // "../src/test_images/PngSuite/Odd-Sizes/s01i3p01.png", /* not supported */
+    // "../src/test_images/PngSuite/Odd-Sizes/s02i3p01.png", /* not supported */
+    // "../src/test_images/PngSuite/Odd-Sizes/s03i3p01.png", /* not supported */
+    // "../src/test_images/PngSuite/Odd-Sizes/s04i3p01.png", /* not supported */
+    // "../src/test_images/PngSuite/Odd-Sizes/s05i3p02.png", /* not supported */
+    // "../src/test_images/PngSuite/Odd-Sizes/s06i3p02.png", /* not supported */
+    // "../src/test_images/PngSuite/Odd-Sizes/s07i3p02.png", /* not supported */
+    // "../src/test_images/PngSuite/Odd-Sizes/s08i3p02.png", /* not supported */
+    // "../src/test_images/PngSuite/Odd-Sizes/s09i3p02.png", /* not supported */
+    // "../src/test_images/PngSuite/Odd-Sizes/s32i3p04.png", /* not supported */
+    // "../src/test_images/PngSuite/Odd-Sizes/s33i3p04.png", /* not supported */
+    // "../src/test_images/PngSuite/Odd-Sizes/s34i3p04.png", /* not supported */
+    // "../src/test_images/PngSuite/Odd-Sizes/s35i3p04.png", /* not supported */
+    // "../src/test_images/PngSuite/Odd-Sizes/s36i3p04.png", /* not supported */
+    // "../src/test_images/PngSuite/Odd-Sizes/s37i3p04.png", /* not supported */
+    // "../src/test_images/PngSuite/Odd-Sizes/s38i3p04.png", /* not supported */
+    // "../src/test_images/PngSuite/Odd-Sizes/s39i3p04.png", /* not supported */
+    // "../src/test_images/PngSuite/Odd-Sizes/s40i3p04.png", /* not supported */
+
+    // "../src/test_images/PngSuite/Background-Colors/bgai4a08.png", /* not supported */
+    // "../src/test_images/PngSuite/Background-Colors/bgai4a16.png", /* not supported */
+    "../src/test_images/PngSuite/Background-Colors/bgan6a08.png",
+    "../src/test_images/PngSuite/Background-Colors/bgan6a16.png",
+    "../src/test_images/PngSuite/Background-Colors/bgbn4a08.png",
+    "../src/test_images/PngSuite/Background-Colors/bggn4a16.png",
+    "../src/test_images/PngSuite/Background-Colors/bgwn6a08.png",
+    "../src/test_images/PngSuite/Background-Colors/bgyn6a16.png",
+
+    "../src/test_images/PngSuite/Transparency/tbbn0g04.png",
+    "../src/test_images/PngSuite/Transparency/tbbn2c16.png",
+    "../src/test_images/PngSuite/Transparency/tbbn3p08.png",
+    "../src/test_images/PngSuite/Transparency/tbgn2c16.png",
+    "../src/test_images/PngSuite/Transparency/tbgn3p08.png",
+    "../src/test_images/PngSuite/Transparency/tbrn2c08.png",
+    "../src/test_images/PngSuite/Transparency/tbwn0g16.png",
+    "../src/test_images/PngSuite/Transparency/tbwn3p08.png",
+    "../src/test_images/PngSuite/Transparency/tbyn3p08.png",
+    "../src/test_images/PngSuite/Transparency/tp0n0g08.png",
+    "../src/test_images/PngSuite/Transparency/tp0n2c08.png",
+    "../src/test_images/PngSuite/Transparency/tp0n3p08.png",
+    "../src/test_images/PngSuite/Transparency/tp1n3p08.png",
+    "../src/test_images/PngSuite/Transparency/tm3n3p02.png",
+
+    "../src/test_images/PngSuite/Gamma-Values/g03n0g16.png",
+    "../src/test_images/PngSuite/Gamma-Values/g04n0g16.png",
+    "../src/test_images/PngSuite/Gamma-Values/g05n0g16.png",
+    "../src/test_images/PngSuite/Gamma-Values/g07n0g16.png",
+    "../src/test_images/PngSuite/Gamma-Values/g10n0g16.png",
+    "../src/test_images/PngSuite/Gamma-Values/g25n0g16.png",
+    "../src/test_images/PngSuite/Gamma-Values/g03n2c08.png",
+    "../src/test_images/PngSuite/Gamma-Values/g04n2c08.png",
+    "../src/test_images/PngSuite/Gamma-Values/g05n2c08.png",
+    "../src/test_images/PngSuite/Gamma-Values/g07n2c08.png",
+    "../src/test_images/PngSuite/Gamma-Values/g10n2c08.png",
+    "../src/test_images/PngSuite/Gamma-Values/g25n2c08.png",
+    "../src/test_images/PngSuite/Gamma-Values/g03n3p04.png",
+    "../src/test_images/PngSuite/Gamma-Values/g04n3p04.png",
+    "../src/test_images/PngSuite/Gamma-Values/g05n3p04.png",
+    "../src/test_images/PngSuite/Gamma-Values/g07n3p04.png",
+    "../src/test_images/PngSuite/Gamma-Values/g10n3p04.png",
+    "../src/test_images/PngSuite/Gamma-Values/g25n3p04.png",
+
     "../src/test_images/PngSuite/Image-filtering/f00n0g08.png",
     "../src/test_images/PngSuite/Image-filtering/f00n2c08.png",
     "../src/test_images/PngSuite/Image-filtering/f01n0g08.png",
@@ -46,6 +143,55 @@ char *file_name[] = {
     "../src/test_images/PngSuite/Image-filtering/f04n0g08.png",
     "../src/test_images/PngSuite/Image-filtering/f04n2c08.png",
     "../src/test_images/PngSuite/Image-filtering/f99n0g04.png",
+
+    "../src/test_images/PngSuite/Additional-Palettes/pp0n2c16.png",
+    "../src/test_images/PngSuite/Additional-Palettes/pp0n6a08.png",
+    "../src/test_images/PngSuite/Additional-Palettes/ps1n0g08.png",
+    "../src/test_images/PngSuite/Additional-Palettes/ps1n2c16.png",
+    "../src/test_images/PngSuite/Additional-Palettes/ps2n0g08.png",
+    "../src/test_images/PngSuite/Additional-Palettes/ps2n2c16.png",
+
+    "../src/test_images/PngSuite/Ancillary-Chunks/ccwn2c08.png",
+    "../src/test_images/PngSuite/Ancillary-Chunks/ccwn3p08.png",
+    "../src/test_images/PngSuite/Ancillary-Chunks/cdfn2c08.png",
+    "../src/test_images/PngSuite/Ancillary-Chunks/cdhn2c08.png",
+    "../src/test_images/PngSuite/Ancillary-Chunks/cdsn2c08.png",
+    "../src/test_images/PngSuite/Ancillary-Chunks/cdun2c08.png",
+    "../src/test_images/PngSuite/Ancillary-Chunks/ch1n3p04.png",
+    "../src/test_images/PngSuite/Ancillary-Chunks/ch2n3p08.png",
+    "../src/test_images/PngSuite/Ancillary-Chunks/cm0n0g04.png",
+    "../src/test_images/PngSuite/Ancillary-Chunks/cm7n0g04.png",
+    "../src/test_images/PngSuite/Ancillary-Chunks/cm9n0g04.png",
+    "../src/test_images/PngSuite/Ancillary-Chunks/cs3n2c16.png",
+    "../src/test_images/PngSuite/Ancillary-Chunks/cs3n3p08.png",
+    "../src/test_images/PngSuite/Ancillary-Chunks/cs5n2c08.png",
+    "../src/test_images/PngSuite/Ancillary-Chunks/cs5n3p08.png",
+    "../src/test_images/PngSuite/Ancillary-Chunks/cs8n2c08.png",
+    "../src/test_images/PngSuite/Ancillary-Chunks/cs8n3p08.png",
+    "../src/test_images/PngSuite/Ancillary-Chunks/ct0n0g04.png",
+    "../src/test_images/PngSuite/Ancillary-Chunks/ct1n0g04.png",
+    "../src/test_images/PngSuite/Ancillary-Chunks/ctzn0g04.png",
+    "../src/test_images/PngSuite/Ancillary-Chunks/cten0g04.png",
+    "../src/test_images/PngSuite/Ancillary-Chunks/ctfn0g04.png",
+    "../src/test_images/PngSuite/Ancillary-Chunks/ctgn0g04.png",
+    "../src/test_images/PngSuite/Ancillary-Chunks/cthn0g04.png",
+    "../src/test_images/PngSuite/Ancillary-Chunks/ctjn0g04.png",
+    "../src/test_images/PngSuite/Ancillary-Chunks/exif2c08.png",
+
+    "../src/test_images/PngSuite/Chunk-Ordering/oi1n0g16.png",
+    "../src/test_images/PngSuite/Chunk-Ordering/oi1n2c16.png",
+    "../src/test_images/PngSuite/Chunk-Ordering/oi2n0g16.png",
+    "../src/test_images/PngSuite/Chunk-Ordering/oi2n2c16.png",
+    "../src/test_images/PngSuite/Chunk-Ordering/oi4n0g16.png",
+    "../src/test_images/PngSuite/Chunk-Ordering/oi4n2c16.png",
+    "../src/test_images/PngSuite/Chunk-Ordering/oi9n0g16.png",
+    "../src/test_images/PngSuite/Chunk-Ordering/oi9n2c16.png",
+
+    "../src/test_images/PngSuite/Zlib-Compression/z00n2c08.png",
+    "../src/test_images/PngSuite/Zlib-Compression/z03n2c08.png",
+    "../src/test_images/PngSuite/Zlib-Compression/z06n2c08.png",
+    "../src/test_images/PngSuite/Zlib-Compression/z09n2c08.png",
+
 };
 size_t num_of_images = sizeof(file_name) / sizeof(file_name[0]);
 bool print_info = true;
