@@ -2566,10 +2566,11 @@ APNG_DEF enum Apng_Return_Types apng_png_decode(struct Apng_Byte_String file, st
                 image->chunks.IEND_chunk.body   = chunk_data;
             } break;
             case APNG_TYPE_UNKNOWN:
-            {
-                apng_dprintERROR("%s", "Unknown chunk type.");
-                goto apng_decode_exit;
-            } break;
+            // {
+            //     apng_dprintERROR("%s", "Unknown chunk type.");
+            //     goto apng_decode_exit;
+            // } break;
+            /* fall through */
             default:
             {
                 if (print_info) apng_dprintWARNING("Chunk %s unused.", apng_type_name_get(chunk_header.type));
