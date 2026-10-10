@@ -502,7 +502,6 @@ APNG_DEF uint32_t                           apng_endian_swap_uint32(uint32_t x);
 
 APNG_DEF uint32_t                           apng_four_char_to_uint32_t(const char *str);
 
-APNG_DEF void                               apng_hexargb_to_rgba(uint32_t color, uint8_t *r, uint8_t *g, uint8_t *b, uint8_t *a);
 APNG_DEF enum Apng_Return_Types             apng_huffman_decode_symbol(struct Apng_Huffman_Entries_Table table, struct Apng_Bit_Reader *br, uint16_t *symbol);
 APNG_DEF void                               apng_huffman_entry_print(struct Apng_Huffman_Entry entry);
 APNG_DEF struct Apng_Huffman_Entries_Table  apng_huffman_entry_table_create(uint32_t *code_length_array, size_t code_length_array_len);
@@ -523,6 +522,7 @@ APNG_DEF void                               apng_IHDR_encode(struct Apng_Byte_St
 
 APNG_DEF enum Apng_Return_Types             apng_lit_len_dist_code_length_decode(struct Apng_Huffman_Entries_Table dict_huffman, struct Apng_Bit_Reader *br, uint32_t HLIT, uint32_t HDIST, uint32_t *lit_len_dist_code_length);
 
+APNG_DEF void                               apng_packed_argb_to_rgba(uint32_t color, uint8_t *r, uint8_t *g, uint8_t *b, uint8_t *a);
 APNG_DEF uint32_t                           apng_palette_entry_to_packed_argb(struct Apng_Palette_Entry entry, uint8_t alpha);
 APNG_DEF struct Apng_Pixel_Buffer           apng_pixel_buffer_malloc(size_t rows, size_t cols);
 APNG_DEF enum Apng_Return_Types            _apng_pixel_buffer_save_as_png_to_file_name(char *file_name, struct Apng_Pixel_Buffer pixels, struct Apng_Pixel_Buffer_Save_As_PNG_Opt opt);
@@ -1081,14 +1081,6 @@ APNG_DEF uint32_t apng_endian_swap_uint32(uint32_t x)
 APNG_DEF uint32_t apng_four_char_to_uint32_t(const char * str)
 {
     return ((uint32_t)(((uint32_t)((str)[0]) << 0) | ((uint32_t)((str)[1]) << 8) | ((uint32_t)((str)[2]) << 16) | ((uint32_t)((str)[3]) << 24)));
-}
-
-APNG_DEF void apng_hexargb_to_rgba(uint32_t color, uint8_t *r, uint8_t *g, uint8_t *b, uint8_t *a)
-{
-    if (a) *a = (uint8_t)((color >> 24) & 0xFF);
-    if (r) *r = (uint8_t)((color >> 16) & 0xFF);
-    if (g) *g = (uint8_t)((color >> 8) & 0xFF);
-    if (b) *b = (uint8_t)((color >> 0) & 0xFF);
 }
 
 /**
@@ -1964,7 +1956,7 @@ APNG_DEF void apng_IDAT_filter(struct Apng_Byte_String *filtered_IDAT, struct Ap
 
                 for (size_t col = 0; col < src.cols; col++) {
                     uint8_t r, g, b;
-                    apng_hexargb_to_rgba(APNG_PIXEL_BUFFER_AT(src, row, col), &r, &g, &b, NULL);
+                    apng_packed_argb_to_rgba(APNG_PIXEL_BUFFER_AT(src, row, col), &r, &g, &b, NULL);
                     uint8_t gray = (uint8_t)(0.2126 * r + 0.7152 * g + 0.0722 * b);
 
                     if (bit_depth == 16) {
@@ -2015,7 +2007,7 @@ APNG_DEF void apng_IDAT_filter(struct Apng_Byte_String *filtered_IDAT, struct Ap
                     apng_ada_append(uint8_t, *filtered_IDAT, filter_type);
                     for (size_t col = 0; col < src.cols; col++) {
                         uint8_t r, g, b;
-                        apng_hexargb_to_rgba(APNG_PIXEL_BUFFER_AT(src, row, col), &r, &g, &b, NULL);
+                        apng_packed_argb_to_rgba(APNG_PIXEL_BUFFER_AT(src, row, col), &r, &g, &b, NULL);
 
                         apng_ada_append(uint8_t, *filtered_IDAT, r);
                         apng_ada_append(uint8_t, *filtered_IDAT, g);
@@ -2028,7 +2020,7 @@ APNG_DEF void apng_IDAT_filter(struct Apng_Byte_String *filtered_IDAT, struct Ap
                     apng_ada_append(uint8_t, *filtered_IDAT, filter_type);
                     for (size_t col = 0; col < src.cols; col++) {
                         uint8_t r, g, b;
-                        apng_hexargb_to_rgba(APNG_PIXEL_BUFFER_AT(src, row, col), &r, &g, &b, NULL);
+                        apng_packed_argb_to_rgba(APNG_PIXEL_BUFFER_AT(src, row, col), &r, &g, &b, NULL);
 
                         uint16_t r16 = (uint16_t)((uint32_t)r * 257u);
                         apng_byte_string_append_bytes_be(filtered_IDAT, r16, 2);
@@ -2051,7 +2043,7 @@ APNG_DEF void apng_IDAT_filter(struct Apng_Byte_String *filtered_IDAT, struct Ap
                     apng_ada_append(uint8_t, *filtered_IDAT, filter_type);
                     for (size_t col = 0; col < src.cols; col++) {
                         uint8_t r, g, b, a;
-                        apng_hexargb_to_rgba(APNG_PIXEL_BUFFER_AT(src, row, col), &r, &g, &b, &a);
+                        apng_packed_argb_to_rgba(APNG_PIXEL_BUFFER_AT(src, row, col), &r, &g, &b, &a);
                         uint8_t value = (uint8_t)(0.2126 * r + 0.7152 * g + 0.0722 * b);
 
                         apng_ada_append(uint8_t, *filtered_IDAT, value);
@@ -2064,7 +2056,7 @@ APNG_DEF void apng_IDAT_filter(struct Apng_Byte_String *filtered_IDAT, struct Ap
                     apng_ada_append(uint8_t, *filtered_IDAT, filter_type);
                     for (size_t col = 0; col < src.cols; col++) {
                         uint8_t r, g, b, a;
-                        apng_hexargb_to_rgba(APNG_PIXEL_BUFFER_AT(src, row, col), &r, &g, &b, &a);
+                        apng_packed_argb_to_rgba(APNG_PIXEL_BUFFER_AT(src, row, col), &r, &g, &b, &a);
                         uint8_t gray = (uint8_t)(0.2126 * r + 0.7152 * g + 0.0722 * b);
 
                         uint16_t sample = (uint16_t)((uint32_t)gray * 257u);
@@ -2088,7 +2080,7 @@ APNG_DEF void apng_IDAT_filter(struct Apng_Byte_String *filtered_IDAT, struct Ap
                     apng_ada_append(uint8_t, *filtered_IDAT, filter_type);
                     for (size_t col = 0; col < src.cols; col++) {
                         uint8_t r, g, b, a;
-                        apng_hexargb_to_rgba(APNG_PIXEL_BUFFER_AT(src, row, col), &r, &g, &b, &a);
+                        apng_packed_argb_to_rgba(APNG_PIXEL_BUFFER_AT(src, row, col), &r, &g, &b, &a);
 
                         apng_ada_append(uint8_t, *filtered_IDAT, r);
                         apng_ada_append(uint8_t, *filtered_IDAT, g);
@@ -2102,7 +2094,7 @@ APNG_DEF void apng_IDAT_filter(struct Apng_Byte_String *filtered_IDAT, struct Ap
                     apng_ada_append(uint8_t, *filtered_IDAT, filter_type);
                     for (size_t col = 0; col < src.cols; col++) {
                         uint8_t r, g, b, a;
-                        apng_hexargb_to_rgba(APNG_PIXEL_BUFFER_AT(src, row, col), &r, &g, &b, &a);
+                        apng_packed_argb_to_rgba(APNG_PIXEL_BUFFER_AT(src, row, col), &r, &g, &b, &a);
 
                         uint16_t r16 = (uint16_t)((uint32_t)r * 257u);
                         apng_byte_string_append_bytes_be(filtered_IDAT, r16, 2);
@@ -2563,6 +2555,14 @@ APNG_DEF enum Apng_Return_Types apng_lit_len_dist_code_length_decode(struct Apng
     APNG_ASSERT(length_index == total);
 
     return APNG_SUCCESS;
+}
+
+APNG_DEF void apng_packed_argb_to_rgba(uint32_t color, uint8_t *r, uint8_t *g, uint8_t *b, uint8_t *a)
+{
+    if (a) *a = (uint8_t)((color >> 24) & 0xFF);
+    if (r) *r = (uint8_t)((color >> 16) & 0xFF);
+    if (g) *g = (uint8_t)((color >> 8) & 0xFF);
+    if (b) *b = (uint8_t)((color >> 0) & 0xFF);
 }
 
 APNG_DEF uint32_t apng_palette_entry_to_packed_argb(struct Apng_Palette_Entry entry, uint8_t alpha)

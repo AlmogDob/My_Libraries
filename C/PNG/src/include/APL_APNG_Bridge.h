@@ -64,8 +64,8 @@ uint32_t apl_apng_alpha_blend(uint32_t dst, uint32_t src)
     uint8_t sr, sg, sb, sa;
     uint8_t dr, dg, db;
 
-    apng_hexargb_to_rgba(src, &sr, &sg, &sb, &sa);
-    apng_hexargb_to_rgba(dst, &dr, &dg, &db, NULL);
+    apng_packed_argb_to_rgba(src, &sr, &sg, &sb, &sa);
+    apng_packed_argb_to_rgba(dst, &dr, &dg, &db, NULL);
 
     apl_real a = (apl_real)sa / 255.0f;
 
@@ -93,33 +93,53 @@ void _apl_apng_apng_pixel_buffer_copy_to_apl_pixel_buffer(struct Apl_Pixel_Buffe
 void apl_apng_pixel_draw(struct Apl_Pixel_Buffer screen, apl_real x, apl_real y, uint32_t color, apl_real offset_x, apl_real offset_y, apl_real zoom)
 {
     APL_APNG_ASSERT(zoom > 0);
-
-    apl_real window_w = (apl_real)screen.cols;
-    apl_real window_h = (apl_real)screen.rows;
-    
-    if (APL_IS_ZERO(zoom - (apl_real)1)) {
-        int ix = (int)(x + offset_x);
-        int iy = (int)(y + offset_y);
-        if ((ix >= 0 && iy >= 0) && ((size_t)ix < screen.cols && (size_t)iy < screen.rows)) { /* vec2 is in screen */
-            APL_BUFFER_AT(screen, iy, ix) = apl_apng_alpha_blend(APL_BUFFER_AT(screen, iy, ix), color);
-        }
+    if (!(zoom > 0) || screen.cols == 0 || screen.rows == 0) {
+        return;
+    }
+    if ((color >> 24) == 0) {
         return;
     }
 
-    apl_real start_x0 = (x - window_w/2.0f + offset_x) * zoom + window_w/2.0f;
-    apl_real start_y0 = (y - window_h/2.0f + offset_y) * zoom + window_h/2.0f;
-    apl_real start_x1 = (x + 1 - window_w/2.0f + offset_x) * zoom + window_w/2.0f;
-    apl_real start_y1 = (y + 1 - window_h/2.0f + offset_y) * zoom + window_h/2.0f;
+    apl_real half_w = (apl_real)screen.cols / 2;
+    apl_real half_h = (apl_real)screen.rows / 2;
 
-    int ix0 = (int)apl_floor(apl_min(start_x0, start_x1));
-    int iy0 = (int)apl_floor(apl_min(start_y0, start_y1));
-    int ix1 = (int)apl_ceil(apl_max(start_x0, start_x1));
-    int iy1 = (int)apl_ceil(apl_max(start_y0, start_y1));
+    apl_real left = (x - half_w + offset_x) * zoom + half_w;
+    apl_real top = (y - half_h + offset_y) * zoom + half_h;
+    apl_real right = (x + 1 - half_w + offset_x) * zoom + half_w;
+    apl_real bottom = (y + 1 - half_h + offset_y) * zoom + half_h;
 
-    for (int ix = ix0; ix < ix1; ix++) {
-        for (int iy = iy0; iy < iy1; iy++) {
-            if ((ix >= 0 && iy >= 0) && ((size_t)ix < screen.cols && (size_t)iy < screen.rows)) { /* vec2 is in screen */
-                APL_BUFFER_AT(screen, iy, ix) = apl_apng_alpha_blend(APL_BUFFER_AT(screen, iy, ix), color);
+    /*
+     * Cover pixel centers in [left, right) and [top, bottom).
+     * Matching rounding at both edges prevents overlap.
+     */
+    apl_real x0 = apl_ceil(left - (apl_real)0.5);
+    apl_real y0 = apl_ceil(top - (apl_real)0.5);
+    apl_real x1 = apl_ceil(right - (apl_real)0.5);
+    apl_real y1 = apl_ceil(bottom - (apl_real)0.5);
+
+    /* Clip before converting to integer coordinates. */
+    x0 = apl_max(x0, (apl_real)0);
+    y0 = apl_max(y0, (apl_real)0);
+    x1 = apl_min(x1, (apl_real)screen.cols);
+    y1 = apl_min(y1, (apl_real)screen.rows);
+
+    if (!(x0 < x1 && y0 < y1)) {
+        return;
+    }
+
+    size_t ix0 = (size_t)x0;
+    size_t iy0 = (size_t)y0;
+    size_t ix1 = (size_t)x1;
+    size_t iy1 = (size_t)y1;
+
+    bool opaque = (color >> 24) == 255;
+    for (size_t iy = iy0; iy < iy1; ++iy) {
+        for (size_t ix = ix0; ix < ix1; ++ix) {
+            uint32_t *dst = &APL_BUFFER_AT(screen, iy, ix);
+            if (opaque) {
+                *dst = color;
+            } else {
+                *dst = apl_apng_alpha_blend(*dst, color);
             }
         }
     }
