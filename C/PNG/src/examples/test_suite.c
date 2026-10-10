@@ -6,12 +6,8 @@
 #define APL_UPDATE
 #define APL_RENDER
 
-#define ALMOG_DRAW_LIBRARY_IMPLEMENTATION
 #define ALMOG_PLATFORM_LIBRARY_IMPLEMENTATION
 #define ALMOG_PNG_IMPLEMENTATION
-
-#define APL_ADL_BRIDGE_IMPLEMENTATION
-#include "../include/APL_ADL_Bridge.h"
 
 #define APL_APNG_BRIDGE_IMPLEMENTATION
 #include "../include/APL_APNG_Bridge.h"
@@ -20,6 +16,8 @@
 struct Apng_PNG_Image image = {0};
 size_t image_index = 0;
 char *file_name[] = {
+    "../src/test_images/PngSuite/PngSuite.png",
+
     "../src/test_images/PngSuite/Basic-formats/basn0g01.png",
     "../src/test_images/PngSuite/Basic-formats/basn0g02.png",
     "../src/test_images/PngSuite/Basic-formats/basn0g04.png",
@@ -36,21 +34,21 @@ char *file_name[] = {
     "../src/test_images/PngSuite/Basic-formats/basn6a08.png",
     "../src/test_images/PngSuite/Basic-formats/basn6a16.png",
 
-    // "../src/test_images/PngSuite/Interlacing/basi0g01.png", /* not supported */
-    // "../src/test_images/PngSuite/Interlacing/basi0g02.png", /* not supported */
-    // "../src/test_images/PngSuite/Interlacing/basi0g04.png", /* not supported */
-    // "../src/test_images/PngSuite/Interlacing/basi0g08.png", /* not supported */
-    // "../src/test_images/PngSuite/Interlacing/basi0g16.png", /* not supported */
-    // "../src/test_images/PngSuite/Interlacing/basi2c08.png", /* not supported */
-    // "../src/test_images/PngSuite/Interlacing/basi2c16.png", /* not supported */
-    // "../src/test_images/PngSuite/Interlacing/basi3p01.png", /* not supported */
-    // "../src/test_images/PngSuite/Interlacing/basi3p02.png", /* not supported */
-    // "../src/test_images/PngSuite/Interlacing/basi3p04.png", /* not supported */
-    // "../src/test_images/PngSuite/Interlacing/basi3p08.png", /* not supported */
-    // "../src/test_images/PngSuite/Interlacing/basi4a08.png", /* not supported */
-    // "../src/test_images/PngSuite/Interlacing/basi4a16.png", /* not supported */
-    // "../src/test_images/PngSuite/Interlacing/basi6a08.png", /* not supported */
-    // "../src/test_images/PngSuite/Interlacing/basi6a16.png", /* not supported */
+    "../src/test_images/PngSuite/Interlacing/basi0g01.png",
+    "../src/test_images/PngSuite/Interlacing/basi0g02.png",
+    "../src/test_images/PngSuite/Interlacing/basi0g04.png",
+    "../src/test_images/PngSuite/Interlacing/basi0g08.png",
+    "../src/test_images/PngSuite/Interlacing/basi0g16.png",
+    "../src/test_images/PngSuite/Interlacing/basi2c08.png",
+    "../src/test_images/PngSuite/Interlacing/basi2c16.png",
+    "../src/test_images/PngSuite/Interlacing/basi3p01.png",
+    "../src/test_images/PngSuite/Interlacing/basi3p02.png",
+    "../src/test_images/PngSuite/Interlacing/basi3p04.png",
+    "../src/test_images/PngSuite/Interlacing/basi3p08.png",
+    "../src/test_images/PngSuite/Interlacing/basi4a08.png",
+    "../src/test_images/PngSuite/Interlacing/basi4a16.png",
+    "../src/test_images/PngSuite/Interlacing/basi6a08.png",
+    "../src/test_images/PngSuite/Interlacing/basi6a16.png",
 
     "../src/test_images/PngSuite/Odd-Sizes/s01n3p01.png",
     "../src/test_images/PngSuite/Odd-Sizes/s02n3p01.png",
@@ -70,27 +68,27 @@ char *file_name[] = {
     "../src/test_images/PngSuite/Odd-Sizes/s38n3p04.png",
     "../src/test_images/PngSuite/Odd-Sizes/s39n3p04.png",
     "../src/test_images/PngSuite/Odd-Sizes/s40n3p04.png",
-    // "../src/test_images/PngSuite/Odd-Sizes/s01i3p01.png", /* not supported */
-    // "../src/test_images/PngSuite/Odd-Sizes/s02i3p01.png", /* not supported */
-    // "../src/test_images/PngSuite/Odd-Sizes/s03i3p01.png", /* not supported */
-    // "../src/test_images/PngSuite/Odd-Sizes/s04i3p01.png", /* not supported */
-    // "../src/test_images/PngSuite/Odd-Sizes/s05i3p02.png", /* not supported */
-    // "../src/test_images/PngSuite/Odd-Sizes/s06i3p02.png", /* not supported */
-    // "../src/test_images/PngSuite/Odd-Sizes/s07i3p02.png", /* not supported */
-    // "../src/test_images/PngSuite/Odd-Sizes/s08i3p02.png", /* not supported */
-    // "../src/test_images/PngSuite/Odd-Sizes/s09i3p02.png", /* not supported */
-    // "../src/test_images/PngSuite/Odd-Sizes/s32i3p04.png", /* not supported */
-    // "../src/test_images/PngSuite/Odd-Sizes/s33i3p04.png", /* not supported */
-    // "../src/test_images/PngSuite/Odd-Sizes/s34i3p04.png", /* not supported */
-    // "../src/test_images/PngSuite/Odd-Sizes/s35i3p04.png", /* not supported */
-    // "../src/test_images/PngSuite/Odd-Sizes/s36i3p04.png", /* not supported */
-    // "../src/test_images/PngSuite/Odd-Sizes/s37i3p04.png", /* not supported */
-    // "../src/test_images/PngSuite/Odd-Sizes/s38i3p04.png", /* not supported */
-    // "../src/test_images/PngSuite/Odd-Sizes/s39i3p04.png", /* not supported */
-    // "../src/test_images/PngSuite/Odd-Sizes/s40i3p04.png", /* not supported */
+    "../src/test_images/PngSuite/Odd-Sizes/s01i3p01.png",
+    "../src/test_images/PngSuite/Odd-Sizes/s02i3p01.png",
+    "../src/test_images/PngSuite/Odd-Sizes/s03i3p01.png",
+    "../src/test_images/PngSuite/Odd-Sizes/s04i3p01.png",
+    "../src/test_images/PngSuite/Odd-Sizes/s05i3p02.png",
+    "../src/test_images/PngSuite/Odd-Sizes/s06i3p02.png",
+    "../src/test_images/PngSuite/Odd-Sizes/s07i3p02.png",
+    "../src/test_images/PngSuite/Odd-Sizes/s08i3p02.png",
+    "../src/test_images/PngSuite/Odd-Sizes/s09i3p02.png",
+    "../src/test_images/PngSuite/Odd-Sizes/s32i3p04.png",
+    "../src/test_images/PngSuite/Odd-Sizes/s33i3p04.png",
+    "../src/test_images/PngSuite/Odd-Sizes/s34i3p04.png",
+    "../src/test_images/PngSuite/Odd-Sizes/s35i3p04.png",
+    "../src/test_images/PngSuite/Odd-Sizes/s36i3p04.png",
+    "../src/test_images/PngSuite/Odd-Sizes/s37i3p04.png",
+    "../src/test_images/PngSuite/Odd-Sizes/s38i3p04.png",
+    "../src/test_images/PngSuite/Odd-Sizes/s39i3p04.png",
+    "../src/test_images/PngSuite/Odd-Sizes/s40i3p04.png",
 
-    // "../src/test_images/PngSuite/Background-Colors/bgai4a08.png", /* not supported */
-    // "../src/test_images/PngSuite/Background-Colors/bgai4a16.png", /* not supported */
+    "../src/test_images/PngSuite/Background-Colors/bgai4a08.png",
+    "../src/test_images/PngSuite/Background-Colors/bgai4a16.png",
     "../src/test_images/PngSuite/Background-Colors/bgan6a08.png",
     "../src/test_images/PngSuite/Background-Colors/bgan6a16.png",
     "../src/test_images/PngSuite/Background-Colors/bgbn4a08.png",
@@ -176,7 +174,7 @@ char *file_name[] = {
     "../src/test_images/PngSuite/Ancillary-Chunks/ctgn0g04.png",
     "../src/test_images/PngSuite/Ancillary-Chunks/cthn0g04.png",
     "../src/test_images/PngSuite/Ancillary-Chunks/ctjn0g04.png",
-    "../src/test_images/PngSuite/Ancillary-Chunks/exif2c08.png",
+    // "../src/test_images/PngSuite/Ancillary-Chunks/exif2c08.png", /* not supported */
 
     "../src/test_images/PngSuite/Chunk-Ordering/oi1n0g16.png",
     "../src/test_images/PngSuite/Chunk-Ordering/oi1n2c16.png",
@@ -194,12 +192,12 @@ char *file_name[] = {
 
 };
 size_t num_of_images = sizeof(file_name) / sizeof(file_name[0]);
-bool print_info = true;
+bool print_info = true, no_gamma_fix = false, use_background = false;
 
 enum Apl_Return_Types apl_setup(struct Apl_Window_State *ws)
 {
     ws->wanted_fps = 60;
-    // ws->to_limit_fps = false;
+    ws->to_limit_fps = false;
 
 
     return APL_SUCCESS;
@@ -210,7 +208,7 @@ enum Apl_Return_Types apl_update(struct Apl_Window_State *ws)
     APL_UNUSED(ws);
 
     apng_png_free(&image);
-    if (APNG_FAIL == apng_png_load_from_file_name(file_name[image_index], &image, print_info)) {
+    if (APNG_FAIL == apng_png_load_from_file_name(file_name[image_index], &image, .print_info = print_info, .no_gamma_fix = no_gamma_fix, .use_background = use_background)) {
         return APL_FAIL;
     }
     print_info = false;
@@ -253,6 +251,14 @@ enum Apl_Return_Types apl_input(struct Apl_Window_State *ws)
     } else if (ws->buttons.w_is_pressed) {
         off_y += 1 / zoom * ws->window_pixels_mat.rows / 100;
         ws->to_render = true;
+    } else if (ws->buttons.space_bar_is_pressed) {
+        no_gamma_fix = !no_gamma_fix;
+        apl_dprintINFO("fix gamma = %s", no_gamma_fix ? "false" : "true");
+        apl_sleep((size_t)100e3);
+    } else if (ws->buttons.b_is_pressed) {
+        use_background = !use_background;
+        apl_dprintINFO("use background = %s", use_background ? "true" : "false");
+        apl_sleep((size_t)100e3);
     } else if (ws->buttons.up_is_pressed) {
         apl_sleep((size_t)100e3);
         if (image_index < num_of_images - 1) {

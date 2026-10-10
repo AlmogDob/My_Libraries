@@ -21,7 +21,7 @@ int main(int argc, char const *argv[])
     struct Apng_Byte_String code_chunk_data = apng_bin_file_read(code_file_name);
 
     struct Apng_PNG_Image image = {0};
-    if (APNG_FAIL == apng_png_load_from_file_name(image_file_name, &image, true)) {
+    if (APNG_FAIL == apng_png_load_from_file_name(image_file_name, &image, .print_info = true)) {
         apng_dprintERROR("Failed to load PNG from file '%s'.", image_file_name);
         return -1;
     }

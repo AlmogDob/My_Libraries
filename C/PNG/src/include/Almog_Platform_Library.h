@@ -316,13 +316,32 @@ struct Apl_Window_State {
 
     struct {
         bool space_bar_is_pressed;
-        bool q_is_pressed;
-        bool w_is_pressed;
-        bool e_is_pressed;
-        bool r_is_pressed;
         bool a_is_pressed;
-        bool s_is_pressed;
+        bool b_is_pressed;
+        bool c_is_pressed;
         bool d_is_pressed;
+        bool e_is_pressed;
+        bool f_is_pressed;
+        bool g_is_pressed;
+        bool h_is_pressed;
+        bool i_is_pressed;
+        bool j_is_pressed;
+        bool k_is_pressed;
+        bool l_is_pressed;
+        bool m_is_pressed;
+        bool n_is_pressed;
+        bool o_is_pressed;
+        bool p_is_pressed;
+        bool q_is_pressed;
+        bool r_is_pressed;
+        bool s_is_pressed;
+        bool t_is_pressed;
+        bool u_is_pressed;
+        bool v_is_pressed;
+        bool w_is_pressed;
+        bool x_is_pressed;
+        bool y_is_pressed;
+        bool z_is_pressed;
         bool up_is_pressed;
         bool down_is_pressed;
         bool left_is_pressed;
@@ -665,7 +684,15 @@ APL_DEF enum Apl_Return_Types apl_window_process_input(struct Apl_Window_State *
 APL_DEF enum Apl_Return_Types apl_window_render(struct Apl_Window_State *ws)
 {
     if (ws->to_clear_renderer) {
-        memset(ws->window_pixels_mat.elements, 0x18, sizeof(ws->window_pixels_mat.elements[0]) * ws->window_pixels_mat.rows * ws->window_pixels_mat.cols);
+        // memset(ws->window_pixels_mat.elements, 0x18, sizeof(ws->window_pixels_mat.elements[0]) * ws->window_pixels_mat.rows * ws->window_pixels_mat.cols);
+        struct Apl_Pixel_Buffer screen = ws->window_pixels_mat;
+        uint32_t *pixels = screen.elements;
+        size_t count = screen.rows * screen.cols;
+        uint32_t background = 0xFF181818u;
+        for (size_t i = 0; i < count; ++i) {
+            pixels[i] = background;
+        }
+
         memset(ws->inv_z_buffer_mat.elements, 0x0, sizeof(ws->inv_z_buffer_mat.elements[0]) * ws->inv_z_buffer_mat.rows * ws->inv_z_buffer_mat.cols);
     }
     /*------------------------------------------------------------*/
@@ -1292,40 +1319,135 @@ LRESULT CALLBACK apl_main_window_callback(HWND window, UINT message, WPARAM wpar
                 break;
             }
             switch (VK_code) {
-                case 'Q':
+                case 'A':
                 {
-                    if (is_down)  ws->buttons.q_is_pressed = true;
-                    if (was_down) ws->buttons.q_is_pressed = false;
+                    if (is_down)  ws->buttons.a_is_pressed = true;
+                    if (was_down) ws->buttons.a_is_pressed = false;
                 } break;
-                case 'W':
+                case 'B':
                 {
-                    if (is_down)  ws->buttons.w_is_pressed = true;
-                    if (was_down) ws->buttons.w_is_pressed = false;
+                    if (is_down)  ws->buttons.b_is_pressed = true;
+                    if (was_down) ws->buttons.b_is_pressed = false;
+                } break;
+                case 'C':
+                {
+                    if (is_down)  ws->buttons.c_is_pressed = true;
+                    if (was_down) ws->buttons.c_is_pressed = false;
+                } break;
+                case 'D':
+                {
+                    if (is_down)  ws->buttons.d_is_pressed = true;
+                    if (was_down) ws->buttons.d_is_pressed = false;
                 } break;
                 case 'E':
                 {
                     if (is_down)  ws->buttons.e_is_pressed = true;
                     if (was_down) ws->buttons.e_is_pressed = false;
                 } break;
+                case 'F':
+                {
+                    if (is_down)  ws->buttons.f_is_pressed = true;
+                    if (was_down) ws->buttons.f_is_pressed = false;
+                } break;
+                case 'G':
+                {
+                    if (is_down)  ws->buttons.g_is_pressed = true;
+                    if (was_down) ws->buttons.g_is_pressed = false;
+                } break;
+                case 'H':
+                {
+                    if (is_down)  ws->buttons.h_is_pressed = true;
+                    if (was_down) ws->buttons.h_is_pressed = false;
+                } break;
+                case 'I':
+                {
+                    if (is_down)  ws->buttons.i_is_pressed = true;
+                    if (was_down) ws->buttons.i_is_pressed = false;
+                } break;
+                case 'J':
+                {
+                    if (is_down)  ws->buttons.j_is_pressed = true;
+                    if (was_down) ws->buttons.j_is_pressed = false;
+                } break;
+                case 'K':
+                {
+                    if (is_down)  ws->buttons.k_is_pressed = true;
+                    if (was_down) ws->buttons.k_is_pressed = false;
+                } break;
+                case 'L':
+                {
+                    if (is_down)  ws->buttons.l_is_pressed = true;
+                    if (was_down) ws->buttons.l_is_pressed = false;
+                } break;
+                case 'M':
+                {
+                    if (is_down)  ws->buttons.m_is_pressed = true;
+                    if (was_down) ws->buttons.m_is_pressed = false;
+                } break;
+                case 'N':
+                {
+                    if (is_down)  ws->buttons.n_is_pressed = true;
+                    if (was_down) ws->buttons.n_is_pressed = false;
+                } break;
+                case 'O':
+                {
+                    if (is_down)  ws->buttons.o_is_pressed = true;
+                    if (was_down) ws->buttons.o_is_pressed = false;
+                } break;
+                case 'P':
+                {
+                    if (is_down)  ws->buttons.p_is_pressed = true;
+                    if (was_down) ws->buttons.p_is_pressed = false;
+                } break;
+                case 'Q':
+                {
+                    if (is_down)  ws->buttons.q_is_pressed = true;
+                    if (was_down) ws->buttons.q_is_pressed = false;
+                } break;
                 case 'R':
                 {
                     if (is_down)  ws->buttons.r_is_pressed = true;
                     if (was_down) ws->buttons.r_is_pressed = false;
-                } break;
-                case 'A':
-                {
-                    if (is_down)  ws->buttons.a_is_pressed = true;
-                    if (was_down) ws->buttons.a_is_pressed = false;
                 } break;
                 case 'S':
                 {
                     if (is_down)  ws->buttons.s_is_pressed = true;
                     if (was_down) ws->buttons.s_is_pressed = false;
                 } break;
-                case 'D':
+                case 'T':
                 {
-                    if (is_down)  ws->buttons.d_is_pressed = true;
-                    if (was_down) ws->buttons.d_is_pressed = false;
+                    if (is_down)  ws->buttons.t_is_pressed = true;
+                    if (was_down) ws->buttons.t_is_pressed = false;
+                } break;
+                case 'U':
+                {
+                    if (is_down)  ws->buttons.u_is_pressed = true;
+                    if (was_down) ws->buttons.u_is_pressed = false;
+                } break;
+                case 'V':
+                {
+                    if (is_down)  ws->buttons.v_is_pressed = true;
+                    if (was_down) ws->buttons.v_is_pressed = false;
+                } break;
+                case 'W':
+                {
+                    if (is_down)  ws->buttons.w_is_pressed = true;
+                    if (was_down) ws->buttons.w_is_pressed = false;
+                } break;
+                case 'X':
+                {
+                    if (is_down)  ws->buttons.x_is_pressed = true;
+                    if (was_down) ws->buttons.x_is_pressed = false;
+                } break;
+                case 'Y':
+                {
+                    if (is_down)  ws->buttons.y_is_pressed = true;
+                    if (was_down) ws->buttons.y_is_pressed = false;
+                } break;
+                case 'Z':
+                {
+                    if (is_down)  ws->buttons.z_is_pressed = true;
+                    if (was_down) ws->buttons.z_is_pressed = false;
                 } break;
                 case VK_UP:
                 {
