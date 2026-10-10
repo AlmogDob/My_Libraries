@@ -12,7 +12,7 @@ int main(void)
     char file_name[] = "../src/test_images/PngSuite/Corrupted-files/xhdn0g08.png";
 
     struct Apng_PNG_Image image = {0};
-    if (APNG_FAIL == apng_png_load_from_file_name(file_name, &image, true)) {
+    if (APNG_FAIL == apng_png_load_from_file_name(file_name, &image, .print_info = true)) {
         return -1;
     }
 

@@ -32,7 +32,7 @@ enum Apl_Return_Types apl_setup(struct Apl_Window_State *ws)
     // ws->to_limit_fps = false;
 
     apng_png_free(&image);
-    if (APNG_FAIL == apng_png_load_from_file_name(file_name[image_index], &image, print_info)) {
+    if (APNG_FAIL == apng_png_load_from_file_name(file_name[image_index], &image, .print_info = true)) {
         return APL_FAIL;
     }
     print_info = false;

@@ -20,7 +20,7 @@ int main(int argc, char const *argv[])
     apng_ada_init_array(uint8_t, code_chunk_data);
 
     struct Apng_PNG_Image image = {0};
-    if (APNG_FAIL == apng_png_load_from_file_name_get_cODE_chunk_data(image_file_name, &image, true, &code_chunk_data)) {
+    if (APNG_FAIL == apng_png_load_from_file_name(image_file_name, &image, .print_info = true, .cODE_chunk_data = &code_chunk_data)) {
         apng_dprintERROR("Failed to load PNG from file '%s'.", image_file_name);
         return -1;
     }

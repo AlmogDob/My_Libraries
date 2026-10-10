@@ -437,6 +437,13 @@ struct Apng_Pixel_Buffer_Save_As_PNG_Opt {
     struct Apng_Byte_String cODE_chunk_data;
 };
 
+struct Apng_Png_Load_Opt {
+    bool use_background;
+    bool no_gamma_fix;
+    bool print_info;
+    struct Apng_Byte_String *cODE_chunk_data;
+};
+
 #ifndef APNG_DEF
     #ifdef APNG_DEF_STATIC
         #define APNG_DEF static
@@ -533,17 +540,16 @@ APNG_DEF void                               apng_packed_argb_to_rgba(uint32_t co
 APNG_DEF uint32_t                           apng_palette_entry_to_packed_argb(struct Apng_Palette_Entry entry, uint8_t alpha);
 APNG_DEF struct Apng_Pixel_Buffer           apng_pixel_buffer_malloc(size_t rows, size_t cols);
 APNG_DEF enum Apng_Return_Types            _apng_pixel_buffer_save_as_png_to_file_name(char *file_name, struct Apng_Pixel_Buffer pixels, struct Apng_Pixel_Buffer_Save_As_PNG_Opt opt);
-#define                                     apng_pixel_buffer_save_as_png_to_file_name(file_name, pixels, ...) _apng_pixel_buffer_save_as_png_to_file_name((file_name), (pixels), (struct Apng_Pixel_Buffer_Save_As_PNG_Opt){__VA_ARGS__})
+#define                                     apng_pixel_buffer_save_as_png_to_file_name(p_file_name, pixels, ...) _apng_pixel_buffer_save_as_png_to_file_name((p_file_name), (pixels), (struct Apng_Pixel_Buffer_Save_As_PNG_Opt){.print_info = false, __VA_ARGS__})
 APNG_DEF enum Apng_Return_Types             apng_PLTE_chunk_parse(struct Apng_PLTE_Chunk *chunk);
-APNG_DEF enum Apng_Return_Types             apng_png_decode(struct Apng_Byte_String file, struct Apng_PNG_Image *image, bool print_info);
-APNG_DEF enum Apng_Return_Types             apng_png_decode_with_cODE_chunk(struct Apng_Byte_String file, struct Apng_PNG_Image *image, bool print_info, struct Apng_Byte_String *cODE_chunk_data);
+APNG_DEF enum Apng_Return_Types             apng_png_decode(struct Apng_Byte_String file, struct Apng_PNG_Image *image, struct Apng_Png_Load_Opt opt);
 APNG_DEF enum Apng_Return_Types             apng_png_encode(struct Apng_Byte_String *file, struct Apng_Pixel_Buffer pixels, uint8_t bit_depth, enum Apng_Colour_Types colour_type);
 APNG_DEF enum Apng_Return_Types             apng_png_encode_with_cODE_chunk(struct Apng_Byte_String *file, struct Apng_Pixel_Buffer pixels, uint8_t bit_depth, enum Apng_Colour_Types colour_type, struct Apng_Byte_String cODE_chunk_data);
 APNG_DEF void                               apng_png_free(struct Apng_PNG_Image *image);
 APNG_DEF struct Apng_PNG_Header             apng_png_header_get(struct Apng_Byte_String *bs);
 APNG_DEF enum Apng_Return_Types             apng_png_header_signature_correct(struct Apng_PNG_Header h);
-APNG_DEF enum Apng_Return_Types             apng_png_load_from_file_name(char *file_name, struct Apng_PNG_Image *image, bool print_info);
-APNG_DEF enum Apng_Return_Types             apng_png_load_from_file_name_get_cODE_chunk_data(char *file_name, struct Apng_PNG_Image *image, bool print_info, struct Apng_Byte_String *cODE_chunk_data);
+APNG_DEF enum Apng_Return_Types            _apng_png_load_from_file_name(char *file_name, struct Apng_PNG_Image *image, struct Apng_Png_Load_Opt opt);
+#define                                     apng_png_load_from_file_name(p_file_name, p_image, ...) _apng_png_load_from_file_name((p_file_name), (p_image), (struct Apng_Png_Load_Opt){.print_info = false, __VA_ARGS__})
 
 APNG_DEF uint32_t                           apng_rgba_to_packed_argb(int r, int g, int b, int a);
 
@@ -2806,7 +2812,7 @@ APNG_DEF enum Apng_Return_Types apng_PLTE_chunk_parse(struct Apng_PLTE_Chunk *ch
  * @pre file.elements must point to a complete PNG file in memory.
  * @post On success, image contains parsed chunk data and decoded pixels.
  */
-APNG_DEF enum Apng_Return_Types apng_png_decode(struct Apng_Byte_String file, struct Apng_PNG_Image *image, bool print_info)
+APNG_DEF enum Apng_Return_Types apng_png_decode(struct Apng_Byte_String file, struct Apng_PNG_Image *image, struct Apng_Png_Load_Opt opt)
 {
     APNG_ASSERT(image->pixels.elements == NULL);
     APNG_ASSERT(image->file.elements == NULL);
@@ -2814,7 +2820,7 @@ APNG_DEF enum Apng_Return_Types apng_png_decode(struct Apng_Byte_String file, st
     image->file = file;
     enum Apng_Return_Types rt = APNG_OK;
 
-    if (print_info) apng_dprintINFO("Decoding file: '%s'. File size: %zu bytes", image->file.name, image->file.length);
+    if (opt.print_info) apng_dprintINFO("Decoding file: '%s'. File size: %zu bytes", image->file.name, image->file.length);
 
     struct Apng_PNG_Header png_header = apng_png_header_get(&image->file);
     if (APNG_FAIL == apng_png_header_signature_correct(png_header)) {
@@ -2897,6 +2903,14 @@ APNG_DEF enum Apng_Return_Types apng_png_decode(struct Apng_Byte_String file, st
                 image->chunks.IEND_chunk.length = chunk_header.length;
                 image->chunks.IEND_chunk.body   = chunk_data;
             } break;
+            case APNG_TYPE_cODE:
+            {
+                if (opt.cODE_chunk_data != NULL) {
+                    for (size_t i = 0; i < chunk_header.length; i++) {
+                        apng_ada_append(uint8_t, *(opt.cODE_chunk_data), ((uint8_t *)chunk_data)[i]);
+                    }
+                }
+            } break;
             case APNG_TYPE_gAMA:
             {
                 if (image->chunks.gAMA_chunk.index != 0) {
@@ -2921,7 +2935,7 @@ APNG_DEF enum Apng_Return_Types apng_png_decode(struct Apng_Byte_String file, st
             } break;
             default:
             {
-                if (print_info) apng_dprintWARNING("Chunk %s unused.", apng_type_name_get(chunk_header.type));
+                if (opt.print_info) apng_dprintWARNING("Chunk %s unused.", apng_type_name_get(chunk_header.type));
                 bool ancillary = (chunk_header.type_array[0] & 0x20) != 0;
                 if (!ancillary) {
                     apng_dprintERROR("Unsupported critical chunk type '%.*s'.", 4, chunk_header.type_array);
@@ -2959,7 +2973,7 @@ APNG_DEF enum Apng_Return_Types apng_png_decode(struct Apng_Byte_String file, st
     }
 
     /* color fixing */
-    {
+    if (!opt.no_gamma_fix) {
         rt = apng_gamma_fix(image);
         if (rt == APNG_FAIL) {
             apng_dprintERROR("%s", "Failed to fix the image.");
@@ -2980,125 +2994,9 @@ APNG_DEF enum Apng_Return_Types apng_png_decode(struct Apng_Byte_String file, st
     } else if (image->chunks.IHDR_chunk.color_type == 6) {
         compression_ratio = image->chunks.IHDR_chunk.width * image->chunks.IHDR_chunk.height * 4.0f / image->file.length;
     }
-    if (print_info) apng_dprintINFO("Found %zu IDAT chunks.", num_of_IDATs);
-    if (print_info) apng_dprintINFO("The image size is %u x %u || The color type is %u and the bit depth is %u || The compression ratio was %f.",
+    if (opt.print_info) apng_dprintINFO("Found %zu IDAT chunks.", num_of_IDATs);
+    if (opt.print_info) apng_dprintINFO("The image size is %u x %u || The color type is %u and the bit depth is %u || The compression ratio was %f.",
         image->chunks.IHDR_chunk.width, image->chunks.IHDR_chunk.height, image->chunks.IHDR_chunk.color_type, image->chunks.IHDR_chunk.bit_depth, compression_ratio);
-
-
-apng_decode_exit:
-    return rt;
-}
-
-APNG_DEF enum Apng_Return_Types apng_png_decode_with_cODE_chunk(struct Apng_Byte_String file, struct Apng_PNG_Image *image, bool print_info, struct Apng_Byte_String *cODE_chunk_data)
-{
-    image->file = file;
-    APNG_UNUSED(file);
-    enum Apng_Return_Types rt = APNG_OK;
-
-    if (print_info) apng_dprintINFO("Decoding file: '%s'. File size: %zu bytes", image->file.name, image->file.length);
-
-    struct Apng_PNG_Header png_header = apng_png_header_get(&image->file);
-    if (APNG_FAIL == apng_png_header_signature_correct(png_header)) {
-        apng_dprintERROR("Failed the 'png header signature check' of file '%s'.", file.name);
-        rt = APNG_FAIL;
-        goto apng_decode_exit;
-    }
-
-    for ( ; image->file.cursor < image->file.length ; ) {
-        struct Apng_Chunk_Header chunk_header = apng_chunk_header_get(&image->file);
-        void *chunk_data = apng_consume_bytes(&image->file, chunk_header.length);
-        struct Apng_Chunk_Footer chunk_footer = apng_chunk_footer_get(&image->file);
-
-        if (APNG_FAIL == apng_crc32_check(chunk_header, chunk_data, chunk_footer)) {
-            apng_dprintERROR("Failed to decode PNG in file '%s'. Failed checksum test at head %s", file.name, apng_type_name_get(chunk_header.type));
-            rt = APNG_FAIL;
-            goto apng_decode_exit;
-        }
-
-        switch (chunk_header.type) {
-            case APNG_TYPE_IHDR: 
-            {
-                image->chunks.IHDR_chunk.index  = chunk_header.index + chunk_header.size;
-                image->chunks.IHDR_chunk.length = chunk_header.length;
-                image->chunks.IHDR_chunk.body   = chunk_data;
-                rt = apng_IHDR_chunk_parse(&image->chunks.IHDR_chunk);
-                if (rt == APNG_FAIL) {
-                    apng_dprintERROR("%s", "Failed to parse IHDR chunk.");
-                    goto apng_decode_exit;
-                }
-            } break;
-            case APNG_TYPE_IDAT: 
-            {
-                image->chunks.IDAT_chunk.index  = chunk_header.index + chunk_header.size;
-                image->chunks.IDAT_chunk.length = chunk_header.length;
-                if (image->chunks.IDAT_chunk.IDAT_data.elements == NULL) {
-                    apng_ada_init_array(uint8_t, image->chunks.IDAT_chunk.IDAT_data);
-                }
-                for (size_t i = 0; i < image->chunks.IDAT_chunk.length; i++) {
-                    apng_ada_append(uint8_t, image->chunks.IDAT_chunk.IDAT_data, ((uint8_t *)chunk_data)[i]);
-                }
-            } break; 
-            case APNG_TYPE_cODE:
-            {
-                for (size_t i = 0; i < chunk_header.length; i++) {
-                    apng_ada_append(uint8_t, *cODE_chunk_data, ((uint8_t *)chunk_data)[i]);
-                }
-            } break;
-            case APNG_TYPE_IEND: 
-            {
-                image->chunks.IEND_chunk.index  = chunk_header.index + chunk_header.size;
-                image->chunks.IEND_chunk.length = chunk_header.length;
-                image->chunks.IEND_chunk.body   = chunk_data;
-            } break;
-            case APNG_TYPE_UNKNOWN:
-            // {
-            //     apng_dprintERROR("%s", "Unknown chunk type.");
-            //     goto apng_decode_exit;
-            // } break;
-            /* fall through */
-            default:
-            {
-                if (print_info) apng_dprintWARNING("Chunk %s unused.", apng_type_name_get(chunk_header.type));
-                bool ancillary = (chunk_header.type_array[0] & 0x20) != 0;
-                if (!ancillary) {
-                    apng_dprintERROR("Unsupported critical chunk type '%.*s'.", 4, chunk_header.type_array);
-                    rt = APNG_FAIL;
-                    goto apng_decode_exit;
-                }
-            } break;
-        }
-    }
-
-    /* checking PNG file correctness */
-    if (image->chunks.IEND_chunk.index != image->file.length - APNG_CHUNK_FOOTER_SIZE) {
-        apng_dprintERROR("%s", "Error in IEND chunk.");
-        rt = APNG_FAIL;
-        goto apng_decode_exit;
-    }
-
-    /* decompressing the image */
-    {
-        rt = apng_IDAT_decode(image);
-        if (rt == APNG_FAIL) {
-            apng_dprintERROR("%s", "Failed to decode the IDAT chunks.");
-            goto apng_decode_exit;
-        }
-    }
-
-    /* printing INFO */
-    float compression_ratio = 0;
-    if (image->chunks.IHDR_chunk.color_type == 6) {
-        compression_ratio = image->chunks.IHDR_chunk.width * image->chunks.IHDR_chunk.height * 4.0f / image->file.length;
-    } else if (image->chunks.IHDR_chunk.color_type == 2) {
-        compression_ratio = image->chunks.IHDR_chunk.width * image->chunks.IHDR_chunk.height * 3.0f / image->file.length;
-    } else if (image->chunks.IHDR_chunk.color_type == 0) {
-        compression_ratio = image->chunks.IHDR_chunk.width * image->chunks.IHDR_chunk.height * 1.0f / image->file.length;
-    } else if (image->chunks.IHDR_chunk.color_type == 4) {
-        compression_ratio = image->chunks.IHDR_chunk.width * image->chunks.IHDR_chunk.height * 2.0f / image->file.length;
-    }
-    if (print_info) apng_dprintINFO("The image size is %u x %u || The color type is %u and the bit depth is %u || The compression ratio was %f.",
-        image->chunks.IHDR_chunk.width, image->chunks.IHDR_chunk.height, image->chunks.IHDR_chunk.color_type, image->chunks.IHDR_chunk.bit_depth, compression_ratio);
-
 
 apng_decode_exit:
     return rt;
@@ -3276,29 +3174,15 @@ APNG_DEF enum Apng_Return_Types apng_png_header_signature_correct(struct Apng_PN
  *       information, and a populated pixel buffer.
  * @note The caller must later call apng_png_free() on image.
  */
-APNG_DEF enum Apng_Return_Types apng_png_load_from_file_name(char *file_name, struct Apng_PNG_Image *image, bool print_info)
+APNG_DEF enum Apng_Return_Types _apng_png_load_from_file_name(char *file_name, struct Apng_PNG_Image *image, struct Apng_Png_Load_Opt opt)
 {
     struct Apng_Byte_String file = apng_bin_file_read(file_name);
     if (file.name == NULL) {
         apng_dprintERROR("Failed to open file at '%s'.", file_name);
         return APNG_FAIL;
     }
-    if (APNG_FAIL == apng_png_decode(file, image, print_info)) {
-        apng_dprintERROR("Failed to load png image '%s'.", file_name);
-        return APNG_FAIL;
-    }
-
-    return APNG_SUCCESS;
-}
-
-APNG_DEF enum Apng_Return_Types apng_png_load_from_file_name_get_cODE_chunk_data(char *file_name, struct Apng_PNG_Image *image, bool print_info, struct Apng_Byte_String *cODE_chunk_data)
-{
-    struct Apng_Byte_String file = apng_bin_file_read(file_name);
-    if (file.name == NULL) {
-        apng_dprintERROR("Failed to open file at '%s'.", file_name);
-        return APNG_FAIL;
-    }
-    if (APNG_FAIL == apng_png_decode_with_cODE_chunk(file, image, print_info, cODE_chunk_data)) {
+    
+    if (APNG_FAIL == apng_png_decode(file, image, opt)) {
         apng_dprintERROR("Failed to load png image '%s'.", file_name);
         return APNG_FAIL;
     }

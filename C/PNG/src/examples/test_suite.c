@@ -212,7 +212,7 @@ enum Apl_Return_Types apl_update(struct Apl_Window_State *ws)
     APL_UNUSED(ws);
 
     apng_png_free(&image);
-    if (APNG_FAIL == apng_png_load_from_file_name(file_name[image_index], &image, print_info)) {
+    if (APNG_FAIL == apng_png_load_from_file_name(file_name[image_index], &image, .print_info = print_info)) {
         return APL_FAIL;
     }
     print_info = false;
