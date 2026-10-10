@@ -55,6 +55,7 @@
 #include <ctype.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <math.h>
 
 #if defined(_WIN32) || defined(_WIN64) 
     #pragma warning(disable : 4709)
@@ -315,10 +316,13 @@ struct Apng_cHRM_Chunk {
     uint8_t *body;   
 };
 
+#define APNG_GAMMA_MAPPING_LENGTH 256
 struct Apng_gAMA_Chunk {
     size_t index;
     uint32_t length;
     uint8_t *body;   
+    float gamma;
+    uint8_t gamma_mapping[APNG_GAMMA_MAPPING_LENGTH];
 };
 
 struct Apng_iCCP_Chunk {
@@ -501,6 +505,9 @@ APNG_DEF uint16_t                           apng_endian_swap_uint16(uint16_t x);
 APNG_DEF uint32_t                           apng_endian_swap_uint32(uint32_t x);
 
 APNG_DEF uint32_t                           apng_four_char_to_uint32_t(const char *str);
+
+APNG_DEF enum Apng_Return_Types             apng_gAMA_chunk_parse(struct Apng_gAMA_Chunk *chunk);
+APNG_DEF enum Apng_Return_Types             apng_gamma_fix(struct Apng_PNG_Image *image);
 
 APNG_DEF enum Apng_Return_Types             apng_huffman_decode_symbol(struct Apng_Huffman_Entries_Table table, struct Apng_Bit_Reader *br, uint16_t *symbol);
 APNG_DEF void                               apng_huffman_entry_print(struct Apng_Huffman_Entry entry);
@@ -1081,6 +1088,68 @@ APNG_DEF uint32_t apng_endian_swap_uint32(uint32_t x)
 APNG_DEF uint32_t apng_four_char_to_uint32_t(const char * str)
 {
     return ((uint32_t)(((uint32_t)((str)[0]) << 0) | ((uint32_t)((str)[1]) << 8) | ((uint32_t)((str)[2]) << 16) | ((uint32_t)((str)[3]) << 24)));
+}
+
+APNG_DEF enum Apng_Return_Types apng_gAMA_chunk_parse(struct Apng_gAMA_Chunk *chunk)
+{
+    APNG_ASSERT(chunk->body != NULL);
+    APNG_ASSERT(chunk->index != 0);
+    APNG_ASSERT(chunk->length != 0);
+    APNG_ASSERT(chunk->length == 4);
+
+    uint32_t *gamma_p = (uint32_t *)&chunk->body[0];
+    uint32_t gamma = apng_endian_swap_uint32(*gamma_p);
+
+    if (gamma == 0) {
+        // apng_dprintWARNING("Got gamma = %u. Assumes gamma = 1.", *gamma);
+        chunk->gamma = 1;
+    } else {
+        chunk->gamma = gamma / 100000.0f;
+    }
+
+    for (size_t i = 0; i < APNG_GAMMA_MAPPING_LENGTH; i++) {
+        /* for PNG specification section 13.13 */
+        size_t integer_sample = i;
+        float sample = integer_sample / ((1 << 8) - 1.0f);
+        float display_output = powf(sample, 1.0f / chunk->gamma);
+        
+        float display_input;
+        /* Linear RGB -> SRGB magic*/
+        if (display_output <= 0.0031308f) {
+            display_input = 12.92f * display_output;
+        } else {
+            display_input = 1.055f * powf(display_output, 1.0f / 2.4f) - 0.055f;
+        }
+
+        chunk->gamma_mapping[i] = (uint8_t)floorf((display_input * 255) + 0.5f);
+        // printf("%zu -> %u\n", i, chunk->gamma_mapping[i]);
+    }
+
+    return APNG_SUCCESS;
+}
+
+APNG_DEF enum Apng_Return_Types apng_gamma_fix(struct Apng_PNG_Image *image)
+{
+    APNG_ASSERT(image != NULL);
+    
+    if (image->chunks.gAMA_chunk.index == 0) {
+        return APNG_SUCCESS;
+    }
+
+    for (size_t i = 0; i < image->pixels.rows; i++) {
+        for (size_t j = 0; j < image->pixels.cols; j++) {
+            uint8_t r, g, b, a;
+            apng_packed_argb_to_rgba(APNG_PIXEL_BUFFER_AT(image->pixels, i, j), &r, &g, &b, &a);
+            APNG_PIXEL_BUFFER_AT(image->pixels, i, j) = apng_rgba_to_packed_argb(
+                                                                            image->chunks.gAMA_chunk.gamma_mapping[r], 
+                                                                            image->chunks.gAMA_chunk.gamma_mapping[g], 
+                                                                            image->chunks.gAMA_chunk.gamma_mapping[b], 
+                                                                            a
+                                                                        );
+        }
+    }
+
+    return APNG_SUCCESS;
 }
 
 /**
@@ -2828,6 +2897,22 @@ APNG_DEF enum Apng_Return_Types apng_png_decode(struct Apng_Byte_String file, st
                 image->chunks.IEND_chunk.length = chunk_header.length;
                 image->chunks.IEND_chunk.body   = chunk_data;
             } break;
+            case APNG_TYPE_gAMA:
+            {
+                if (image->chunks.gAMA_chunk.index != 0) {
+                    rt = APNG_FAIL;
+                    apng_dprintERROR("%s", "There are more then one gAMA chunk.");
+                    goto apng_decode_exit;
+                }
+                image->chunks.gAMA_chunk.index  = chunk_header.index + chunk_header.size;
+                image->chunks.gAMA_chunk.length = chunk_header.length;
+                image->chunks.gAMA_chunk.body   = chunk_data;
+                rt = apng_gAMA_chunk_parse(&image->chunks.gAMA_chunk);
+                if (rt == APNG_FAIL) {
+                    apng_dprintERROR("%s", "Failed to parse gAMA chunk.");
+                    goto apng_decode_exit;
+                }
+            } break;
             case APNG_TYPE_UNKNOWN:
             {
                 apng_dprintERROR("%s", "Unknown chunk type.");
@@ -2873,16 +2958,27 @@ APNG_DEF enum Apng_Return_Types apng_png_decode(struct Apng_Byte_String file, st
         }
     }
 
+    /* color fixing */
+    {
+        rt = apng_gamma_fix(image);
+        if (rt == APNG_FAIL) {
+            apng_dprintERROR("%s", "Failed to fix the image.");
+            goto apng_decode_exit;
+        }
+    }
+
     /* printing INFO */
     float compression_ratio = 0;
-    if (image->chunks.IHDR_chunk.color_type == 6) {
-        compression_ratio = image->chunks.IHDR_chunk.width * image->chunks.IHDR_chunk.height * 4.0f / image->file.length;
+    if (image->chunks.IHDR_chunk.color_type == 0) {
+        compression_ratio = image->chunks.IHDR_chunk.width * image->chunks.IHDR_chunk.height * 1.0f / image->file.length;
     } else if (image->chunks.IHDR_chunk.color_type == 2) {
         compression_ratio = image->chunks.IHDR_chunk.width * image->chunks.IHDR_chunk.height * 3.0f / image->file.length;
-    } else if (image->chunks.IHDR_chunk.color_type == 0) {
+    } else if (image->chunks.IHDR_chunk.color_type == 3) {
         compression_ratio = image->chunks.IHDR_chunk.width * image->chunks.IHDR_chunk.height * 1.0f / image->file.length;
     } else if (image->chunks.IHDR_chunk.color_type == 4) {
         compression_ratio = image->chunks.IHDR_chunk.width * image->chunks.IHDR_chunk.height * 2.0f / image->file.length;
+    } else if (image->chunks.IHDR_chunk.color_type == 6) {
+        compression_ratio = image->chunks.IHDR_chunk.width * image->chunks.IHDR_chunk.height * 4.0f / image->file.length;
     }
     if (print_info) apng_dprintINFO("Found %zu IDAT chunks.", num_of_IDATs);
     if (print_info) apng_dprintINFO("The image size is %u x %u || The color type is %u and the bit depth is %u || The compression ratio was %f.",
@@ -3567,4 +3663,4 @@ APNG_DEF enum Apng_Return_Types apng_zlib_header_parse(struct Apng_PNG_Image *im
     return APNG_SUCCESS;
 }
 
-#endif /*ALMOG_PNG_IMPLEMENTATION*/
+#endif /*ALMOG_PNG_IMPLEMENTATION*/// 

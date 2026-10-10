@@ -20,7 +20,8 @@
 struct Apng_PNG_Image image = {0};
 size_t image_index = 0;
 char *file_name[] = {
-    "../src/test_images/test-png_wiki.png",
+    // "../src/test_images/PngSuite/Gamma-Values/g05n0g16.png",
+    "../src/test_images/frieren.png",
 };
 size_t num_of_images = sizeof(file_name) / sizeof(file_name[0]);
 bool print_info = true;
@@ -28,7 +29,7 @@ bool print_info = true;
 enum Apl_Return_Types apl_setup(struct Apl_Window_State *ws)
 {
     ws->wanted_fps = 60;
-    ws->to_limit_fps = false;
+    // ws->to_limit_fps = false;
 
     apng_png_free(&image);
     if (APNG_FAIL == apng_png_load_from_file_name(file_name[image_index], &image, print_info)) {
@@ -47,7 +48,7 @@ enum Apl_Return_Types apl_update(struct Apl_Window_State *ws)
     return APL_SUCCESS;
 }
 
-apl_real zoom = 2;
+apl_real zoom = 1;
 apl_real off_x = 0;
 apl_real off_y = 0;
 enum Apl_Return_Types apl_render(struct Apl_Window_State *ws)
