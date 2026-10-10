@@ -38,21 +38,21 @@ char *file_name[] = {
     "../src/test_images/PngSuite/Basic-formats/basn6a08.png",
     "../src/test_images/PngSuite/Basic-formats/basn6a16.png",
 
-    // "../src/test_images/PngSuite/Interlacing/basi0g01.png", /* not supported */
-    // "../src/test_images/PngSuite/Interlacing/basi0g02.png", /* not supported */
-    // "../src/test_images/PngSuite/Interlacing/basi0g04.png", /* not supported */
-    // "../src/test_images/PngSuite/Interlacing/basi0g08.png", /* not supported */
-    // "../src/test_images/PngSuite/Interlacing/basi0g16.png", /* not supported */
-    // "../src/test_images/PngSuite/Interlacing/basi2c08.png", /* not supported */
-    // "../src/test_images/PngSuite/Interlacing/basi2c16.png", /* not supported */
-    // "../src/test_images/PngSuite/Interlacing/basi3p01.png", /* not supported */
-    // "../src/test_images/PngSuite/Interlacing/basi3p02.png", /* not supported */
-    // "../src/test_images/PngSuite/Interlacing/basi3p04.png", /* not supported */
-    // "../src/test_images/PngSuite/Interlacing/basi3p08.png", /* not supported */
-    // "../src/test_images/PngSuite/Interlacing/basi4a08.png", /* not supported */
-    // "../src/test_images/PngSuite/Interlacing/basi4a16.png", /* not supported */
-    // "../src/test_images/PngSuite/Interlacing/basi6a08.png", /* not supported */
-    // "../src/test_images/PngSuite/Interlacing/basi6a16.png", /* not supported */
+    "../src/test_images/PngSuite/Interlacing/basi0g01.png",
+    "../src/test_images/PngSuite/Interlacing/basi0g02.png",
+    "../src/test_images/PngSuite/Interlacing/basi0g04.png",
+    "../src/test_images/PngSuite/Interlacing/basi0g08.png",
+    "../src/test_images/PngSuite/Interlacing/basi0g16.png",
+    "../src/test_images/PngSuite/Interlacing/basi2c08.png",
+    "../src/test_images/PngSuite/Interlacing/basi2c16.png",
+    "../src/test_images/PngSuite/Interlacing/basi3p01.png",
+    "../src/test_images/PngSuite/Interlacing/basi3p02.png",
+    "../src/test_images/PngSuite/Interlacing/basi3p04.png",
+    "../src/test_images/PngSuite/Interlacing/basi3p08.png",
+    "../src/test_images/PngSuite/Interlacing/basi4a08.png",
+    "../src/test_images/PngSuite/Interlacing/basi4a16.png",
+    "../src/test_images/PngSuite/Interlacing/basi6a08.png",
+    "../src/test_images/PngSuite/Interlacing/basi6a16.png",
 
     "../src/test_images/PngSuite/Odd-Sizes/s01n3p01.png",
     "../src/test_images/PngSuite/Odd-Sizes/s02n3p01.png",
@@ -72,27 +72,27 @@ char *file_name[] = {
     "../src/test_images/PngSuite/Odd-Sizes/s38n3p04.png",
     "../src/test_images/PngSuite/Odd-Sizes/s39n3p04.png",
     "../src/test_images/PngSuite/Odd-Sizes/s40n3p04.png",
-    // "../src/test_images/PngSuite/Odd-Sizes/s01i3p01.png", /* not supported */
-    // "../src/test_images/PngSuite/Odd-Sizes/s02i3p01.png", /* not supported */
-    // "../src/test_images/PngSuite/Odd-Sizes/s03i3p01.png", /* not supported */
-    // "../src/test_images/PngSuite/Odd-Sizes/s04i3p01.png", /* not supported */
-    // "../src/test_images/PngSuite/Odd-Sizes/s05i3p02.png", /* not supported */
-    // "../src/test_images/PngSuite/Odd-Sizes/s06i3p02.png", /* not supported */
-    // "../src/test_images/PngSuite/Odd-Sizes/s07i3p02.png", /* not supported */
-    // "../src/test_images/PngSuite/Odd-Sizes/s08i3p02.png", /* not supported */
-    // "../src/test_images/PngSuite/Odd-Sizes/s09i3p02.png", /* not supported */
-    // "../src/test_images/PngSuite/Odd-Sizes/s32i3p04.png", /* not supported */
-    // "../src/test_images/PngSuite/Odd-Sizes/s33i3p04.png", /* not supported */
-    // "../src/test_images/PngSuite/Odd-Sizes/s34i3p04.png", /* not supported */
-    // "../src/test_images/PngSuite/Odd-Sizes/s35i3p04.png", /* not supported */
-    // "../src/test_images/PngSuite/Odd-Sizes/s36i3p04.png", /* not supported */
-    // "../src/test_images/PngSuite/Odd-Sizes/s37i3p04.png", /* not supported */
-    // "../src/test_images/PngSuite/Odd-Sizes/s38i3p04.png", /* not supported */
-    // "../src/test_images/PngSuite/Odd-Sizes/s39i3p04.png", /* not supported */
-    // "../src/test_images/PngSuite/Odd-Sizes/s40i3p04.png", /* not supported */
+    "../src/test_images/PngSuite/Odd-Sizes/s01i3p01.png",
+    "../src/test_images/PngSuite/Odd-Sizes/s02i3p01.png",
+    "../src/test_images/PngSuite/Odd-Sizes/s03i3p01.png",
+    "../src/test_images/PngSuite/Odd-Sizes/s04i3p01.png",
+    "../src/test_images/PngSuite/Odd-Sizes/s05i3p02.png",
+    "../src/test_images/PngSuite/Odd-Sizes/s06i3p02.png",
+    "../src/test_images/PngSuite/Odd-Sizes/s07i3p02.png",
+    "../src/test_images/PngSuite/Odd-Sizes/s08i3p02.png",
+    "../src/test_images/PngSuite/Odd-Sizes/s09i3p02.png",
+    "../src/test_images/PngSuite/Odd-Sizes/s32i3p04.png",
+    "../src/test_images/PngSuite/Odd-Sizes/s33i3p04.png",
+    "../src/test_images/PngSuite/Odd-Sizes/s34i3p04.png",
+    "../src/test_images/PngSuite/Odd-Sizes/s35i3p04.png",
+    "../src/test_images/PngSuite/Odd-Sizes/s36i3p04.png",
+    "../src/test_images/PngSuite/Odd-Sizes/s37i3p04.png",
+    "../src/test_images/PngSuite/Odd-Sizes/s38i3p04.png",
+    "../src/test_images/PngSuite/Odd-Sizes/s39i3p04.png",
+    "../src/test_images/PngSuite/Odd-Sizes/s40i3p04.png",
 
-    // "../src/test_images/PngSuite/Background-Colors/bgai4a08.png", /* not supported */
-    // "../src/test_images/PngSuite/Background-Colors/bgai4a16.png", /* not supported */
+    "../src/test_images/PngSuite/Background-Colors/bgai4a08.png",
+    "../src/test_images/PngSuite/Background-Colors/bgai4a16.png",
     "../src/test_images/PngSuite/Background-Colors/bgan6a08.png",
     "../src/test_images/PngSuite/Background-Colors/bgan6a16.png",
     "../src/test_images/PngSuite/Background-Colors/bgbn4a08.png",
@@ -178,7 +178,7 @@ char *file_name[] = {
     "../src/test_images/PngSuite/Ancillary-Chunks/ctgn0g04.png",
     "../src/test_images/PngSuite/Ancillary-Chunks/cthn0g04.png",
     "../src/test_images/PngSuite/Ancillary-Chunks/ctjn0g04.png",
-    "../src/test_images/PngSuite/Ancillary-Chunks/exif2c08.png",
+    // "../src/test_images/PngSuite/Ancillary-Chunks/exif2c08.png", /* not supported */
 
     "../src/test_images/PngSuite/Chunk-Ordering/oi1n0g16.png",
     "../src/test_images/PngSuite/Chunk-Ordering/oi1n2c16.png",

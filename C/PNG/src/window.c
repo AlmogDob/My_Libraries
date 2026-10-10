@@ -34,7 +34,6 @@ enum Apl_Return_Types apl_setup(struct Apl_Window_State *ws)
     if (APNG_FAIL == apng_png_load_from_file_name(file_name[image_index], &image, print_info)) {
         return APL_FAIL;
     }
-    _apng_pixel_buffer_save_as_png_to_file_name(("../output.png"), (image.pixels), (struct Apng_Pixel_Buffer_Save_As_PNG_Opt){.colour_type = APNG_COLOUR_TYPE_DEFAULT});
     print_info = false;
 
     return APL_SUCCESS;
@@ -53,7 +52,7 @@ apl_real off_x = 0;
 apl_real off_y = 0;
 enum Apl_Return_Types apl_render(struct Apl_Window_State *ws)
 {
-    apl_apng_apng_pixel_buffer_copy_to_apl_pixel_buffer(ws->window_pixels_mat, image.pixels, .offset_x = off_x);
+    apl_apng_apng_pixel_buffer_copy_to_apl_pixel_buffer(ws->window_pixels_mat, image.pixels, .offset_x = off_x, .offset_y = off_y, .zoom = zoom);
 
     return APL_SUCCESS;
 }
