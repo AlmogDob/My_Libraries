@@ -8,20 +8,15 @@
 
 #define ALMOG_PLATFORM_LIBRARY_IMPLEMENTATION
 
-#define ALMOG_DRAW_LIBRARY_IMPLEMENTATION
-#define APL_ADL_BRIDGE_IMPLEMENTATION
-#include "include/APL_ADL_Bridge.h"
-
 #define ALMOG_PNG_IMPLEMENTATION
 #define APL_APNG_BRIDGE_IMPLEMENTATION
 #include "include/APL_APNG_Bridge.h"
 
-
 struct Apng_PNG_Image image = {0};
 size_t image_index = 0;
 char *file_name[] = {
-    // "../src/test_images/PngSuite/Gamma-Values/g05n0g16.png",
-    "../src/test_images/frieren.png",
+    // "../src/test_images/PngSuite/Basic-Formats/basn4a08.png",
+    "../src/test_images/test-png_wiki.png",
 };
 size_t num_of_images = sizeof(file_name) / sizeof(file_name[0]);
 bool print_info = true;
@@ -35,6 +30,7 @@ enum Apl_Return_Types apl_setup(struct Apl_Window_State *ws)
     if (APNG_FAIL == apng_png_load_from_file_name(file_name[image_index], &image, .print_info = true)) {
         return APL_FAIL;
     }
+
     print_info = false;
 
     return APL_SUCCESS;
@@ -83,20 +79,6 @@ enum Apl_Return_Types apl_input(struct Apl_Window_State *ws)
     } else if (ws->buttons.w_is_pressed) {
         off_y += 1 / zoom * ws->window_pixels_mat.rows / 100;
         ws->to_render = true;
-    } else if (ws->buttons.up_is_pressed) {
-        apl_sleep((size_t)100e3);
-        if (image_index < num_of_images - 1) {
-            image_index++;
-            print_info = true;
-            ws->to_render = true;
-        }
-    } else if (ws->buttons.down_is_pressed) {
-        apl_sleep((size_t)100e3);
-        if (image_index > 0) {
-            image_index--;
-            print_info = true;
-            ws->to_render = true;
-        }
     }
     
 

@@ -1,4 +1,4 @@
-// #define AMD_MEMORY_DEBUG
+#define AMD_MEMORY_DEBUG
 #define ALMOG_MEMORY_DEBUG_IMPLEMENTATION
 #include "include/Almog_Memory_Debug.h"
 

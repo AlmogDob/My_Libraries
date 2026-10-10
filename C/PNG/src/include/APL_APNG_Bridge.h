@@ -49,7 +49,6 @@ struct Apl_Apng_Copy_Pixel_Offset_Zoom {
 
 #define APL_IS_ZERO(x) (apl_fabs(x) < APL_EPS)
 
-uint32_t                    apl_apng_alpha_blend(uint32_t dst, uint32_t src);
 void                       _apl_apng_apng_pixel_buffer_copy_to_apl_pixel_buffer(struct Apl_Pixel_Buffer des, struct Apng_Pixel_Buffer src, struct Apl_Apng_Copy_Pixel_Offset_Zoom offzoom);
 #define                     apl_apng_apng_pixel_buffer_copy_to_apl_pixel_buffer(des, src, ...) _apl_apng_apng_pixel_buffer_copy_to_apl_pixel_buffer((des), (src), (struct Apl_Apng_Copy_Pixel_Offset_Zoom){__VA_ARGS__})
 void                        apl_apng_pixel_draw(struct Apl_Pixel_Buffer screen, apl_real x, apl_real y, uint32_t color, apl_real offset_x, apl_real offset_y, apl_real zoom);
@@ -58,23 +57,6 @@ struct Apng_Pixel_Buffer    apl_apng_apl_pixel_buffer_as_apng_pixel_buffer(struc
 #endif /*APL_APNG_BRIDGE_H_*/
 #ifdef APL_APNG_BRIDGE_IMPLEMENTATION
 #undef APL_APNG_BRIDGE_IMPLEMENTATION
-
-uint32_t apl_apng_alpha_blend(uint32_t dst, uint32_t src)
-{
-    uint8_t sr, sg, sb, sa;
-    uint8_t dr, dg, db;
-
-    apng_packed_argb_to_rgba(src, &sr, &sg, &sb, &sa);
-    apng_packed_argb_to_rgba(dst, &dr, &dg, &db, NULL);
-
-    apl_real a = (apl_real)sa / 255.0f;
-
-    int r = (int)((apl_real)dr * (1.0f - a) + (apl_real)sr * a);
-    int g = (int)((apl_real)dg * (1.0f - a) + (apl_real)sg * a);
-    int b = (int)((apl_real)db * (1.0f - a) + (apl_real)sb * a);
-
-    return apng_rgba_to_packed_argb(r, g, b, 255);
-}
 
 void _apl_apng_apng_pixel_buffer_copy_to_apl_pixel_buffer(struct Apl_Pixel_Buffer des, struct Apng_Pixel_Buffer src, struct Apl_Apng_Copy_Pixel_Offset_Zoom offzoom)
 {
@@ -139,7 +121,7 @@ void apl_apng_pixel_draw(struct Apl_Pixel_Buffer screen, apl_real x, apl_real y,
             if (opaque) {
                 *dst = color;
             } else {
-                *dst = apl_apng_alpha_blend(*dst, color);
+                *dst = apng_alpha_blend(*dst, color);
             }
         }
     }
