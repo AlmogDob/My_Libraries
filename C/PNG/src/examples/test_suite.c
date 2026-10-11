@@ -192,12 +192,12 @@ char *file_name[] = {
 
 };
 size_t num_of_images = sizeof(file_name) / sizeof(file_name[0]);
-bool print_info = true, no_gamma_fix = false, use_background = false;
+bool print_info = true, no_gamma_fix = false, use_background = true;
 
 enum Apl_Return_Types apl_setup(struct Apl_Window_State *ws)
 {
     ws->wanted_fps = 60;
-    ws->to_limit_fps = false;
+    // ws->to_limit_fps = false;
 
 
     return APL_SUCCESS;
