@@ -32,9 +32,10 @@ enum Apl_Return_Types apl_setup(struct Apl_Window_State *ws)
 
     /* english */
     // char font_file_name[] = "../src/fonts/BLKCHCRY.ttf";
-    char font_file_name[] = "../src/fonts/Canterbury.ttf";
+    // char font_file_name[] = "../src/fonts/Canterbury.ttf";
     // char font_file_name[] = "../src/fonts/Inconsolata-Regular.ttf";
     // char font_file_name[] = "../src/fonts/Symbola.ttf";
+    char font_file_name[] = "../src/fonts/iosevka-regular.ttf";
 
     if (ATR_FAIL == atr_font_load_from_file_name(&font, font_file_name)) {
         atr_dprintERROR("Failed to load font from file '%s'.", font_file_name);
@@ -61,12 +62,12 @@ enum Apl_Return_Types apl_render(struct Apl_Window_State *ws)
 {
     struct Atr_Pixel_Buffer font_pixels = apl_pixel_buffer_as_atr_pixel_buffer(ws->window_pixels_mat);
 
-    // char str1[] = "the quick brown fox jumps over the lazy dog! @#$%^&*:\"{}[]?><\\/';.()_+-"
-                //   "THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG 0123456789";
-    char str1[] = "alphabet: abcdefghijklmnopqrstuvwxyz";
+    char str1[] = "the quick brown fox jumps over the lazy dog! @#$%^&*:\"{}[]?><\\/';.()_+-"
+                  "THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG 0123456789";
+    // char str1[] = "alphabet: abcdefghijklmnopqrstuvwxyz";
     size_t str1_length = sizeof(str1) / sizeof(*str1) - 1;
 
-    atr_real top_left_x = (atr_real)50 - (atr_real)50 * ws->elapsed_time_micro_sec / 1000 / 1000, top_left_y = 30, letter_hight = 181, spacing = 0;
+    atr_real top_left_x = (atr_real)50, top_left_y = 30, letter_hight = 181, spacing = 0;
     struct Atr_Vec2 v1 = atr_text_line_draw(font_pixels, &font, (uint8_t *)str1, top_left_x, top_left_y, letter_hight, spacing, 0xFFFFFFFF, (int)str1_length, offzoom);
     atr_text_line_draw_no_antialiasing(font_pixels, &font, (uint8_t *)str1, top_left_x, top_left_y * 1 + v1.y, letter_hight, spacing, 0xFFFFFFFF, (int)str1_length, offzoom);
     atr_text_line_draw_outline(font_pixels, &font, (uint8_t *)str1, top_left_x, top_left_y * 1 + v1.y * 2, letter_hight, spacing, 0xFFFFFFFF, (int)str1_length, offzoom);
