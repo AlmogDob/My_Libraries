@@ -360,6 +360,9 @@ struct Apng_tRNS_Chunk {
     size_t index;
     uint32_t length;
     uint8_t *body;   
+    uint32_t color;
+    uint8_t alphas_for_palettes[256];
+    uint16_t alphas_for_palettes_count;
 };
 
 struct Apng_pHYs_Chunk {
@@ -497,7 +500,7 @@ APNG_DEF void                               apng_bit_reader_flash(struct Apng_Bi
 APNG_DEF void                               apng_bit_reader_init(struct Apng_Bit_Reader *br, struct Apng_Byte_String file);
 APNG_DEF uint8_t                            apng_bit_reader_read_bit(struct Apng_Bit_Reader *br);
 APNG_DEF uint32_t                           apng_bit_reader_read_bits(struct Apng_Bit_Reader *br, size_t count);
-APNG_DEF enum Apng_Return_Types             apng_bKGD_chunk_parse(struct Apng_bKGD_Chunk *chunk, struct Apng_IHDR_Chunk IHDR, struct Apng_PLTE_Chunk *PLTE);
+APNG_DEF enum Apng_Return_Types             apng_bKGD_chunk_parse(struct Apng_bKGD_Chunk *chunk, struct Apng_IHDR_Chunk IHDR, struct Apng_PLTE_Chunk PLTE);
 APNG_DEF void                               apng_byte_string_free(struct Apng_Byte_String *bs);
 APNG_DEF void                               apng_byte_string_append_bytes_be(struct Apng_Byte_String *bs, uint32_t data, size_t count);
 APNG_DEF void                               apng_byte_string_append_bytes_le(struct Apng_Byte_String *bs, uint32_t data, size_t count);
@@ -559,6 +562,7 @@ APNG_DEF uint32_t                           apng_rgba_to_packed_argb(int r, int 
 APNG_DEF enum Apng_Return_Types             apng_sample8_to_packed_argb_from_palette(struct Apng_PNG_Image *image, uint8_t sample, uint8_t alpha, uint32_t *color);
 APNG_DEF uint8_t                            apng_sample16_to_u8(uint8_t *sample);
 
+APNG_DEF enum Apng_Return_Types             apng_tRNS_chunk_parse(struct Apng_tRNS_Chunk *chunk, struct Apng_IHDR_Chunk IHDR, struct Apng_PLTE_Chunk PLTE);
 APNG_DEF enum Apng_Chunk_Type               apng_type_get_from_type_raw(uint32_t raw_type);
 APNG_DEF uint32_t                           apng_type_raw_from_type(enum Apng_Chunk_Type type);
 APNG_DEF const char *                       apng_type_name_get(enum Apng_Chunk_Type type);
@@ -861,7 +865,7 @@ APNG_DEF uint32_t apng_bit_reader_read_bits(struct Apng_Bit_Reader *br, size_t c
     return res;
 }
 
-APNG_DEF enum Apng_Return_Types apng_bKGD_chunk_parse(struct Apng_bKGD_Chunk *chunk, struct Apng_IHDR_Chunk IHDR, struct Apng_PLTE_Chunk *PLTE)
+APNG_DEF enum Apng_Return_Types apng_bKGD_chunk_parse(struct Apng_bKGD_Chunk *chunk, struct Apng_IHDR_Chunk IHDR, struct Apng_PLTE_Chunk PLTE)
 {
     APNG_ASSERT(chunk->body != NULL);
     APNG_ASSERT(chunk->index != 0);
@@ -886,12 +890,12 @@ APNG_DEF enum Apng_Return_Types apng_bKGD_chunk_parse(struct Apng_bKGD_Chunk *ch
                                             255
                                         );
     } else if (IHDR.color_type == 3) {
-        if (PLTE->index == 0) {
+        if (PLTE.index == 0) {
             apng_dprintWARNING("%s", "PLTE chunk need to be parsed before bKGB chunk.");
             return APNG_FAIL;
         }
         uint8_t palette_index = chunk->body[0];
-        struct Apng_Palette_Entry entry = PLTE->palettes.elements[palette_index];
+        struct Apng_Palette_Entry entry = PLTE.palettes.elements[palette_index];
         chunk->color = apng_rgba_to_packed_argb(entry.r, entry.g, entry.b, 255);
     } else {
         apng_dprintWARNING("%s", "Unknown color type.");
@@ -2283,12 +2287,24 @@ APNG_DEF enum Apng_Return_Types apng_IDAT_unfiltered_data_transform_to_pixels(st
                     case 0 : /* Grayscale */
                     {
                         r = g = b = apng_sample16_to_u8(sample);
+                        if (image->chunks.tRNS_chunk.index != 0) {
+                            uint8_t trans_value;
+                            apng_packed_argb_to_rgba(image->chunks.tRNS_chunk.color, &trans_value, NULL, NULL, NULL);
+                            a = r == trans_value ? 0 : 255;
+                        }
                     } break;
                     case 2: /* RGB */
                     {
                         r = apng_sample16_to_u8(sample);
                         g = apng_sample16_to_u8(sample + 2);
                         b = apng_sample16_to_u8(sample + 4);
+                        if (image->chunks.tRNS_chunk.index != 0) {
+                            uint8_t trans_r, trans_g, trans_b;
+                            apng_packed_argb_to_rgba(image->chunks.tRNS_chunk.color, &trans_r, &trans_g, &trans_b, NULL);
+                            if (r == trans_r && g == trans_g && b == trans_b) {
+                                a = 0;
+                            }
+                        }
                     } break;
                     case 4: /* Grayscale + alpha */
                     {
@@ -2310,6 +2326,7 @@ APNG_DEF enum Apng_Return_Types apng_IDAT_unfiltered_data_transform_to_pixels(st
                 }
                 APNG_PIXEL_BUFFER_AT(image->pixels, i, j) = apng_rgba_to_packed_argb(r, g, b, a);
             } else {
+                uint8_t r, g, b, a = 255;
                 switch (image->chunks.IHDR_chunk.color_type) {
                     case 0 : /* Grayscale */
                     {
@@ -2319,33 +2336,44 @@ APNG_DEF enum Apng_Return_Types apng_IDAT_unfiltered_data_transform_to_pixels(st
                             uint8_t bit_index = (uint8_t)(7 - (j % 8));
                             uint8_t sample = (packed >> bit_index) & 0x01;
                             uint8_t value = sample ? 255 : 0;
-                            APNG_PIXEL_BUFFER_AT(image->pixels, i, j) = apng_rgba_to_packed_argb(value, value, value, 255);
+                            r = g = b = value;
                         } else if (bit_per_channel == 2) {
                             uint8_t packed = row[j / 4];
                             uint8_t bit_index = (uint8_t)(6 - 2 * (j % 4));
                             uint8_t sample = (packed >> bit_index) & 0x03;
                             uint8_t value = (uint8_t)((sample * 255) / 3);
-                            APNG_PIXEL_BUFFER_AT(image->pixels, i, j) = apng_rgba_to_packed_argb(value, value, value, 255);
+                            r = g = b = value;
                         } else if (bit_per_channel == 4) {
                             uint8_t packed = row[j / 2];
                             uint8_t sample = (j % 2) ? (packed & 0x0F) : (packed >> 4);
                             uint8_t value = (uint8_t)((sample * 255) / 15);
-                            APNG_PIXEL_BUFFER_AT(image->pixels, i, j) = apng_rgba_to_packed_argb(value, value, value, 255);
+                            r = g = b = value;
                         } else if (bit_per_channel == 8) {
                             uint8_t value = row[j];
-                            APNG_PIXEL_BUFFER_AT(image->pixels, i, j) = apng_rgba_to_packed_argb(value, value, value, 255);
+                            r = g = b = value;
                         } else {
                             apng_dprintERROR("Unsupported grayscale bit depth: %zu", bit_per_channel);
                             return APNG_FAIL;
+                        }
+                        if (image->chunks.tRNS_chunk.index != 0) {
+                            uint8_t trans_value;
+                            apng_packed_argb_to_rgba(image->chunks.tRNS_chunk.color, &trans_value, NULL, NULL, NULL);
+                            a = r == trans_value ? 0 : 255;
                         }
                     } break;
                     case 2: /* RGB */
                     {
                         size_t idx = i * bytes_per_row + j * bytes_per_pixel;
-                        uint8_t r = unfiltered_data[idx + 0];
-                        uint8_t g = unfiltered_data[idx + 1];
-                        uint8_t b = unfiltered_data[idx + 2];
-                        APNG_PIXEL_BUFFER_AT(image->pixels, i, j) = apng_rgba_to_packed_argb(r, g, b, 255);
+                        r = unfiltered_data[idx + 0];
+                        g = unfiltered_data[idx + 1];
+                        b = unfiltered_data[idx + 2];
+                        if (image->chunks.tRNS_chunk.index != 0) {
+                            uint8_t trans_r, trans_g, trans_b;
+                            apng_packed_argb_to_rgba(image->chunks.tRNS_chunk.color, &trans_r, &trans_g, &trans_b, NULL);
+                            if (r == trans_r && g == trans_g && b == trans_b) {
+                                a = 0;
+                            }
+                        }
                     } break;
                     case 3: /* Indexed-colour */
                     {
@@ -2354,34 +2382,62 @@ APNG_DEF enum Apng_Return_Types apng_IDAT_unfiltered_data_transform_to_pixels(st
                             uint8_t packed = row[j / 8];
                             uint8_t bit_index = (uint8_t)(7 - (j % 8));
                             uint8_t sample = (packed >> bit_index) & 0x01;
-                            rt = apng_sample8_to_packed_argb_from_palette(image, sample, 255, &(APNG_PIXEL_BUFFER_AT(image->pixels, i, j)));
+                            uint32_t color;
+                            rt = apng_sample8_to_packed_argb_from_palette(image, sample, 255, &color);
                             if (rt == APNG_FAIL) {
                                 apng_dprintERROR("%s", "Failed to translate unfiltered data to image pixels.");
                                 return APNG_FAIL;
+                            }
+                            apng_packed_argb_to_rgba(color, &r, &g, &b, NULL);
+                            if (image->chunks.tRNS_chunk.index != 0) {
+                                if (sample < image->chunks.tRNS_chunk.alphas_for_palettes_count) {
+                                    a = image->chunks.tRNS_chunk.alphas_for_palettes[sample];
+                                }
                             }
                         } else if (bit_per_channel == 2) {
                             uint8_t packed = row[j / 4];
                             uint8_t bit_index = (uint8_t)(6 - 2 * (j % 4));
                             uint8_t sample = (packed >> bit_index) & 0x03;
-                            rt = apng_sample8_to_packed_argb_from_palette(image, sample, 255, &(APNG_PIXEL_BUFFER_AT(image->pixels, i, j)));
+                            uint32_t color;
+                            rt = apng_sample8_to_packed_argb_from_palette(image, sample, 255, &color);
                             if (rt == APNG_FAIL) {
                                 apng_dprintERROR("%s", "Failed to translate unfiltered data to image pixels.");
                                 return APNG_FAIL;
+                            }
+                            apng_packed_argb_to_rgba(color, &r, &g, &b, NULL);
+                            if (image->chunks.tRNS_chunk.index != 0) {
+                                if (sample < image->chunks.tRNS_chunk.alphas_for_palettes_count) {
+                                    a = image->chunks.tRNS_chunk.alphas_for_palettes[sample];
+                                }
                             }
                         } else if (bit_per_channel == 4) {
                             uint8_t packed = row[j / 2];
                             uint8_t sample = (j % 2) ? (packed & 0x0F) : (packed >> 4);
-                            rt = apng_sample8_to_packed_argb_from_palette(image, sample, 255, &(APNG_PIXEL_BUFFER_AT(image->pixels, i, j)));
+                            uint32_t color;
+                            rt = apng_sample8_to_packed_argb_from_palette(image, sample, 255, &color);
                             if (rt == APNG_FAIL) {
                                 apng_dprintERROR("%s", "Failed to translate unfiltered data to image pixels.");
                                 return APNG_FAIL;
                             }
+                            apng_packed_argb_to_rgba(color, &r, &g, &b, NULL);
+                            if (image->chunks.tRNS_chunk.index != 0) {
+                                if (sample < image->chunks.tRNS_chunk.alphas_for_palettes_count) {
+                                    a = image->chunks.tRNS_chunk.alphas_for_palettes[sample];
+                                }
+                            }
                         } else if (bit_per_channel == 8) {
                             uint8_t sample = row[j];
-                            rt = apng_sample8_to_packed_argb_from_palette(image, sample, 255, &(APNG_PIXEL_BUFFER_AT(image->pixels, i, j)));
+                            uint32_t color;
+                            rt = apng_sample8_to_packed_argb_from_palette(image, sample, 255, &color);
                             if (rt == APNG_FAIL) {
                                 apng_dprintERROR("%s", "Failed to translate unfiltered data to image pixels.");
                                 return APNG_FAIL;
+                            }
+                            apng_packed_argb_to_rgba(color, &r, &g, &b, NULL);
+                            if (image->chunks.tRNS_chunk.index != 0) {
+                                if (sample < image->chunks.tRNS_chunk.alphas_for_palettes_count) {
+                                    a = image->chunks.tRNS_chunk.alphas_for_palettes[sample];
+                                }
                             }
                         } else {
                             apng_dprintERROR("Unsupported indexed-colour bit depth: %zu", bit_per_channel);
@@ -2392,17 +2448,16 @@ APNG_DEF enum Apng_Return_Types apng_IDAT_unfiltered_data_transform_to_pixels(st
                     {
                         size_t idx = i * bytes_per_row + j * bytes_per_pixel;
                         uint8_t value = unfiltered_data[idx + 0];
-                        uint8_t a = unfiltered_data[idx + 1];
-                        APNG_PIXEL_BUFFER_AT(image->pixels, i, j) = apng_rgba_to_packed_argb(value, value, value, a);
+                        r = g = b = value;
+                        a = unfiltered_data[idx + 1];
                     } break;
                     case 6: /* RGBA */
                     {
                         size_t idx = i * bytes_per_row + j * bytes_per_pixel;
-                        uint8_t r = unfiltered_data[idx + 0];
-                        uint8_t g = unfiltered_data[idx + 1];
-                        uint8_t b = unfiltered_data[idx + 2];
-                        uint8_t a = unfiltered_data[idx + 3];
-                        APNG_PIXEL_BUFFER_AT(image->pixels, i, j) = apng_rgba_to_packed_argb(r, g, b, a);
+                        r = unfiltered_data[idx + 0];
+                        g = unfiltered_data[idx + 1];
+                        b = unfiltered_data[idx + 2];
+                        a = unfiltered_data[idx + 3];
                     } break;
                     default:
                     {
@@ -2410,6 +2465,7 @@ APNG_DEF enum Apng_Return_Types apng_IDAT_unfiltered_data_transform_to_pixels(st
                         return APNG_FAIL;
                     }
                 }
+                APNG_PIXEL_BUFFER_AT(image->pixels, i, j) = apng_rgba_to_packed_argb(r, g, b, a);
             }
         }
     }
@@ -3027,7 +3083,38 @@ APNG_DEF enum Apng_Return_Types apng_png_decode(struct Apng_Byte_String file, st
                 image->chunks.bKGD_chunk.index  = chunk_header.index + chunk_header.size;
                 image->chunks.bKGD_chunk.length = chunk_header.length;
                 image->chunks.bKGD_chunk.body   = chunk_data;
-                rt = apng_bKGD_chunk_parse(&image->chunks.bKGD_chunk, image->chunks.IHDR_chunk, &image->chunks.PLTE_chunk);
+                rt = apng_bKGD_chunk_parse(&image->chunks.bKGD_chunk, image->chunks.IHDR_chunk, image->chunks.PLTE_chunk);
+                if (rt == APNG_FAIL) {
+                    apng_dprintWARNING("%s", "Failed to parse bKGD chunk.");
+                    // goto apng_decode_exit;
+                }
+            } break;
+            case APNG_TYPE_tRNS:
+            {
+                if (image->chunks.IHDR_chunk.index == 0) {
+                    rt = APNG_FAIL;
+                    apng_dprintERROR("%s", "IHDR chunk come before bKGD chunk.");
+                    goto apng_decode_exit;
+                }
+                if (image->chunks.PLTE_chunk.index == 0 && image->chunks.IHDR_chunk.color_type == 3) {
+                    rt = APNG_FAIL;
+                    apng_dprintERROR("%s", "PLTE chunk needed for bKGD chunk if color type is 3.");
+                    goto apng_decode_exit;
+                }
+                if (image->chunks.tRNS_chunk.index != 0) {
+                    rt = APNG_FAIL;
+                    apng_dprintERROR("%s", "There are more then one tRNS chunk.");
+                    goto apng_decode_exit;
+                }
+                if (image->chunks.IHDR_chunk.color_type == 4 || image->chunks.IHDR_chunk.color_type == 6) {
+                    rt = APNG_FAIL;
+                    apng_dprintERROR("There should not be a tRNS chunk when color type is %u.", image->chunks.IHDR_chunk.color_type);
+                    goto apng_decode_exit;
+                }
+                image->chunks.tRNS_chunk.index  = chunk_header.index + chunk_header.size;
+                image->chunks.tRNS_chunk.length = chunk_header.length;
+                image->chunks.tRNS_chunk.body   = chunk_data;
+                rt = apng_tRNS_chunk_parse(&image->chunks.tRNS_chunk, image->chunks.IHDR_chunk, image->chunks.PLTE_chunk);
                 if (rt == APNG_FAIL) {
                     apng_dprintWARNING("%s", "Failed to parse bKGD chunk.");
                     // goto apng_decode_exit;
@@ -3091,7 +3178,7 @@ APNG_DEF enum Apng_Return_Types apng_png_decode(struct Apng_Byte_String file, st
             uint32_t background_color = image->chunks.bKGD_chunk.color;
             uint8_t r, g, b, a;
             apng_packed_argb_to_rgba(background_color, &r, &g, &b, &a);
-            if (opt.print_info) apng_dprintINFO("background color: r = %u, g = %u, b = %u, a = %u", r, g, b, a);
+            // if (opt.print_info) apng_dprintINFO("background color: r = %u, g = %u, b = %u, a = %u", r, g, b, a);
             for (size_t i = 0; i < image->pixels.rows; i++) {
                 for (size_t j = 0; j < image->pixels.cols; j++) {
                     uint32_t current_color = APNG_PIXEL_BUFFER_AT(image->pixels, i, j);
@@ -3336,6 +3423,51 @@ APNG_DEF uint8_t apng_sample16_to_u8(uint8_t *sample)
 {
     uint32_t value = ((uint32_t)sample[0] << 8) | (uint32_t)sample[1];
     return (uint8_t)((value * 255u + 32767u) / 65535u);
+}
+
+APNG_DEF enum Apng_Return_Types apng_tRNS_chunk_parse(struct Apng_tRNS_Chunk *chunk, struct Apng_IHDR_Chunk IHDR, struct Apng_PLTE_Chunk PLTE)
+{
+    APNG_ASSERT(chunk->body != NULL);
+    APNG_ASSERT(chunk->index != 0);
+    APNG_ASSERT(chunk->length != 0);
+
+    if (IHDR.color_type == 0 || IHDR.color_type == 4) {
+        uint16_t *p_value = (uint16_t *)&chunk->body[0];
+        chunk->color = apng_rgba_to_packed_argb(
+                                            (uint8_t)apng_color_channel_resample(apng_endian_swap_uint16(*p_value), 256, 1 << IHDR.bit_depth),
+                                            (uint8_t)apng_color_channel_resample(apng_endian_swap_uint16(*p_value), 256, 1 << IHDR.bit_depth),
+                                            (uint8_t)apng_color_channel_resample(apng_endian_swap_uint16(*p_value), 256, 1 << IHDR.bit_depth),
+                                            255
+                                        );
+    } else if (IHDR.color_type == 2 || IHDR.color_type == 6) {
+        uint16_t *p_r = (uint16_t *)&chunk->body[0];
+        uint16_t *p_g = (uint16_t *)&chunk->body[2];
+        uint16_t *p_b = (uint16_t *)&chunk->body[4];
+        chunk->color = apng_rgba_to_packed_argb(
+                                            (uint8_t)apng_color_channel_resample(apng_endian_swap_uint16(*p_r), 256, 1 << IHDR.bit_depth),
+                                            (uint8_t)apng_color_channel_resample(apng_endian_swap_uint16(*p_g), 256, 1 << IHDR.bit_depth),
+                                            (uint8_t)apng_color_channel_resample(apng_endian_swap_uint16(*p_b), 256, 1 << IHDR.bit_depth),
+                                            255
+                                        );
+    } else if (IHDR.color_type == 3) {
+        if (PLTE.index == 0) {
+            apng_dprintWARNING("%s", "PLTE chunk need to be parsed before tRNS chunk.");
+            return APNG_FAIL;
+        }
+        for (size_t i = 0; i < 256; i++) {
+            chunk->alphas_for_palettes[i] = 255;
+        }
+        chunk->alphas_for_palettes_count = 0;
+        for (size_t i = 0; i < PLTE.palettes.length && i < chunk->length; i++) {
+            chunk->alphas_for_palettes[i] = chunk->body[i];
+            chunk->alphas_for_palettes_count++;
+        }
+    } else {
+        apng_dprintWARNING("%s", "Unknown color type.");
+        return APNG_FAIL;
+    }
+
+    return APNG_SUCCESS;
 }
 
 /**

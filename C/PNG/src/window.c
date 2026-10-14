@@ -15,8 +15,8 @@
 struct Apng_PNG_Image image = {0};
 size_t image_index = 0;
 char *file_name[] = {
-    // "../src/test_images/PngSuite/Basic-Formats/basn4a08.png",
-    "../src/test_images/test-png_wiki.png",
+    "../src/test_images/PngSuite/Transparency/tbbn0g04.png",
+    // "../src/test_images/test-png_wiki.png",
 };
 size_t num_of_images = sizeof(file_name) / sizeof(file_name[0]);
 bool print_info = true;
